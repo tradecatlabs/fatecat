@@ -120,6 +120,6 @@ disallow_untyped_defs = false
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = ["bazi_calculator", "utils.*"]
+module = ["bazi_calculator"]
 follow_imports = "skip"
 ignore_missing_imports = true

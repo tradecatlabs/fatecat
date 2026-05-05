@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "purpose": "记录已经从标准报告退役、后续需要以独立新功能重新设计输入契约与输出结构的候选能力。",
+  "standardReportContract": {
+    "status": "locked",
+    "sections": [
+      "免责声明",
+      "赞助支持",
+      "命理排盘报告",
+      "第一卷：先天命格（静态分析）",
+      "第二卷：紫微映象（星盘辅助）",
+      "第三卷：后天运路（动态趋势）",
+      "第四卷：民俗与建议（生活应用）"
+    ]
+  },
+  "futureFeatures": [
+    {
+      "id": "health_tips",
+      "title": "健康预警（五行脏腑/养生提示）",
+      "previousReportBlock": "## 健康预警（五行脏腑/养生提示）",
+      "requiredBeforeProduction": ["独立输入输出契约", "医学与娱乐边界免责声明", "字段级测试"]
+    },
+    {
+      "id": "birth_huangli",
+      "title": "出生日黄历",
+      "previousReportBlock": "## 出生日黄历",
+      "requiredBeforeProduction": ["黄历字段契约", "与命盘主报告的边界说明", "回归样例"]
+    },
+    {
+      "id": "divination_suite",
+      "title": "六爻/梅花/数字起卦/奇门遁甲/大六壬",
+      "previousReportBlock": "## 第五卷：学术参数（隐藏/技术区）",
+      "requiredBeforeProduction": ["事件型问题输入", "起卦时间语义", "各体系独立报告模板"]
+    },
+    {
+      "id": "fengshui",
+      "title": "风水九星",
+      "previousReportBlock": "## 风水九星",
+      "requiredBeforeProduction": ["方位/山向/门向输入契约", "地理参数校验", "独立报告模板"]
+    },
+    {
+      "id": "astro",
+      "title": "天文占星",
+      "previousReportBlock": "## 天文占星",
+      "requiredBeforeProduction": ["占星字段契约", "星历来源说明", "独立报告模板"]
+    },
+    {
+      "id": "advanced_calendar",
+      "title": "高级历法",
+      "previousReportBlock": "## 高级历法",
+      "requiredBeforeProduction": ["历法字段契约", "节假日数据版本", "独立报告模板"]
+    },
+    {
+      "id": "date_selection",
+      "title": "择日推荐",
+      "previousReportBlock": "## 择日推荐",
+      "requiredBeforeProduction": ["用途输入", "日期范围输入", "评分口径测试"]
+    },
+    {
+      "id": "yijing",
+      "title": "易经系统",
+      "previousReportBlock": "## 易经系统",
+      "requiredBeforeProduction": ["起卦方法契约", "卦辞数据来源", "独立报告模板"]
+    },
+    {
+      "id": "name_marriage",
+      "title": "姓名合婚模块",
+      "previousReportBlock": "## 姓名合婚模块",
+      "requiredBeforeProduction": ["姓名输入", "配偶八字输入", "读音/笔画数据源", "字段级测试"]
+    },
+    {
+      "id": "system_appendix",
+      "title": "系统优化与现代化八字",
+      "previousReportBlock": "## 系统优化与现代化八字",
+      "requiredBeforeProduction": ["开发者附录契约", "敏感字段过滤", "单独调试入口"]
+    }
+  ]
+}

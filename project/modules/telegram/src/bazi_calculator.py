@@ -1,5 +1,5 @@
 """
-完整八字排盘计算器 - 100%原生算法驱动
+FateCat 遗留八字排盘装配器 - 复用外部成熟库并输出标准报告所需字段
 
 外部库依赖注入 (相对路径从项目根目录):
 ├── assets/vendor/github/lunar-python-master     # 核心历法库 (强制依赖)
@@ -708,19 +708,12 @@ class BaziCalculator:
         complete_true_solar_time = self.true_solar_detail
         zi_time_analysis = self.zi_time_analysis
 
-        # 姓名合婚模块（可关闭计算）
+        # 姓名合婚需要姓名、配偶八字等独立输入契约；标准排盘不输出占位结果。
         marriageCompatibility = {}
         baziMatching = {}
         nameAnalysis = {}
         fiveGrids = {}
         strokeAnalysis = {}
-        if not hide.get("name_marriage", False):
-            # 合婚/姓名学需要额外参数；当前仅输出模块占位（不做自写算法）
-            marriageCompatibility = {"status": "需要配偶八字", "module": "hehun.py"}
-            baziMatching = {"status": "需要配偶八字", "module": "hehun.py"}
-            nameAnalysis = {"status": "需要姓名输入", "module": "xingming.py"}
-            fiveGrids = {"status": "需要姓名输入", "module": "xingming.py"}
-            strokeAnalysis = {"status": "需要姓名输入", "module": "xingming.py"}
 
         # ====== 大运 / 流年 神煞 ======
         base_day_gan = ec.getDayGan()

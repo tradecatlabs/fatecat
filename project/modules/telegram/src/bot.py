@@ -67,14 +67,10 @@ PROGRESS_ITEMS = [
     "大运流年",
     "流月小运",
     "节气司令",
-    "黄历与真太阳时",
+    "真太阳时",
     "紫微斗数",
-    "风水罗盘",
-    "天文占星",
     "温湿度与拱神",
-    "易经系统",
-    "六爻/梅花/奇门/大六壬",
-    "高级历法与附录",
+    "袁天罡称骨",
 ]
 PROGRESS_TIPS = [
     "五行平衡往往胜过单一旺相。",
@@ -84,10 +80,7 @@ PROGRESS_TIPS = [
     "用神取法先看日主，再看季节寒暖燥湿。",
     "格局不怕破，怕无根；有根则有解。",
     "紫微解读重宫位组合，别孤立看单星。",
-    "风水九星随年变，山向门向都要看。",
-    "占星宫位系统不同，解读要保持一致。",
-    "易经问卦，贵在时机与诚意匹配。",
-    "大六壬重四课三传，奇门重时空格局。",
+    "称骨只作民俗参考，不能替代现实选择。",
 ]
 
 
@@ -804,7 +797,7 @@ async def handle_confirm_callback(update: Update, context: ContextTypes.DEFAULT_
             await acquire_slot()
         # ========== 槽位获取结束 ==========
 
-        msg = await query.edit_message_text(_with_branding_text("⏳ 正在排盘，生成完整报告...", compact=True))
+        msg = await query.edit_message_text(_with_branding_text("⏳ 正在排盘，生成标准报告...", compact=True))
 
         try:
             out_path, filename, ai_path, ai_filename = await asyncio.to_thread(

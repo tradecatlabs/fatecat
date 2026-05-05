@@ -83,10 +83,7 @@ def demo_element_analysis():
 
             print("字符详情:")
             for char_data in result["chars"]:
-                print(
-                    f"  {char_data['char']}: {char_data['strokes']}画, "
-                    f"{char_data['element']}行, 读音: {char_data['sound']}"
-                )
+                print(f"  {char_data['char']}: {char_data['strokes']}画, {char_data['element']}行")
 
             print("五行统计:")
             for element, count in result["elementCount"].items():

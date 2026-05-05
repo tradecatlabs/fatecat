@@ -218,7 +218,7 @@ def suggest_names(xing: str, target_score: int = 80, target_elements=None, limit
 def analyze_name_elements(name: str) -> dict:
     """
     分析姓名的五行分布（基于笔画模5规则）
-    返回：每字笔画/五行/简易读音占位，主导五行，计数。
+    返回：每字笔画/五行，主导五行，计数。
     """
     chars_info = []
     count = {"木": 0, "火": 0, "土": 0, "金": 0, "水": 0}
@@ -231,7 +231,6 @@ def analyze_name_elements(name: str) -> dict:
                 "char": c,
                 "strokes": strokes,
                 "element": elem,
-                "sound": "-",  # 无读音库，留占位
             }
         )
     dominant = max(count.items(), key=lambda x: x[1])[0] if chars_info else ""

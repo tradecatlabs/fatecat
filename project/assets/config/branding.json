@@ -1,6 +1,6 @@
 {
   "name": "交易猫 TradeCat",
-  "heroTitle": "交易猫 TradeCat｜世界最强的专业命理排盘与 AI 命理分析基础设施",
+  "heroTitle": "交易猫 TradeCat｜专业命理排盘与 AI 命理分析基础设施",
   "sponsorText": "本项目由交易猫 TradeCat 赞助与支持。",
   "tagline": "先用交易猫专业排盘系统完成结构化排盘，再交给 AI 深度分析，减少胡编乱造，让 AI 命理分析真正可用。",
   "tradecatRepo": "https://github.com/tukuaiai/tradecat",
@@ -8,7 +8,7 @@
   "ca": "0x8a99b8d53eff6bc331af529af74ad267f3167777",
   "disclaimerTitle": "⚠️ 免责声明",
   "disclaimerText": "本项目及AI分析结果仅供传统文化研究、算法测试与娱乐参考。命理学非精密科学，命运掌握在自己手中。使用者因轻信或误读本程序结果而产生的任何心理、财务及生活决策后果，本开源项目及开发者概不负责。",
-  "cliBanner": "交易猫 TradeCat｜世界最强的专业命理排盘与 AI 命理分析基础设施",
+  "cliBanner": "交易猫 TradeCat｜专业命理排盘与 AI 命理分析基础设施",
   "telegramFooter": "本项目由交易猫 TradeCat 赞助与支持。先用交易猫专业排盘，再交给 AI 深度分析。",
   "reportFooterTitle": "赞助支持"
 }

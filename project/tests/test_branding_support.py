@@ -45,7 +45,7 @@ def test_build_branding_text_puts_disclaimer_before_branding():
     text = build_branding_text(compact=False)
 
     assert text.startswith("⚠️ 免责声明")
-    assert "交易猫 TradeCat｜世界最强的专业命理排盘与 AI 命理分析基础设施" in text
+    assert "交易猫 TradeCat｜专业命理排盘与 AI 命理分析基础设施" in text
 
 
 def test_full_report_puts_sponsor_before_report_and_drops_extension_blocks():
@@ -82,3 +82,25 @@ def test_full_report_puts_sponsor_before_report_and_drops_extension_blocks():
     ]
     for section in removed_sections:
         assert section not in text
+
+
+def test_name_marriage_candidate_fields_do_not_emit_placeholders():
+    from datetime import datetime
+
+    from bazi_calculator import BaziCalculator
+    from report_generator import DEFAULT_HIDE
+
+    hide = dict(DEFAULT_HIDE)
+    hide["name_marriage"] = False
+    result = BaziCalculator(
+        datetime(1990, 1, 1, 8, 0, 0),
+        "male",
+        116.4074,
+        latitude=39.9042,
+        name="测试命主",
+        birth_place="北京市",
+        use_true_solar_time=True,
+    ).calculate(hide=hide)
+
+    for field in ["marriageCompatibility", "baziMatching", "nameAnalysis", "fiveGrids", "strokeAnalysis"]:
+        assert result[field] == {}
