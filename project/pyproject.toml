@@ -56,6 +56,11 @@ packages = ["modules/fate_core/src/fate_core"]
 target-version = "py312"
 line-length = 120
 src = ["modules", "tests"]
+extend-exclude = [
+    "assets/vendor",
+    "modules/telegram/output",
+    "runtime",
+]
 
 [tool.ruff.lint]
 select = [
@@ -108,7 +113,13 @@ exclude_lines = [
 # ==================== MyPy ====================
 [tool.mypy]
 python_version = "3.12"
+mypy_path = ["modules/fate_core/src", "modules/telegram/src"]
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["bazi_calculator", "utils.*"]
+follow_imports = "skip"
 ignore_missing_imports = true

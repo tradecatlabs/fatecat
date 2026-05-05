@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import List, Optional
 
 from .engine import build_raw
 from .mapper import map_factor
@@ -18,11 +17,11 @@ __all__ = [
 def generate_factor(
     *,
     item: str,
-    timestamp: Optional[datetime | str] = None,
+    timestamp: datetime | str | None = None,
     method: str = "seeded",
-    seed: Optional[str | int] = None,
-    cnts: Optional[List[int]] = None,
-    cycle_hint: Optional[str] = None,
+    seed: str | int | None = None,
+    cnts: list[int] | None = None,
+    cycle_hint: str | None = None,
 ) -> FactorOutput:
     """生成六爻因子（主入口）。
 

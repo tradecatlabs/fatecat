@@ -1,30 +1,37 @@
 """八字排盘 Telegram Bot"""
-import os
-import sys
-import re
+
 import asyncio
-import time
+import json
 import logging
+import os
+import re
+import sys
+import time
+from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from datetime import datetime
-import json
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand, InputMediaDocument
-from telegram.constants import ParseMode
-from telegram.error import RetryAfter, NetworkError, TimedOut
-from telegram.ext import (Application, CommandHandler, CallbackQueryHandler,
-                          MessageHandler, filters, ContextTypes, ConversationHandler)
-from dotenv import load_dotenv
+
+from _paths import LOGS_DIR, PROMPTS_DIR, QUEUE_DIR, TXT_DIR, ensure_dirs, get_env_file, startup_check
 from branding import (
     append_branding_markdown,
     append_branding_text,
     get_branding_payload,
 )
-from utils.timezone import now_cn, fmt_cn
-from _paths import (
-    get_env_file, LOGS_DIR, TXT_DIR, QUEUE_DIR, PROMPTS_DIR,
-    ensure_dirs, startup_check
+from dotenv import load_dotenv
+from telegram.constants import ParseMode
+from telegram.error import NetworkError, RetryAfter, TimedOut
+from telegram.ext import (
+    Application,
+    CallbackQueryHandler,
+    CommandHandler,
+    ContextTypes,
+    ConversationHandler,
+    MessageHandler,
+    filters,
 )
+from utils.timezone import fmt_cn, now_cn
+
+from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaDocument, Update
 
 # 启动检查（目录、依赖、配置）
 startup_check()
@@ -35,12 +42,13 @@ ADMIN_CHAT_ID = (os.getenv("FATE_ADMIN_USER_IDS") or "").split(",")[0] or None
 BOT_PROXY_URL = (os.getenv("FATE_BOT_PROXY_URL") or "").strip() or None
 BOT_DRY_RUN = (os.getenv("FATE_BOT_DRY_RUN") or "").strip().lower() in {"1", "true", "yes", "on"}
 
-from bazi_calculator import BaziCalculator
-from report_generator import generate_full_report
-from report_generator import DEFAULT_HIDE as REPORT_HIDE
-from location import get as get_location, get_coords
-import db_v2 as db
-from rate_limiter import acquire_slot, release_slot, get_queue_status
+import db_v2 as db  # noqa: E402
+from bazi_calculator import BaziCalculator  # noqa: E402
+from location import get as get_location  # noqa: E402
+from location import get_coords  # noqa: E402
+from rate_limiter import acquire_slot, get_queue_status, release_slot  # noqa: E402
+from report_generator import DEFAULT_HIDE as REPORT_HIDE  # noqa: E402
+from report_generator import generate_full_report  # noqa: E402
 
 # 自动初始化数据库
 db.ensure_db()
@@ -133,6 +141,7 @@ def main_kb(gender="male"):
         ]
     )
 
+
 def confirm_kb():
     """确认键盘"""
     return InlineKeyboardMarkup(
@@ -144,6 +153,7 @@ def confirm_kb():
             _brand_button_row(),
         ]
     )
+
 
 def result_kb():
     return InlineKeyboardMarkup(
@@ -157,8 +167,8 @@ def result_kb():
 async def _send_result(chat_id, context, out_path, filename, ai_path, ai_filename, d):
     """统一的结果发送（文本+附件），便于复用"""
     now_str = fmt_cn(now_cn())
-    name_display = d.get('name') or '命主'
-    gender_display = '乾造' if d.get('gender','male')=='male' else '坤造'
+    name_display = d.get("name") or "命主"
+    gender_display = "乾造" if d.get("gender", "male") == "male" else "坤造"
     header = f"""🎲 {name_display} {gender_display}
 报告见附件（AI分析版）
 ```
@@ -222,14 +232,14 @@ def build_main_msg(gender="male"):
 def build_confirm_msg(d):
     return _with_branding_markdown(
         (
-        "📋 *确认信息*\n"
-        "```\n"
-        f"📅 日期：{d['birth_date']}\n"
-        f"⏰ 时间：{d['birth_time']}\n"
-        f"📍 地点：{d.get('birth_place', '北京')}\n"
-        f"👤 姓名：{d.get('name') or '匿名'}\n"
-        "```\n"
-        "确认无误请点击开始排盘 ⏬"
+            "📋 *确认信息*\n"
+            "```\n"
+            f"📅 日期：{d['birth_date']}\n"
+            f"⏰ 时间：{d['birth_time']}\n"
+            f"📍 地点：{d.get('birth_place', '北京')}\n"
+            f"👤 姓名：{d.get('name') or '匿名'}\n"
+            "```\n"
+            "确认无误请点击开始排盘 ⏬"
         ),
         compact=True,
     )
@@ -253,15 +263,15 @@ def parse_input(text: str):
 
     def _strip_label(s: str) -> str:
         s = to_halfwidth(s).strip()
-        return re.sub(r'^[^0-9\-\.\/]+[:：]\s*', '', s)  # 只剥掉非数字开头的标签
+        return re.sub(r"^[^0-9\-\.\/]+[:：]\s*", "", s)  # 只剥掉非数字开头的标签
 
     def parse_date(raw: str):
         raw = to_halfwidth(raw)
-        raw = re.sub(r'[年月\.\/]', '-', raw)
-        raw = re.sub(r'\s+', '', raw)
-        m = re.match(r'^(\d{4})-(\d{1,2})-(\d{1,2})$', raw)
+        raw = re.sub(r"[年月\.\/]", "-", raw)
+        raw = re.sub(r"\s+", "", raw)
+        m = re.match(r"^(\d{4})-(\d{1,2})-(\d{1,2})$", raw)
         if not m:
-            m = re.match(r'^(\d{4})(\d{1,2})(\d{1,2})$', raw)
+            m = re.match(r"^(\d{4})(\d{1,2})(\d{1,2})$", raw)
         if not m:
             return None, "日期格式无效，请用 YYYY-MM-DD"
         y, mo, d = int(m.group(1)), int(m.group(2)), int(m.group(3))
@@ -281,14 +291,14 @@ def parse_input(text: str):
             offset = 12
         elif "凌晨" in raw:
             offset = 0
-        raw = re.sub(r'[时分秒]', ':', raw)
+        raw = re.sub(r"[时分秒]", ":", raw)
         raw = raw.replace("：", ":")
         # 提取数字
-        m = re.search(r'(\d{1,2}):(\d{1,2})', raw)
+        m = re.search(r"(\d{1,2}):(\d{1,2})", raw)
         if not m:
-            m = re.search(r'(\d{1,2})点(?:(\d{1,2}))?', raw)
+            m = re.search(r"(\d{1,2})点(?:(\d{1,2}))?", raw)
         if not m:
-            m = re.match(r'^(\d{1,2})(\d{2})$', raw)
+            m = re.match(r"^(\d{1,2})(\d{2})$", raw)
         if not m:
             return None, "时间格式无效，请用 HH:MM"
         h = int(m.group(1))
@@ -317,7 +327,7 @@ def parse_input(text: str):
             return None, "姓名过长"
         return raw, None
 
-    lines = [l.strip() for l in text.splitlines() if l.strip()]
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
     if len(lines) < 4:
         return None, None, None, None, "格式错误：必须四行（日期/时间/地点/姓名）"
 
@@ -356,52 +366,52 @@ def format_result(d, r, birth_dt):
         if isinstance(v, dict):
             return v.get("count", v.get("percentage", 0))
         return v if v not in (None, "") else 0
-    
-    text = f"""🔮 *{d.get('name') or '匿名'}* {'乾造' if d['gender']=='male' else '坤造'}
 
-📅 {d['birth_date']} {d['birth_time']}（{d.get('birth_place','北京')}）
-农历: {bi.get('lunar', '')}
-真太阳时: {bi.get('trueSolarTime', '')}
-生肖: {bi.get('zodiac', '')} | 星座: {bi.get('constellation', '')} | 星宿: {bi.get('xingXiu', '')}
+    text = f"""🔮 *{d.get("name") or "匿名"}* {"乾造" if d["gender"] == "male" else "坤造"}
+
+📅 {d["birth_date"]} {d["birth_time"]}（{d.get("birth_place", "北京")}）
+农历: {bi.get("lunar", "")}
+真太阳时: {bi.get("trueSolarTime", "")}
+生肖: {bi.get("zodiac", "")} | 星座: {bi.get("constellation", "")} | 星宿: {bi.get("xingXiu", "")}
 
 🀄 *四柱*
 ```
      年柱   月柱   日柱   时柱
-干支  {fp['year']['fullName']}   {fp['month']['fullName']}   {fp['day']['fullName']}   {fp['hour']['fullName']}
-十神  {tg['year']['stem']:4} {tg['month']['stem']:4} 日主   {tg['hour']['stem']}
-长生  {tw.get('year',''):4} {tw.get('month',''):4} {tw.get('day',''):4} {tw.get('hour','')}
-空亡  {vi.get('year',{}).get('kong',''):4} {vi.get('month',{}).get('kong',''):4} {vi.get('day',{}).get('kong',''):4} {vi.get('hour',{}).get('kong','')}
+干支  {fp["year"]["fullName"]}   {fp["month"]["fullName"]}   {fp["day"]["fullName"]}   {fp["hour"]["fullName"]}
+十神  {tg["year"]["stem"]:4} {tg["month"]["stem"]:4} 日主   {tg["hour"]["stem"]}
+长生  {tw.get("year", ""):4} {tw.get("month", ""):4} {tw.get("day", ""):4} {tw.get("hour", "")}
+空亡  {vi.get("year", {}).get("kong", ""):4} {vi.get("month", {}).get("kong", ""):4} {vi.get("day", {}).get("kong", ""):4} {vi.get("hour", {}).get("kong", "")}
 ```
-纳音: {fp['year']['nayin']}|{fp['month']['nayin']}|{fp['day']['nayin']}|{fp['hour']['nayin']}
+纳音: {fp["year"]["nayin"]}|{fp["month"]["nayin"]}|{fp["day"]["nayin"]}|{fp["hour"]["nayin"]}
 
-🔥 *五行* 木{wx_count('wood','木')} 火{wx_count('fire','火')} 土{wx_count('earth','土')} 金{wx_count('metal','金')} 水{wx_count('water','水')}
-日主: {dm['stem']}({dm.get('elementCn','')}) {dm.get('strength','中和')} | 自坐: {dm.get('selfSitting','')}
+🔥 *五行* 木{wx_count("wood", "木")} 火{wx_count("fire", "火")} 土{wx_count("earth", "土")} 金{wx_count("metal", "金")} 水{wx_count("water", "水")}
+日主: {dm["stem"]}({dm.get("elementCn", "")}) {dm.get("strength", "中和")} | 自坐: {dm.get("selfSitting", "")}
 
-🏛️ 胎元{sp.get('taiYuan',{}).get('pillar','')} 胎息{sp.get('taiXi',{}).get('pillar','')} 命宫{sp.get('mingGong',{}).get('pillar','')} 身宫{sp.get('shenGong',{}).get('pillar','')}
-📐 格局: {geju.get('main','')} | 🎯 司令: {siling.get('current','')}"""
+🏛️ 胎元{sp.get("taiYuan", {}).get("pillar", "")} 胎息{sp.get("taiXi", {}).get("pillar", "")} 命宫{sp.get("mingGong", {}).get("pillar", "")} 身宫{sp.get("shenGong", {}).get("pillar", "")}
+📐 格局: {geju.get("main", "")} | 🎯 司令: {siling.get("current", "")}"""
 
     # 神煞
     all_spirits = []
-    for p in ['year', 'month', 'day', 'hour']:
-        all_spirits.extend(spirits.get('byPillar', {}).get(p, []))
+    for p in ["year", "month", "day", "hour"]:
+        all_spirits.extend(spirits.get("byPillar", {}).get(p, []))
     if all_spirits:
         text += f"\n✨ *神煞* {', '.join(list(dict.fromkeys(all_spirits)))}"
 
     # 小运
-    xiao_yun = r.get('xiaoYun', [])
+    xiao_yun = r.get("xiaoYun", [])
     if xiao_yun:
-        text += f"\n\n👶 *小运* " + " ".join([f"{xy['age']}岁{xy['ganZhi']}" for xy in xiao_yun])
+        text += "\n\n👶 *小运* " + " ".join([f"{xy['age']}岁{xy['ganZhi']}" for xy in xiao_yun])
 
-    text += f"\n\n🚀 *大运* {mf['direction']} {mf['startAge']}岁起 ({jy.get('description','')})"
-    text += "\n" + " → ".join([f"{p['age']}{p['fullName']}" for p in mf['pillars']])
-    
-    text += "\n\n📆 *流年* " + " ".join([f"{p['year']}{p['fullName']}" for p in r['annualFortune']])
-    
+    text += f"\n\n🚀 *大运* {mf['direction']} {mf['startAge']}岁起 ({jy.get('description', '')})"
+    text += "\n" + " → ".join([f"{p['age']}{p['fullName']}" for p in mf["pillars"]])
+
+    text += "\n\n📆 *流年* " + " ".join([f"{p['year']}{p['fullName']}" for p in r["annualFortune"]])
+
     # 称骨命卦
-    bone = r.get('boneWeight', {})
-    gua = r.get('mingGua', {})
-    text += f"\n\n⚖️ 称骨: {bone.get('weightCn','')} | 🧭 命卦: {gua.get('guaName','')}({gua.get('group','')})"
-    
+    bone = r.get("boneWeight", {})
+    gua = r.get("mingGua", {})
+    text += f"\n\n⚖️ 称骨: {bone.get('weightCn', '')} | 🧭 命卦: {gua.get('guaName', '')}({gua.get('group', '')})"
+
     return text
 
 
@@ -420,7 +430,7 @@ async def _send_with_retry(send_fn, *, max_retries=4, base_delay=2, max_delay=60
             await asyncio.sleep(wait)
             last_exc = e
         except (NetworkError, TimedOut) as e:
-            wait = min(max_delay, base_delay * (2 ** attempt))
+            wait = min(max_delay, base_delay * (2**attempt))
             if on_retry:
                 await on_retry(f"网络异常，{wait}s 后重试… ({attempt + 1}/{max_retries})")
             logger.warning(f"[SEND] NetworkError {e} wait={wait}s attempt={attempt + 1}/{max_retries}")
@@ -433,9 +443,10 @@ async def _send_with_retry(send_fn, *, max_retries=4, base_delay=2, max_delay=60
 
 async def _send_media_group_with_retry(*, context, chat_id, paths, on_retry=None, max_retries=4):
     """发送 media group，失败自动重试，每次重试重新打开文件句柄"""
+
     def _open_media():
         files = [p.open("rb") for p, _ in paths]
-        media = [InputMediaDocument(media=f, filename=name) for f, (_, name) in zip(files, paths)]
+        media = [InputMediaDocument(media=f, filename=name) for f, (_, name) in zip(files, paths, strict=False)]
         return files, media
 
     last_exc = None
@@ -451,7 +462,7 @@ async def _send_media_group_with_retry(*, context, chat_id, paths, on_retry=None
             await asyncio.sleep(wait)
             last_exc = e
         except (NetworkError, TimedOut) as e:
-            wait = min(60, 2 ** attempt)
+            wait = min(60, 2**attempt)
             if on_retry:
                 await on_retry(f"网络异常，{wait}s 后重试… ({attempt + 1}/{max_retries})")
             logger.warning(f"[MEDIA] NetworkError {e} wait={wait}s attempt={attempt + 1}/{max_retries}")
@@ -461,7 +472,7 @@ async def _send_media_group_with_retry(*, context, chat_id, paths, on_retry=None
             for f in files:
                 try:
                     f.close()
-                except:
+                except Exception:
                     pass
     if last_exc:
         logger.error(f"[MEDIA] 重试失败，最终异常: {last_exc}")
@@ -481,7 +492,9 @@ def _make_retry_notifier(context: ContextTypes.DEFAULT_TYPE, chat_id: int):
         except Exception as e:
             # 提示失败不影响主流程
             logger.warning(f"[WARN] retry notifier failed: {e}")
+
     return notify
+
 
 # ==================== 伪进度调度 ====================
 def _build_progress_text(state, elapsed):
@@ -499,14 +512,14 @@ def _build_progress_text(state, elapsed):
     tip = tips[int(elapsed // 7) % len(tips)] if tips else ""
     return _with_branding_markdown(
         (
-        "⏳ 正在排盘（计算中）\n"
-        "```\n"
-        f"步骤 {step + 1}/{len(items)}：{items[step]}\n"
-        f"已用时 {int(elapsed)}s / 预计 {target}s\n"
-        f"进度：{percent}%\n"
-        f"已完成：{', '.join(done) if done else '准备中'}\n"
-        "```\n"
-        f"命理小知识：{tip}"
+            "⏳ 正在排盘（计算中）\n"
+            "```\n"
+            f"步骤 {step + 1}/{len(items)}：{items[step]}\n"
+            f"已用时 {int(elapsed)}s / 预计 {target}s\n"
+            f"进度：{percent}%\n"
+            f"已完成：{', '.join(done) if done else '准备中'}\n"
+            "```\n"
+            f"命理小知识：{tip}"
         ),
         compact=True,
     )
@@ -516,14 +529,14 @@ async def _finalize_progress_send(state, context: ContextTypes.DEFAULT_TYPE):
     chat_id = state["chat_id"]
     message_id = state["message_id"]
     d = state["data"]
-    
+
     # ========== 释放计算槽位 ==========
     try:
         release_slot()
     except Exception:
         pass
     # ========== 槽位释放结束 ==========
-    
+
     try:
         out_path, filename, ai_path, ai_filename = await state["task"]
     except Exception as e:
@@ -535,8 +548,8 @@ async def _finalize_progress_send(state, context: ContextTypes.DEFAULT_TYPE):
         return
 
     now_str = fmt_cn(now_cn())
-    name_display = d.get('name') or '命主'
-    gender_display = '乾造' if d.get('gender','male')=='male' else '坤造'
+    name_display = d.get("name") or "命主"
+    gender_display = "乾造" if d.get("gender", "male") == "male" else "坤造"
     header = f"""🎲 {name_display} {gender_display}
 报告见附件
 ```
@@ -561,7 +574,6 @@ https://x.com/i/grok
         text=_with_branding_text("✅ 排盘完成，报告已发送。", compact=True),
     )
 
-    notifier = _make_retry_notifier(context, chat_id)
     try:
         await _send_result(
             chat_id=chat_id,
@@ -573,17 +585,19 @@ https://x.com/i/grok
             d=d,
         )
     except Exception as send_err:
-        _enqueue_send_task({
-            "type": "media_group",
-            "chat_id": chat_id,
-            "header": header,
-            "parse_mode": "Markdown",
-            "files": [
-                (str(out_path), filename),
-                (str(ai_path), ai_filename),
-            ],
-            "queued_at": now_cn().isoformat(),
-        })
+        _enqueue_send_task(
+            {
+                "type": "media_group",
+                "chat_id": chat_id,
+                "header": header,
+                "parse_mode": "Markdown",
+                "files": [
+                    (str(out_path), filename),
+                    (str(ai_path), ai_filename),
+                ],
+                "queued_at": now_cn().isoformat(),
+            }
+        )
         await context.bot.send_message(
             chat_id=chat_id,
             text=_with_branding_text(f"⚠️ 排盘已生成但发送失败，已加入补发队列。错误: {send_err}", compact=True),
@@ -654,31 +668,36 @@ async def _process_send_queue(context: ContextTypes.DEFAULT_TYPE):
     for task in tasks:
         try:
             if task.get("type") == "text":
+                chat_id = task["chat_id"]
+                text = task["text"]
+                parse_mode = task.get("parse_mode")
                 await _send_with_retry(
-                    lambda: context.bot.send_message(
-                        chat_id=task["chat_id"],
-                        text=task["text"],
-                        parse_mode=task.get("parse_mode"),
+                    lambda chat_id=chat_id, text=text, parse_mode=parse_mode: context.bot.send_message(
+                        chat_id=chat_id,
+                        text=text,
+                        parse_mode=parse_mode,
                     ),
-                    on_retry=_make_retry_notifier(context, task["chat_id"]),
+                    on_retry=_make_retry_notifier(context, chat_id),
                 )
             elif task.get("type") == "media_group":
+                chat_id = task["chat_id"]
+                parse_mode = task.get("parse_mode")
                 header = task.get("header")
                 if header:
                     await _send_with_retry(
-                        lambda: context.bot.send_message(
-                            chat_id=task["chat_id"],
+                        lambda chat_id=chat_id, header=header, parse_mode=parse_mode: context.bot.send_message(
+                            chat_id=chat_id,
                             text=header,
-                            parse_mode=task.get("parse_mode"),
+                            parse_mode=parse_mode,
                         ),
-                        on_retry=_make_retry_notifier(context, task["chat_id"]),
+                        on_retry=_make_retry_notifier(context, chat_id),
                     )
                 paths = [(Path(p), name) for p, name in task.get("files", [])]
                 await _send_media_group_with_retry(
                     context=context,
-                    chat_id=task["chat_id"],
+                    chat_id=chat_id,
                     paths=paths,
-                    on_retry=_make_retry_notifier(context, task["chat_id"]),
+                    on_retry=_make_retry_notifier(context, chat_id),
                 )
             logger.info(f"[QUEUE] 补发成功 type={task.get('type')} chat_id={task.get('chat_id')}")
         except Exception as e:
@@ -690,11 +709,7 @@ async def _process_send_queue(context: ContextTypes.DEFAULT_TYPE):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
     context.user_data["gender"] = "male"
-    await update.message.reply_text(
-        build_main_msg("male"), 
-        parse_mode="Markdown", 
-        reply_markup=main_kb("male")
-    )
+    await update.message.reply_text(build_main_msg("male"), parse_mode="Markdown", reply_markup=main_kb("male"))
     return INPUT
 
 
@@ -705,7 +720,9 @@ async def handle_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
     date_str, time_str, place, name, err = parse_input(text)
     if err:
-        await update.message.reply_text(_with_branding_text(f"❌ {err}\n请按模板逐行输入：日期/时间/地点/姓名", compact=True))
+        await update.message.reply_text(
+            _with_branding_text(f"❌ {err}\n请按模板逐行输入：日期/时间/地点/姓名", compact=True)
+        )
         return INPUT
     if not (date_str and time_str and place and name):
         await update.message.reply_text(_with_branding_text("❌ 输入缺失，请按模板逐行输入", compact=True))
@@ -714,24 +731,17 @@ async def handle_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # 地点校验（模糊命中），否则退回主菜单
     coords = get_coords(place)
     if coords is None:
-        await update.message.reply_text(_with_branding_text("❌ 未匹配到地点，请输入中国境内地名（如“北京市海淀区”）", compact=True))
-        context.user_data.clear()
         await update.message.reply_text(
-            build_main_msg("male"),
-            parse_mode="Markdown",
-            reply_markup=main_kb("male")
+            _with_branding_text("❌ 未匹配到地点，请输入中国境内地名（如“北京市海淀区”）", compact=True)
         )
+        context.user_data.clear()
+        await update.message.reply_text(build_main_msg("male"), parse_mode="Markdown", reply_markup=main_kb("male"))
         return INPUT
-    
-    context.user_data.update({
-        "birth_date": date_str, "birth_time": time_str,
-        "birth_place": place, "name": name
-    })
-    
+
+    context.user_data.update({"birth_date": date_str, "birth_time": time_str, "birth_place": place, "name": name})
+
     await update.message.reply_text(
-        build_confirm_msg(context.user_data),
-        parse_mode="Markdown",
-        reply_markup=confirm_kb()
+        build_confirm_msg(context.user_data), parse_mode="Markdown", reply_markup=confirm_kb()
     )
     return CONFIRM
 
@@ -740,18 +750,14 @@ async def handle_main_callback(update: Update, context: ContextTypes.DEFAULT_TYP
     """主菜单回调 - 切换性别"""
     query = update.callback_query
     await query.answer("处理中...")
-    
+
     if query.data == "g_male":
         context.user_data["gender"] = "male"
     elif query.data == "g_female":
         context.user_data["gender"] = "female"
-    
+
     gender = context.user_data.get("gender", "male")
-    await query.edit_message_text(
-        build_main_msg(gender),
-        parse_mode="Markdown",
-        reply_markup=main_kb(gender)
-    )
+    await query.edit_message_text(build_main_msg(gender), parse_mode="Markdown", reply_markup=main_kb(gender))
     return INPUT
 
 
@@ -761,22 +767,18 @@ async def handle_confirm_callback(update: Update, context: ContextTypes.DEFAULT_
     await query.answer("处理中...")
     if "gender" not in context.user_data:
         context.user_data["gender"] = "male"
-    
+
     if query.data == "edit":
         gender = context.user_data.get("gender", "male")
-        await query.edit_message_text(
-            build_main_msg(gender),
-            parse_mode="Markdown",
-            reply_markup=main_kb(gender)
-        )
+        await query.edit_message_text(build_main_msg(gender), parse_mode="Markdown", reply_markup=main_kb(gender))
         return INPUT
-    
+
     if query.data == "calc":
         d = context.user_data
         d.setdefault("gender", "male")
         user_id = update.effective_user.id
-        is_admin = (str(update.effective_chat.id) == str(ADMIN_CHAT_ID))
-        
+        is_admin = str(update.effective_chat.id) == str(ADMIN_CHAT_ID)
+
         try:
             lng, lat = get_location(d.get("birth_place", ""))
         except Exception:
@@ -788,7 +790,7 @@ async def handle_confirm_callback(update: Update, context: ContextTypes.DEFAULT_
             )
             return INPUT
 
-        is_admin = (str(update.effective_chat.id) == str(ADMIN_CHAT_ID))
+        is_admin = str(update.effective_chat.id) == str(ADMIN_CHAT_ID)
 
         # ========== 获取计算槽位 ==========
         if not is_admin:
@@ -796,7 +798,7 @@ async def handle_confirm_callback(update: Update, context: ContextTypes.DEFAULT_
             if status["queue_size"] >= status["queue_max"]:
                 await query.edit_message_text(
                     _with_branding_text("⏳ 服务器繁忙，请稍后再试\n\n发送 /paipan 重试", compact=True),
-                    reply_markup=result_kb()
+                    reply_markup=result_kb(),
                 )
                 return ConversationHandler.END
             await acquire_slot()
@@ -839,8 +841,8 @@ async def handle_confirm_callback(update: Update, context: ContextTypes.DEFAULT_
             )
         except Exception as send_err:
             now_str = fmt_cn(now_cn())
-            name_display = d.get('name') or '命主'
-            gender_display = '乾造' if d.get('gender','male')=='male' else '坤造'
+            name_display = d.get("name") or "命主"
+            gender_display = "乾造" if d.get("gender", "male") == "male" else "坤造"
             header = f"""🎲 {name_display} {gender_display}
 报告见附件
 ```
@@ -858,17 +860,19 @@ https://x.com/i/grok
 
 ⏱️ 北京时间：{now_str}"""
             header = _with_branding_markdown(header, compact=False)
-            _enqueue_send_task({
-                "type": "media_group",
-                "chat_id": update.effective_chat.id,
-                "header": header,
-                "parse_mode": "Markdown",
-                "files": [
-                    (str(out_path), filename),
-                    (str(ai_path), ai_filename),
-                ],
-                "queued_at": now_cn().isoformat(),
-            })
+            _enqueue_send_task(
+                {
+                    "type": "media_group",
+                    "chat_id": update.effective_chat.id,
+                    "header": header,
+                    "parse_mode": "Markdown",
+                    "files": [
+                        (str(out_path), filename),
+                        (str(ai_path), ai_filename),
+                    ],
+                    "queued_at": now_cn().isoformat(),
+                }
+            )
             await context.bot.edit_message_text(
                 chat_id=update.effective_chat.id,
                 message_id=msg.message_id,
@@ -884,7 +888,7 @@ https://x.com/i/grok
             except Exception as status_err:
                 logger.warning(f"[SEND] 结果已发送，但状态消息更新失败: {status_err}")
         return ConversationHandler.END
-    
+
     return CONFIRM
 
 
@@ -903,12 +907,14 @@ def _calc_and_save_report(d: dict, lng: float, lat: float, user_id: str):
         birth_place=d.get("birth_place"),
     ).calculate(hide=REPORT_HIDE)
     calc_ms = int((time.monotonic() - t0) * 1000)
-    
+
     report_txt = generate_full_report(result, hide=REPORT_HIDE)
 
     TXT_DIR.mkdir(parents=True, exist_ok=True)
     gender_cn = "男" if d["gender"] == "male" else "女"
-    filename = f"{d['birth_date']}-{d['birth_time']}-{d.get('birth_place','未知')}-{d.get('name') or '命主'}-{gender_cn}.txt".replace(" ", "")
+    filename = f"{d['birth_date']}-{d['birth_time']}-{d.get('birth_place', '未知')}-{d.get('name') or '命主'}-{gender_cn}.txt".replace(
+        " ", ""
+    )
     out_path = TXT_DIR / filename
     out_path.write_text(report_txt, encoding="utf-8")
 
@@ -920,10 +926,22 @@ def _calc_and_save_report(d: dict, lng: float, lat: float, user_id: str):
     ai_path = TXT_DIR / ai_filename
     ai_path.write_text(ai_report_txt, encoding="utf-8")
 
-    db.save_record(user_id=str(user_id), biz_type="bazi", name=d.get("name"),
-                   gender=d["gender"], calendar_type="solar", birth_date=d["birth_date"],
-                   birth_time=d["birth_time"], birth_place=d.get("birth_place", "北京"),
-                   longitude=lng, latitude=lat, dst=0, true_solar=1, early_zi=0, biz_data=result)
+    db.save_record(
+        user_id=str(user_id),
+        biz_type="bazi",
+        name=d.get("name"),
+        gender=d["gender"],
+        calendar_type="solar",
+        birth_date=d["birth_date"],
+        birth_time=d["birth_time"],
+        birth_place=d.get("birth_place", "北京"),
+        longitude=lng,
+        latitude=lat,
+        dst=0,
+        true_solar=1,
+        early_zi=0,
+        biz_data=result,
+    )
 
     total_ms = int((time.monotonic() - t0) * 1000)
     logger.info(f"[PERF] calc+report user={user_id} calc={calc_ms}ms total={total_ms}ms")
@@ -940,7 +958,7 @@ async def handle_restart(update: Update, context: ContextTypes.DEFAULT_TYPE):
         chat_id=update.effective_chat.id,
         text=build_main_msg("male"),
         parse_mode="Markdown",
-        reply_markup=main_kb("male")
+        reply_markup=main_kb("male"),
     )
     return INPUT
 
@@ -954,12 +972,7 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     now_str = fmt_cn(now_cn())
     await update.message.reply_text(
         _with_branding_markdown(
-            "🤡 可用命令\n"
-            "```\n"
-            "/start 进入排盘\n"
-            "/help  查看帮助\n"
-            "```\n"
-            f"⏱️ 北京时间：{now_str}",
+            f"🤡 可用命令\n```\n/start 进入排盘\n/help  查看帮助\n```\n⏱️ 北京时间：{now_str}",
             compact=False,
         ),
         parse_mode=ParseMode.MARKDOWN,
@@ -972,12 +985,14 @@ def main() -> int:
     if not token:
         print(_with_branding_text("错误: 未设置 FATE_BOT_TOKEN (请在 assets/config/.env 中配置)", compact=True))
         return 1
-    
+
     async def post_init(app: Application):
-        await app.bot.set_my_commands([
-            BotCommand("start", "开始/重新排盘"),
-            BotCommand("help", "查看帮助"),
-        ])
+        await app.bot.set_my_commands(
+            [
+                BotCommand("start", "开始/重新排盘"),
+                BotCommand("help", "查看帮助"),
+            ]
+        )
 
     builder = (
         Application.builder()
@@ -1007,7 +1022,7 @@ def main() -> int:
             builder = builder.get_updates_proxy_url(BOT_PROXY_URL)
 
     app = builder.build()
-    
+
     async def health_check(context: ContextTypes.DEFAULT_TYPE):
         app_ctx = context.application
         try:
@@ -1021,11 +1036,11 @@ def main() -> int:
                 logger.error("[HEALTH] 停止应用以便外层重启")
                 await app_ctx.stop()
                 await app_ctx.shutdown()
-    
+
     if app.job_queue:
         app.job_queue.run_repeating(health_check, interval=60, first=60)
         app.job_queue.run_repeating(_process_send_queue, interval=90, first=30)
-    
+
     conv = ConversationHandler(
         entry_points=[CommandHandler("paipan", start), CommandHandler("start", start)],
         states={
@@ -1041,14 +1056,11 @@ def main() -> int:
                 CommandHandler("paipan", start),
                 CallbackQueryHandler(handle_confirm_callback, pattern="^(calc|edit)$"),
                 CallbackQueryHandler(handle_restart, pattern="^restart$"),
-            ]
+            ],
         },
-        fallbacks=[
-            CommandHandler("start", start),
-            CommandHandler("paipan", start),
-            CommandHandler("cancel", cancel)
-        ])
-    
+        fallbacks=[CommandHandler("start", start), CommandHandler("paipan", start), CommandHandler("cancel", cancel)],
+    )
+
     app.add_handler(conv)
     app.add_handler(CommandHandler("help", help_cmd))
 
@@ -1056,7 +1068,7 @@ def main() -> int:
         print("Bot dry-run 初始化成功，未连接 Telegram。")
         logger.info("Bot dry-run 初始化成功，跳过 run_polling")
         return 0
-    
+
     print("Bot 启动中...")
     app.run_polling(
         drop_pending_updates=True,
@@ -1071,10 +1083,11 @@ def run_with_retry() -> int:
     """带自动重连的启动函数"""
     retry_delay = 5
     max_delay = 60
-    
+
     while True:
         try:
             import asyncio
+
             asyncio.set_event_loop(asyncio.new_event_loop())
             logger.info("🤖 启动 Bot...")
             exit_code = main()

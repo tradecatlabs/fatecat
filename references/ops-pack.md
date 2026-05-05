@@ -7,9 +7,9 @@
 ## 当前仓库已经提供什么
 
 - 健康检查入口：`bash scripts/health.sh --mode pure --json`
-- 标准验收入口：`bash scripts/acceptance.sh`
+- 标准验收入口：`bash scripts/acceptance.sh --with-dev`
 - 启动入口：`bash scripts/serve-api.sh`、`bash scripts/serve-bot.sh`
-- 交付层烟雾入口：`bash scripts/delivery-smoke.sh --target api`
+- 交付层烟雾入口：`bash scripts/delivery-smoke.sh --target api`、`bash scripts/delivery-smoke.sh --target bot --startup-timeout 8`
 - 生命周期状态入口：`bash scripts/lifecycle-status.sh`
 - 运维包采集：`bash scripts/collect-ops-bundle.sh --output <dir>`
 
@@ -34,13 +34,13 @@
 
 - 用 `bootstrap.sh` 保证环境一致
 - 用 `preflight.sh` 作为默认巡检入口
-- 用 `acceptance.sh` 作为发布前验收入口
+- 用 `acceptance.sh --with-dev` 作为发布前验收入口；默认同时验证源码仓库静态门禁、API/Bot 入口和导出后的 lite skill 包
 - 用 `collect-ops-bundle.sh` 固化每次发布或事故后的证据
 
 ### 服务化交付
 
 - 用 `serve-api.sh` 或 `serve-bot.sh` 作为启动命令
-- 在上线前先跑一次 `delivery-smoke.sh`
+- 在上线前先跑目标入口的 `delivery-smoke.sh`；发布前总验收默认同时覆盖 API 与 Bot dry-run
 - 把健康检查接进外部守护器
 - 把运维包放进发布记录或事故记录
 

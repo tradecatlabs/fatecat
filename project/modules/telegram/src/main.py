@@ -1,17 +1,15 @@
-from datetime import datetime
 import os
 import sys
-from typing import Optional
-
-from fastapi import FastAPI, HTTPException
-from fastapi.exceptions import RequestValidationError
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from dotenv import load_dotenv
+from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from _paths import FATE_CORE_SRC_DIR, get_env_file
 from branding import attach_branding, get_branding_payload, get_disclaimer_payload
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from utils.timezone import now_cn
 
 if str(FATE_CORE_SRC_DIR) not in sys.path:
@@ -25,22 +23,24 @@ except FileNotFoundError:
 SERVICE_HOST = os.getenv("FATE_SERVICE_HOST", "0.0.0.0")
 SERVICE_PORT = int(os.getenv("FATE_SERVICE_PORT", "8001"))
 
-from models import (
+import db_v2 as db  # noqa: E402
+from bazi_calculator import BaziCalculator  # noqa: E402
+from fate_core.usecases import PureAnalysisInput, calculate_pure_analysis  # noqa: E402
+from liuyao_factors import generate_factor  # noqa: E402
+from models import (  # noqa: E402
+    BaziData,
     BaziRequest,
     BaziResponse,
-    BaziData,
     BrandingInfo,
-    TimeInfo,
-    Meta,
+    LiuyaoFactorData,
     LiuyaoFactorRequest,
     LiuyaoFactorResponse,
-    LiuyaoFactorData,
+    Meta,
+    TimeInfo,
 )
-from bazi_calculator import BaziCalculator
-from report_generator import DEFAULT_HIDE as REPORT_HIDE
-import db_v2 as db
-from liuyao_factors import generate_factor
-from fate_core.usecases import PureAnalysisInput, calculate_pure_analysis
+from report_generator import DEFAULT_HIDE as REPORT_HIDE  # noqa: E402
+
+db.ensure_db()
 
 app = FastAPI(title="八字排盘服务", version="1.0.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -109,12 +109,42 @@ def _parse_bazi_request(req: BaziRequest) -> tuple[datetime, float, float]:
     return birth_dt, req.birthPlace.longitude, req.birthPlace.latitude
 
 
+def _build_bazi_data(result: dict, *, birth_dt: datetime, true_solar_time: datetime | None, timezone: str) -> BaziData:
+    major_fortune = dict(result.get("majorFortune", {}))
+    major_fortune["pillars"] = [
+        {
+            **pillar,
+            "year": pillar.get("year", pillar.get("startYear")),
+        }
+        for pillar in major_fortune.get("pillars", [])
+        if isinstance(pillar, dict)
+    ]
+
+    tz = ZoneInfo(timezone)
+    return BaziData(
+        timeInfo=TimeInfo(
+            inputTime=birth_dt.replace(tzinfo=tz).isoformat(),
+            trueSolarTime=true_solar_time.replace(tzinfo=tz).isoformat() if true_solar_time else None,
+            lunarDate=f"{result['fourPillars']['year']['fullName']}年",
+            solarTerm="",
+        ),
+        fourPillars=result["fourPillars"],
+        hiddenStems=result.get("hiddenStems", {}),
+        tenGods=result.get("tenGods", {}),
+        fiveElements=result.get("fiveElements", {}),
+        dayMaster=result.get("dayMaster", {}),
+        majorFortune=major_fortune,
+        annualFortune=result.get("annualFortune", []),
+        voidBranches=result.get("voidInfo", {}),
+    )
+
+
 @app.post("/api/v1/bazi/simple")
 def calculate_bazi_simple(req: BaziRequest):
     """简化八字计算 - 直接返回原始结果"""
     try:
         birth_dt, longitude, latitude = _parse_bazi_request(req)
-        
+
         calculator = BaziCalculator(
             birth_dt,
             req.gender,
@@ -125,12 +155,12 @@ def calculate_bazi_simple(req: BaziRequest):
             use_true_solar_time=req.options.useTrueSolarTime,
         )
         result = calculator.calculate(hide=REPORT_HIDE)
-        
+
         return attach_branding({"success": True, "data": result})
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.post("/api/v1/bazi/pure-analysis")
@@ -161,15 +191,15 @@ def calculate_bazi_pure_analysis(req: BaziRequest):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.post("/api/v1/bazi/calculate", response_model=BaziResponse)
-def calculate_bazi(req: BaziRequest, user_id: Optional[str] = None):
+def calculate_bazi(req: BaziRequest, user_id: str | None = None):
     """计算八字排盘"""
     try:
         birth_dt, longitude, latitude = _parse_bazi_request(req)
-        
+
         calculator = BaziCalculator(
             birth_dt,
             req.gender,
@@ -180,34 +210,35 @@ def calculate_bazi(req: BaziRequest, user_id: Optional[str] = None):
             use_true_solar_time=req.options.useTrueSolarTime,
         )
         result = calculator.calculate(hide=REPORT_HIDE)
-        
-        tz = ZoneInfo(req.birthPlace.timezone)
+
         ts_dt = calculator.true_solar_time if req.options.useTrueSolarTime else birth_dt
-        time_info = TimeInfo(
-            inputTime=birth_dt.replace(tzinfo=tz).isoformat(),
-            trueSolarTime=ts_dt.replace(tzinfo=tz).isoformat() if req.options.useTrueSolarTime else None,
-            lunarDate=f"{result['fourPillars']['year']['fullName']}年",
-            solarTerm="",
+        data = _build_bazi_data(
+            result,
+            birth_dt=birth_dt,
+            true_solar_time=ts_dt if req.options.useTrueSolarTime else None,
+            timezone=req.birthPlace.timezone,
         )
-        
-        data = BaziData(
-            timeInfo=time_info,
-            fourPillars=result["fourPillars"],
-            hiddenStems=result.get("hiddenStems", {}),
-            tenGods=result.get("tenGods", {}),
-            fiveElements=result.get("fiveElements", {}),
-            dayMaster=result.get("dayMaster", {}),
-            majorFortune=result.get("majorFortune", {}),
-            annualFortune=result.get("annualFortune", []),
-            voidBranches=result.get("voidInfo", {}),
-        )
-        
+
         # 保存到数据库
         record_id = None
         if user_id:
-            biz_data = {"input": req.model_dump(), "result": data.model_dump()}
-            record_id = db.save_record(user_id, "bazi", biz_data)
-        
+            record_id = db.save_record(
+                user_id=user_id,
+                biz_type="bazi",
+                name=req.name,
+                gender=req.gender,
+                calendar_type=req.options.calendarType,
+                birth_date=req.birthDate,
+                birth_time=req.birthTime,
+                birth_place=req.birthPlace.name,
+                longitude=longitude,
+                latitude=latitude,
+                dst=0,
+                true_solar=1 if req.options.useTrueSolarTime else 0,
+                early_zi=1 if req.options.midnightMode == "early" else 0,
+                biz_data={"input": req.model_dump(), "result": result},
+            )
+
         return BaziResponse(
             disclaimer=_disclaimer_model(),
             success=True,
@@ -281,4 +312,5 @@ def delete_record(record_id: int):
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host=SERVICE_HOST, port=SERVICE_PORT)

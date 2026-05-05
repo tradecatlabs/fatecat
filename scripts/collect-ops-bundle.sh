@@ -96,8 +96,9 @@ cat > "${bundle_root}/SUMMARY.md" <<EOF
 
 - 安装环境：\`bash scripts/bootstrap.sh\`
 - 标准预检：\`bash scripts/preflight.sh --mode pure --bootstrap --pretty\`
-- 仓库验收：\`bash scripts/acceptance.sh\`
-- 交付层烟雾验证：\`bash scripts/delivery-smoke.sh --target api\`
+- 仓库验收：\`bash scripts/acceptance.sh --with-dev\`
+- API 烟雾验证：\`bash scripts/delivery-smoke.sh --target api\`
+- Bot 烟雾验证：\`bash scripts/delivery-smoke.sh --target bot --startup-timeout 8\`
 - API 启动：\`bash scripts/serve-api.sh\`
 - Bot 启动：\`bash scripts/serve-bot.sh\`
 

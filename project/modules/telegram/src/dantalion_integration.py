@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 现代化八字集成器 - 通过外部 dantalion-core (Node) 计算
 """
+
 import json
 import subprocess
 from datetime import datetime
-from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 from _paths import DANTALION_BRIDGE_JS
+
 BRIDGE = DANTALION_BRIDGE_JS
 
 
@@ -22,7 +22,7 @@ class DantalionCalculator:
         self.birth_dt = birth_dt
         self.gender = gender
 
-    def calculate_modern_bazi(self) -> Dict[str, Any]:
+    def calculate_modern_bazi(self) -> dict[str, Any]:
         """调用外部 dantalion-core 生成现代化人格分析"""
         if not BRIDGE.exists():
             raise RuntimeError("缺少 dantalion_bridge.js，无法调用 dantalion-core")
@@ -47,5 +47,5 @@ class DantalionCalculator:
             "api": {"interface": "node-bridge"},
         }
 
-    def get_complete_modern_analysis(self) -> Dict[str, Any]:
+    def get_complete_modern_analysis(self) -> dict[str, Any]:
         return self.calculate_modern_bazi()

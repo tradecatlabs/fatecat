@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fate_core.adapters import LegacyBaziInput
+from fate_core.adapters import ELEM_CN, STEM_ELEM, BaziCalculator, LegacyBaziInput, LunarUtil, now_cn
 from fate_core.contracts.runtime import PureAnalysisRuntime
 
 
@@ -26,9 +26,6 @@ def _alias_five_elements(five_elements: dict[str, Any]) -> dict[str, Any]:
 
 def build_pure_analysis_runtime(payload: LegacyBaziInput) -> PureAnalysisRuntime:
     """构建纯命理分析共享运行时。"""
-    from bazi_calculator import BaziCalculator, ELEM_CN, LunarUtil, STEM_ELEM
-    from utils.timezone import now_cn
-
     calculator = BaziCalculator(
         payload.birth_dt,
         payload.gender,
@@ -52,10 +49,7 @@ def build_pure_analysis_runtime(payload: LegacyBaziInput) -> PureAnalysisRuntime
     }
     four_pillars["hour"] = calculator._pillar(ec.getTime(), ec.getTimeGan(), ec.getTimeZhi())
 
-    hidden_stems = {
-        pillar: getattr(ec, f"get{pillar.title()}HideGan")()
-        for pillar in ["year", "month", "day"]
-    }
+    hidden_stems = {pillar: getattr(ec, f"get{pillar.title()}HideGan")() for pillar in ["year", "month", "day"]}
     hidden_stems["hour"] = ec.getTimeHideGan()
 
     ten_gods = {
@@ -70,10 +64,7 @@ def build_pure_analysis_runtime(payload: LegacyBaziInput) -> PureAnalysisRuntime
         "branch": ec.getTimeShiShenZhi(),
     }
 
-    twelve_growth = {
-        pillar: getattr(ec, f"get{pillar.title()}DiShi")()
-        for pillar in ["year", "month", "day"]
-    }
+    twelve_growth = {pillar: getattr(ec, f"get{pillar.title()}DiShi")() for pillar in ["year", "month", "day"]}
     twelve_growth["hour"] = ec.getTimeDiShi()
 
     five_elements = _alias_five_elements(calculator._calc_elements(four_pillars, hidden_stems))

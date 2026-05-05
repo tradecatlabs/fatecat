@@ -14,6 +14,9 @@ REPO_ROOT = Path(__file__).parent.parent
 TELEGRAM_MODULE_ROOT = REPO_ROOT / "modules" / "telegram"
 FATE_CORE_SRC = REPO_ROOT / "modules" / "fate_core" / "src"
 
+if str(TELEGRAM_MODULE_ROOT) not in sys.path:
+    sys.path.insert(0, str(TELEGRAM_MODULE_ROOT))
+
 if str(TELEGRAM_MODULE_ROOT / "src") not in sys.path:
     sys.path.insert(0, str(TELEGRAM_MODULE_ROOT / "src"))
 

@@ -4,19 +4,20 @@ import argparse
 import json
 import subprocess
 import sys
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, NoReturn, cast
 
 from fate_core.support import attach_branding, build_branding_text
 from fate_core.support.paths import FATE_PROFILE_DIR, FATE_REPO_ROOT
-from fate_core.usecases import PureAnalysisInput, calculate_pure_analysis
+from fate_core.usecases import PureAnalysisInput, calculate_pure_analysis, normalize_gender
 
 
 class BrandingArgumentParser(argparse.ArgumentParser):
     """在帮助与错误输出中强制携带品牌文案。"""
 
-    def error(self, message: str) -> None:
+    def error(self, message: str) -> NoReturn:
         self.print_usage(sys.stderr)
         print(f"{self.prog}: error: {message}", file=sys.stderr)
         print("", file=sys.stderr)
@@ -78,7 +79,9 @@ def _load_json_payload(args: argparse.Namespace) -> dict[str, Any]:
     elif args.input_file:
         raw_text = Path(args.input_file).read_text(encoding="utf-8")
     elif not sys.stdin.isatty():
-        raw_text = sys.stdin.read()
+        stdin_text = sys.stdin.read()
+        if stdin_text.strip():
+            raw_text = stdin_text
 
     if raw_text is not None:
         payload = json.loads(raw_text)
@@ -99,8 +102,9 @@ def _load_json_payload(args: argparse.Namespace) -> dict[str, Any]:
 
 def _normalize_payload(raw_payload: dict[str, Any]) -> dict[str, Any]:
     birth_place_value = raw_payload.get("birthPlace")
-    birth_place_object = birth_place_value if isinstance(birth_place_value, dict) else {}
-    options = raw_payload.get("options") if isinstance(raw_payload.get("options"), dict) else {}
+    birth_place_object: dict[str, Any] = birth_place_value if isinstance(birth_place_value, dict) else {}
+    raw_options = raw_payload.get("options")
+    options: dict[str, Any] = raw_options if isinstance(raw_options, dict) else {}
 
     birth_datetime = _first_non_empty(
         raw_payload.get("birthDateTime"),
@@ -145,12 +149,15 @@ def _normalize_payload(raw_payload: dict[str, Any]) -> dict[str, Any]:
         "useTrueSolarTime": _parse_bool(use_true_solar_time, default=True),
     }
 
-    missing = [field for field in ("birthDateTime", "gender", "longitude", "latitude") if normalized[field] in (None, "")]
+    missing = [
+        field for field in ("birthDateTime", "gender", "longitude", "latitude") if normalized[field] in (None, "")
+    ]
     if missing:
         raise ValueError(f"缺少必填字段: {', '.join(missing)}")
 
     normalized["longitude"] = float(normalized["longitude"])
     normalized["latitude"] = float(normalized["latitude"])
+    normalized["gender"] = normalize_gender(str(normalized["gender"]))
     return normalized
 
 
@@ -253,9 +260,9 @@ def _run_pure_analysis(args: argparse.Namespace) -> int:
     _write_json_payload(
         attach_branding(
             {
-            "success": True,
-            "profile": "pure_analysis",
-            "data": result,
+                "success": True,
+                "profile": "pure_analysis",
+                "data": result,
             }
         ),
         pretty=args.pretty,
@@ -321,7 +328,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        return args.handler(args)
+        handler = cast(Callable[[argparse.Namespace], int], args.handler)
+        return handler(args)
     except Exception as exc:
         _write_json_payload(attach_branding({"success": False, "error": str(exc)}), pretty=True)
         return 1

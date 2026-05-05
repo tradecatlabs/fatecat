@@ -14,6 +14,8 @@
 
 这个最小 JSON 就是推荐的 smoke test 输入，无需再维护单独的 `request-examples/` 目录。
 
+`gender` 接受 `male` / `female` / `男` / `女`；计算前会统一归一为 `male` / `female`，输出展示层仍可能翻译为 `男` / `女`。
+
 ## 可接受别名
 
 - `birth_datetime`
@@ -43,4 +45,5 @@
 - CLI：`.venv/bin/fatecat pure-analysis`
 - Health：`.venv/bin/fatecat health --mode pure|delivery`
 - API：`POST /api/v1/bazi/pure-analysis`
+- API：`POST /api/v1/bazi/calculate`
 - Bot：`.venv/bin/fatecat serve bot`

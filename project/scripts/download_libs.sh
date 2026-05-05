@@ -1,7 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # 下载八字排盘相关开源库到 assets/vendor/github/
 
-set -e
+set -euo pipefail
+
+if [[ "${FATECAT_ALLOW_VENDOR_DOWNLOAD:-0}" != "1" ]]; then
+    echo "该脚本会向 project/assets/vendor/github 写入外部仓库快照，默认禁止在生产整理流程中执行。" >&2
+    echo "若确实要补齐 vendor 研究素材，请显式设置 FATECAT_ALLOW_VENDOR_DOWNLOAD=1 后再运行。" >&2
+    exit 1
+fi
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TARGET_DIR="$ROOT/assets/vendor/github"
@@ -9,8 +15,9 @@ mkdir -p "$TARGET_DIR"
 cd "$TARGET_DIR"
 
 download_repo() {
-    local repo=$1
-    local name=$(echo $repo | sed 's/.*\///')
+    local repo="$1"
+    local name
+    name=$(echo "$repo" | sed 's/.*\///')
     
     if [ -d "${name}-main" ] || [ -d "${name}-master" ] || [ -d "$name" ]; then
         echo "⏭️  跳过 $repo (已存在)"

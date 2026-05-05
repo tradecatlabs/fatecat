@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 JSONL -> 文本报告转换小工具（最小改动版）
 - 读取按分类的 JSONL（output_xxx.jsonl）
@@ -19,7 +18,7 @@ from report_generator import generate_full_report  # noqa: E402
 def load_jsonl(path: str) -> dict:
     """加载 JSONL，按行合并 data 字段"""
     merged = {}
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line:

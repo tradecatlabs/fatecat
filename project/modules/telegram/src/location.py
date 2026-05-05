@@ -1,17 +1,18 @@
 """中国城市经纬度查询（优先离线区县级库 china-region，回退内置 CSV）"""
+
 import csv
 import re
-from pathlib import Path
-from typing import Optional, Tuple, List
 
 try:
     import china_region  # 区县级经纬度离线库，search / search_all
+
     _CR_AVAILABLE = True
 except Exception:
     _CR_AVAILABLE = False
 
 # 回退数据
 from _paths import CHINA_COORDS_CSV
+
 _DATA = {}
 _csv_path = CHINA_COORDS_CSV
 
@@ -19,21 +20,21 @@ _csv_path = CHINA_COORDS_CSV
 def _load_csv():
     if _DATA:
         return
-    with open(_csv_path, 'r', encoding='utf-8') as f:
+    with open(_csv_path, encoding="utf-8") as f:
         for row in csv.reader(f):
             if len(row) >= 4:
                 code, name, lng, lat = row[0], row[1], float(row[2]), float(row[3])
                 _DATA[name] = (lng, lat, code)
                 # 去掉行政区后缀也能匹配
-                for suffix in ['市', '区', '县', '省', '自治区', '特别行政区']:
+                for suffix in ["市", "区", "县", "省", "自治区", "特别行政区"]:
                     if name.endswith(suffix) and len(name) > 2:
-                        _DATA[name[:-len(suffix)]] = (lng, lat, code)
+                        _DATA[name[: -len(suffix)]] = (lng, lat, code)
 
 
 _load_csv()
 
 
-def _normalized_queries(query: str) -> List[str]:
+def _normalized_queries(query: str) -> list[str]:
     """构造若干查询关键词，优先精确（县区名），再回退原文本"""
     q = query.strip()
     if not q:
@@ -56,7 +57,7 @@ def _normalized_queries(query: str) -> List[str]:
     return uniq
 
 
-def _search_cr(query: str) -> List[Tuple[str, float, float]]:
+def _search_cr(query: str) -> list[tuple[str, float, float]]:
     """china-region 模糊搜索，返回 [(名称, lng, lat)]"""
     if not _CR_AVAILABLE:
         return []
@@ -97,7 +98,7 @@ def _search_cr(query: str) -> List[Tuple[str, float, float]]:
     return uniq
 
 
-def search(query: str) -> List[Tuple[str, float, float]]:
+def search(query: str) -> list[tuple[str, float, float]]:
     """搜索地点，返回 [(名称, 经度, 纬度), ...]"""
     query = query.strip()
     if not query:
@@ -109,7 +110,7 @@ def search(query: str) -> List[Tuple[str, float, float]]:
 
     # 2) 回退到内置 CSV 子串匹配（市级）
     results = []
-    for name, (lng, lat, code) in _DATA.items():
+    for name, (lng, lat, _code) in _DATA.items():
         if query in name or name in query:
             results.append((name, lng, lat))
     # 去重
@@ -122,7 +123,7 @@ def search(query: str) -> List[Tuple[str, float, float]]:
     return unique
 
 
-def get_coords(name: str) -> Optional[Tuple[float, float]]:
+def get_coords(name: str) -> tuple[float, float] | None:
     """获取经纬度，返回 (经度, 纬度) 或 None"""
     name = name.strip()
     if not name:
@@ -137,7 +138,7 @@ def get_coords(name: str) -> Optional[Tuple[float, float]]:
     if name in _DATA:
         return _DATA[name][:2]
     # 内置 CSV 模糊
-    for key, (lng, lat, code) in _DATA.items():
+    for key, (lng, lat, _code) in _DATA.items():
         if name in key or key in name:
             return (lng, lat)
     return None
@@ -145,14 +146,22 @@ def get_coords(name: str) -> Optional[Tuple[float, float]]:
 
 # 常用城市快捷
 COMMON_CITIES = {
-    "北京": (116.4, 39.9), "上海": (121.5, 31.2), "广州": (113.3, 23.1),
-    "深圳": (114.1, 22.5), "成都": (104.1, 30.7), "杭州": (120.2, 30.3),
-    "重庆": (106.5, 29.5), "武汉": (114.3, 30.6), "西安": (108.9, 34.3),
-    "南京": (118.8, 32.1), "天津": (117.2, 39.1), "苏州": (120.6, 31.3),
+    "北京": (116.4, 39.9),
+    "上海": (121.5, 31.2),
+    "广州": (113.3, 23.1),
+    "深圳": (114.1, 22.5),
+    "成都": (104.1, 30.7),
+    "杭州": (120.2, 30.3),
+    "重庆": (106.5, 29.5),
+    "武汉": (114.3, 30.6),
+    "西安": (108.9, 34.3),
+    "南京": (118.8, 32.1),
+    "天津": (117.2, 39.1),
+    "苏州": (120.6, 31.3),
 }
 
 
-def get(name: str) -> Tuple[float, float]:
+def get(name: str) -> tuple[float, float]:
     """
     获取经纬度（严格模式）
     - 支持用户直接传入“lng,lat”

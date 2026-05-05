@@ -1,16 +1,31 @@
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
-import sys
 
 from fate_core.support.paths import TELEGRAM_SRC_DIR
 
 if str(TELEGRAM_SRC_DIR) not in sys.path:
     sys.path.insert(0, str(TELEGRAM_SRC_DIR))
 
-from bazi_calculator import BaziCalculator
+from bazi_calculator import ELEM_CN, STEM_ELEM, BaziCalculator, LunarUtil, calc_bone_weight, calc_ming_gua
+from utils.timezone import now_cn
+
+__all__ = [
+    "BaziCalculator",
+    "ELEM_CN",
+    "LegacyBaziInput",
+    "LunarUtil",
+    "PURE_ANALYSIS_HIDE",
+    "STEM_ELEM",
+    "calc_bone_weight",
+    "calc_ming_gua",
+    "calculate_legacy_bazi",
+    "calculate_pure_analysis_raw",
+    "now_cn",
+]
 
 PURE_ANALYSIS_HIDE: dict[str, bool] = {
     "extensions": True,
@@ -51,7 +66,10 @@ def calculate_legacy_bazi(payload: LegacyBaziInput, *, hide: dict[str, bool] | N
         birth_place=payload.birth_place,
         use_true_solar_time=payload.use_true_solar_time,
     )
-    return calculator.calculate(hide=hide or {})
+    result = calculator.calculate(hide=hide or {})
+    if not isinstance(result, dict):
+        raise RuntimeError("遗留八字计算器必须返回 JSON 对象")
+    return dict(result)
 
 
 def calculate_pure_analysis_raw(payload: LegacyBaziInput) -> dict[str, Any]:

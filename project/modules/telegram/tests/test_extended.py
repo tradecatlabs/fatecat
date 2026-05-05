@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from datetime import datetime
+
 from bazi_calculator import BaziCalculator
 from location import get as get_loc
+
 
 def test_extended_features():
     print("🔮 测试扩展功能")
     print("=" * 50)
-    
+
     # 创建计算器
     lng, lat = get_loc("深圳")
     calc = BaziCalculator(
@@ -23,18 +25,18 @@ def test_extended_features():
         name="张三",
         birth_place="深圳",
     )
-    
+
     # 执行计算
     try:
         result = calc.calculate()
     except Exception as e:
         print(f"❌ 计算失败: {e}")
         return
-    
+
     # 显示基础信息
-    fp = result['fourPillars']
+    fp = result["fourPillars"]
     print(f"四柱: {fp['year']['fullName']} {fp['month']['fullName']} {fp['day']['fullName']} {fp['hour']['fullName']}")
-    
+
     # 显示扩展功能（存在即打印关键摘要）
     qm = result.get("qimenDunjia", {})
     if qm:
@@ -47,9 +49,10 @@ def test_extended_features():
     lr = result.get("liurenDivination", {})
     if lr:
         print("🔢 大六壬: 已计算")
-    
+
     print("=" * 50)
     print("✅ 扩展功能测试完成")
+
 
 if __name__ == "__main__":
     test_extended_features()

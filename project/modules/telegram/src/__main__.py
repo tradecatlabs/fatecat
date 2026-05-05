@@ -6,6 +6,7 @@ Usage:
     python -m modules.telegram.src api   # Start FastAPI server
     python -m modules.telegram.src both  # Start both
 """
+
 import sys
 from pathlib import Path
 
@@ -21,26 +22,29 @@ def main():
         print(__doc__)
         print("Available commands: bot, api, both")
         sys.exit(1)
-    
+
     mode = sys.argv[1]
-    
+
     if mode == "bot":
         from bot import main as bot_main
+
         bot_main()
     elif mode == "api":
         from main import main as api_main
+
         api_main()
     elif mode == "both":
         import threading
+
         from bot import main as bot_main
         from main import main as api_main
-        
+
         bot_thread = threading.Thread(target=bot_main)
         api_thread = threading.Thread(target=api_main)
-        
+
         bot_thread.start()
         api_thread.start()
-        
+
         bot_thread.join()
         api_thread.join()
     else:

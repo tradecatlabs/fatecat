@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# FateCat 全量依赖编译 + 启动脚本（生产/一键启动）
+# FateCat 项目级兼容自举脚本
 # 作用：
-# 1) 创建/复用 Python 虚拟环境并安装后端依赖
+# 1) 创建/复用 Python 虚拟环境并按 pyproject 安装 fatecat CLI
 # 2) 为 Node/TS 外部仓库安装依赖并尝试构建（仅在存在 build 脚本时）
-# 3) 可选启动 Telegram Bot / FastAPI / both
+# 3) 可选通过统一 fatecat CLI 启动 Telegram Bot / FastAPI / both
 #
 # 用法：
 #   chmod +x scripts/setup/bootstrap_fatecat.sh
@@ -12,14 +12,12 @@
 #   scripts/setup/bootstrap_fatecat.sh both  # Bot+API
 #   scripts/setup/bootstrap_fatecat.sh deps  # 只装依赖不启动
 #
-# 依赖：python3、node、npm
+# 依赖：python3；若要构建外部 Node 仓库，还需 node、npm
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-MODULE_DIR="$ROOT/modules/telegram"
 VENV="$ROOT/.venv"
 
-PY_REQ="$MODULE_DIR/requirements.txt"
 NODE_REPOS=(
   "$ROOT/assets/vendor/github/sxwnl-master"
   "$ROOT/assets/vendor/github/iztro-main"
@@ -48,8 +46,8 @@ setup_python() {
   source "$VENV/bin/activate"
   log "升级 pip"
   pip install --upgrade pip >/dev/null
-  log "安装 Python 依赖: $PY_REQ"
-  pip install -r "$PY_REQ"
+  log "按 pyproject 安装 FateCat CLI"
+  pip install -e "$ROOT"
 }
 
 setup_node_repo() {
@@ -68,8 +66,10 @@ setup_node_repo() {
 }
 
 setup_node_all() {
-  check_bin node
-  check_bin npm
+  if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
+    warn "未安装 node/npm，跳过外部 Node 仓库构建；纯 Python 与 fatecat CLI 不受影响"
+    return
+  fi
   for repo in "${NODE_REPOS[@]}"; do
     setup_node_repo "$repo"
   done
@@ -77,10 +77,8 @@ setup_node_all() {
 
 start_module() {
   local mode="$1"
-  pushd "$MODULE_DIR" >/dev/null
   log "启动模块: $mode"
-  python3 start.py "$mode"
-  popd >/dev/null
+  "$VENV/bin/fatecat" serve "$mode"
 }
 
 main() {

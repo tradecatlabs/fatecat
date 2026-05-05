@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from .schema import Cycle, Direction, FactorOutput
 
@@ -12,7 +12,7 @@ def _clamp(v: float, lo: float = 0.0, hi: float = 1.0) -> float:
     return max(lo, min(hi, v))
 
 
-def _iter_yao(raw: Dict[str, Any]) -> List[Tuple[int, Dict[str, Any]]]:
+def _iter_yao(raw: dict[str, Any]) -> list[tuple[int, dict[str, Any]]]:
     """按初爻到上爻顺序抽取爻数据。"""
     items = []
     for i in range(1, 7):
@@ -22,7 +22,7 @@ def _iter_yao(raw: Dict[str, Any]) -> List[Tuple[int, Dict[str, Any]]]:
     return items
 
 
-def _pick_subject_object(raw: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+def _pick_subject_object(raw: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
     subject = None
     obj = None
     for _, yao in _iter_yao(raw):
@@ -36,7 +36,7 @@ def _pick_subject_object(raw: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str,
     return subject, obj
 
 
-def _moving_lines(raw: Dict[str, Any]) -> List[int]:
+def _moving_lines(raw: dict[str, Any]) -> list[int]:
     moving = []
     for idx, yao in _iter_yao(raw):
         origin = yao.get("origin", {})
@@ -59,7 +59,7 @@ def _relation(w1: str, w2: str) -> str:
     return "unknown"
 
 
-def _cycle_from_lines(moving: List[int]) -> Cycle:
+def _cycle_from_lines(moving: list[int]) -> Cycle:
     if not moving:
         return "1-3d"
     max_line = max(moving)
@@ -72,17 +72,17 @@ def _cycle_from_lines(moving: List[int]) -> Cycle:
     return "1-3m"
 
 
-def _kongwang_set(raw: Dict[str, Any]) -> set[str]:
+def _kongwang_set(raw: dict[str, Any]) -> set[str]:
     kw = str(raw.get("kongwang", "")).strip()
     return set(kw) if kw else set()
 
 
 def map_factor(
-    raw: Dict[str, Any],
+    raw: dict[str, Any],
     *,
     item: str,
-    timestamp: Optional[str] = None,
-    cycle_hint: Optional[Cycle] = None,
+    timestamp: str | None = None,
+    cycle_hint: Cycle | None = None,
 ) -> FactorOutput:
     """把六爻标准化原始数据映射为量化因子。"""
     subject, obj = _pick_subject_object(raw)
@@ -93,7 +93,7 @@ def map_factor(
     direction: Direction = "neutral"
     strength = 0.5
     confidence = 0.6
-    explain: List[str] = []
+    explain: list[str] = []
 
     if relation in ("same", "generate"):
         direction = "up"

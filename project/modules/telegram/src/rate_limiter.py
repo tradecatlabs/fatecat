@@ -3,12 +3,13 @@
 - 全局并发限制
 - 请求队列
 """
+
 import asyncio
 from functools import wraps
 
 # ========== 配置 ==========
-MAX_CONCURRENT = 1          # 最大同时计算数
-QUEUE_MAX_SIZE = 9999       # 队列无限制
+MAX_CONCURRENT = 1  # 最大同时计算数
+QUEUE_MAX_SIZE = 9999  # 队列无限制
 
 # ========== 状态 ==========
 _semaphore = asyncio.Semaphore(MAX_CONCURRENT)
@@ -60,21 +61,22 @@ def get_queue_status() -> dict:
 
 def rate_limit(func):
     """装饰器：自动限流"""
+
     @wraps(func)
     async def wrapper(update, context, *args, **kwargs):
         user_id = update.effective_user.id
-        
+
         allowed, reason = check_rate_limit(user_id)
         if not allowed:
             await update.message.reply_text(f"⏳ {reason}")
             return
-        
+
         record_request(user_id)
-        
+
         try:
             await acquire_slot()
             return await func(update, context, *args, **kwargs)
         finally:
             release_slot()
-    
+
     return wrapper

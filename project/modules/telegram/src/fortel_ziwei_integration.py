@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 专业紫微斗数集成器 - 强制使用原生库，失败即报错
 
@@ -11,35 +10,36 @@
 纯净性声明: 强制调用原生TypeScript算法，失败即抛异常终止
 """
 
-import subprocess
 import json
 import os
 import shutil
+import subprocess
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 from _paths import IZTRO_DIR
+
 IZTRO_PATH = Path(IZTRO_DIR)
 
 # 英文到中文映射
 EN_TO_CN = {
-    'origin': '本命',
-    'decadal': '大限',
-    'yearly': '流年',
-    'monthly': '流月',
-    'daily': '流日',
-    'hourly': '流时',
-    'major': '主星',
-    'minor': '辅星',
-    'soft': '吉星',
-    'tough': '煞星',
-    'adjective': '杂曜',
-    'flower': '桃花',
-    'lucun': '禄存',
-    'tianma': '天马',
-    'success': '成功',
+    "origin": "本命",
+    "decadal": "大限",
+    "yearly": "流年",
+    "monthly": "流月",
+    "daily": "流日",
+    "hourly": "流时",
+    "major": "主星",
+    "minor": "辅星",
+    "soft": "吉星",
+    "tough": "煞星",
+    "adjective": "杂曜",
+    "flower": "桃花",
+    "lucun": "禄存",
+    "tianma": "天马",
+    "success": "成功",
 }
 
 
@@ -108,11 +108,10 @@ def _ensure_iztro_ready(repo_dir: Path) -> Path:
         entry_path = _resolve_node_package_entry(repo_dir)
 
     if not entry_path.exists():
-        raise RuntimeError(
-            f"iztro 入口缺失: {entry_path}；已尝试自动安装/构建，请检查 {repo_dir / 'package.json'}"
-        )
+        raise RuntimeError(f"iztro 入口缺失: {entry_path}；已尝试自动安装/构建，请检查 {repo_dir / 'package.json'}")
 
     return entry_path
+
 
 def translate_value(obj):
     """递归翻译英文值为中文"""
@@ -124,45 +123,46 @@ def translate_value(obj):
         return EN_TO_CN[obj]
     return obj
 
+
 class FortelZiweiCalculator:
     """专业紫微斗数集成器 - 强制使用原生库，失败即报错"""
-    
+
     def __init__(self, birth_dt: datetime, gender: str, longitude: float):
         self.birth_dt = birth_dt
         self.gender = gender
         self.longitude = longitude
-        
+
     def _hour_to_shichen(self, hour: int) -> int:
         """小时转时辰索引(0-11)"""
         return ((hour + 1) // 2) % 12
-        
-    def calculate_ziwei_chart(self) -> Dict[str, Any]:
+
+    def calculate_ziwei_chart(self) -> dict[str, Any]:
         """紫微斗数计算 - 强制使用原生算法"""
         return self._call_native_iztro()
-    
-    def calculate_professional_ziwei(self, as_of: datetime | None = None) -> Dict[str, Any]:
+
+    def calculate_professional_ziwei(self, as_of: datetime | None = None) -> dict[str, Any]:
         """专业紫微计算"""
         result = self._call_native_iztro(as_of=as_of)
         return {
-            'professionalZiwei': result,
-            'stars': result.get('stars', {}),
-            'palaces': result.get('palaces', {}),
-            'influence': result.get('fiveElementsClass', {}),
-            'horoscope': result.get('horoscope', {}),
+            "professionalZiwei": result,
+            "stars": result.get("stars", {}),
+            "palaces": result.get("palaces", {}),
+            "influence": result.get("fiveElementsClass", {}),
+            "horoscope": result.get("horoscope", {}),
         }
-    
-    def calculate_complete_ziwei_system(self, as_of: datetime | None = None) -> Dict[str, Any]:
+
+    def calculate_complete_ziwei_system(self, as_of: datetime | None = None) -> dict[str, Any]:
         """完整紫微系统"""
         return self.calculate_professional_ziwei(as_of=as_of)
-    
-    def _call_native_iztro(self, as_of: datetime | None = None) -> Dict:
+
+    def _call_native_iztro(self, as_of: datetime | None = None) -> dict:
         """强制调用iztro原生算法"""
         shichen = self._hour_to_shichen(self.birth_dt.hour)
-        gender_en = 'male' if self.gender in ['male', '男', 'm'] else 'female'
+        gender_en = "male" if self.gender in ["male", "男", "m"] else "female"
         as_of = as_of or datetime.now()
         as_of_shichen = self._hour_to_shichen(as_of.hour)
         entry_path = _ensure_iztro_ready(IZTRO_PATH)
-        
+
         js_script = f"""
         const {{ astro }} = require({json.dumps(str(entry_path))});
         try {{
@@ -211,7 +211,7 @@ class FortelZiweiCalculator:
             env = dict(os.environ)
             env["TZ"] = "Asia/Shanghai"
             result = subprocess.run(
-                ['node', temp_path],
+                ["node", temp_path],
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -226,7 +226,7 @@ class FortelZiweiCalculator:
                 data = json.loads(result.stdout)
                 return translate_value(data)
             except json.JSONDecodeError as e:
-                raise RuntimeError(f"iztro输出解析失败: {e}")
+                raise RuntimeError(f"iztro输出解析失败: {e}") from e
         finally:
             try:
                 os.unlink(temp_path)

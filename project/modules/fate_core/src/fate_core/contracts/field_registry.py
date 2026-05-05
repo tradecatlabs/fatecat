@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from fate_core.contracts.profile_loader import load_profile
 
@@ -13,8 +14,4 @@ def get_profile_fields(profile_name: str) -> tuple[str, ...]:
 
 def project_result(result: Mapping[str, Any], profile_name: str) -> dict[str, Any]:
     """按 profile 投影输出字段。"""
-    return {
-        field_name: result[field_name]
-        for field_name in get_profile_fields(profile_name)
-        if field_name in result
-    }
+    return {field_name: result[field_name] for field_name in get_profile_fields(profile_name) if field_name in result}

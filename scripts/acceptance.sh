@@ -7,20 +7,21 @@ source "${script_dir}/common.sh"
 with_dev="0"
 skip_strict="0"
 skip_delivery="0"
-delivery_target="api"
+skip_export="0"
+delivery_target="both"
 output_dir="/tmp/fatecat-acceptance"
 strict_validator="${HOME}/.codex/skills/auto-skill/scripts/validate-skill.sh"
 
 usage() {
   cat <<'EOF'
 用法:
-  bash scripts/acceptance.sh [--with-dev] [--skip-strict] [--skip-delivery]
-                             [--delivery-target api|bot] [--output <dir>]
+  bash scripts/acceptance.sh [--with-dev] [--skip-strict] [--skip-delivery] [--skip-export]
+                             [--delivery-target api|bot|both] [--output <dir>]
 
 说明:
-  - 统一执行单-skill 仓库的验收链：shell 语法 -> strict skill 校验 -> pure preflight -> pytest -> delivery smoke
+  - 统一执行单-skill 仓库的验收链：shell 语法 -> strict skill 校验 -> pure preflight -> 全量 pytest -> 静态门禁 -> API/Bot delivery smoke -> 导出包 smoke
   - 默认输出目录为 /tmp/fatecat-acceptance
-  - 若缺少 project/assets/config/.env，则默认跳过 delivery smoke
+  - 默认 --delivery-target both，同时验证 API 与 Bot dry-run；本地快速循环可显式指定 api 或 bot
 EOF
 }
 
@@ -36,6 +37,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --skip-delivery)
       skip_delivery="1"
+      shift
+      ;;
+    --skip-export)
+      skip_export="1"
       shift
       ;;
     --delivery-target)
@@ -59,15 +64,16 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "${delivery_target}" in
-  api|bot)
+  api|bot|both)
     ;;
   *)
-    usage_error "--delivery-target 只支持 api 或 bot"
+    usage_error "--delivery-target 只支持 api、bot 或 both"
     ;;
 esac
 
 runtime_root="$(resolve_runtime_root)"
 mkdir -p "${output_dir}"
+output_dir="$(cd "${output_dir}" && pwd)"
 
 bootstrap_args=()
 if [[ "${with_dev}" == "1" ]]; then
@@ -99,16 +105,63 @@ bash "${script_dir}/preflight.sh" \
 
 echo "[acceptance] pytest"
 "${runtime_root}/.venv/bin/python" -m pytest -q \
-  "${runtime_root}/tests/test_strength_mapping.py" \
-  "${runtime_root}/tests/test_fate_core_cli.py"
+  "${runtime_root}/tests" \
+  "${runtime_root}/modules/telegram/tests"
+
+echo "[acceptance] ruff"
+RUFF_CACHE_DIR="${RUFF_CACHE_DIR:-/tmp/fatecat-ruff-cache}" \
+  "${runtime_root}/.venv/bin/python" -m ruff check "${runtime_root}"
+RUFF_CACHE_DIR="${RUFF_CACHE_DIR:-/tmp/fatecat-ruff-cache}" \
+  "${runtime_root}/.venv/bin/python" -m ruff format --check "${runtime_root}"
+
+echo "[acceptance] mypy fate_core"
+(
+  cd "${runtime_root}"
+  .venv/bin/python -m mypy -p fate_core
+)
 
 if [[ "${skip_delivery}" == "1" ]]; then
   echo "[acceptance] skip delivery: 用户显式要求跳过"
 else
-  echo "[acceptance] delivery smoke (${delivery_target})"
-  bash "${script_dir}/delivery-smoke.sh" \
-    --target "${delivery_target}" \
-    --response-file "${output_dir}/delivery-${delivery_target}.json"
+  delivery_targets=()
+  if [[ "${delivery_target}" == "both" ]]; then
+    delivery_targets=(api bot)
+  else
+    delivery_targets=("${delivery_target}")
+  fi
+
+  for target in "${delivery_targets[@]}"; do
+    echo "[acceptance] delivery smoke (${target})"
+    bash "${script_dir}/delivery-smoke.sh" \
+      --target "${target}" \
+      --response-file "${output_dir}/delivery-${target}.json"
+  done
+fi
+
+if [[ "${skip_export}" == "1" ]]; then
+  echo "[acceptance] skip export: 用户显式要求跳过"
+else
+  export_parent="${output_dir}/export"
+  export_skill_root="${export_parent}/fatecat"
+  echo "[acceptance] export lite"
+  rm -rf "${export_parent}"
+  bash "${script_dir}/export-runtime.sh" --output-parent "${export_parent}" --mode lite
+
+  if [[ "${skip_strict}" != "1" && -x "${strict_validator}" ]]; then
+    echo "[acceptance] strict skill validate exported bundle"
+    "${strict_validator}" "${export_skill_root}" --strict
+  fi
+
+  echo "[acceptance] exported pure preflight smoke"
+  (
+    cd "${export_skill_root}"
+    bash scripts/preflight.sh \
+      --mode pure \
+      --bootstrap \
+      --smoke \
+      --output-file "${output_dir}/export-preflight-pure.json" \
+      --pretty
+  )
 fi
 
 echo "[acceptance] done: ${output_dir}"

@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Any, Dict, Iterable, List, Optional
 import hashlib
 import random
+from datetime import datetime
+from typing import Any
 
-from utils.timezone import now_cn, ensure_cn
+from utils.timezone import ensure_cn, now_cn
 
 
-def _validate_cnts(cnts: List[int]) -> None:
+def _validate_cnts(cnts: list[int]) -> None:
     """校验铜钱结果列表（长度6，元素为0-3）。"""
     if len(cnts) != 6:
         raise ValueError("cnts 必须为长度 6 的列表")
@@ -17,7 +17,7 @@ def _validate_cnts(cnts: List[int]) -> None:
             raise ValueError("cnts 元素只能是 0/1/2/3")
 
 
-def _coerce_datetime(ts: Optional[datetime | str]) -> datetime:
+def _coerce_datetime(ts: datetime | str | None) -> datetime:
     """统一时间输入，默认使用中国时区当前时间（去掉 tzinfo 以兼容 divicast）。"""
     if ts is None:
         dt = now_cn()
@@ -39,11 +39,11 @@ def _seed_to_int(seed: str | int) -> int:
 
 def _build_cnts(
     *,
-    cnts: Optional[List[int]],
-    seed: Optional[str | int],
+    cnts: list[int] | None,
+    seed: str | int | None,
     item: str,
     dt: datetime,
-) -> List[int]:
+) -> list[int]:
     """生成或校验 cnts（铜钱正面数）。"""
     if cnts is not None:
         _validate_cnts(cnts)
@@ -57,10 +57,10 @@ def _build_cnts(
 def build_raw(
     *,
     item: str,
-    timestamp: Optional[datetime | str] = None,
-    cnts: Optional[List[int]] = None,
-    seed: Optional[str | int] = None,
-) -> Dict[str, Any]:
+    timestamp: datetime | str | None = None,
+    cnts: list[int] | None = None,
+    seed: str | int | None = None,
+) -> dict[str, Any]:
     """生成六爻原始标准化 JSON（divicast 输出）。"""
     dt = _coerce_datetime(timestamp)
     cnts = _build_cnts(cnts=cnts, seed=seed, item=item, dt=dt)

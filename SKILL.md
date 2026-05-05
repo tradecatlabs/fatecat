@@ -80,8 +80,10 @@ bash scripts/health.sh --mode delivery --json --pretty
 ### 4.5 执行完整 skill 验收
 
 ```bash
-bash scripts/acceptance.sh
+bash scripts/acceptance.sh --with-dev
 ```
+
+完整验收会覆盖 shell 语法、strict skill 校验、纯分析 smoke、全量 pytest、ruff、format、`fate_core` mypy、API 与 Bot dry-run 交付层 smoke，以及导出后的 lite skill 包独立 smoke。
 
 ### 5. 用 JSON 字符串直接执行排盘
 
@@ -131,7 +133,7 @@ bash scripts/serve-bot.sh
 1. 确认当前目录是 skill 根目录，且 `project/pyproject.toml` 存在。
 2. 执行 `bash scripts/bootstrap.sh`。
 3. 执行 `project/.venv/bin/fatecat --help`，确认 CLI 入口健康。
-4. 若仓库刚迁移过路径或执行器报错，再执行 `bash scripts/acceptance.sh` 做一次全链路验收。
+4. 若仓库刚迁移过路径或执行器报错，再执行 `bash scripts/acceptance.sh --with-dev` 做一次全链路验收。
 
 更推荐直接执行：
 
@@ -170,7 +172,7 @@ bash scripts/health.sh --mode delivery --json --pretty
 
 在真正执行命理排盘前，agent 必须确认：
 - 出生时间格式可解析
-- 性别值符合 FateCat CLI 接受范围
+- 性别值符合 FateCat CLI 接受范围：`male` / `female` / `男` / `女`
 - 经度、纬度存在且是数字
 - 若要写文件，目标目录存在或可创建
 
@@ -210,7 +212,8 @@ bash scripts/preflight.sh \
 若目标是“确保可以生产后开始任务”，最少还要补这三步：
 1. 再跑一次目标模式的 `health`
 2. 保留一份真实输出文件作为验收样本
-3. 如果走交付层，再启动一次 API 或 Bot 验证入口链路
+3. 跑完整 `acceptance.sh --with-dev`，同时验证源码仓库 API/Bot 入口和导出包
+4. 如果走交付层，再启动一次目标 API 或 Bot 验证真实入口链路
 
 推荐验收顺序：
 1. `bash scripts/bootstrap.sh`
@@ -218,7 +221,8 @@ bash scripts/preflight.sh \
 3. `bash scripts/pure-analysis.sh ... --output-file ...`
 4. 若要上线交付层：`bash scripts/preflight.sh --mode delivery --bootstrap --pretty`
 5. `bash scripts/delivery-smoke.sh --target api`
-6. `bash scripts/serve-api.sh` 或 `bash scripts/serve-bot.sh`
+6. `bash scripts/delivery-smoke.sh --target bot --startup-timeout 8`
+7. `bash scripts/serve-api.sh` 或 `bash scripts/serve-bot.sh`
 
 ## Common Patterns
 
@@ -244,6 +248,7 @@ bash scripts/preflight.sh --mode delivery --bootstrap --pretty
 
 ```bash
 bash scripts/delivery-smoke.sh --target api
+bash scripts/delivery-smoke.sh --target bot --startup-timeout 8
 ```
 
 ### Pattern 4. 直接落文件
@@ -278,8 +283,8 @@ project/.venv/bin/fatecat pure-analysis \
 - Input: 一个刚拉下来的 FateCat skill 仓库，需要先确认能不能跑
 - Steps:
   1. 执行 `bash scripts/preflight.sh --mode pure --bootstrap --pretty`
-  2. 若仓库刚迁移过目录，再执行 `bash scripts/acceptance.sh`
-  2. 必要时再执行 `project/.venv/bin/fatecat --help`
+  2. 若仓库刚迁移过目录，再执行 `bash scripts/acceptance.sh --with-dev`
+  3. 必要时再执行 `project/.venv/bin/fatecat --help`
 - Expected output / acceptance:
   - 虚拟环境成功创建
   - CLI 帮助正常显示

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 高级历法集成器（胶水层）
 
@@ -18,15 +17,13 @@ from __future__ import annotations
 
 import re
 import sys
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any
 
-
-from _paths import (
-    HOLIDAY_CALENDAR_DIR, CHINESE_CALENDAR_DIR, LUNAR_PYTHON_DIR
-)
+from _paths import CHINESE_CALENDAR_DIR, HOLIDAY_CALENDAR_DIR, LUNAR_PYTHON_DIR
 
 _HOLIDAY_ICS_DIR = HOLIDAY_CALENDAR_DIR
 _CHINESE_CALENDAR_DIR = CHINESE_CALENDAR_DIR
@@ -52,12 +49,12 @@ def _strip_ics_text(v: str) -> str:
     return v.strip()
 
 
-def _unfold_ics_lines(raw_lines: Iterable[str]) -> List[str]:
+def _unfold_ics_lines(raw_lines: Iterable[str]) -> list[str]:
     """
     iCalendar 行折叠：以空格/Tab 开头视为上一行的延续。
     这里只做最小实现用于读取 SUMMARY/DESCRIPTION/DTSTART 等字段。
     """
-    out: List[str] = []
+    out: list[str] = []
     for line in raw_lines:
         s = line.rstrip("\n")
         if not s:
@@ -71,15 +68,15 @@ def _unfold_ics_lines(raw_lines: Iterable[str]) -> List[str]:
     return out
 
 
-def _parse_ics_events(ics_path: Path) -> List[_IcsEvent]:
+def _parse_ics_events(ics_path: Path) -> list[_IcsEvent]:
     if not ics_path.exists():
         raise FileNotFoundError(f"ICS 文件不存在: {ics_path}")
     raw = ics_path.read_text(encoding="utf-8", errors="strict").splitlines(True)
     lines = _unfold_ics_lines(raw)
 
-    events: List[_IcsEvent] = []
+    events: list[_IcsEvent] = []
     in_evt = False
-    cur: Dict[str, str] = {}
+    cur: dict[str, str] = {}
     for line in lines:
         if line == "BEGIN:VEVENT":
             in_evt = True
@@ -93,7 +90,9 @@ def _parse_ics_events(ics_path: Path) -> List[_IcsEvent]:
             description = cur.get("DESCRIPTION", "")
             if not dtstart or not summary:
                 raise RuntimeError(f"ICS VEVENT 缺字段: DTSTART={dtstart!r} SUMMARY={summary!r}")
-            events.append(_IcsEvent(dtstart=dtstart, summary=_strip_ics_text(summary), description=_strip_ics_text(description)))
+            events.append(
+                _IcsEvent(dtstart=dtstart, summary=_strip_ics_text(summary), description=_strip_ics_text(description))
+            )
             in_evt = False
             cur = {}
             continue
@@ -124,13 +123,13 @@ def _ics_dtstart_to_date(dtstart: str) -> date:
     return date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
 
 
-def _extract_huangli_from_description(desc: str) -> Dict[str, Any]:
+def _extract_huangli_from_description(desc: str) -> dict[str, Any]:
     """
     将 ICS 的 DESCRIPTION 解析成结构化宜忌。
     说明：这是数据适配（文本解析），不是“命理算法重写”。
     """
     text = (desc or "").strip()
-    out: Dict[str, Any] = {"raw": text, "yi": [], "ji": []}
+    out: dict[str, Any] = {"raw": text, "yi": [], "ji": []}
     if not text:
         return out
 
@@ -150,7 +149,7 @@ class AdvancedCalendarCalculator:
     def __init__(self, dt: datetime):
         self.dt = dt
 
-    def calculate_advanced_calendar(self) -> Dict[str, Any]:
+    def calculate_advanced_calendar(self) -> dict[str, Any]:
         result = self._call_advanced_calendar()
         return {
             "advancedCalendar": {
@@ -160,7 +159,7 @@ class AdvancedCalendarCalculator:
             }
         }
 
-    def _call_advanced_calendar(self) -> Dict[str, Any]:
+    def _call_advanced_calendar(self) -> dict[str, Any]:
         if not _HOLIDAY_ICS_DIR.exists():
             raise FileNotFoundError(f"节假日/黄历 ICS 仓库不存在: {_HOLIDAY_ICS_DIR}")
         if not _CHINESE_CALENDAR_DIR.exists():
@@ -178,7 +177,7 @@ class AdvancedCalendarCalculator:
             "multiCalendar": multi_calendar,
         }
 
-    def _process_holiday_calendar(self) -> Dict[str, Any]:
+    def _process_holiday_calendar(self) -> dict[str, Any]:
         """
         解析 holiday-and-chinese-almanac-calendar-main 的 .ics 数据。
         约束：该仓库按年度生成（目前观测为 2025），若当前年份无数据则直接报错（禁止伪造/兜底）。
@@ -203,14 +202,13 @@ class AdvancedCalendarCalculator:
             return {}
 
         today = self.dt.date()
-        today_evt: Optional[_IcsEvent] = None
+        today_evt: _IcsEvent | None = None
         year_count = 0
         for e in events:
             d = _ics_dtstart_to_date(e.dtstart)
             if d.year != self.dt.year:
                 continue
             year_count += 1
-            hl = _extract_huangli_from_description(e.description)
             if d == today:
                 today_evt = e
 
@@ -235,7 +233,7 @@ class AdvancedCalendarCalculator:
             },
         }
 
-    def _process_chinese_calendar(self) -> Dict[str, Any]:
+    def _process_chinese_calendar(self) -> dict[str, Any]:
         """
         使用 chinese_calendar-master 提供的权威判断：
         - is_workday / is_holiday
@@ -263,7 +261,7 @@ class AdvancedCalendarCalculator:
             "holidayDetail": {"isHoliday": bool(hd), "name": name},
         }
 
-    def _process_multi_calendar(self) -> Dict[str, Any]:
+    def _process_multi_calendar(self) -> dict[str, Any]:
         """使用 lunar-python-master 提供公历/农历/节气信息。"""
         try:
             from lunar_python import Solar

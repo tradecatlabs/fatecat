@@ -73,7 +73,7 @@ def build_disclaimer_markdown() -> str:
 
 def attach_branding(payload: dict[str, Any]) -> dict[str, Any]:
     """给结构化输出附加免责声明与品牌信息。"""
-    enriched = {"disclaimer": get_disclaimer_payload()}
+    enriched: dict[str, Any] = {"disclaimer": get_disclaimer_payload()}
     enriched.update(payload)
     enriched["branding"] = get_branding_payload()
     return enriched

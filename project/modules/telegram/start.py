@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """FateCat Telegram 模块启动脚本"""
-import sys
+
 import subprocess
+import sys
 from pathlib import Path
 
 
@@ -40,6 +41,7 @@ def main() -> int:
     elif mode == "both":
         print("🚀 同时启动 Bot 和 API...")
         import threading
+
         results = {"bot": 0, "api": 0}
 
         def run_bot():
@@ -61,6 +63,7 @@ def main() -> int:
     else:
         print(f"❌ 未知模式: {mode}")
         return 2
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

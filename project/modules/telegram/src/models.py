@@ -1,10 +1,11 @@
 """八字排盘数据模型"""
-from pydantic import BaseModel, Field
-from typing import Optional, List, Literal
-from datetime import datetime
 
+from typing import Any, Literal
+
+from pydantic import BaseModel, Field
 
 # ========== 请求模型 ==========
+
 
 class BirthPlace(BaseModel):
     name: str = Field(..., description="地点名称")
@@ -21,30 +22,31 @@ class BaziOptions(BaseModel):
 
 
 class BaziRequest(BaseModel):
-    name: Optional[str] = Field(default=None, description="姓名")
+    name: str | None = Field(default=None, description="姓名")
     gender: Literal["male", "female"] = Field(..., description="性别")
     birthDate: str = Field(..., description="出生日期 YYYY-MM-DD")
     birthTime: str = Field(..., description="出生时间 HH:MM:SS")
-    birthPlace: Optional[BirthPlace] = Field(default=None, description="出生地点")
+    birthPlace: BirthPlace | None = Field(default=None, description="出生地点")
     options: BaziOptions = Field(default_factory=BaziOptions)
+
 
 # ========== 六爻因子请求模型 ==========
 
+
 class LiuyaoFactorRequest(BaseModel):
     item: str = Field(..., description="标的名称（交易对/商品名）")
-    timestamp: Optional[str] = Field(default=None, description="起卦时间（ISO 格式，可省略）")
+    timestamp: str | None = Field(default=None, description="起卦时间（ISO 格式，可省略）")
     method: Literal["seeded", "random", "manual"] = Field(
         default="seeded",
         description="起卦方式：seeded=可复现，random=随机，manual=手动",
     )
-    seed: Optional[str] = Field(default=None, description="可复现 seed（seeded 可选）")
-    cnts: Optional[List[int]] = Field(default=None, description="手动起卦铜钱结果（6 个 0-3）")
-    cycleHint: Optional[Literal["intraday", "1-3d", "1-2w", "1-3m"]] = Field(
-        default=None, description="强制周期（可选）"
-    )
+    seed: str | None = Field(default=None, description="可复现 seed（seeded 可选）")
+    cnts: list[int] | None = Field(default=None, description="手动起卦铜钱结果（6 个 0-3）")
+    cycleHint: Literal["intraday", "1-3d", "1-2w", "1-3m"] | None = Field(default=None, description="强制周期（可选）")
 
 
 # ========== 响应模型 ==========
+
 
 class Pillar(BaseModel):
     stem: str = Field(..., description="天干")
@@ -61,15 +63,15 @@ class FourPillars(BaseModel):
 
 
 class HiddenStems(BaseModel):
-    year: List[str]
-    month: List[str]
-    day: List[str]
-    hour: List[str]
+    year: list[str]
+    month: list[str]
+    day: list[str]
+    hour: list[str]
 
 
 class PillarTenGod(BaseModel):
     stem: str = Field(..., description="天干十神")
-    branch: List[str] = Field(..., description="地支藏干十神")
+    branch: list[str] = Field(..., description="地支藏干十神")
 
 
 class TenGods(BaseModel):
@@ -82,8 +84,9 @@ class TenGods(BaseModel):
 class ElementStat(BaseModel):
     count: int
     percentage: float
-    stems: List[str]
-    branches: List[str]
+    stems: list[str] = Field(default_factory=list)
+    branches: list[str] = Field(default_factory=list)
+    items: list[str] = Field(default_factory=list)
 
 
 class FiveElements(BaseModel):
@@ -113,7 +116,7 @@ class DayMaster(BaseModel):
 
 class MajorFortunePillar(BaseModel):
     age: int
-    year: int
+    year: int | None = None
     stem: str
     branch: str
     fullName: str
@@ -123,7 +126,7 @@ class MajorFortune(BaseModel):
     direction: Literal["顺行", "逆行"]
     startAge: int
     startYear: int
-    pillars: List[MajorFortunePillar]
+    pillars: list[MajorFortunePillar]
 
 
 class AnnualFortune(BaseModel):
@@ -134,13 +137,13 @@ class AnnualFortune(BaseModel):
 
 
 class Spirits(BaseModel):
-    auspicious: List[str] = Field(default_factory=list)
-    inauspicious: List[str] = Field(default_factory=list)
+    auspicious: list[str] = Field(default_factory=list)
+    inauspicious: list[str] = Field(default_factory=list)
 
 
 class TimeInfo(BaseModel):
     inputTime: str
-    trueSolarTime: Optional[str] = None
+    trueSolarTime: str | None = None
     lunarDate: str
     solarTerm: str
 
@@ -153,16 +156,16 @@ class BaziData(BaseModel):
     fiveElements: FiveElements
     dayMaster: DayMaster
     majorFortune: MajorFortune
-    annualFortune: List[AnnualFortune]
-    spirits: Optional[Spirits] = None
-    voidBranches: List[str] = Field(default_factory=list)
+    annualFortune: list[AnnualFortune]
+    spirits: Spirits | None = None
+    voidBranches: Any = Field(default_factory=dict)
 
 
 class Meta(BaseModel):
     calculatedAt: str
     algorithm: str = "traditional"
     version: str = "1.0.0"
-    recordId: Optional[int] = None
+    recordId: int | None = None
 
 
 class BrandingInfo(BaseModel):
@@ -178,12 +181,14 @@ class BrandingInfo(BaseModel):
 class BaziResponse(BaseModel):
     disclaimer: str
     success: bool
-    data: Optional[BaziData] = None
-    error: Optional[str] = None
+    data: BaziData | None = None
+    error: str | None = None
     meta: Meta
     branding: BrandingInfo
 
+
 # ========== 六爻因子响应模型 ==========
+
 
 class LiuyaoFactorData(BaseModel):
     item: str
@@ -193,7 +198,7 @@ class LiuyaoFactorData(BaseModel):
     confidence: float
     cycle: Literal["intraday", "1-3d", "1-2w", "1-3m"]
     raw: dict
-    explain: List[str]
+    explain: list[str]
     source: str
     version: str
 
@@ -201,7 +206,7 @@ class LiuyaoFactorData(BaseModel):
 class LiuyaoFactorResponse(BaseModel):
     disclaimer: str
     success: bool
-    data: Optional[LiuyaoFactorData] = None
-    error: Optional[str] = None
+    data: LiuyaoFactorData | None = None
+    error: str | None = None
     meta: Meta
     branding: BrandingInfo

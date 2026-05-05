@@ -2,14 +2,16 @@
 用户报告生成器 - 生成Markdown格式的命理排盘报告
 依赖: bazi_calculator.py 的计算结果
 """
-from datetime import datetime
-from typing import Dict, Any
+
 import re
+from datetime import datetime
+from typing import Any
 
 from branding import build_brand_footer_text, build_disclaimer_text, load_branding
 
 # 控制易经细节输出
 SUPPRESS_DETAILS = True  # 暂时关闭易经细节（不输出示例文案）
+
 
 def _normalize_present_text(text: str) -> str:
     """统一清理“呈现层”文案中的提示词。
@@ -21,8 +23,7 @@ def _normalize_present_text(text: str) -> str:
     if not text:
         return text
     return (
-        text
-        .replace("（依据，展开）", "（依据）")
+        text.replace("（依据，展开）", "（依据）")
         .replace("（全展开）", "")
         .replace("（全量）", "")
         .replace("（展开）", "")
@@ -49,11 +50,13 @@ def _render_table(headers: list[str], rows: list[list[object]]) -> list[str]:
     out.append("")
     return out
 
+
 def _compact_inline_text(s: str) -> str:
     """将多行文本压成单行，便于表格呈现（不丢信息，仅改变换行）。"""
     if not s:
         return ""
     return " ".join(x.strip() for x in str(s).splitlines() if x.strip())
+
 
 def _compact_json(v: object, *, drop_keys: set[str] | None = None) -> str:
     """把 dict/list 压成单行 JSON（用于“全量但可读”的呈现层）。
@@ -74,9 +77,10 @@ def _compact_json(v: object, *, drop_keys: set[str] | None = None) -> str:
     except Exception:
         return _compact_inline_text(str(vv))
 
+
 # 默认呈现开关（仅影响 TXT 输出）
 # 注意：计算层是否执行由 bazi_calculator.calculate(hide=...) 决定；Bot/服务可用同一份配置传入两处。
-DEFAULT_HIDE: Dict[str, bool] = {
+DEFAULT_HIDE: dict[str, bool] = {
     "jianchu": False,
     "huangli": True,
     "zeri": True,
@@ -92,66 +96,62 @@ DEFAULT_HIDE: Dict[str, bool] = {
     "health": True,
 }
 
-def generate_report(result: Dict[str, Any], hide: Dict[str, bool] | None = None) -> str:
+
+def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None) -> str:
     """生成Markdown格式报告（主干部分）。
 
     注意：hide 仅影响 TXT 呈现，不影响上游计算与数据完整性。
     """
     lines = []
     hide = hide or {}
-    inp = result.get('input', {})
-    name = inp.get('name', '命主')
-    
+    inp = result.get("input", {})
+    name = inp.get("name", "命主")
+
     lines.append(f"# 命理排盘报告：{name or '命主'}")
     lines.append("")
     lines.append("## 第一卷：先天命格（静态分析）")
     lines.append("")
-    
+
     # 基本信息
     lines.append("## 基本资料（含真太阳时、节气）")
     lines.append("")
-    bi = result.get('birthInfo', {})
-    meta = result.get('meta', {})
-    jq = result.get('jieqiDetail', {})
-    jy = result.get('jiaoYun', {})
-    sl = result.get('siling', {})
-    
+    bi = result.get("birthInfo", {})
+    meta = result.get("meta", {})
+    jq = result.get("jieqiDetail", {})
+    sl = result.get("siling", {})
+
     # 农历日期
-    lunar_str = bi.get('lunar') or bi.get('lunarCn') or bi.get('lunarDate', '')
+    lunar_str = bi.get("lunar") or bi.get("lunarCn") or bi.get("lunarDate", "")
     if not lunar_str:
         # 尝试从其他字段构建
         lunar_str = f"{bi.get('lunarYear', '')}年{bi.get('lunarMonth', '')}月{bi.get('lunarDay', '')}日"
-    
-    gender_cn = meta.get('genderCn') or inp.get('gender', '')
-    true_solar_time = meta.get('trueSolarTime') or result.get('trueSolarTime', '')
-    
+
+    gender_cn = meta.get("genderCn") or inp.get("gender", "")
+    true_solar_time = meta.get("trueSolarTime") or result.get("trueSolarTime", "")
+
     # 不在这里输出“阳历/农历/性别”的合并行，统一放到“基本信息（展开）”中逐条输出
-    
+
     # 出生节气
-    prev_jq = jq.get('prevJieQi', {})
-    next_jq = jq.get('nextJieQi', {})
-    jieqi_str = ''
-    if prev_jq and next_jq:
-        jieqi_str = f"出生于{prev_jq.get('name', '')}后{prev_jq.get('daysAfter', '')}天，{next_jq.get('name', '')}前{next_jq.get('daysBefore', '')}天"
-    
-    lng = inp.get('longitude', '')
-    lat = inp.get('latitude', '')
-    lnglat = f"{lng}° / {lat}°" if (lng or lat) else ''
-    
-    jc = result.get('jianChu', {})
-    
-    vi = result.get('voidInfo', {})
-    day_void = vi.get('day', {})
-    void_str = day_void.get('kong', '') if isinstance(day_void, dict) else str(day_void)
-    
-    sp = result.get('specialPalaces', {})
-    ty = sp.get('taiYuan', {})
-    tx = sp.get('taiXi', {})
-    mg = sp.get('mingGong', {})
-    sg = sp.get('shenGong', {})
-    zi_time = result.get('ziTimeAnalysis', {})
-    
-    mgua = result.get('mingGua', {})
+    prev_jq = jq.get("prevJieQi", {})
+    next_jq = jq.get("nextJieQi", {})
+    lng = inp.get("longitude", "")
+    lat = inp.get("latitude", "")
+    lnglat = f"{lng}° / {lat}°" if (lng or lat) else ""
+
+    jc = result.get("jianChu", {})
+
+    vi = result.get("voidInfo", {})
+    day_void = vi.get("day", {})
+    void_str = day_void.get("kong", "") if isinstance(day_void, dict) else str(day_void)
+
+    sp = result.get("specialPalaces", {})
+    ty = sp.get("taiYuan", {})
+    tx = sp.get("taiXi", {})
+    mg = sp.get("mingGong", {})
+    sg = sp.get("shenGong", {})
+    zi_time = result.get("ziTimeAnalysis", {})
+
+    mgua = result.get("mingGua", {})
     lines.append("")
 
     # 基本信息展开（避免表格中信息被认为“缩写”）
@@ -186,43 +186,47 @@ def generate_report(result: Dict[str, Any], hide: Dict[str, bool] | None = None)
         rows.append(["生肖", bi.get("zodiac", "")])
     if bi.get("constellation", ""):
         rows.append(["星座", bi.get("constellation", "")])
-    xx = bi.get('xingXiu', bi.get('xiu', bi.get('xingxiu', bi.get('star', '-'))))
+    xx = bi.get("xingXiu", bi.get("xiu", bi.get("xingxiu", bi.get("star", "-"))))
     if xx and xx != "-":
         rows.append(["星宿", xx])
     if prev_jq:
-        rows.append(["前节气", f"{prev_jq.get('name','')} {prev_jq.get('date','')} 已过{prev_jq.get('daysAfter','')}天"])
+        rows.append(
+            ["前节气", f"{prev_jq.get('name', '')} {prev_jq.get('date', '')} 已过{prev_jq.get('daysAfter', '')}天"]
+        )
     if next_jq:
-        rows.append(["后节气", f"{next_jq.get('name','')} {next_jq.get('date','')} 还有{next_jq.get('daysBefore','')}天"])
+        rows.append(
+            ["后节气", f"{next_jq.get('name', '')} {next_jq.get('date', '')} 还有{next_jq.get('daysBefore', '')}天"]
+        )
     if (not hide.get("jianchu", False)) and jc and not jc.get("error"):
-        rows.append(["日值建除", f"{jc.get('name','')}（序号{jc.get('index','')}）"])
+        rows.append(["日值建除", f"{jc.get('name', '')}（序号{jc.get('index', '')}）"])
     if sl.get("current", ""):
-        rows.append(["人元司令", f"{sl.get('current','')}用事"])
+        rows.append(["人元司令", f"{sl.get('current', '')}用事"])
     if void_str:
         rows.append(["空亡", void_str])
     if ty.get("pillar", ""):
-        rows.append(["胎元", f"{ty.get('pillar','')} {ty.get('nayin','')}".strip()])
+        rows.append(["胎元", f"{ty.get('pillar', '')} {ty.get('nayin', '')}".strip()])
     if tx.get("pillar", ""):
-        rows.append(["胎息", f"{tx.get('pillar','')} {tx.get('nayin','')}".strip()])
+        rows.append(["胎息", f"{tx.get('pillar', '')} {tx.get('nayin', '')}".strip()])
     if mg.get("pillar", ""):
-        rows.append(["命宫", f"{mg.get('pillar','')} {mg.get('nayin','')}".strip()])
+        rows.append(["命宫", f"{mg.get('pillar', '')} {mg.get('nayin', '')}".strip()])
     if sg.get("pillar", ""):
-        rows.append(["身宫", f"{sg.get('pillar','')} {sg.get('nayin','')}".strip()])
+        rows.append(["身宫", f"{sg.get('pillar', '')} {sg.get('nayin', '')}".strip()])
     if zi_time and isinstance(zi_time, dict):
         zt = []
         if zi_time.get("timeZhi", ""):
-            zt.append(f"时支{zi_time.get('timeZhi','')}")
+            zt.append(f"时支{zi_time.get('timeZhi', '')}")
         if "zwzShift" in zi_time:
             zt.append(f"早晚子规则触发{'是' if zi_time.get('zwzShift') else '否'}")
         if zi_time.get("dayPillarNormal", ""):
-            zt.append(f"日柱常规{zi_time.get('dayPillarNormal','')}")
+            zt.append(f"日柱常规{zi_time.get('dayPillarNormal', '')}")
         if zi_time.get("dayPillarZwz", ""):
-            zt.append(f"日柱早晚子{zi_time.get('dayPillarZwz','')}")
+            zt.append(f"日柱早晚子{zi_time.get('dayPillarZwz', '')}")
         if zi_time.get("rule", ""):
-            zt.append(f"规则{zi_time.get('rule','')}")
+            zt.append(f"规则{zi_time.get('rule', '')}")
         if zt:
             rows.append(["子时判定", "；".join(zt)])
     if mgua.get("guaName", ""):
-        rows.append(["命卦", f"{mgua.get('guaName','')} {mgua.get('group','')}".strip()])
+        rows.append(["命卦", f"{mgua.get('guaName', '')} {mgua.get('group', '')}".strip()])
     lines.extend(_render_table(["项目", "内容"], rows))
 
     # 空亡信息明细：已在“四柱信息表”中给出（旬/空亡），这里默认不再重复输出
@@ -231,7 +235,9 @@ def generate_report(result: Dict[str, Any], hide: Dict[str, bool] | None = None)
         if isinstance(vi, dict) and vi:
             name_map = {"year": "年柱", "month": "月柱", "day": "日柱", "hour": "时柱"}
             order = ["year", "month", "day", "hour"]
-            has_any = any(isinstance(vi.get(k), dict) and (vi.get(k).get("xun") or vi.get(k).get("kong")) for k in order)
+            has_any = any(
+                isinstance(vi.get(k), dict) and (vi.get(k).get("xun") or vi.get(k).get("kong")) for k in order
+            )
             if has_any:
                 lines.append("### 空亡信息（依据）")
                 lines.append("")
@@ -248,8 +254,8 @@ def generate_report(result: Dict[str, Any], hide: Dict[str, bool] | None = None)
                         if kong:
                             lines.append(f"  - 空亡：{kong}")
                 lines.append("")
-    
-    if (not hide.get("jianchu", False)) and jc and not jc.get('error'):
+
+    if (not hide.get("jianchu", False)) and jc and not jc.get("error"):
         lines.append("### 建除十二神")
         lines.append("")
         jrows = [
@@ -260,15 +266,15 @@ def generate_report(result: Dict[str, Any], hide: Dict[str, bool] | None = None)
             ["解读", jc.get("description", "")],
         ]
         lines.extend(_render_table(["项目", "内容"], jrows))
-    
+
     # 八字排盘详情
     lines.append("## 八字排盘详情")
     lines.append("")
-    fp = result.get('fourPillars', {})
-    tg = result.get('tenGods', {})
-    hs = result.get('hiddenStems', {})
-    tw = result.get('twelveGrowth', {})
-    dm = result.get('dayMaster', {})
+    fp = result.get("fourPillars", {})
+    tg = result.get("tenGods", {})
+    hs = result.get("hiddenStems", {})
+    tw = result.get("twelveGrowth", {})
+    dm = result.get("dayMaster", {})
 
     def _split_csv(val):
         if val is None:
@@ -328,7 +334,7 @@ def generate_report(result: Dict[str, Any], hide: Dict[str, bool] | None = None)
         p_void = vi.get(k, {}) if isinstance(vi, dict) else {}
         p_growth = tw.get(k, {}) if isinstance(tw, dict) else {}
 
-        gan_zhi = p_fp.get("fullName") or f"{p_fp.get('stem','')}{p_fp.get('branch','')}"
+        gan_zhi = p_fp.get("fullName") or f"{p_fp.get('stem', '')}{p_fp.get('branch', '')}"
         stem = p_fp.get("stem", "")
         branch = p_fp.get("branch", "")
         nayin = p_fp.get("nayin", "")
@@ -340,13 +346,15 @@ def generate_report(result: Dict[str, Any], hide: Dict[str, bool] | None = None)
         he_item = he_detail_all.get(k, {}) if isinstance(he_detail_all, dict) else {}
         zhi_hidden_score = he_item.get("zhiHiddenScore", {}) if isinstance(he_item, dict) else {}
 
-        growth = p_growth if isinstance(p_growth, str) else (p_growth.get("state", "") if isinstance(p_growth, dict) else "")
+        growth = (
+            p_growth if isinstance(p_growth, str) else (p_growth.get("state", "") if isinstance(p_growth, dict) else "")
+        )
         xun = p_void.get("xun", "") if isinstance(p_void, dict) else ""
         kong = p_void.get("kong", "") if isinstance(p_void, dict) else ""
 
         self_sitting = ""
         if k == "day":
-            self_sitting = dm.get('sitting', dm.get('selfSitting', '')) if isinstance(dm, dict) else ''
+            self_sitting = dm.get("sitting", dm.get("selfSitting", "")) if isinstance(dm, dict) else ""
 
         row_vals["ganZhi"][idx] = gan_zhi
         row_vals["stem"][idx] = stem
@@ -364,7 +372,7 @@ def generate_report(result: Dict[str, Any], hide: Dict[str, bool] | None = None)
     lines.extend(_render_table(col_headers, table_rows))
 
     # 五行分数（表格化）
-    wx_score = result.get('wuxingScores', {})
+    wx_score = result.get("wuxingScores", {})
     if wx_score:
         lines.append("### 五行分数")
         lines.append("")
@@ -392,7 +400,7 @@ def generate_report(result: Dict[str, Any], hide: Dict[str, bool] | None = None)
         lines.append("")
 
     # 温湿度与拱神（表格化）
-    climate = result.get('climateScores', {})
+    climate = result.get("climateScores", {})
     if climate and not climate.get("error"):
         lines.append("### 温湿度与拱神")
         lines.append("")
@@ -411,10 +419,11 @@ def generate_report(result: Dict[str, Any], hide: Dict[str, bool] | None = None)
             lines.extend(_render_table(["项目", "内容"], crows))
 
     # 干支合克与入库
-    gz_extra = result.get('ganzhiExtra', {})
+    gz_extra = result.get("ganzhiExtra", {})
     if gz_extra:
         lines.append("### 干支合克与入库")
         lines.append("")
+
         def _fmt_score(d: dict) -> str:
             if not isinstance(d, dict) or not d:
                 return ""
@@ -436,14 +445,16 @@ def generate_report(result: Dict[str, Any], hide: Dict[str, bool] | None = None)
                 if item.get("error"):
                     rows.append([label, "", "", f"error: {item.get('error')}", "", ""])
                     continue
-                rows.append([
-                    label,
-                    item.get("ganZhi", ""),
-                    item.get("heGan", ""),
-                    item.get("hitItem", "") or "-",
-                    "相合" if item.get("hit") is True else "不相合",
-                    _fmt_score(item.get("zhiHiddenScore", {})),
-                ])
+                rows.append(
+                    [
+                        label,
+                        item.get("ganZhi", ""),
+                        item.get("heGan", ""),
+                        item.get("hitItem", "") or "-",
+                        "相合" if item.get("hit") is True else "不相合",
+                        _fmt_score(item.get("zhiHiddenScore", {})),
+                    ]
+                )
             lines.append("#### 干支相合（依据）")
             lines.append("")
             lines.extend(_render_table(["柱", "干支", "合干", "命中", "结论", "支藏干强度"], rows))
@@ -490,24 +501,28 @@ def generate_report(result: Dict[str, Any], hide: Dict[str, bool] | None = None)
                 hit_item = item.get("hitItem", "") or "-"
                 verdict = "入库" if item.get("hit") is True else "不入库"
                 hiddens = item.get("hidden", []) if isinstance(item.get("hidden", []), list) else []
-                rows.append([
-                    label,
-                    zhi,
-                    "是" if is_ku else "否",
-                    f"{ku_elem}库" if ku_elem else "",
-                    weakest,
-                    weakest_score,
-                    hit_item,
-                    verdict,
-                    "、".join([str(x) for x in hiddens if str(x).strip()]),
-                    _fmt_score(item.get("zhiHiddenScore", {})),
-                ])
+                rows.append(
+                    [
+                        label,
+                        zhi,
+                        "是" if is_ku else "否",
+                        f"{ku_elem}库" if ku_elem else "",
+                        weakest,
+                        weakest_score,
+                        hit_item,
+                        verdict,
+                        "、".join([str(x) for x in hiddens if str(x).strip()]),
+                        _fmt_score(item.get("zhiHiddenScore", {})),
+                    ]
+                )
             lines.append("#### 地支入库（依据）")
             lines.append("")
-            lines.extend(_render_table(
-                ["柱", "地支", "四库", "库类", "最弱藏干", "最弱分数", "命中", "结论", "本柱藏干", "支藏干强度"],
-                rows
-            ))
+            lines.extend(
+                _render_table(
+                    ["柱", "地支", "四库", "库类", "最弱藏干", "最弱分数", "命中", "结论", "本柱藏干", "支藏干强度"],
+                    rows,
+                )
+            )
         else:
             if gz_extra.get("ku"):
                 raise RuntimeError("地支入库数据缺失: ganzhiExtra.kuDetail 缺失但 ku 非空")
@@ -515,7 +530,7 @@ def generate_report(result: Dict[str, Any], hide: Dict[str, bool] | None = None)
         lines.append("")
 
     # 地支六合 / 三会 / 三合 / 冲刑害破
-    zhi_rel = result.get('branchRelations', {})
+    zhi_rel = result.get("branchRelations", {})
     if zhi_rel and not zhi_rel.get("error"):
         lines.append("### 地支关系")
         lines.append("")
@@ -633,21 +648,21 @@ def generate_report(result: Dict[str, Any], hide: Dict[str, bool] | None = None)
         lines.append("")
 
     # 神煞（默认输出合并后的全量列表；禁止回退到简表口径）
-    full_sp = result.get('spiritsFull', {})
-    full_by = full_sp.get('byPillar', {})
+    full_sp = result.get("spiritsFull", {})
+    full_by = full_sp.get("byPillar", {})
     lines.append("## 神煞断语")
     lines.append("")
     if not isinstance(full_by, dict):
         raise RuntimeError("神煞数据缺失: spiritsFull.byPillar 不是 dict")
     srows: list[list[object]] = []
-    for pillar, pname in [('year', '年柱'), ('month', '月柱'), ('day', '日柱'), ('hour', '时柱')]:
+    for pillar, pname in [("year", "年柱"), ("month", "月柱"), ("day", "日柱"), ("hour", "时柱")]:
         slist = full_by.get(pillar, [])
         if not slist:
             continue
         srows.append([pname, "、".join([str(x) for x in slist if str(x).strip()])])
     if srows:
         lines.extend(_render_table(["柱", "神煞（合并去重）"], srows))
-    descs = full_sp.get('descriptions', {})
+    descs = full_sp.get("descriptions", {})
     if descs:
         lines.append("")
         lines.append("**神煞释义**")
@@ -662,7 +677,7 @@ def generate_report(result: Dict[str, Any], hide: Dict[str, bool] | None = None)
         lines.append("### 简表神煞（字段展开）")
         lines.append("")
         rows = []
-        for pillar, pname in [('year', '年柱'), ('month', '月柱'), ('day', '日柱'), ('hour', '时柱')]:
+        for pillar, pname in [("year", "年柱"), ("month", "月柱"), ("day", "日柱"), ("hour", "时柱")]:
             slist = sp_by.get(pillar, [])
             if not slist:
                 continue
@@ -676,40 +691,40 @@ def generate_report(result: Dict[str, Any], hide: Dict[str, bool] | None = None)
         for k, v in sp_ex.items():
             lines.append(f"- {k}：{v}")
     lines.append("")
-    
-    return _normalize_present_text('\n'.join(lines))
+
+    return _normalize_present_text("\n".join(lines))
 
 
-def generate_daymaster_section(result: Dict[str, Any]) -> str:
+def generate_daymaster_section(result: dict[str, Any]) -> str:
     """生成日主概览（属性/阴阳/旺衰/格局参考）"""
     lines = []
-    dm = result.get('dayMaster', {})
-    wx_state = result.get('wuxingState', {})
-    geju = result.get('geju', {})
-    sizi_sum = result.get('siziSummary', {}) or {}
+    dm = result.get("dayMaster", {})
+    wx_state = result.get("wuxingState", {})
+    geju = result.get("geju", {})
+    sizi_sum = result.get("siziSummary", {}) or {}
     if dm or wx_state or geju:
         lines.append("## 日主概览")
         lines.append("")
         if dm:
             lines.append("* 日主属性（展开）：")
             if dm.get("stem", ""):
-                lines.append(f"  - 天干：{dm.get('stem','')}")
-            elem = dm.get('elementCn', dm.get('element',''))
+                lines.append(f"  - 天干：{dm.get('stem', '')}")
+            elem = dm.get("elementCn", dm.get("element", ""))
             if elem:
                 lines.append(f"  - 五行：{elem}")
-            lines.append(f"* 阴阳参考：{dm.get('yinYang','')}")
-            if dm.get('strength'):
+            lines.append(f"* 阴阳参考：{dm.get('yinYang', '')}")
+            if dm.get("strength"):
                 lines.append(f"* 旺衰参考：{dm.get('strength')}")
         if wx_state:
-            desc = wx_state.get('description','')
+            desc = wx_state.get("description", "")
             if desc:
                 lines.append(f"* 五行状态：{desc}")
-            summary = wx_state.get('statusSummary','')
+            summary = wx_state.get("statusSummary", "")
             if summary:
                 lines.append(f"* 旺衰概要：{summary}")
         if geju:
-            main = geju.get('main','')
-            pats = geju.get('patterns',[])
+            main = geju.get("main", "")
+            pats = geju.get("patterns", [])
             if main or pats:
                 if main:
                     lines.append(f"* 格局参考：{main}")
@@ -733,51 +748,51 @@ def generate_daymaster_section(result: Dict[str, Any]) -> str:
                     if t:
                         lines.append(f"    - {t}")
         lines.append("")
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
-def generate_wuxing_section(result: Dict[str, Any]) -> str:
+def generate_wuxing_section(result: dict[str, Any]) -> str:
     """生成五行分析部分"""
     lines = []
     lines.append("## 五行喜忌（调候与平衡）")
     lines.append("")
-    
-    dm = result.get('dayMaster', {})
+
+    dm = result.get("dayMaster", {})
     # 日主属性与强弱（单一口径，取 weakStrong 优先，其次 dayMaster.strength）
-    strength = dm.get('strength', '')
-    wx_strength = result.get('wuxingScores', {}).get('weakStrong')
+    strength = dm.get("strength", "")
+    wx_strength = result.get("wuxingScores", {}).get("weakStrong")
     final_strength = wx_strength or strength
     lines.append("日主属性（展开）：")
     if dm.get("stem", ""):
         lines.append(f"* 天干：{dm.get('stem', '')}")
-    elem = dm.get('elementCn', dm.get('element', ''))
+    elem = dm.get("elementCn", dm.get("element", ""))
     if elem:
         lines.append(f"* 五行：{elem}")
     if final_strength:
         lines.append(f"强弱判断：{final_strength}")
     lines.append("")
-    
+
     # 五行统计
-    fe = result.get('fiveElements', {})
+    fe = result.get("fiveElements", {})
     lines.append("### 五行比例")
     lines.append("")
     ratio_rows: list[list[object]] = []
-    for wx in ['木', '火', '土', '金', '水']:
+    for wx in ["木", "火", "土", "金", "水"]:
         val = fe.get(wx, {})
         if isinstance(val, dict):
-            pct = val.get('percentage', 0)
-            cnt = val.get('count', 0)
+            pct = val.get("percentage", 0)
+            cnt = val.get("count", 0)
         else:
             pct = val
-            cnt = '-'
+            cnt = "-"
         ratio_rows.append([wx, f"{pct}%", cnt])
     lines.extend(_render_table(["五行", "比例", "个数"], ratio_rows))
 
     # 五行分数 / 天干分数（含藏干、月支加权）
-    wx_score = result.get('wuxingScores', {})
+    wx_score = result.get("wuxingScores", {})
     if wx_score:
-        fes = wx_score.get('fiveElementScore', {})
-        gan_sc = wx_score.get('ganScore', {})
+        fes = wx_score.get("fiveElementScore", {})
+        gan_sc = wx_score.get("ganScore", {})
         if fes or gan_sc:
             lines.append("### 五行分数")
             lines.append("")
@@ -792,12 +807,12 @@ def generate_wuxing_section(result: Dict[str, Any]) -> str:
             lines.append("")
             lines.extend(_render_table(["天干", "分数"], rows))
         # 避免重复展示，与上方“强弱判断”保持一致
-        if wx_score.get('statusDetail'):
-            seq = "、".join([str(x) for x in wx_score.get('statusDetail') if str(x).strip()])
+        if wx_score.get("statusDetail"):
+            seq = "、".join([str(x) for x in wx_score.get("statusDetail") if str(x).strip()])
             if seq:
                 lines.append(f"日主状态序列：{seq}")
-        if wx_score.get('statusSummary'):
-            summary = wx_score.get('statusSummary')
+        if wx_score.get("statusSummary"):
+            summary = wx_score.get("statusSummary")
             parts = [x.strip() for x in str(summary).replace("／", "/").split("/") if x.strip()]
             if parts:
                 lines.append("长生概要：")
@@ -805,21 +820,21 @@ def generate_wuxing_section(result: Dict[str, Any]) -> str:
             else:
                 lines.append(f"长生概要：{summary}")
         lines.append("")
-    
+
     # 五行状态
-    ws = result.get('wuxingState', {})
-    desc = ws.get('description', '')
+    ws = result.get("wuxingState", {})
+    desc = ws.get("description", "")
     if desc:
         lines.append(f"五行状态：{desc}")
         lines.append("")
-    
-    return '\n'.join(lines)
+
+    return "\n".join(lines)
 
 
-def generate_bone_section(result: Dict[str, Any]) -> str:
+def generate_bone_section(result: dict[str, Any]) -> str:
     """生成称骨算命部分"""
     lines = []
-    bw = result.get('boneWeight', {})
+    bw = result.get("boneWeight", {})
     if bw:
         lines.append("## 袁天罡称骨")
         lines.append("")
@@ -827,24 +842,24 @@ def generate_bone_section(result: Dict[str, Any]) -> str:
         if bw.get("weight", "") != "":
             lines.append(f"  - 数值：{bw.get('weight', '')}两")
         if bw.get("weightCn", ""):
-            lines.append(f"  - 中文：{bw.get('weightCn','')}")
+            lines.append(f"  - 中文：{bw.get('weightCn', '')}")
         lines.append(f"* 评语：{bw.get('text', '')}")
-        comp = bw.get('components', {})
+        comp = bw.get("components", {})
         if comp:
             lines.append("* 权重构成：")
-            year = comp.get('year', {})
-            month = comp.get('month', {})
-            day = comp.get('day', {})
-            hour = comp.get('hour', {})
-            lines.append(f"  - 年柱 {year.get('ganZhi','')}：{year.get('weight','')}两")
-            lines.append(f"  - 月份 {month.get('month','')}月：{month.get('weight','')}两")
-            lines.append(f"  - 出生日 {day.get('day','')}日：{day.get('weight','')}两")
-            lines.append(f"  - 时辰 {hour.get('zhi','')}时：{hour.get('weight','')}两")
+            year = comp.get("year", {})
+            month = comp.get("month", {})
+            day = comp.get("day", {})
+            hour = comp.get("hour", {})
+            lines.append(f"  - 年柱 {year.get('ganZhi', '')}：{year.get('weight', '')}两")
+            lines.append(f"  - 月份 {month.get('month', '')}月：{month.get('weight', '')}两")
+            lines.append(f"  - 出生日 {day.get('day', '')}日：{day.get('weight', '')}两")
+            lines.append(f"  - 时辰 {hour.get('zhi', '')}时：{hour.get('weight', '')}两")
         lines.append("")
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
-def generate_fortune_section(result: Dict[str, Any], recent_years: int | None = None) -> str:
+def generate_fortune_section(result: dict[str, Any], recent_years: int | None = None) -> str:
     """生成运势分析部分
 
     recent_years:
@@ -865,14 +880,14 @@ def generate_fortune_section(result: Dict[str, Any], recent_years: int | None = 
             lines.append("* 大运建议：")
             lines.append(f"  - 原文：{seg}")
             lines.append("")
-    
+
     # 交运信息
-    jy = result.get('jiaoYun', {})
-    mf = result.get('majorFortune', {})
-    
+    jy = result.get("jiaoYun", {})
+    mf = result.get("majorFortune", {})
+
     if jy:
-        desc = jy.get('description', '')
-        start_date = jy.get('startDate', '')
+        desc = jy.get("description", "")
+        start_date = jy.get("startDate", "")
         if start_date:
             lines.append("起运（展开）：")
             if desc:
@@ -883,52 +898,49 @@ def generate_fortune_section(result: Dict[str, Any], recent_years: int | None = 
             if desc:
                 lines.append(f"* 描述：{desc}")
         lines.append(f"交运：逢{jy.get('jiaoJieQi', '')}节后交大运")
-        vi = result.get('voidInfo', {}).get('day', {})
+        vi = result.get("voidInfo", {}).get("day", {})
         if isinstance(vi, dict):
             lines.append("空亡（展开）：")
             if vi.get("kong", ""):
                 lines.append(f"* 空亡：{vi.get('kong', '')}")
             lines.append("* 依据：日柱")
-        sl = result.get('siling', {})
+        sl = result.get("siling", {})
         if sl:
             lines.append(f"司令：{sl.get('current', '')}")
         lines.append("")
-    
+
     # 大运（表格化呈现：压缩排版，不减少字段）
     if mf:
         lines.append("### 大运分析")
         lines.append("")
-        pillars = mf.get('pillars', [])
-        msp_map = {str(dy.get('startYear')): dy for dy in result.get('majorFortuneSpirits', []) if isinstance(dy, dict)}
+        pillars = mf.get("pillars", [])
+        msp_map = {str(dy.get("startYear")): dy for dy in result.get("majorFortuneSpirits", []) if isinstance(dy, dict)}
         rows: list[list[object]] = []
         for f in pillars:
             if not isinstance(f, dict):
                 continue
-            age = f.get('age', '')
-            year = f.get('startYear', '')
-            gz = f.get('fullName', '') or f.get('ganZhi', '')
-            tg = f.get('shiShen', '') or ''
-            ny = f.get('nayin', '') or ''
+            age = f.get("age", "")
+            year = f.get("startYear", "")
+            gz = f.get("fullName", "") or f.get("ganZhi", "")
+            tg = f.get("shiShen", "") or ""
+            ny = f.get("nayin", "") or ""
 
             msp = msp_map.get(str(year), {})
             wxc_txt = ""
             sp_txt = ""
             if isinstance(msp, dict):
-                wxc = msp.get('wuxingContribution', {}) or {}
+                wxc = msp.get("wuxingContribution", {}) or {}
                 if isinstance(wxc, dict) and wxc:
                     wxc_txt = "、".join([f"{k}:{v}" for k, v in wxc.items() if str(k).strip()])
-                sp = msp.get('spirits', []) or []
+                sp = msp.get("spirits", []) or []
                 if sp:
                     sp_txt = "、".join([str(x) for x in sp if str(x).strip()])
 
             rows.append([f"{age}岁" if str(age) != "" else "", year, gz, tg, ny, wxc_txt, sp_txt])
-        lines.extend(_render_table(
-            ["起始年龄", "起始年份", "干支", "十神", "纳音", "五行贡献", "神煞"],
-            rows
-        ))
-    
+        lines.extend(_render_table(["起始年龄", "起始年份", "干支", "十神", "纳音", "五行贡献", "神煞"], rows))
+
     # 流年
-    af = result.get('annualFortune', [])
+    af = result.get("annualFortune", [])
     if af:
         years_all = [x for x in af if isinstance(x, dict) and str(x.get("year", "")).strip()]
         years_sorted = sorted(years_all, key=lambda x: int(x.get("year")))
@@ -943,33 +955,37 @@ def generate_fortune_section(result: Dict[str, Any], recent_years: int | None = 
 
         lines.append(f"### 近期流年指引（近{recent_years}年）" if recent_years else "### 流年")
         lines.append("")
-        asp_map = {str(y.get('year')): (y.get('spirits', []) or []) for y in result.get('annualSpirits', []) if isinstance(y, dict)}
+        asp_map = {
+            str(y.get("year")): (y.get("spirits", []) or [])
+            for y in result.get("annualSpirits", [])
+            if isinstance(y, dict)
+        }
         rows: list[list[object]] = []
         for f in selected:
             if not isinstance(f, dict):
                 continue
-            year = f.get('year', '')
-            gz = f.get('fullName', '') or f.get('ganZhi', '')
-            tg = f.get('shiShen', '') or ''
-            ny = f.get('nayin', '') or ''
+            year = f.get("year", "")
+            gz = f.get("fullName", "") or f.get("ganZhi", "")
+            tg = f.get("shiShen", "") or ""
+            ny = f.get("nayin", "") or ""
             sp = asp_map.get(str(year), [])
             sp_txt = "、".join([str(x) for x in sp if str(x).strip()]) if sp else ""
             rows.append([year, gz, tg, ny, sp_txt])
         lines.extend(_render_table(["年份", "干支", "十神", "纳音", "神煞"], rows))
-    
-    return '\n'.join(lines)
+
+    return "\n".join(lines)
 
 
-def generate_relations_section(result: Dict[str, Any]) -> str:
+def generate_relations_section(result: dict[str, Any]) -> str:
     """生成干支关系部分"""
     lines = []
-    gr = result.get('ganzhiRelations', {})
+    gr = result.get("ganzhiRelations", {})
     if gr:
         lines.append("## 干支关系")
         lines.append("")
 
-        tg = gr.get('tianGan', gr.get('stems', {}))
-        dz = gr.get('diZhi', gr.get('branches', {}))
+        tg = gr.get("tianGan", gr.get("stems", {}))
+        dz = gr.get("diZhi", gr.get("branches", {}))
 
         def _expand_tg_text(text: str) -> list[str]:
             t = (text or "").strip()
@@ -977,7 +993,9 @@ def generate_relations_section(result: Dict[str, Any]) -> str:
                 return []
             out: list[str] = []
             # 形如：年月甲己合化土 / 年日甲庚冲
-            m = re.match(r"^([年月日时])([年月日时])([甲乙丙丁戊己庚辛壬癸])([甲乙丙丁戊己庚辛壬癸])合化([木火土金水])$", t)
+            m = re.match(
+                r"^([年月日时])([年月日时])([甲乙丙丁戊己庚辛壬癸])([甲乙丙丁戊己庚辛壬癸])合化([木火土金水])$", t
+            )
             if m:
                 out.append("  - 关系（展开）：")
                 out.append("    - 柱位（展开）：")
@@ -1011,7 +1029,9 @@ def generate_relations_section(result: Dict[str, Any]) -> str:
                 return []
             out: list[str] = []
             # 六合：年月子丑合土
-            m = re.match(r"^([年月日时])([年月日时])([子丑寅卯辰巳午未申酉戌亥])([子丑寅卯辰巳午未申酉戌亥])合([木火土金水])$", t)
+            m = re.match(
+                r"^([年月日时])([年月日时])([子丑寅卯辰巳午未申酉戌亥])([子丑寅卯辰巳午未申酉戌亥])合([木火土金水])$", t
+            )
             if m:
                 out.append("  - 关系（展开）：")
                 out.append("    - 柱位（展开）：")
@@ -1114,10 +1134,11 @@ def generate_relations_section(result: Dict[str, Any]) -> str:
                     lines.append(x)
 
         lines.append("")
-    
-    return '\n'.join(lines)
 
-def generate_bingyao_section(result: Dict[str, Any]) -> str:
+    return "\n".join(lines)
+
+
+def generate_bingyao_section(result: dict[str, Any]) -> str:
     """五行停匀/寒湿燥热与调候依据（不做自写结论，仅输出外部口径结果）。"""
     cs = result.get("climateScores", {})
     ys = result.get("yongShen", {})
@@ -1149,7 +1170,8 @@ def generate_bingyao_section(result: Dict[str, Any]) -> str:
         lines.extend(_render_table(["项目", "内容"], rows))
     return "\n".join(lines)
 
-def generate_ganzhi_imagery_section(result: Dict[str, Any]) -> str:
+
+def generate_ganzhi_imagery_section(result: dict[str, Any]) -> str:
     """干支取象/纳音（bazi-1 字典原文）。"""
     gi = result.get("ganzhiImagery", {})
     fp = result.get("fourPillars", {})
@@ -1173,7 +1195,8 @@ def generate_ganzhi_imagery_section(result: Dict[str, Any]) -> str:
     lines.extend(_render_table(["柱位", "天干", "天干取象", "地支", "地支取象", "纳音"], rows))
     return "\n".join(lines)
 
-def generate_wuxing_health_section(result: Dict[str, Any]) -> str:
+
+def generate_wuxing_health_section(result: dict[str, Any]) -> str:
     """五行健康提示（bazi-1 gan_health 原文）。"""
     tips = result.get("wuxingHealthTips", {})
     if not isinstance(tips, dict) or not tips:
@@ -1194,7 +1217,8 @@ def generate_wuxing_health_section(result: Dict[str, Any]) -> str:
     lines.extend(_render_table(["五行", "提示（原文）"], rows))
     return "\n".join(lines)
 
-def generate_ziwei_horoscope_section(result: Dict[str, Any]) -> str:
+
+def generate_ziwei_horoscope_section(result: dict[str, Any]) -> str:
     """紫微运限四化（iztro horoscope 原生输出）。"""
     hz = result.get("ziweiHoroscope", {})
     if not isinstance(hz, dict) or not hz:
@@ -1237,7 +1261,13 @@ def generate_ziwei_horoscope_section(result: Dict[str, Any]) -> str:
         lu, quan, ke, ji = arr
         return f"禄：{lu}；权：{quan}；科：{ke}；忌：{ji}"
 
-    for scope_key, scope_cn in [("decadal", "大限"), ("yearly", "流年"), ("monthly", "流月"), ("daily", "流日"), ("hourly", "流时")]:
+    for scope_key, scope_cn in [
+        ("decadal", "大限"),
+        ("yearly", "流年"),
+        ("monthly", "流月"),
+        ("daily", "流日"),
+        ("hourly", "流时"),
+    ]:
         scope = hz.get(scope_key, {})
         if not isinstance(scope, dict) or not scope:
             continue
@@ -1245,7 +1275,7 @@ def generate_ziwei_horoscope_section(result: Dict[str, Any]) -> str:
         lines.append("")
         head_rows = []
         if scope.get("heavenlyStem") or scope.get("earthlyBranch"):
-            head_rows.append(["干支", f"{scope.get('heavenlyStem','')}{scope.get('earthlyBranch','')}"])
+            head_rows.append(["干支", f"{scope.get('heavenlyStem', '')}{scope.get('earthlyBranch', '')}"])
         if scope.get("mutagen") is not None:
             head_rows.append(["四化", _mutagen_map(scope.get("mutagen"))])
         if head_rows:
@@ -1271,7 +1301,8 @@ def generate_ziwei_horoscope_section(result: Dict[str, Any]) -> str:
         lines.append("")
     return "\n".join(lines)
 
-def generate_full_report(result: Dict[str, Any], hide: Dict[str, bool] | None = None) -> str:
+
+def generate_full_report(result: dict[str, Any], hide: dict[str, bool] | None = None) -> str:
     """生成完整报告（计算全量；呈现可按生产开关关闭部分模块）"""
     HIDE = dict(DEFAULT_HIDE)
     if hide:
@@ -1303,8 +1334,8 @@ def generate_full_report(result: Dict[str, Any], hide: Dict[str, bool] | None = 
         "## 第四卷：民俗与建议（生活应用）",
         "",
         generate_bone_section(result),
-        *( [] if HIDE.get("health", False) else [generate_wuxing_health_section(result)] ),
-        *( [] if HIDE["huangli"] else [generate_huangli_section(result)] ),
+        *([] if HIDE.get("health", False) else [generate_wuxing_health_section(result)]),
+        *([] if HIDE["huangli"] else [generate_huangli_section(result)]),
     ]
 
     # 第五卷：学术参数（隐藏/技术区）——按需生成
@@ -1342,28 +1373,28 @@ def generate_full_report(result: Dict[str, Any], hide: Dict[str, bool] | None = 
     return f"{disclaimer_section}{normalized}\n\n{sponsor_section}"
 
 
-def generate_geju_section(result: Dict[str, Any]) -> str:
+def generate_geju_section(result: dict[str, Any]) -> str:
     """生成格局用神部分"""
     lines = []
-    gj = result.get('geju', {})
-    ys = result.get('yongShen', {})
-    
+    gj = result.get("geju", {})
+    ys = result.get("yongShen", {})
+
     if gj or ys:
         lines.append("## 命造格局（格局用神）")
         lines.append("")
-        
+
         if gj:
             lines.append(f"* 主格局：{gj.get('main', '')}")
-            patterns = gj.get('patterns', [])
+            patterns = gj.get("patterns", [])
             if len(patterns) > 1:
                 lines.append("* 其他格局：")
                 for p in patterns[1:]:
                     lines.append(f"  - {p}")
-        
+
         if ys:
-            th = ys.get('tiaoHou', {})
-            xi = th.get('xi', [])
-            ji = th.get('ji', [])
+            th = ys.get("tiaoHou", {})
+            xi = th.get("xi", [])
+            ji = th.get("ji", [])
             if xi:
                 lines.append("* 调候喜用：")
                 for x in xi:
@@ -1372,7 +1403,7 @@ def generate_geju_section(result: Dict[str, Any]) -> str:
                 lines.append("* 调候忌神：")
                 for x in ji:
                     lines.append(f"  - {x}")
-            note = ys.get('note', '')
+            note = ys.get("note", "")
             if note:
                 lines.append(f"* 用神备注：{note}")
             basis = ys.get("basis", "") if isinstance(ys, dict) else ""
@@ -1388,11 +1419,11 @@ def generate_geju_section(result: Dict[str, Any]) -> str:
                     if t:
                         lines.append(f"    - {t}")
         lines.append("")
-    
-    return '\n'.join(lines)
+
+    return "\n".join(lines)
 
 
-def generate_monthly_section(result: Dict[str, Any], recent_years: int | None = None) -> str:
+def generate_monthly_section(result: dict[str, Any], recent_years: int | None = None) -> str:
     """生成流月小运部分
 
     recent_years:
@@ -1400,10 +1431,10 @@ def generate_monthly_section(result: Dict[str, Any], recent_years: int | None = 
       - N: 仅输出近 N 年的 12 流月（按北京时间当前年开始）
     """
     lines = []
-    mf = result.get('monthlyFortune', [])
-    xy = result.get('xiaoYun', [])
-    msp = result.get('monthlySpirits', [])
-    
+    mf = result.get("monthlyFortune", [])
+    xy = result.get("xiaoYun", [])
+    msp = result.get("monthlySpirits", [])
+
     if mf:
         now_year = datetime.now().year
         years_filter = None
@@ -1432,8 +1463,8 @@ def generate_monthly_section(result: Dict[str, Any], recent_years: int | None = 
                 if not isinstance(m, dict):
                     continue
                 if str(m.get("year")) == str(year) and str(m.get("ganZhi", "")) == str(gz):
-                    ten_god = m.get('shiShen') or m.get('tenGod') or ""
-                    nayin = m.get('naYin') or ""
+                    ten_god = m.get("shiShen") or m.get("tenGod") or ""
+                    nayin = m.get("naYin") or ""
                     break
             rows.append([year, f"{month_cn}月", gz, ten_god, nayin, sp_txt])
 
@@ -1444,32 +1475,32 @@ def generate_monthly_section(result: Dict[str, Any], recent_years: int | None = 
         lines.append("")
         rows: list[list[object]] = []
         for item in [x for x in xy if isinstance(x, dict)]:
-            age = item.get('age', '')
-            year = item.get('year', '')
-            gz = item.get('ganZhi', '')
-            shi = item.get('shiShen', '') or ''
-            ny = item.get('naYin', '') or ''
-            sp = item.get('spirits', []) or []
+            age = item.get("age", "")
+            year = item.get("year", "")
+            gz = item.get("ganZhi", "")
+            shi = item.get("shiShen", "") or ""
+            ny = item.get("naYin", "") or ""
+            sp = item.get("spirits", []) or []
             sp_txt = "、".join([str(x) for x in sp if str(x).strip()]) if sp else ""
             rows.append([f"{age}岁" if age != "" else "", year, gz, shi, ny, sp_txt])
         lines.extend(_render_table(["年龄", "年份", "干支", "十神", "纳音", "神煞"], rows))
-    
-    return '\n'.join(lines)
+
+    return "\n".join(lines)
 
 
-def generate_jieqi_section(result: Dict[str, Any]) -> str:
+def generate_jieqi_section(result: dict[str, Any]) -> str:
     """生成节气司令部分"""
     lines = []
-    jq = result.get('jieqiDetail', {})
-    sl = result.get('siling', {})
-    
+    jq = result.get("jieqiDetail", {})
+    sl = result.get("siling", {})
+
     if jq or sl:
         lines.append("## 节气司令")
         lines.append("")
-        
+
         if jq:
-            prev = jq.get('prevJieQi', {})
-            next_ = jq.get('nextJieQi', {})
+            prev = jq.get("prevJieQi", {})
+            next_ = jq.get("nextJieQi", {})
             if prev:
                 lines.append("* 前节气（展开）：")
                 if prev.get("name", ""):
@@ -1486,7 +1517,7 @@ def generate_jieqi_section(result: Dict[str, Any]) -> str:
                     lines.append(f"  - 日期：{next_.get('date', '')}")
                 if next_.get("daysBefore", "") != "":
                     lines.append(f"  - 还有：{next_.get('daysBefore', '')}天")
-        
+
         if sl:
             lines.append(f"* 人元司令：{sl.get('current', '')}用事")
             detail = sl.get("detail", [])
@@ -1508,20 +1539,20 @@ def generate_jieqi_section(result: Dict[str, Any]) -> str:
                         if rng:
                             lines.append(f"    - 范围：{rng}")
         lines.append("")
-    
-    return '\n'.join(lines)
+
+    return "\n".join(lines)
 
 
-def generate_huangli_section(result: Dict[str, Any]) -> str:
+def generate_huangli_section(result: dict[str, Any]) -> str:
     """生成黄历部分"""
     lines = []
-    hl = result.get('huangLi', {})
-    
+    hl = result.get("huangLi", {})
+
     if hl:
         lines.append("## 出生日黄历")
         lines.append("")
-        yi = hl.get('yi', [])
-        ji = hl.get('ji', [])
+        yi = hl.get("yi", [])
+        ji = hl.get("ji", [])
         if yi:
             lines.append("* 宜（展开）：")
             for x in yi:
@@ -1531,26 +1562,26 @@ def generate_huangli_section(result: Dict[str, Any]) -> str:
             for x in ji:
                 lines.append(f"  - {x}")
         lines.append("")
-    
-    return '\n'.join(lines)
+
+    return "\n".join(lines)
 
 
-def generate_divination_section(result: Dict[str, Any]) -> str:
+def generate_divination_section(result: dict[str, Any]) -> str:
     """生成占卜部分"""
     lines = []
-    
+
     # 六爻
-    ly = result.get('liuyaoHexagram', {})
-    if ly and ly.get('source'):
+    ly = result.get("liuyaoHexagram", {})
+    if ly and ly.get("source"):
         lines.append("## 六爻占卜")
         lines.append("")
         lines.append(f"* 起卦时间：{ly.get('currentTime', '')}")
-        bg = ly.get('benGua', {})
-        biag = ly.get('bianGua', {})
+        bg = ly.get("benGua", {})
+        biag = ly.get("bianGua", {})
         lines.append(f"* 本卦：{bg.get('name', bg) if isinstance(bg, dict) else bg}")
         lines.append(f"* 变卦：{biag.get('name', biag) if isinstance(biag, dict) else biag}")
-        if 'dongYao' in ly:
-            dong = ly.get('dongYao')
+        if "dongYao" in ly:
+            dong = ly.get("dongYao")
             if isinstance(dong, list):
                 lines.append("* 动爻列表（展开）：")
                 for x in dong:
@@ -1558,23 +1589,23 @@ def generate_divination_section(result: Dict[str, Any]) -> str:
             elif dong is not None:
                 lines.append("* 动爻列表（展开）：")
                 lines.append(f"  - {dong}")
-        if ly.get('analysis'):
+        if ly.get("analysis"):
             lines.append(f"* 卦象分析：{ly.get('analysis')}")
         lines.append("")
-    
+
     # 梅花易数
-    mh = result.get('meihuaYishu', {})
-    if mh and mh.get('source'):
+    mh = result.get("meihuaYishu", {})
+    if mh and mh.get("source"):
         lines.append("## 梅花易数")
         lines.append("")
         lines.append(f"* 起卦方法：{mh.get('qiGuaMethod', '')}")
-        ben = mh.get('benGua', {})
-        hu = mh.get('huGua', {})
-        bian = mh.get('bianGua', {})
-        ti_yong = mh.get('tiYong', {})
-        shang = ben.get('shang', mh.get('shangGua', ''))
-        xia = ben.get('xia', mh.get('xiaGua', ''))
-        dong = ben.get('dongYao', mh.get('dongYao', ''))
+        ben = mh.get("benGua", {})
+        hu = mh.get("huGua", {})
+        bian = mh.get("bianGua", {})
+        ti_yong = mh.get("tiYong", {})
+        shang = ben.get("shang", mh.get("shangGua", ""))
+        xia = ben.get("xia", mh.get("xiaGua", ""))
+        dong = ben.get("dongYao", mh.get("dongYao", ""))
         lines.append(f"* 上卦：{shang}")
         lines.append(f"* 下卦：{xia}")
         lines.append(f"* 动爻：第{dong}爻")
@@ -1589,17 +1620,17 @@ def generate_divination_section(result: Dict[str, Any]) -> str:
             lines.append(f"  - 上卦：{bian.get('shang', '')}")
             lines.append(f"  - 下卦：{bian.get('xia', '')}")
         lines.append("")
-    nd = result.get('numberDivination', {})
+    nd = result.get("numberDivination", {})
     if nd:
         lines.append("## 数字起卦")
         lines.append("")
         lines.append(f"* 上卦五行：{nd.get('shangGuaWuxing', '')}")
         lines.append(f"* 下卦五行：{nd.get('xiaGuaWuxing', '')}")
         lines.append("")
-    
+
     # 奇门遁甲
-    qm = result.get('qimenDunjia', {})
-    if qm and qm.get('source'):
+    qm = result.get("qimenDunjia", {})
+    if qm and qm.get("source"):
         lines.append("## 奇门遁甲")
         lines.append("")
         lines.append(f"* 起局时间：{qm.get('currentTime', '')}")
@@ -1607,32 +1638,32 @@ def generate_divination_section(result: Dict[str, Any]) -> str:
         lines.append(f"* 值使：{qm.get('zhishi', '')}")
         lines.append(f"* 值神：{qm.get('zhishen', '')}")
         lines.append(f"* 值符：{qm.get('zhifu', '')}")
-        if qm.get('jiuxing'):
+        if qm.get("jiuxing"):
             lines.append(f"* 九星：{qm.get('jiuxing', '')}")
-        bamen = qm.get('bamen', {})
+        bamen = qm.get("bamen", {})
         if bamen:
             lines.append("* 八门（展开）：")
             for k, v in bamen.items():
                 lines.append(f"  - {k}：{v}")
-        analysis = qm.get('analysis', '')
+        analysis = qm.get("analysis", "")
         if analysis:
             lines.append(f"* 局势分析：{analysis}")
-        mg = result.get('mysticalGates', {})
+        mg = result.get("mysticalGates", {})
         if mg:
             lines.append("* 八门映射（展开）：")
             for k, v in mg.items():
                 lines.append(f"  - {k}：{v}")
         lines.append("")
-    
+
     # 大六壬
-    lr = result.get('liurenDivination', {})
-    if lr and lr.get('siKe'):
+    lr = result.get("liurenDivination", {})
+    if lr and lr.get("siKe"):
         lines.append("## 大六壬")
         lines.append("")
-        sk = lr.get('siKe', {})
+        sk = lr.get("siKe", {})
         lines.append("### 四课")
         for i in range(1, 5):
-            ke = sk.get(f'ke{i}', {})
+            ke = sk.get(f"ke{i}", {})
             lines.append(f"* 第{i}课（展开）：")
             if ke.get("shang", ""):
                 lines.append(f"  - 上：{ke.get('shang', '')}")
@@ -1640,7 +1671,7 @@ def generate_divination_section(result: Dict[str, Any]) -> str:
                 lines.append(f"  - 下：{ke.get('xia', '')}")
             if ke.get("name", ""):
                 lines.append(f"  - 名称：{ke.get('name', '')}")
-        sc = lr.get('sanChuan', {})
+        sc = lr.get("sanChuan", {})
         if sc:
             lines.append("### 三传")
             for label, key in [("初传", "chuChuan"), ("中传", "zhongChuan"), ("末传", "moChuan")]:
@@ -1650,48 +1681,49 @@ def generate_divination_section(result: Dict[str, Any]) -> str:
                     lines.append(f"  - 地支：{item.get('zhi', '')}")
                 if isinstance(item, dict) and item.get("name", ""):
                     lines.append(f"  - 名称：{item.get('name', '')}")
-        gs = lr.get('guiShen', {})
+        gs = lr.get("guiShen", {})
         if gs:
             lines.append("### 贵神将神")
             lines.append(f"* 贵神：{gs.get('guiShen', '')}")
-            jiang = gs.get('jiangShen', [])
+            jiang = gs.get("jiangShen", [])
             if jiang:
                 lines.append("* 将神（展开）：")
                 for x in jiang:
                     lines.append(f"  - {x}")
-        la = lr.get('analysis', {})
+        la = lr.get("analysis", {})
         if la:
             lines.append("### 课式分析")
-            if la.get('pattern'):
+            if la.get("pattern"):
                 lines.append(f"* 课式：{la.get('pattern')}")
-            if la.get('meaning'):
+            if la.get("meaning"):
                 lines.append(f"* 含义：{la.get('meaning')}")
-            if la.get('advice'):
+            if la.get("advice"):
                 lines.append(f"* 建议：{la.get('advice')}")
         lines.append("")
-    
-    return '\n'.join(lines)
+
+    return "\n".join(lines)
 
 
-def generate_ziwei_section(result: Dict[str, Any]) -> str:
+def generate_ziwei_section(result: dict[str, Any]) -> str:
     """生成紫微斗数部分"""
     lines = []
-    zw = result.get('ziweiChart', {})
-    pa = result.get('palaceAnalysis', [])
-    
-    if zw and zw.get('source'):
+    zw = result.get("ziweiChart", {})
+    pa = result.get("palaceAnalysis", [])
+
+    if zw and zw.get("source"):
         lines.append("## 紫微斗数")
         lines.append("")
         lines.append(f"* 命局：{result.get('starInfluence', '')}")
         lines.append("* 星曜展示口径：星名（亮度/四化），缺失则留空")
-        
+
         if pa:
             lines.append("")
             lines.append("### 十二宫")
             lines.append("")
             for p in pa:
-                name = p.get('name', '')
-                display_name = name if name.endswith('宫') else f"{name}宫"
+                name = p.get("name", "")
+                display_name = name if name.endswith("宫") else f"{name}宫"
+
                 def _fmt_star(s: object) -> str:
                     if not isinstance(s, dict):
                         return str(s)
@@ -1701,9 +1733,9 @@ def generate_ziwei_section(result: Dict[str, Any]) -> str:
                     meta = "/".join([x for x in [br, mu] if x])
                     return f"{n}（{meta}）" if meta else n
 
-                majors = [ _fmt_star(s) for s in (p.get('majorStars', []) or []) if s ]
-                minors = [ _fmt_star(s) for s in (p.get('minorStars', []) or []) if s ]
-                adjs = [ _fmt_star(s) for s in (p.get('adjectiveStars', []) or []) if s ]
+                majors = [_fmt_star(s) for s in (p.get("majorStars", []) or []) if s]
+                minors = [_fmt_star(s) for s in (p.get("minorStars", []) or []) if s]
+                adjs = [_fmt_star(s) for s in (p.get("adjectiveStars", []) or []) if s]
                 stars = majors + minors + adjs
                 if not stars:
                     lines.append(f"* {display_name}：-")
@@ -1713,25 +1745,33 @@ def generate_ziwei_section(result: Dict[str, Any]) -> str:
                     if s:
                         lines.append(f"  - {s}")
         lines.append("")
-    
-    return '\n'.join(lines)
+
+    return "\n".join(lines)
 
 
-def generate_fengshui_section(result: Dict[str, Any]) -> str:
+def generate_fengshui_section(result: dict[str, Any]) -> str:
     """生成风水部分"""
     lines = []
-    fs = result.get('fengshuiCompass', {})
-    ns = result.get('nineStars', {})
-    
-    if fs and fs.get('status') == '成功':
+    fs = result.get("fengshuiCompass", {})
+    ns = result.get("nineStars", {})
+
+    if fs and fs.get("status") == "成功":
         lines.append("## 风水九星")
         lines.append("")
         lines.append(f"* 中宫星：{ns.get('center', '')}")
         lines.append(f"* 年星：{ns.get('year_star', '')}")
-        da = result.get('directionAnalysis', {})
+        da = result.get("directionAnalysis", {})
         if da:
-            dir_map = {"north": "北", "south": "南", "east": "东", "west": "西",
-                       "northeast": "东北", "northwest": "西北", "southeast": "东南", "southwest": "西南"}
+            dir_map = {
+                "north": "北",
+                "south": "南",
+                "east": "东",
+                "west": "西",
+                "northeast": "东北",
+                "northwest": "西北",
+                "southeast": "东南",
+                "southwest": "西南",
+            }
             lines.append("* 方位分析（展开）：")
             for k, v in da.items():
                 label = dir_map.get(k, k)
@@ -1743,7 +1783,7 @@ def generate_fengshui_section(result: Dict[str, Any]) -> str:
                         lines.append(f"    - 五行：{v.get('element', '')}")
                 else:
                     lines.append(f"  - {label}：{v}")
-        bg = result.get('bagua', {})
+        bg = result.get("bagua", {})
         if bg:
             lines.append("* 八卦（展开）：")
             for name, info in bg.items():
@@ -1758,35 +1798,35 @@ def generate_fengshui_section(result: Dict[str, Any]) -> str:
                 else:
                     lines.append(f"  - {name}：{info}")
         lines.append("")
-    
-    return '\n'.join(lines)
+
+    return "\n".join(lines)
 
 
-def generate_astro_section(result: Dict[str, Any]) -> str:
+def generate_astro_section(result: dict[str, Any]) -> str:
     """生成天文占星部分"""
     lines = []
-    pp = result.get('planetPositions', {})
-    zs = result.get('zodiacSigns', {})
-    asp = result.get('aspects', {})
-    houses = result.get('houses', {})
-    sp = result.get('starPositions', {})
+    pp = result.get("planetPositions", {})
+    zs = result.get("zodiacSigns", {})
+    asp = result.get("aspects", {})
+    houses = result.get("houses", {})
+    sp = result.get("starPositions", {})
     if pp or zs or asp or houses:
         lines.append("## 天文占星")
         lines.append("")
         if pp:
-            jd = pp.get('julianDay', '')
+            jd = pp.get("julianDay", "")
             lines.append(f"* 星历来源：{pp.get('source', '')}")
             if jd != "":
                 lines.append(f"* 儒略日：{jd}")
-            if 'solarLongitude' in pp:
+            if "solarLongitude" in pp:
                 lines.append(f"* 太阳黄经：{pp.get('solarLongitude')}")
-            if pp.get('status'):
+            if pp.get("status"):
                 lines.append(f"* 计算状态：{pp.get('status')}")
         if zs:
             lines.append(f"* 星座：{zs.get('sign', '')}")
             lines.append(f"* 星座五行：{zs.get('element', '')}")
         if asp:
-            majors = asp.get('major', [])
+            majors = asp.get("major", [])
             if majors:
                 lines.append("* 主要相位（展开）：")
                 for x in majors:
@@ -1799,9 +1839,9 @@ def generate_astro_section(result: Dict[str, Any]) -> str:
             if isinstance(sp, list):
                 lines.append("* 专业星位：")
                 for p in sp:
-                    palace = p.get('palace', '')
-                    major_stars = p.get('majorStars', []) or []
-                    minor_stars = p.get('minorStars', []) or []
+                    palace = p.get("palace", "")
+                    major_stars = p.get("majorStars", []) or []
+                    minor_stars = p.get("minorStars", []) or []
                     lines.append(f"  - {palace}宫：")
                     if major_stars:
                         lines.append("    - 主星：")
@@ -1822,41 +1862,41 @@ def generate_astro_section(result: Dict[str, Any]) -> str:
             else:
                 lines.append(f"* 专业星位：{sp}")
         lines.append("")
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
-def generate_calendar_section(result: Dict[str, Any]) -> str:
+def generate_calendar_section(result: dict[str, Any]) -> str:
     """生成历法/天文部分"""
     lines = []
-    sx = result.get('sxwnlCalendar', {})
-    hpt = result.get('highPrecisionTime', {})
-    astro = result.get('astronomicalData', {})
-    mc = result.get('multiCalendar', {})
-    holidays = result.get('holidays', {})
-    festivals = result.get('festivals', {})
-    cts = result.get('completeTrueSolarTime', {})
+    sx = result.get("sxwnlCalendar", {})
+    hpt = result.get("highPrecisionTime", {})
+    astro = result.get("astronomicalData", {})
+    mc = result.get("multiCalendar", {})
+    holidays = result.get("holidays", {})
+    festivals = result.get("festivals", {})
+    cts = result.get("completeTrueSolarTime", {})
     if sx or hpt or astro or mc or holidays or festivals:
         lines.append("## 高级历法")
         lines.append("")
         if sx:
-            src = sx.get('source', '').replace('JavaScript', '脚本版')
+            src = sx.get("source", "").replace("JavaScript", "脚本版")
             lines.append("* 寿星万年历（展开）：")
             lines.append(f"  - 来源：{src}")
-            if sx.get('precision', ''):
+            if sx.get("precision", ""):
                 lines.append(f"  - 精度：{sx.get('precision', '')}")
-            if sx.get('algorithm', ''):
+            if sx.get("algorithm", ""):
                 lines.append(f"  - 算法：{sx.get('algorithm', '')}")
-            if sx.get('status', ''):
+            if sx.get("status", ""):
                 lines.append(f"  - 状态：{sx.get('status', '')}")
         if hpt:
-            src = hpt.get('source', '').replace('sxwnl-master', '寿星万年历')
+            src = hpt.get("source", "").replace("sxwnl-master", "寿星万年历")
             lines.append("* 高精度时间（展开）：")
             if hpt.get("level", ""):
                 lines.append(f"  - 等级：{hpt.get('level', '')}")
             if src:
                 lines.append(f"  - 来源：{src}")
         if astro:
-            jd = astro.get('julianDay', '')
+            jd = astro.get("julianDay", "")
             if jd:
                 lines.append(f"* 儒略日：{jd}")
         if mc and isinstance(mc, dict):
@@ -1962,9 +2002,12 @@ def generate_calendar_section(result: Dict[str, Any]) -> str:
                     name = hd.get("name")
                     lines.append(f"    - 名称：{name if name else '-'}")
         if cts:
-            ot = cts.get('originalTime')
-            ttime = cts.get('trueSolarTime')
-            fmt = lambda v: "" if v is None else str(v).replace('T', ' ')
+            ot = cts.get("originalTime")
+            ttime = cts.get("trueSolarTime")
+
+            def fmt(v):
+                return "" if v is None else str(v).replace("T", " ")
+
             lines.append("* 真太阳时修正（展开）：")
             if fmt(ot):
                 lines.append(f"  - 原始：{fmt(ot)}")
@@ -1981,19 +2024,19 @@ def generate_calendar_section(result: Dict[str, Any]) -> str:
             if note:
                 lines.append(f"  - 说明：{note}")
         lines.append("")
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
-def generate_zeri_section(result: Dict[str, Any]) -> str:
+def generate_zeri_section(result: dict[str, Any]) -> str:
     """生成择日部分"""
     lines = []
-    dr = result.get('dateSelection', {})
-    ad = result.get('auspiciousDates', [])
+    dr = result.get("dateSelection", {})
+    ad = result.get("auspiciousDates", [])
     if dr or ad:
         lines.append("## 择日推荐")
         lines.append("")
         if dr:
-            rng = dr.get('dateRange', {})
+            rng = dr.get("dateRange", {})
             lines.append("* 日期范围（展开）：")
             if rng.get("start", ""):
                 lines.append(f"  - 开始：{rng.get('start', '')}")
@@ -2002,19 +2045,19 @@ def generate_zeri_section(result: Dict[str, Any]) -> str:
             if dr.get("totalDays", "") != "":
                 lines.append(f"  - 总天数：{dr.get('totalDays', '')}天")
             lines.append(f"* 目的：{dr.get('purpose', '')}")
-            rec = dr.get('recommendedDates', [])
+            rec = dr.get("recommendedDates", [])
             if rec:
                 lines.append("### 推荐日期")
                 for r in rec:
                     lines.append(f"* 日期：{r.get('date', '')}")
-                    if r.get('lunar'):
+                    if r.get("lunar"):
                         lines.append(f"  - 农历：{r.get('lunar', '')}")
-                    if r.get('jianXing'):
+                    if r.get("jianXing"):
                         lines.append(f"  - 建星：{r.get('jianXing', '')}")
-                    if 'score' in r:
+                    if "score" in r:
                         lines.append(f"  - 评分：{r.get('score', '')}")
-                    yi = r.get('yi', []) or []
-                    ji = r.get('ji', []) or []
+                    yi = r.get("yi", []) or []
+                    ji = r.get("ji", []) or []
                     if yi:
                         lines.append("  - 宜（展开）：")
                         for x in yi:
@@ -2028,12 +2071,12 @@ def generate_zeri_section(result: Dict[str, Any]) -> str:
             lines.append("### 更多吉日")
             for r in ad:
                 lines.append(f"* 日期：{r.get('date', '')}")
-                if r.get('lunar'):
+                if r.get("lunar"):
                     lines.append(f"  - 农历：{r.get('lunar', '')}")
-                if r.get('jianXing'):
+                if r.get("jianXing"):
                     lines.append(f"  - 建星：{r.get('jianXing', '')}")
-                yi = r.get('yi', []) or []
-                ji = r.get('ji', []) or []
+                yi = r.get("yi", []) or []
+                ji = r.get("ji", []) or []
                 if yi:
                     lines.append("  - 宜（展开）：")
                     for x in yi:
@@ -2043,19 +2086,19 @@ def generate_zeri_section(result: Dict[str, Any]) -> str:
                     for x in ji:
                         lines.append(f"    - {x}")
         lines.append("")
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
-def generate_yijing_section(result: Dict[str, Any], hide: Dict[str, bool] | None = None) -> str:
+def generate_yijing_section(result: dict[str, Any], hide: dict[str, bool] | None = None) -> str:
     """生成易经起卦/分析部分（呈现层可开关）"""
     lines = []
     hide = hide or {}
-    hx = result.get('hexagrams', {})
-    ya = result.get('yijingAnalysis', {})
-    dv = result.get('divination', {})
+    hx = result.get("hexagrams", {})
+    ya = result.get("yijingAnalysis", {})
     if hx or ya:
         lines.append("## 易经系统")
         lines.append("")
+
         def render_method(name, data):
             if not data:
                 return
@@ -2074,18 +2117,19 @@ def generate_yijing_section(result: Dict[str, Any], hide: Dict[str, bool] | None
                 lines.append(f"  - 动爻：{data.get('dongYao', '')}")
             if data.get("guaName"):
                 lines.append(f"  - 卦名：{data.get('guaName', '')}")
-        render_method("时间起卦", hx.get('timeMethod', {}))
+
+        render_method("时间起卦", hx.get("timeMethod", {}))
         # 用户要求：数字起卦属于“起卦时效类”，默认不展示（不影响上游计算）
         if not hide.get("number_divination", False):
-            render_method("数字起卦", hx.get('numberMethod', {}))
-        render_method("方位起卦", hx.get('directionMethod', {}))
+            render_method("数字起卦", hx.get("numberMethod", {}))
+        render_method("方位起卦", hx.get("directionMethod", {}))
         if ya:
-            feats = ya.get('features', [])
+            feats = ya.get("features", [])
             if feats:
                 lines.append("* 系统特性（展开）：")
                 for x in feats:
                     lines.append(f"  - {x}")
-            multi = ya.get('multipleQiGua', {})
+            multi = ya.get("multipleQiGua", {})
             if multi:
                 lines.append("* 多重起卦：")
                 key_map = {"timeMethod": "时间起卦", "numberMethod": "数字起卦", "directionMethod": "方位起卦"}
@@ -2102,48 +2146,49 @@ def generate_yijing_section(result: Dict[str, Any], hide: Dict[str, bool] | None
                     if val.get("guaName"):
                         lines.append(f"    - 卦名：{val.get('guaName', '')}")
             if not SUPPRESS_DETAILS:
-                complete = ya.get('complete64Gua', {})
+                complete = ya.get("complete64Gua", {})
                 if complete:
                     lines.append(f"* 64卦总数：{complete.get('totalGua', '')}")
-                    names = complete.get('guaNames', [])
-        # 不输出示例，避免占位文案
-                gcd = ya.get('guaCiDatabase', {})
+                # 不输出示例，避免占位文案
+                gcd = ya.get("guaCiDatabase", {})
                 if gcd:
-                    lines.append(f"* 卦辞库：卦辞{len(gcd.get('guaCi', {}))}条，爻辞集{len(gcd.get('yaoCi', {})) if isinstance(gcd.get('yaoCi', {}), dict) else 0}套")
-                ph = ya.get('philosophicalAnalysis', {})
+                    lines.append(
+                        f"* 卦辞库：卦辞{len(gcd.get('guaCi', {}))}条，爻辞集{len(gcd.get('yaoCi', {})) if isinstance(gcd.get('yaoCi', {}), dict) else 0}套"
+                    )
+                ph = ya.get("philosophicalAnalysis", {})
                 if ph:
                     lines.append("* 哲学分析（展开）：")
                     for k in ph.keys():
                         lines.append(f"  - {k}")
         # 占断摘要字段存在但不展示，避免常量噪音
         lines.append("")
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
-def generate_ziwei_basic_section(result: Dict[str, Any]) -> str:
+def generate_ziwei_basic_section(result: dict[str, Any]) -> str:
     """紫微基础信息"""
     lines = []
-    zb = result.get('ziweiBasic', {})
+    zb = result.get("ziweiBasic", {})
     if zb:
         lines.append("## 紫微基础")
         lines.append("")
-        mg = zb.get('mingGong', {})
+        mg = zb.get("mingGong", {})
         if mg:
             lines.append("* 命宫（展开）：")
             if mg.get("gong", ""):
                 lines.append(f"  - 宫位：{mg.get('gong', '')}")
             if mg.get("dizhi", ""):
                 lines.append(f"  - 地支：{mg.get('dizhi', '')}")
-        tp = zb.get('twelvePalaces', [])
+        tp = zb.get("twelvePalaces", [])
         if tp:
             lines.append("* 十二宫地支：")
             for p in tp:
                 lines.append(f"  - {p.get('name', '')}：{p.get('dizhi', '')}")
         lines.append("")
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
-def generate_system_section(result: Dict[str, Any]) -> str:
+def generate_system_section(result: dict[str, Any]) -> str:
     """系统/封装状态附录，确保字段被消费"""
     lines: list[str] = []
     perf = result.get("performance", {})
@@ -2186,20 +2231,20 @@ def generate_system_section(result: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def generate_name_marriage_section(result: Dict[str, Any]) -> str:
+def generate_name_marriage_section(result: dict[str, Any]) -> str:
     """姓名/合婚模块状态输出"""
     lines: list[str] = []
-    mc = result.get('marriageCompatibility', {})
-    bm = result.get('baziMatching', {})
-    na = result.get('nameAnalysis', {})
-    fg = result.get('fiveGrids', {})
-    sa = result.get('strokeAnalysis', {})
+    mc = result.get("marriageCompatibility", {})
+    bm = result.get("baziMatching", {})
+    na = result.get("nameAnalysis", {})
+    fg = result.get("fiveGrids", {})
+    sa = result.get("strokeAnalysis", {})
     fields = [
-        ('合婚', mc),
-        ('八字匹配', bm),
-        ('姓名分析', na),
-        ('五格剖象', fg),
-        ('笔画分析', sa),
+        ("合婚", mc),
+        ("八字匹配", bm),
+        ("姓名分析", na),
+        ("五格剖象", fg),
+        ("笔画分析", sa),
     ]
     if not any(bool(x) for _, x in fields):
         return ""
@@ -2217,11 +2262,11 @@ def generate_name_marriage_section(result: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def save_report(result: Dict[str, Any], path: str) -> str:
+def save_report(result: dict[str, Any], path: str) -> str:
     """保存报告到文件"""
     report = generate_full_report(result)
-    if not path.endswith('.md'):
-        path = path + '.md'
-    with open(path, 'w', encoding='utf-8') as f:
+    if not path.endswith(".md"):
+        path = path + ".md"
+    with open(path, "w", encoding="utf-8") as f:
         f.write(report)
     return path

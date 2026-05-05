@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+from typing import Any
+
+from fate_core.adapters import calc_bone_weight, calc_ming_gua
 from fate_core.contracts.runtime import PureAnalysisRuntime
 
 
 def build_classical_section(runtime: PureAnalysisRuntime) -> dict[str, Any]:
     """装配纯命理传统分析字段。"""
-    from bazi_calculator import calc_bone_weight, calc_ming_gua
-
     calculator = runtime.calculator
     ec = runtime.ec
     four_pillars = runtime.four_pillars

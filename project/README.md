@@ -528,7 +528,7 @@ tail -f modules/telegram/output/logs/bot.log
 | `GET` | `/health` | 服务健康检查 |
 | `POST` | `/api/v1/bazi/pure-analysis` | 纯命理分析，适合 AI / Agent |
 | `POST` | `/api/v1/bazi/simple` | 返回简化原始结果 |
-| `POST` | `/api/v1/bazi/calculate` | 完整八字排盘响应 |
+| `POST` | `/api/v1/bazi/calculate` | 传统八字排盘响应（兼容 legacy 输出） |
 | `POST` | `/api/v1/liuyao/factor` | 六爻量化因子统一输出 |
 
 启动命令：
@@ -718,7 +718,7 @@ fatecat/
 | `assets/docs/Agent 一键部署.md` | Agent / OpenClaw / Harness 自举说明 | 你想一键部署或做自动化 |
 | `assets/docs/Telegram Bot 启动与重启指南.md` | Bot 启动、重启、日志与代理说明 | 你要跑 Telegram Bot |
 | `assets/docs/当前目录结构.md` | 当前实际目录组织说明 | 你要理解仓库分层 |
-| `assets/docs/系统架构图.md` | 较完整的系统结构说明 | 你要看整体架构 |
+| `assets/docs/系统架构图.md` | 系统结构说明 | 你要看整体架构 |
 | `assets/docs/序列图.md` | 链路时序说明 | 你要看请求流程 |
 | `assets/docs/功能清单.md` | 字段能力与功能总览 | 你要评估当前覆盖面 |
 | `assets/docs/功能状态.md` | 计算/呈现开关口径 | 你要调整报告显示范围 |
