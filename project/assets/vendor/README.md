@@ -50,6 +50,12 @@ from _paths import (
 )
 ```
 
+## 分发与治理
+
+- `vendor_sources.json` 是 vendor 来源与分发边界的真相源。
+- 当前仓库保留 vendor 快照，以保证离线 smoke、导出包和 GitHub Actions 能复现。
+- 后续若切换到 release artifact、Git LFS、submodule 或按需下载，必须先保证 `scripts/vendor-health.sh` 通过。
+
 ## 维护规则
 
 1. `assets/vendor/` 默认只读

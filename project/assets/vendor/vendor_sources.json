@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "distributionPolicy": "当前仓库保留 vendor 快照以保证离线 smoke 与 skill 导出可复现；后续若改为 artifact/LFS/submodule，必须先保持本 manifest 与 vendor-health 验证通过。",
+  "required": [
+    {
+      "id": "lunar-python",
+      "path": "github/lunar-python-master",
+      "source": "https://github.com/6tail/lunar-python",
+      "purpose": "核心历法计算"
+    },
+    {
+      "id": "bazi-1",
+      "path": "github/bazi-1-master",
+      "source": "https://github.com/nicktaobo/bazi-1",
+      "purpose": "八字神煞、格局、调候与五行资料"
+    },
+    {
+      "id": "sxwnl",
+      "path": "github/sxwnl-master",
+      "source": "https://github.com/sxwnl/sxwnl",
+      "purpose": "寿星万年历与天文历法"
+    },
+    {
+      "id": "iztro",
+      "path": "github/iztro-main",
+      "source": "https://github.com/SylarLong/iztro",
+      "purpose": "紫微斗数与运限四化"
+    },
+    {
+      "id": "paipan",
+      "path": "github/paipan-master",
+      "source": "https://github.com/hkargc/paipan",
+      "purpose": "真太阳时与早晚子时"
+    }
+  ],
+  "optionalFutureFeatures": [
+    {
+      "id": "fortel-ziweidoushu",
+      "path": "github/fortel-ziweidoushu-main",
+      "source": "https://github.com/airicyu/fortel-ziweidoushu"
+    },
+    {
+      "id": "mikaboshi",
+      "path": "github/mikaboshi-main",
+      "source": "https://github.com/minagawah/mikaboshi"
+    },
+    {
+      "id": "Chinese-Divination",
+      "path": "github/Chinese-Divination-master",
+      "source": "https://github.com/volcanofly/Chinese-Divination"
+    },
+    {
+      "id": "Iching",
+      "path": "github/Iching-master",
+      "source": "https://github.com/l2yao/Iching"
+    },
+    {
+      "id": "holiday-calendar",
+      "path": "github/holiday-and-chinese-almanac-calendar-main",
+      "source": "https://github.com/zqzess/holiday-and-chinese-almanac-calendar"
+    },
+    {
+      "id": "chinese-calendar",
+      "path": "github/chinese-calendar-master",
+      "source": "https://github.com/LKI/chinese-calendar"
+    },
+    {
+      "id": "js_astro",
+      "path": "github/js_astro-master",
+      "source": "https://github.com/astsakai/js_astro"
+    },
+    {
+      "id": "dantalion",
+      "path": "github/dantalion-master",
+      "source": "https://github.com/kurone-kito/dantalion"
+    },
+    {
+      "id": "bazi-name",
+      "path": "github/bazi-name-master",
+      "source": "https://github.com/zhaolandelong/bazi-name"
+    }
+  ]
+}

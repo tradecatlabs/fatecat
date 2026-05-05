@@ -19,7 +19,7 @@ usage() {
                              [--delivery-target api|bot|both] [--output <dir>]
 
 说明:
-  - 统一执行单-skill 仓库的验收链：shell 语法 -> strict skill 校验 -> pure preflight -> 全量 pytest -> 静态门禁 -> API/Bot delivery smoke -> 导出包 smoke
+  - 统一执行单-skill 仓库的验收链：shell 语法 -> strict skill 校验 -> pure preflight -> vendor health -> 全量 pytest -> 静态门禁 -> API/Bot delivery smoke -> 导出包 smoke
   - 默认输出目录为 /tmp/fatecat-acceptance
   - 默认 --delivery-target both，同时验证 API 与 Bot dry-run；本地快速循环可显式指定 api 或 bot
 EOF
@@ -102,6 +102,9 @@ bash "${script_dir}/preflight.sh" \
   --smoke \
   --output-file "${output_dir}/preflight-pure.json" \
   --pretty
+
+echo "[acceptance] vendor health"
+bash "${script_dir}/vendor-health.sh"
 
 echo "[acceptance] pytest"
 "${runtime_root}/.venv/bin/python" -m pytest -q \

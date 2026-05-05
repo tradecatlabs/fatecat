@@ -28,9 +28,9 @@ assets/
 - `database/`：数据库 schema 与静态定义；不放 `.db` 实库。
 - `deploy/`：打包、Agent 引导、环境自举脚本与机器可读部署清单。
 - `docs/`：文档、记录、结构说明。
-- `fate/`：命理字段 profile 与输出配置真相源。
+- `fate/`：命理字段 profile、标准报告边界与未来功能登记真相源。
 - `tasks/`：执行教训、任务记忆与过程资产。
-- `vendor/`：外部成熟仓库，只读。
+- `vendor/`：外部成熟仓库快照，只读；`vendor_sources.json` 记录来源与分发边界。
 
 ## 开发规则
 
