@@ -16,7 +16,7 @@ from bazi_calculator import BaziCalculator
 from fastapi.responses import HTMLResponse
 from location import get as get_location
 from report_generator import DEFAULT_HIDE as REPORT_HIDE
-from report_generator import generate_full_report
+from report_generator import REPORT_SYSTEM_LABELS, generate_full_report
 from tabulate import tabulate
 from utils.timezone import now_cn
 
@@ -28,6 +28,7 @@ class WebReportForm:
     birth_place: str = ""
     gender: str = ""
     name: str = ""
+    report_system: str = "bazi"
 
     @classmethod
     def from_query(
@@ -38,6 +39,7 @@ class WebReportForm:
         birth_place: str | None = None,
         gender: str | None = None,
         name: str | None = None,
+        report_system: str | None = None,
     ) -> WebReportForm:
         return cls(
             birth_date=(birth_date or "").strip(),
@@ -45,6 +47,7 @@ class WebReportForm:
             birth_place=(birth_place or "").strip(),
             gender=(gender or "").strip(),
             name=(name or "").strip(),
+            report_system=(report_system or "bazi").strip() or "bazi",
         )
 
     def has_input(self) -> bool:
@@ -58,6 +61,8 @@ class WebReportResult:
     resolved_latitude: float
     normalized_time: str
     input_payload: dict[str, Any]
+    report_system: str
+    report_system_label: str
 
 
 def render_web_report_page(
@@ -67,6 +72,7 @@ def render_web_report_page(
     birth_place: str | None = None,
     gender: str | None = None,
     name: str | None = None,
+    report_system: str | None = None,
 ) -> HTMLResponse:
     """渲染 Web 版标准 Markdown 报告页面。"""
     form = WebReportForm.from_query(
@@ -75,6 +81,7 @@ def render_web_report_page(
         birth_place=birth_place,
         gender=gender,
         name=name,
+        report_system=report_system,
     )
 
     errors: list[str] = []
@@ -106,6 +113,7 @@ def _build_report(form: WebReportForm) -> WebReportResult:
 
     birth_dt, normalized_time = _parse_birth_datetime(form.birth_date, form.birth_time)
     gender = _normalize_gender(form.gender)
+    report_system = _normalize_report_system(form.report_system)
     longitude, latitude = get_location(form.birth_place)
 
     calculator = BaziCalculator(
@@ -118,13 +126,15 @@ def _build_report(form: WebReportForm) -> WebReportResult:
         use_true_solar_time=True,
     )
     calc_result = calculator.calculate(hide=REPORT_HIDE)
-    markdown = generate_full_report(calc_result, hide=REPORT_HIDE)
+    markdown = generate_full_report(calc_result, hide=REPORT_HIDE, report_system=report_system)
     payload = {
         "birthDate": form.birth_date,
         "birthTime": normalized_time,
         "birthPlace": form.birth_place,
         "gender": gender,
         "name": form.name,
+        "reportSystem": report_system,
+        "reportSystemLabel": REPORT_SYSTEM_LABELS[report_system],
         "longitude": longitude,
         "latitude": latitude,
         "useTrueSolarTime": True,
@@ -135,6 +145,8 @@ def _build_report(form: WebReportForm) -> WebReportResult:
         resolved_latitude=latitude,
         normalized_time=normalized_time,
         input_payload=payload,
+        report_system=report_system,
+        report_system_label=REPORT_SYSTEM_LABELS[report_system],
     )
 
 
@@ -156,6 +168,13 @@ def _normalize_gender(value: str) -> str:
     if normalized in {"female", "f", "女"}:
         return "female"
     raise ValueError("性别必须为 male/female，或中文 男/女。")
+
+
+def _normalize_report_system(value: str) -> str:
+    normalized = value.strip().lower()
+    if normalized in REPORT_SYSTEM_LABELS:
+        return normalized
+    raise ValueError(f"报告体系必须为: {'、'.join(REPORT_SYSTEM_LABELS)}。")
 
 
 def _render_document(*, form: WebReportForm, result: WebReportResult | None, errors: list[str]) -> str:
@@ -198,7 +217,7 @@ def _render_meta(generated_at: str) -> str:
     rows = [
         ("入口", "GET /web"),
         ("输出", "Markdown 文本"),
-        ("报告模板", "report_generator.generate_full_report"),
+        ("报告模板", "report_generator.generate_full_report(report_system)"),
         ("地区解析", "location.get"),
         ("时间", generated_at),
         ("时区", "Asia/Hong_Kong"),
@@ -228,6 +247,7 @@ def _render_field_contract() -> str:
         ["birthTime", "出生时间", "是", "HH:MM 或 HH:MM:SS", "HTML time；例 08:00"],
         ["birthPlace", "出生地区", "是", "中文地点或 lng,lat", "例 北京 / 116.4074,39.9042"],
         ["gender", "性别", "是", "male/female", "计算必需；不能默认猜测"],
+        ["reportSystem", "输出体系", "否", "bazi/ziwei/jianchu/bone", "默认 bazi；每次只输出一个体系"],
         ["name", "姓名", "否", "文本", "为空时报告标题使用命主"],
     ]
     table = tabulate(rows, headers=["参数", "字段", "必填", "格式", "说明"], tablefmt="psql", missingval="")
@@ -267,6 +287,15 @@ def _render_form(form: WebReportForm) -> str:
             "</p>",
             "</fieldset>",
             "<fieldset>",
+            "<legend>输出体系</legend>",
+            "<p>",
+            '<label for="reportSystem">输出体系</label><br>',
+            '<select id="reportSystem" name="reportSystem">',
+            *_render_report_system_options(form.report_system),
+            "</select>",
+            "</p>",
+            "</fieldset>",
+            "<fieldset>",
             "<legend>非必填字段</legend>",
             "<p>",
             '<label for="name">姓名（非必填）</label><br>',
@@ -285,11 +314,13 @@ def _render_submitted_input(form: WebReportForm, result: WebReportResult | None)
         ["birthTime", form.birth_time, "query"],
         ["birthPlace", form.birth_place, "query"],
         ["gender", form.gender, "query"],
+        ["reportSystem", form.report_system or "bazi", "query"],
         ["name", form.name, "query"],
     ]
     if result:
         rows.extend(
             [
+                ["selectedReportSystem", result.report_system_label, "server"],
                 ["normalizedBirthTime", result.normalized_time, "server"],
                 ["longitude", result.resolved_longitude, "location.get"],
                 ["latitude", result.resolved_latitude, "location.get"],
@@ -309,6 +340,7 @@ def _render_report(result: WebReportResult) -> str:
     return "\n".join(
         [
             "<h2>Markdown 输出</h2>",
+            f"<p>当前输出体系：{_h(result.report_system_label)}</p>",
             '<p><button type="button" id="copy-report">复制 Markdown</button></p>',
             '<p id="copy-status">尚未复制</p>',
             '<pre><code id="report-markdown">' + _h(result.markdown) + "</code></pre>",
@@ -346,6 +378,14 @@ def _render_copy_script() -> str:
 
 def _selected(current: str, expected: str) -> str:
     return " selected" if current == expected else ""
+
+
+def _render_report_system_options(current: str) -> list[str]:
+    normalized = current if current in REPORT_SYSTEM_LABELS else "bazi"
+    return [
+        f'<option value="{_attr(value)}"{_selected(normalized, value)}>{_h(label)} {value}</option>'
+        for value, label in REPORT_SYSTEM_LABELS.items()
+    ]
 
 
 def _time_value(value: str) -> str:

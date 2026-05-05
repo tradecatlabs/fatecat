@@ -13,12 +13,11 @@
    - 赞助支持
    - `# 命理排盘报告：{姓名}`
    - 第一卷：先天命格
-   - 第二卷：紫微映象
-   - 第三卷：后天运路
-   - 第四卷：民俗与建议
-2. 健康、黄历、占卜、风水、天文、历法、择日、易经、姓名合婚与系统附录不再作为隐藏块进入标准报告。
-3. 退出标准报告的候选能力必须登记在 `assets/fate/future_features.json`。
-4. 生产门禁必须有可复现证据：pytest、ruff、format check、mypy、API smoke、Bot dry-run 与导出包 smoke。
+   - 第二卷：后天运路
+2. 紫微斗数、建除十二神、袁天罡称骨不得与默认正宗八字报告混排；只能通过 `report_system=ziwei/jianchu/bone` 独立输出。
+3. 健康、黄历、占卜、风水、天文、历法、择日、易经、姓名合婚与系统附录不再作为隐藏块进入标准报告。
+4. 退出标准报告的候选能力必须登记在 `assets/fate/future_features.json`。
+5. 生产门禁必须有可复现证据：pytest、ruff、format check、mypy、API smoke、Bot dry-run 与导出包 smoke。
 
 ## 输出要求
 

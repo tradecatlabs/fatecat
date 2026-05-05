@@ -9,6 +9,13 @@ from typing import Any
 
 from branding import build_brand_footer_text, build_disclaimer_text, load_branding
 
+REPORT_SYSTEM_LABELS: dict[str, str] = {
+    "bazi": "正宗八字",
+    "ziwei": "紫微斗数",
+    "jianchu": "建除十二神",
+    "bone": "袁天罡称骨",
+}
+
 
 def _normalize_present_text(text: str) -> str:
     """统一清理“呈现层”文案中的提示词。
@@ -81,6 +88,7 @@ def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None)
     hide = hide or {}
     inp = result.get("input", {})
     name = inp.get("name", "命主")
+    hide_non_bazi_basic = hide.get("non_bazi_basic", False)
 
     lines.append(f"# 命理排盘报告：{name or '命主'}")
     lines.append("")
@@ -157,12 +165,12 @@ def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None)
             rows.append(["纬度", f"{lat}°"])
     if true_solar_time:
         rows.append(["真太阳时", true_solar_time])
-    if bi.get("zodiac", ""):
+    if (not hide_non_bazi_basic) and bi.get("zodiac", ""):
         rows.append(["生肖", bi.get("zodiac", "")])
-    if bi.get("constellation", ""):
+    if (not hide_non_bazi_basic) and bi.get("constellation", ""):
         rows.append(["星座", bi.get("constellation", "")])
     xx = bi.get("xingXiu", bi.get("xiu", bi.get("xingxiu", bi.get("star", "-"))))
-    if xx and xx != "-":
+    if (not hide_non_bazi_basic) and xx and xx != "-":
         rows.append(["星宿", xx])
     if prev_jq:
         rows.append(
@@ -200,7 +208,7 @@ def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None)
             zt.append(f"规则{zi_time.get('rule', '')}")
         if zt:
             rows.append(["子时判定", "；".join(zt)])
-    if mgua.get("guaName", ""):
+    if (not hide_non_bazi_basic) and mgua.get("guaName", ""):
         rows.append(["命卦", f"{mgua.get('guaName', '')} {mgua.get('group', '')}".strip()])
     lines.extend(_render_table(["项目", "内容"], rows))
 
@@ -231,16 +239,7 @@ def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None)
                 lines.append("")
 
     if (not hide.get("jianchu", False)) and jc and not jc.get("error"):
-        lines.append("### 建除十二神")
-        lines.append("")
-        jrows = [
-            ["名称", jc.get("name", "")],
-            ["序号", jc.get("index", "")],
-            ["月支", jc.get("monthZhi", "")],
-            ["日支", jc.get("dayZhi", "")],
-            ["解读", jc.get("description", "")],
-        ]
-        lines.extend(_render_table(["项目", "内容"], jrows))
+        lines.append(generate_jianchu_section(result, heading="### 建除十二神"))
 
     # 八字排盘详情
     lines.append("## 八字排盘详情")
@@ -1255,45 +1254,13 @@ def generate_ziwei_horoscope_section(result: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def generate_full_report(result: dict[str, Any], hide: dict[str, bool] | None = None) -> str:
-    """生成标准报告。
+def _report_name(result: dict[str, Any]) -> str:
+    inp = result.get("input", {})
+    name = inp.get("name", "命主") if isinstance(inp, dict) else "命主"
+    return str(name or "命主")
 
-    标准报告只保留当前已产品化的四卷内容。健康、黄历、占卜、风水、
-    天文、历法、择日、易经、姓名合婚与系统优化块暂不作为隐藏扩展输出；
-    这些能力后续按新功能重新设计输入契约和呈现结构。
-    """
-    HIDE = dict(DEFAULT_HIDE)
-    if hide:
-        # 允许调用方覆写默认开关（仅影响呈现）
-        HIDE.update({k: bool(v) for k, v in hide.items()})
-    # 呈现策略：只输出已产品化的标准块，扩展能力后续作为新功能进入。
-    RECENT_YEARS = None
-    parts: list[str] = [
-        generate_report(result, hide=HIDE),
-        generate_daymaster_section(result),
-        generate_wuxing_section(result),
-        generate_bingyao_section(result),
-        generate_ganzhi_imagery_section(result),
-        generate_geju_section(result),
-        generate_jieqi_section(result),
-        generate_relations_section(result),
-        "",
-        "## 第二卷：紫微映象（星盘辅助）",
-        "",
-        generate_ziwei_section(result),
-        generate_ziwei_basic_section(result),
-        "",
-        "## 第三卷：后天运路（动态趋势）",
-        "",
-        generate_fortune_section(result, recent_years=RECENT_YEARS),
-        generate_monthly_section(result, recent_years=RECENT_YEARS),
-        generate_ziwei_horoscope_section(result),
-        "",
-        "## 第四卷：民俗与建议（生活应用）",
-        "",
-        generate_bone_section(result),
-    ]
 
+def _wrap_report(parts: list[str]) -> str:
     branding = load_branding()
     normalized = _normalize_present_text("\n".join(parts))
     disclaimer_section = f"{build_disclaimer_text()}\n\n"
@@ -1305,6 +1272,136 @@ def generate_full_report(result: dict[str, Any], hide: dict[str, bool] | None = 
         ]
     )
     return f"{disclaimer_section}{sponsor_section}\n\n{normalized}"
+
+
+def _normalize_report_system(report_system: str | None) -> str:
+    normalized = (report_system or "bazi").strip().lower().replace("-", "_")
+    aliases = {
+        "standard": "bazi",
+        "pure_bazi": "bazi",
+        "ba_zi": "bazi",
+        "八字": "bazi",
+        "正宗八字": "bazi",
+        "ziweidoushu": "ziwei",
+        "zi_wei": "ziwei",
+        "紫微": "ziwei",
+        "紫微斗数": "ziwei",
+        "jian_chu": "jianchu",
+        "建除": "jianchu",
+        "建除十二神": "jianchu",
+        "chenggu": "bone",
+        "bone_weight": "bone",
+        "称骨": "bone",
+        "袁天罡称骨": "bone",
+    }
+    normalized = aliases.get(normalized, normalized)
+    if normalized not in REPORT_SYSTEM_LABELS:
+        allowed = "、".join(REPORT_SYSTEM_LABELS)
+        raise ValueError(f"未知报告体系: {report_system}；允许值: {allowed}")
+    return normalized
+
+
+def generate_bazi_standard_report(result: dict[str, Any], hide: dict[str, bool] | None = None) -> str:
+    """生成正宗八字标准报告，不混入紫微、建除或称骨。"""
+    HIDE = dict(DEFAULT_HIDE)
+    if hide:
+        # 允许调用方覆写默认开关（仅影响呈现）
+        HIDE.update({k: bool(v) for k, v in hide.items()})
+    HIDE["jianchu"] = True
+    HIDE["non_bazi_basic"] = True
+
+    RECENT_YEARS = None
+    parts: list[str] = [
+        generate_report(result, hide=HIDE),
+        generate_daymaster_section(result),
+        generate_wuxing_section(result),
+        generate_bingyao_section(result),
+        generate_ganzhi_imagery_section(result),
+        generate_geju_section(result),
+        generate_jieqi_section(result),
+        generate_relations_section(result),
+        "",
+        "## 第二卷：后天运路（动态趋势）",
+        "",
+        generate_fortune_section(result, recent_years=RECENT_YEARS),
+        generate_monthly_section(result, recent_years=RECENT_YEARS),
+    ]
+    return _wrap_report(parts)
+
+
+def generate_ziwei_report(result: dict[str, Any]) -> str:
+    """生成紫微斗数独立报告。"""
+    name = _report_name(result)
+    parts = [
+        f"# 紫微斗数报告：{name}",
+        "",
+        generate_ziwei_section(result),
+        generate_ziwei_basic_section(result),
+        generate_ziwei_horoscope_section(result),
+    ]
+    return _wrap_report(parts)
+
+
+def generate_jianchu_section(result: dict[str, Any], *, heading: str = "## 建除十二神") -> str:
+    """生成建除十二神独立章节。"""
+    lines = []
+    jc = result.get("jianChu", {})
+    if jc and not jc.get("error"):
+        lines.append(heading)
+        lines.append("")
+        jrows = [
+            ["名称", jc.get("name", "")],
+            ["序号", jc.get("index", "")],
+            ["月支", jc.get("monthZhi", "")],
+            ["日支", jc.get("dayZhi", "")],
+            ["解读", jc.get("description", "")],
+        ]
+        lines.extend(_render_table(["项目", "内容"], jrows))
+    return "\n".join(lines)
+
+
+def generate_jianchu_report(result: dict[str, Any]) -> str:
+    """生成建除十二神独立报告。"""
+    name = _report_name(result)
+    parts = [
+        f"# 建除十二神报告：{name}",
+        "",
+        generate_jianchu_section(result),
+    ]
+    return _wrap_report(parts)
+
+
+def generate_bone_report(result: dict[str, Any]) -> str:
+    """生成袁天罡称骨独立报告。"""
+    name = _report_name(result)
+    parts = [
+        f"# 袁天罡称骨报告：{name}",
+        "",
+        generate_bone_section(result),
+    ]
+    return _wrap_report(parts)
+
+
+def generate_full_report(
+    result: dict[str, Any],
+    hide: dict[str, bool] | None = None,
+    report_system: str | None = "bazi",
+) -> str:
+    """生成指定体系的标准报告。
+
+    默认只输出正宗八字体系。紫微、建除十二神和袁天罡称骨作为独立体系
+    通过 report_system 单独选择，不再与八字默认报告混排。
+    """
+    system = _normalize_report_system(report_system)
+    if system == "bazi":
+        return generate_bazi_standard_report(result, hide=hide)
+    if system == "ziwei":
+        return generate_ziwei_report(result)
+    if system == "jianchu":
+        return generate_jianchu_report(result)
+    if system == "bone":
+        return generate_bone_report(result)
+    raise AssertionError(f"未处理的报告体系: {system}")
 
 
 def generate_geju_section(result: dict[str, Any]) -> str:

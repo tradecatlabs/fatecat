@@ -61,9 +61,13 @@ def test_full_report_puts_sponsor_before_report_and_drops_extension_blocks():
 
     assert text.startswith("⚠️ 免责声明")
     assert text.index("## 赞助支持") < text.index("# 命理排盘报告：测试命主")
-    assert "## 袁天罡称骨" in text
 
     removed_sections = [
+        "### 建除十二神",
+        "## 紫微斗数",
+        "## 紫微基础",
+        "## 紫微运限四化（大限/流年/流月/流日/流时）",
+        "## 袁天罡称骨",
         "## 健康预警（五行脏腑/养生提示）",
         "## 出生日黄历",
         "## 第五卷：学术参数（隐藏/技术区）",
@@ -82,6 +86,100 @@ def test_full_report_puts_sponsor_before_report_and_drops_extension_blocks():
     ]
     for section in removed_sections:
         assert section not in text
+
+
+def test_full_report_default_heading_contract_matches_standard_blocks():
+    from datetime import datetime
+
+    from bazi_calculator import BaziCalculator
+    from report_generator import DEFAULT_HIDE, generate_full_report
+
+    result = BaziCalculator(
+        datetime(1990, 1, 1, 8, 0, 0),
+        "male",
+        116.4074,
+        latitude=39.9042,
+        name="测试样本",
+        birth_place="北京",
+        use_true_solar_time=True,
+    ).calculate(hide=DEFAULT_HIDE)
+    text = generate_full_report(result, hide=DEFAULT_HIDE)
+    headings = [line for line in text.splitlines() if line.startswith("#")]
+
+    assert text.startswith("⚠️ 免责声明")
+    assert not text.splitlines()[0].startswith("#")
+    assert headings == [
+        "## 赞助支持",
+        "# 命理排盘报告：测试样本",
+        "## 第一卷：先天命格（静态分析）",
+        "## 基本资料（含真太阳时、节气）",
+        "### 基本资料",
+        "## 八字排盘详情",
+        "### 五行分数",
+        "### 天干分数",
+        "### 温湿度与拱神",
+        "### 干支合克与入库",
+        "#### 干支相合（依据）",
+        "#### 天干相克（依据）",
+        "#### 地支入库（依据）",
+        "### 地支关系",
+        "## 神煞断语",
+        "### 简表神煞（字段展开）",
+        "## 日主概览",
+        "## 五行喜忌（调候与平衡）",
+        "### 五行比例",
+        "### 五行分数",
+        "### 天干分数",
+        "## 五行停匀与寒湿燥热（调候依据）",
+        "## 干支取象（原文）",
+        "## 命造格局（格局用神）",
+        "## 节气司令",
+        "## 干支关系",
+        "## 第二卷：后天运路（动态趋势）",
+        "## 运势分析",
+        "### 大运分析",
+        "### 流年",
+        "### 流月运势",
+        "### 小运",
+    ]
+    for section in ["### 建除十二神", "## 紫微斗数", "## 紫微基础", "## 袁天罡称骨"]:
+        assert section not in headings
+
+
+def test_full_report_other_systems_are_independent_outputs():
+    from datetime import datetime
+
+    from bazi_calculator import BaziCalculator
+    from report_generator import DEFAULT_HIDE, generate_full_report
+
+    result = BaziCalculator(
+        datetime(1990, 1, 1, 8, 0, 0),
+        "male",
+        116.4074,
+        latitude=39.9042,
+        name="测试样本",
+        birth_place="北京",
+        use_true_solar_time=True,
+    ).calculate(hide=DEFAULT_HIDE)
+
+    ziwei_text = generate_full_report(result, hide=DEFAULT_HIDE, report_system="ziwei")
+    assert "# 紫微斗数报告：测试样本" in ziwei_text
+    assert "## 紫微斗数" in ziwei_text
+    assert "## 紫微运限四化（大限/流年/流月/流日/流时）" in ziwei_text
+    assert "## 八字排盘详情" not in ziwei_text
+    assert "## 袁天罡称骨" not in ziwei_text
+
+    jianchu_text = generate_full_report(result, hide=DEFAULT_HIDE, report_system="jianchu")
+    assert "# 建除十二神报告：测试样本" in jianchu_text
+    assert "## 建除十二神" in jianchu_text
+    assert "## 八字排盘详情" not in jianchu_text
+    assert "## 紫微斗数" not in jianchu_text
+
+    bone_text = generate_full_report(result, hide=DEFAULT_HIDE, report_system="bone")
+    assert "# 袁天罡称骨报告：测试样本" in bone_text
+    assert "## 袁天罡称骨" in bone_text
+    assert "## 八字排盘详情" not in bone_text
+    assert "## 紫微斗数" not in bone_text
 
 
 def test_name_marriage_candidate_fields_do_not_emit_placeholders():

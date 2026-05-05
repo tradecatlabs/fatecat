@@ -110,6 +110,7 @@ def web_report(
     birthPlace: str | None = None,
     gender: str | None = None,
     name: str | None = None,
+    reportSystem: str | None = None,
 ):
     """原生 HTML Web 版标准 Markdown 报告。"""
     return render_web_report_page(
@@ -118,6 +119,7 @@ def web_report(
         birth_place=birthPlace,
         gender=gender,
         name=name,
+        report_system=reportSystem,
     )
 
 
