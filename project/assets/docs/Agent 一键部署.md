@@ -1,6 +1,6 @@
 # FateCat Agent 一键部署
 
-> 交易猫 TradeCat｜世界最强的专业命理排盘与 AI 命理分析基础设施
+> 交易猫 TradeCat｜专业命理排盘与 AI 命理分析基础设施
 > 本项目由交易猫 TradeCat 赞助与支持。
 > 先用交易猫专业排盘系统完成结构化排盘，再交给 AI 深度分析，减少胡编乱造，让 AI 命理分析真正可用。
 > TradeCat Repo：`https://github.com/tukuaiai/tradecat`

@@ -870,7 +870,7 @@ tail -f modules/telegram/output/logs/bot.log
 
 ## 交易猫生态
 
-- `交易猫 TradeCat`：世界最强的专业命理排盘与 AI 命理分析基础设施
+- `交易猫 TradeCat`：专业命理排盘与 AI 命理分析基础设施
 - `TradeCat Repo`：`https://github.com/tukuaiai/tradecat`
 - `FateCat Repo`：`https://github.com/tukuaiai/fatecat`
 - `CA`：`0x8a99b8d53eff6bc331af529af74ad267f3167777`

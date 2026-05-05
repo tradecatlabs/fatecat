@@ -1,14 +1,15 @@
 # FateCat API / Bot 文档
 
-> 最后更新: 2025-12-16 07:05
+> 最后更新: 2026-05-06
 
 ## 概述
 
-FateCat 八字排盘系统 API 接口规范，基于当前 `bazi_calculator.py` (65,793行) 实现。
+FateCat 八字排盘系统 API / Bot 接口规范，基于当前 skill 化后的标准报告契约与 `fate_core` / Telegram 交付层实现。
 
 ### 🎯 当前状态
-- **总字段**: 66（核心25 + 扩展41），计算全量保留。
-- **呈现策略**: 报告默认隐藏「择日推荐」「系统附录」「姓名合婚」与易经细节（卦名示例/卦辞库/哲学分析），算法仍计算、JSON 可取。
+- **标准报告**: 只输出免责声明、赞助支持、标题与四卷主报告；健康、黄历、占卜、风水、天文、历法、择日、易经、姓名合婚与系统附录已退出标准报告。
+- **未来功能**: 退出标准报告的扩展能力统一登记在 `assets/fate/future_features.json`，后续必须按独立输入契约、输出模板与测试重新进入生产。
+- **结构化输出**: API / pure-analysis 优先依赖字段 profile 和结构化 JSON，不要求 TXT 报告承载全部历史字段。
 - **产物**: 每次排盘落地 2 份 TXT（常规版 + `-ai分析版`），并推送到 Telegram。
 - **恢复能力**: 发送/拉取更新内置重试，健康检查 3 次失败自动退出，由外层 `run_with_retry` 复活。
 
@@ -45,7 +46,7 @@ FateCat 八字排盘系统 API 接口规范，基于当前 `bazi_calculator.py` 
 ### Bot 产物（Telegram）
 - 说明消息：Markdown 代码块列出两个文件名，附常用 AI 链接，内联按钮「🎲 重新排盘」。
 - 附件：`modules/telegram/output/txt/` 下两份 TXT 作为 media group 发送（无 caption，避免 Markdown 解析错误）。
-- 文件命名：`YYYY-MM-DD-HH:MM-地点-姓名-性别.txt` 与同名 `-ai分析版.txt`（前者纯报告，后者在首部拼接 `src/prompts/完整版.md`）。
+- 文件命名：`YYYY-MM-DD-HH:MM-地点-姓名-性别.txt` 与同名 `-ai分析版.txt`（前者纯报告，后者在首部拼接 `src/prompts/快速版.md`）。
 
 ### API / 内部调用返回
 
@@ -218,40 +219,41 @@ FateCat 八字排盘系统 API 接口规范，基于当前 `bazi_calculator.py` 
 
 | 字段 | 必须 | 说明 | 当前实现 |
 |------|:----:|------|----------|
-| fourPillars | ✅ | 四柱干支+纳音+五行 | ✅ 完整 |
-| hiddenStems | ✅ | 地支藏干 | ✅ 完整 |
-| tenGods | ✅ | 十神关系 | ✅ 完整 |
-| twelveGrowth | ✅ | 十二长生 | ✅ 完整 |
-| fiveElements | ✅ | 五行统计+百分比 | ✅ 完整 |
-| wuxingState | ✅ | 五行旺相休囚死 | ✅ 完整 |
-| dayMaster | ✅ | 日主信息+强弱 | ✅ 完整 |
-| specialPalaces | ✅ | 胎元/胎息/命宫/身宫 | ✅ 完整 |
-| voidInfo | ✅ | 空亡信息 | ✅ 完整 |
-| spirits | ✅ | 神煞 (21种) | ✅ 完整 |
-| ganzhiRelations | ✅ | 干支关系 | ✅ 完整 |
-| majorFortune | ✅ | 大运+十神 | ✅ 完整 |
-| annualFortune | ✅ | 流年+十神 | ✅ 完整 |
-| monthlyFortune | ✅ | 流月 | ✅ 完整 |
-| xiaoYun | ✅ | 小运 | ✅ 完整 |
-| boneWeight | ✅ | 称骨算命 | ✅ 完整 |
-| mingGua | ✅ | 命卦 | ✅ 完整 |
-| geju | ✅ | 格局判断 (10种) | ✅ 完整 |
-| yongShen | ✅ | 用神分析 | ✅ 完整 |
-| birthInfo | ✅ | 出生信息 | ✅ 完整 |
-| jieqiDetail | ✅ | 节气详情 | ✅ 完整 |
-| siling | ✅ | 人元司令 | ✅ 完整 |
-| jiaoYun | ✅ | 交运时间 | ✅ 完整 |
-| huangLi | ✅ | 黄历信息 | ✅ 完整 |
+| fourPillars | ✅ | 四柱干支+纳音+五行 | 已接入标准输出 |
+| hiddenStems | ✅ | 地支藏干 | 已接入标准输出 |
+| tenGods | ✅ | 十神关系 | 已接入标准输出 |
+| twelveGrowth | ✅ | 十二长生 | 已接入标准输出 |
+| fiveElements | ✅ | 五行统计+百分比 | 已接入标准输出 |
+| wuxingState | ✅ | 五行旺相休囚死 | 已接入标准输出 |
+| dayMaster | ✅ | 日主信息+强弱 | 已接入标准输出 |
+| specialPalaces | ✅ | 胎元/胎息/命宫/身宫 | 已接入标准输出 |
+| voidInfo | ✅ | 空亡信息 | 已接入标准输出 |
+| spirits | ✅ | 神煞 | 已接入标准输出 |
+| ganzhiRelations | ✅ | 干支关系 | 已接入标准输出 |
+| majorFortune | ✅ | 大运+十神 | 已接入标准输出 |
+| annualFortune | ✅ | 流年+十神 | 已接入标准输出 |
+| monthlyFortune | ✅ | 流月 | 已接入标准输出 |
+| xiaoYun | ✅ | 小运 | 已接入标准输出 |
+| boneWeight | ✅ | 称骨算命 | 已接入标准输出 |
+| mingGua | ✅ | 命卦 | 已接入标准输出 |
+| geju | ✅ | 格局判断 | 已接入标准输出 |
+| yongShen | ✅ | 用神分析 | 已接入标准输出 |
+| birthInfo | ✅ | 出生信息 | 已接入标准输出 |
+| jieqiDetail | ✅ | 节气详情 | 已接入标准输出 |
+| siling | ✅ | 人元司令 | 已接入标准输出 |
+| jiaoYun | ✅ | 交运时间 | 已接入结构化输出 |
+| huangLi | 否 | 黄历信息 | 已退役为 future feature |
 
 ---
 
 ## 📊 当前实现状态
 
-### ✅ 已完成 (24个字段)
-**100% 完整实现** - 所有核心功能已完成
+### ✅ 标准报告生产字段
+当前标准报告覆盖基础资料、四柱、五行、日主、格局用神、节气司令、干支关系、紫微辅助、岁运趋势与袁天罡称骨。
 
 ### 🟡 可优化
 - **五行力量评分**: 当前为简化算法，可提取 bazi-1-master 的精确量化
+- **扩展功能**: 健康、黄历、占卜、风水、天文、历法、择日、易经、姓名合婚与系统附录必须按 `assets/fate/future_features.json` 重新设计后再进入生产。
 
 ---
 
@@ -297,7 +299,7 @@ result = calc.calculate()
 ```
 输入: 1990-05-15 14:30 深圳 张三
 选择: ♂ 乾造(男)
-输出: 完整24字段排盘结果
+输出: 标准四卷排盘报告与结构化 JSON
 ```
 
 ### API 调用

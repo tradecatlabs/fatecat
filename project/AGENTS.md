@@ -29,7 +29,7 @@ fatecat/
 │   ├── database/                  # schema 等静态数据库资产
 │   ├── deploy/                    # 打包部署脚本与 Agent 自举脚本
 │   ├── docs/                      # 文档与历史记录
-│   ├── fate/                      # 字段 profile / 输出配置
+│   ├── fate/                      # 字段 profile / 未来功能登记
 │   └── vendor/                    # 外部成熟仓库，只读
 ├── runtime/
 │   ├── AGENTS.md
@@ -97,7 +97,7 @@ FATE_SERVICE_PORT=8001
 - `database/`：数据库 schema；不放运行态实库
 - `deploy/`：部署与打包脚本
 - `docs/`：架构文档、故障记录、说明文档
-- `fate/`：输出字段 profile 真相源
+- `fate/`：输出字段 profile 真相源与标准报告退役能力的新功能候选表
 - `vendor/`：外部成熟仓库与网页资源，只读
 
 ### `runtime/`
