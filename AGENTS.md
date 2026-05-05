@@ -10,6 +10,7 @@
 fatecat/
 ├── AGENTS.md
 ├── README.md
+├── REVIEW.md
 ├── SKILL.md
 ├── .github/
 │   ├── AGENTS.md
@@ -48,6 +49,7 @@ fatecat/
 ## 职责边界
 
 - `SKILL.md`：标准 skill 入口说明。
+- `REVIEW.md`：当前仓库审计结果与 release gate 结论；只记录证据、风险与交接，不承载业务源码。
 - `.github/`：GitHub Actions 远端验收配置；只调用仓库脚本，不保存业务代码或 secret。
 - `assets/`：生命周期模板、治理资产与可沉淀的 agent 运维材料。
 - `references/`：长文档、阶段门禁、输入输出契约、迁移与排障材料；其中 `execution-playbook.md` 是统一执行顺序真相源。
