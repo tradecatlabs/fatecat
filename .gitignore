@@ -18,12 +18,12 @@ output/
 *.log
 
 # Local raw research/source material
-project/assets/data/classics/raw/
-project/assets/data/calendar/solar_terms/raw/
+scripts/project/assets/data/classics/raw/
+scripts/project/assets/data/calendar/solar_terms/raw/
 
 # Lifecycle working packs
-assets/lifecycle/packs/*
-!assets/lifecycle/packs/.gitkeep
+scripts/project/assets/docs/lifecycle/packs/*
+!scripts/project/assets/docs/lifecycle/packs/.gitkeep
 
 # Local virtualenvs
 .venv/

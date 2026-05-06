@@ -13,8 +13,8 @@ usage() {
   bash scripts/clean-runtime.sh [--venv] [--dry-run]
 
 说明:
-  - 清理根 skill 输出目录与 project 内的本地缓存
-  - 默认不删除 project/.venv；如需彻底重建环境，再加 --venv
+  - 清理根 skill 输出目录、本地编辑器历史与 scripts/project 内的本地缓存
+  - 默认不删除 scripts/project/.venv；如需彻底重建环境，再加 --venv
 EOF
 }
 
@@ -40,6 +40,7 @@ done
 
 targets=(
   "${skill_root}/output"
+  "${skill_root}/.history"
   "${skill_root}/.pytest_cache"
   "${skill_root}/.ruff_cache"
   "${skill_root}/.mypy_cache"

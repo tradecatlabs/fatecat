@@ -20,5 +20,5 @@
 
 ## 依赖方向
 
-- `.github/workflows/* -> scripts/acceptance.sh -> project/*`
+- `.github/workflows/* -> scripts/acceptance.sh -> scripts/project/*`
 - CI 只调用仓库脚本；具体质量门禁仍以 `scripts/acceptance.sh` 为单一入口。

@@ -13,7 +13,7 @@ def generate_user_report():
     """生成用户友好的八字排盘报告"""
 
     # 执行计算
-    calc = BaziCalculator(birth_dt=datetime(1990, 5, 15, 14, 30), gender="male", longitude=114.1)
+    calc = BaziCalculator(birth_dt=datetime(1990, 5, 15, 14, 30), gender="male", longitude=116.4)
     result = calc.calculate()
 
     # 生成报告
@@ -24,11 +24,11 @@ def generate_user_report():
     report.append("                    八字排盘详细报告")
     report.append("═" * 60)
     report.append("")
-    report.append("姓名：张三                    性别：男")
+    report.append("姓名：测试用户                    性别：男")
     report.append("公历：1990年05月15日 14时30分")
     report.append("农历：" + result["birthInfo"]["lunarCn"])
     report.append("生肖：" + result["birthInfo"]["zodiac"] + "        星座：" + result["birthInfo"]["constellation"])
-    report.append("地点：深圳                    经度：114.1°E")
+    report.append("地点：北京                    经度：116.4°E")
     report.append("真太阳时：" + result["trueSolarTime"])
     report.append("")
 

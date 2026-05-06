@@ -8,9 +8,9 @@
 
 ## Environment
 
-- 仓库 / 模块：`fatecat/project/modules/telegram`
+- 仓库 / 模块：`fatecat/scripts/project/modules/telegram`
 - 关键文件：`src/bazi_calculator.py`
-- 上游参照：`project/assets/vendor/github/bazi-1-master/bazi.py`
+- 上游参照：`scripts/project/assets/vendor/github/bazi-1-master/bazi.py`
 
 ## Reproduction
 
@@ -41,7 +41,7 @@
 
 ### E1
 - Hypothesis: 当前实现已经退化成二档输出
-- Change: 直接检查 `project/modules/telegram/src/bazi_calculator.py`
+- Change: 直接检查 `scripts/project/modules/telegram/src/bazi_calculator.py`
 - Expected: `weakStrong` 只会返回 `身强/身弱`
 - Result: 确认存在
 - Verdict: confirmed
@@ -80,7 +80,7 @@
 
 ## Regression Evidence
 
-- 新增测试：`project/tests/test_strength_mapping.py`
+- 新增测试：`scripts/project/tests/test_strength_mapping.py`
 - 验证点：
   - 五档阈值边界可用
   - 历史故障样本 `2013-01-01 09:19` 回归到 `中和偏弱`
@@ -239,16 +239,16 @@
   - `cd project && .venv/bin/python -m pytest -q`：24 passed
   - `bash scripts/preflight.sh --mode pure --bootstrap --smoke --output-file /tmp/fatecat-after-fix-preflight.json --pretty`：通过，`genderCn == 乾造(男)`
   - `bash scripts/acceptance.sh --with-dev --output /tmp/fatecat-acceptance-perfect`：通过，包含源码仓库 smoke、全量 pytest、delivery api smoke、导出 lite skill strict 校验与导出包 pure smoke
-  - `RUFF_CACHE_DIR=/tmp/fatecat-ruff-cache project/.venv/bin/ruff check <本轮改动文件>`：通过
+  - `RUFF_CACHE_DIR=/tmp/fatecat-ruff-cache scripts/project/.venv/bin/ruff check <本轮改动文件>`：通过
 
 ## Bug
 
 - 标题：生产化复查发现发布门禁与旧脚本仍存在旁路
 - 症状：
   - `scripts/acceptance.sh` 默认只验证 API delivery smoke，未把 Bot dry-run 纳入发布门禁
-  - `project/scripts/setup/*`、`project/assets/deploy/pack.sh`、`project/scripts/start_all.sh` 等历史入口仍绕到 `modules/telegram/start.py` 或只装 `modules/telegram/requirements.txt`
-  - `project/scripts/setup/setup_external_env.sh` 会在 vendor 目录缺少工程文件时生成 `package.json` 或执行 `cargo init`
-  - `project/scripts/generate_bazi.sh` 绕过统一 CLI，且 CLI 直接参数模式在空 stdin 的非交互执行中会误解析空 JSON
+  - `scripts/project/scripts/setup/*`、`scripts/project/assets/deploy/pack.sh`、`scripts/project/scripts/start_all.sh` 等历史入口仍绕到 `modules/telegram/start.py` 或只装 `modules/telegram/requirements.txt`
+  - `scripts/project/scripts/setup/setup_external_env.sh` 会在 vendor 目录缺少工程文件时生成 `package.json` 或执行 `cargo init`
+  - `scripts/project/scripts/generate_bazi.sh` 绕过统一 CLI，且 CLI 直接参数模式在空 stdin 的非交互执行中会误解析空 JSON
 - 首次发现位置 / 时间：skill 生产化复查，2026-05-05
 
 ## Root Cause
@@ -266,12 +266,12 @@
 ## Regression Evidence
 
 - 已通过：
-  - `project/scripts/build_all.sh`：通过，验证 `fatecat` CLI
-  - `project/scripts/generate_bazi.sh "2004-02-21" "19:30" "男" "辽宁省大连市" 121.6 38.9 "张三"`：通过，生成 JSON 后已清理临时输出
-  - `project/scripts/test_all.sh`：25 passed
+  - `scripts/project/scripts/build_all.sh`：通过，验证 `fatecat` CLI
+  - `scripts/project/scripts/generate_bazi.sh "2004-02-21" "19:30" "男" "北京" 121.6 38.9 "测试用户"`：通过，生成 JSON 后已清理临时输出
+  - `scripts/project/scripts/test_all.sh`：25 passed
   - `bash scripts/acceptance.sh --with-dev --output /tmp/fatecat-acceptance-both-final`：通过，包含 strict skill 校验、pure smoke、25 项 pytest、API smoke、Bot dry-run、lite 导出包 strict 校验与导出包 pure smoke
   - `bash scripts/export-runtime.sh --output-parent /tmp/fatecat-full-export-final --mode full` + strict validate + full 导出包 pure smoke：通过
-  - `RUFF_CACHE_DIR=/tmp/fatecat-ruff-cache project/.venv/bin/ruff check <本轮 Python 改动文件>`：通过
+  - `RUFF_CACHE_DIR=/tmp/fatecat-ruff-cache scripts/project/.venv/bin/ruff check <本轮 Python 改动文件>`：通过
 
 ## Bug
 
@@ -290,7 +290,7 @@
 
 ## Fix
 
-- `project/pyproject.toml` 配置 ruff 排除 vendor/runtime/output，并加入 `mypy_path` 与 legacy import override
+- `scripts/project/pyproject.toml` 配置 ruff 排除 vendor/runtime/output，并加入 `mypy_path` 与 legacy import override
 - 使用 ruff 修复并格式化一方 Python 代码，当前 `ruff check project` 与 `ruff format --check project` 均清零
 - `fate_core` 增加 `py.typed`，并让 `fate_core.adapters` 成为唯一 legacy calculator 入口
 - `acceptance.sh` 默认加入 ruff、format 与 `fate_core` mypy 门禁
@@ -301,5 +301,5 @@
 - 已通过：
   - `bash scripts/acceptance.sh --with-dev --output /tmp/fatecat-acceptance-perfect-push`：通过，包含 strict skill、pure smoke、25 项 pytest、ruff、format、`fate_core` mypy、API smoke、Bot dry-run、lite 导出包 strict 校验与导出包 pure smoke
   - `bash scripts/export-runtime.sh --output-parent /tmp/fatecat-full-export-perfect-push --mode full` + strict validate + full 导出包 pure smoke：通过
-  - `project/scripts/download_libs.sh` 默认拒绝写 vendor：通过
+  - `scripts/project/scripts/download_libs.sh` 默认拒绝写 vendor：通过
   - `git diff --check`：通过

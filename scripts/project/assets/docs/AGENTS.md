@@ -38,7 +38,7 @@ docs/
 
 ## 维护规则
 
-- 修改文档路径时同步更新 `project/README.md` 的文档地图。
+- 修改文档路径时同步更新 `scripts/project/README.md` 的文档地图。
 - 当前能力边界写入 `reference/`，不要写进 `roadmap/`。
 - 未来能力登记写入 `roadmap/`，不要混入当前生产说明。
 - 第三方 web 示例只允许作为 vendor 隔离资产；生产 Web 入口必须使用 `modules/telegram/src/web_ui.py`。

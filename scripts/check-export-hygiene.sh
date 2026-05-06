@@ -37,14 +37,14 @@ find "${bundle_root}" \
     -path "${bundle_root}/.ruff_cache" -o \
     -path "${bundle_root}/.mypy_cache" -o \
     -path "${bundle_root}/output" -o \
-    -path "${bundle_root}/project/.venv" -o \
-    -path "${bundle_root}/project/.pytest_cache" -o \
-    -path "${bundle_root}/project/.ruff_cache" -o \
-    -path "${bundle_root}/project/.mypy_cache" -o \
-    -path "${bundle_root}/project/assets/config/.env" -o \
-    -path "${bundle_root}/project/assets/data/classics/raw" -o \
-    -path "${bundle_root}/project/assets/data/calendar/solar_terms/raw" -o \
-    -path "${bundle_root}/project/modules/telegram/output" -o \
+    -path "${bundle_root}/scripts/project/.venv" -o \
+    -path "${bundle_root}/scripts/project/.pytest_cache" -o \
+    -path "${bundle_root}/scripts/project/.ruff_cache" -o \
+    -path "${bundle_root}/scripts/project/.mypy_cache" -o \
+    -path "${bundle_root}/scripts/project/assets/config/.env" -o \
+    -path "${bundle_root}/scripts/project/assets/data/classics/raw" -o \
+    -path "${bundle_root}/scripts/project/assets/data/calendar/solar_terms/raw" -o \
+    -path "${bundle_root}/scripts/project/modules/telegram/output" -o \
     -name '.env' -o \
     -name '.env.local' -o \
     -name '*.local' -o \

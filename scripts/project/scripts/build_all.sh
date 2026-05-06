@@ -8,7 +8,7 @@ echo "Building FateCat project entrypoint..."
 
 if [[ ! -x "$FATE_BIN" ]]; then
     echo "缺少 CLI 入口: $FATE_BIN" >&2
-    echo "请先在 skill 根目录执行 bash scripts/bootstrap.sh，或在 project 根目录执行 scripts/setup/bootstrap_fatecat.sh deps" >&2
+    echo "请先在 skill 根目录执行 bash scripts/bootstrap.sh，或在 scripts/project 根目录执行 scripts/setup/bootstrap_fatecat.sh deps" >&2
     exit 1
 fi
 

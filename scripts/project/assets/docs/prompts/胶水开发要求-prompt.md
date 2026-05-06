@@ -24,7 +24,7 @@
 在代码中，必须遵循以下依赖结构与导入形式（示例）：
 
 ```python
-sys.path.append('/path/to/project/assets/vendor/github/*')
+sys.path.append('/path/to/scripts/project/assets/vendor/github/*')
 from datas import *        # 完整数据模块，禁止子集封装
 from sizi import summarys  # 完整算法实现，禁止简化逻辑
 ```

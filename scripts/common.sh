@@ -3,8 +3,8 @@ set -euo pipefail
 
 skill_scripts_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 skill_root="$(cd -- "${skill_scripts_dir}/.." && pwd)"
-project_root="${skill_root}/project"
-lifecycle_root="${skill_root}/assets/lifecycle"
+project_root="${skill_scripts_dir}/project"
+lifecycle_root="${project_root}/assets/docs/lifecycle"
 lifecycle_templates_dir="${lifecycle_root}/templates"
 lifecycle_packs_dir="${lifecycle_root}/packs"
 

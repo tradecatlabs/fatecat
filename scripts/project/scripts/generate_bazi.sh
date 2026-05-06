@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 项目级兼容排盘脚本：通过统一 fatecat CLI 输出 JSON
-# 用法: ./generate_bazi.sh "2004-02-21" "19:30" "male" "辽宁省大连市" 121.6 38.9 "张三"
+# 用法: ./generate_bazi.sh "2004-02-21" "19:30" "male" "北京" 116.4 39.9 "测试用户"
 
 set -euo pipefail
 
@@ -31,7 +31,7 @@ mkdir -p "$OUTPUT_DIR"
 
 if [[ ! -x "$FATE_BIN" ]]; then
   echo "缺少 CLI 入口: $FATE_BIN" >&2
-  echo "请先在 skill 根目录执行 bash scripts/bootstrap.sh，或在 project 根目录执行 scripts/setup/bootstrap_fatecat.sh deps" >&2
+  echo "请先在 skill 根目录执行 bash scripts/bootstrap.sh，或在 scripts/project 根目录执行 scripts/setup/bootstrap_fatecat.sh deps" >&2
   exit 1
 fi
 

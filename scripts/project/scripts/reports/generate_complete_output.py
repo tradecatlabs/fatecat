@@ -21,7 +21,7 @@ def generate_complete_output():
     output = []
     output.append("# FateCat 兼容输出测试文档")
     output.append("# 测试时间: 2025-12-15 14:40")
-    output.append("# 输入参数: 1990-05-15 14:30 深圳 男性")
+    output.append("# 输入参数: 1990-05-15 14:30 北京 男性")
     output.append("")
 
     output.append("## 1. 输出字段统计")

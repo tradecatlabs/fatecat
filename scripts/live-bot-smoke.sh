@@ -12,7 +12,7 @@ usage() {
 说明:
   - 真实连接 Telegram Bot API 并调用 get_me()
   - 不接受 delivery-smoke 的 placeholder token
-  - 若未传环境变量，会读取 project/assets/config/.env
+  - 若未传环境变量，会读取 scripts/project/assets/config/.env
 EOF
 }
 
@@ -49,7 +49,7 @@ env_values = dotenv_values(env_path) if env_path.exists() else {}
 token = os.getenv("FATE_BOT_TOKEN") or env_values.get("FATE_BOT_TOKEN") or ""
 token = token.strip()
 if not token:
-    print("缺少真实 FATE_BOT_TOKEN；请通过环境变量或 project/assets/config/.env 提供。", file=sys.stderr)
+    print("缺少真实 FATE_BOT_TOKEN；请通过环境变量或 scripts/project/assets/config/.env 提供。", file=sys.stderr)
     raise SystemExit(2)
 
 blocked_markers = ("placeholder", "smoke", "your_bot_token_here", "你的token")

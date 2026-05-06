@@ -155,7 +155,7 @@ bash scripts/check-export-hygiene.sh /tmp/fatecat-export/fatecat
 ### delivery 检查失败
 
 处理：
-- 检查 `project/assets/config/.env`
+- 检查 `scripts/project/assets/config/.env`
 - 补齐交付层依赖后重新执行 `preflight.sh --mode delivery`
 
 ## 推荐输出证据

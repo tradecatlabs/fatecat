@@ -17,13 +17,16 @@ trap 'rm -f "${violations_file}" "${vendor_hits_file}"' EXIT
 is_first_party_scan_target() {
   local path="$1"
   case "${path}" in
-    README.md|SKILL.md|references/*|scripts/*)
+    README.md|SKILL.md|references/*|scripts/project/DEBUG.md)
       return 0
       ;;
-    project/assets/docs/*|project/assets/fate/*|project/modules/telegram/scripts/*|project/modules/telegram/tests/*|project/tests/*)
+    scripts/*)
+      [[ "${path#scripts/}" != */* ]] && return 0
+      ;;
+    scripts/project/assets/docs/*|scripts/project/assets/fate/*|scripts/project/modules/telegram/scripts/*|scripts/project/modules/telegram/tests/*|scripts/project/tests/*)
       return 0
       ;;
-    project/modules/telegram/src/*|project/modules/fate_core/src/*)
+    scripts/project/modules/telegram/src/*|scripts/project/modules/fate_core/src/*)
       return 0
       ;;
   esac
@@ -36,13 +39,13 @@ is_first_party_excluded() {
     scripts/check-privacy-fixtures.sh)
       return 0
       ;;
-    project/modules/telegram/src/location.py)
+    scripts/project/modules/telegram/src/location.py)
       return 0
       ;;
-    project/assets/docs/archive/*)
+    scripts/project/assets/docs/archive/*)
       return 0
       ;;
-    project/assets/docs/vendor/*)
+    scripts/project/assets/docs/vendor/*)
       return 0
       ;;
   esac
@@ -69,15 +72,15 @@ if [[ -s "${violations_file}" ]]; then
 fi
 
 if [[ -d "${runtime_root}/assets/vendor/web" ]]; then
-  if git grep -n -I -E "${vendor_pattern}" -- project/assets/vendor/web > "${vendor_hits_file}"; then
+  if git grep -n -I -E "${vendor_pattern}" -- scripts/project/assets/vendor/web > "${vendor_hits_file}"; then
     while IFS= read -r line; do
       path="${line%%:*}"
       case "${path}" in
-        project/assets/vendor/web/lifekline-main/components/BaziForm.tsx|\
-        project/assets/vendor/web/lifekline-main/mock-data.json|\
-        project/assets/vendor/web/pcbz-monolith.html|\
-        project/assets/vendor/web/pcbz-paipan/assets/pcbz.iwzwh.com/static/js/*.js|\
-        project/assets/vendor/web/pcbz-wget/pcbz.iwzwh.com/static/js/*.js)
+        scripts/project/assets/vendor/web/lifekline-main/components/BaziForm.tsx|\
+        scripts/project/assets/vendor/web/lifekline-main/mock-data.json|\
+        scripts/project/assets/vendor/web/pcbz-monolith.html|\
+        scripts/project/assets/vendor/web/pcbz-paipan/assets/pcbz.iwzwh.com/static/js/*.js|\
+        scripts/project/assets/vendor/web/pcbz-wget/pcbz.iwzwh.com/static/js/*.js)
           ;;
         *)
           echo "vendor web 示例扫描失败：发现未登记的真实感占位数据。" >&2

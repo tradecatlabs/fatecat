@@ -4,7 +4,7 @@
 set -euo pipefail
 
 if [[ "${FATECAT_ALLOW_VENDOR_DOWNLOAD:-0}" != "1" ]]; then
-    echo "该脚本会向 project/assets/vendor/github 写入外部仓库快照，默认禁止在生产整理流程中执行。" >&2
+    echo "该脚本会向 scripts/project/assets/vendor/github 写入外部仓库快照，默认禁止在生产整理流程中执行。" >&2
     echo "若确实要补齐 vendor 研究素材，请显式设置 FATECAT_ALLOW_VENDOR_DOWNLOAD=1 后再运行。" >&2
     exit 1
 fi

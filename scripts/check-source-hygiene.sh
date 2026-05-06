@@ -12,10 +12,10 @@ trap 'rm -f "${violations_file}" "${personal_hits_file}"' EXIT
 
 while IFS= read -r path; do
   case "${path}" in
-    project/assets/data/classics/raw/*|\
-    project/assets/data/calendar/solar_terms/raw/*|\
-    project/assets/config/.env|\
-    project/modules/telegram/output/*|\
+    scripts/project/assets/data/classics/raw/*|\
+    scripts/project/assets/data/calendar/solar_terms/raw/*|\
+    scripts/project/assets/config/.env|\
+    scripts/project/modules/telegram/output/*|\
     output/*|\
     *.pyc|\
     *.pyo|\
@@ -37,9 +37,9 @@ fi
 for pattern in '13208' '/mnt/c/Users' 'C:\Users'; do
   if git grep -n -I -F "${pattern}" -- \
     ':!scripts/check-source-hygiene.sh' \
-    ':!project/assets/vendor' \
-    ':!project/assets/data/classics/raw' \
-    ':!project/assets/data/calendar/solar_terms/raw' \
+    ':!scripts/project/assets/vendor' \
+    ':!scripts/project/assets/data/classics/raw' \
+    ':!scripts/project/assets/data/calendar/solar_terms/raw' \
     >> "${personal_hits_file}"; then
     :
   fi

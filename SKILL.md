@@ -19,10 +19,10 @@ Trigger when any of these applies:
 
 ## Not For / Boundaries
 
-- 这个 skill 不重写 `project/assets/vendor/` 下的外部算法仓库，也不允许用文档替代真实执行结果。
-- 当前 FateCat 源码真相源在 `project/`；根目录的 `scripts/` 只是包装入口，不能在根目录再发明第二套运行时。
+- 这个 skill 不重写 `scripts/project/assets/vendor/` 下的外部算法仓库，也不允许用文档替代真实执行结果。
+- 当前 FateCat 源码真相源在 `scripts/project/`；根目录的 `scripts/` 只是包装入口，不能在根目录再发明第二套运行时。
 - 纯命理排盘最少需要：`birthDateTime`、`gender`、`longitude`、`latitude`；缺一项都不应冒然执行。
-- `delivery` 模式依赖 `project/assets/config/.env` 等真实配置；没有配置时只能停在检查阶段，不能假装“可生产”。
+- `delivery` 模式依赖 `scripts/project/assets/config/.env` 等真实配置；没有配置时只能停在检查阶段，不能假装“可生产”。
 - 真正的生产可用，必须以健康检查、一次真实输出、必要时 API/Bot 启动验证为准；不能只看文档或只跑 `--help`。
 
 ## Quick Reference
@@ -33,7 +33,7 @@ Trigger when any of these applies:
 pwd
 ```
 
-期望当前目录是 skill 根目录，且存在 `project/`、`scripts/`、`SKILL.md`。
+期望当前目录是 skill 根目录，且存在 `scripts/project/`、`scripts/`、`SKILL.md`。
 
 ### 1. 首次安装运行时
 
@@ -50,7 +50,7 @@ bash scripts/bootstrap.sh --with-dev
 ### 2. 检查 CLI 是否可用
 
 ```bash
-project/.venv/bin/fatecat --help
+scripts/project/.venv/bin/fatecat --help
 ```
 
 ### 3. 检查纯分析健康状态
@@ -119,7 +119,7 @@ API 启动后可打开原生 HTML Web 报告页：
 http://127.0.0.1:8001/web
 ```
 
-如果当前仓库里还没有真实 `project/assets/config/.env`，`delivery-smoke.sh` 会自动注入一份临时 smoke 配置，脚本退出后自动删除。
+如果当前仓库里还没有真实 `scripts/project/assets/config/.env`，`delivery-smoke.sh` 会自动注入一份临时 smoke 配置，脚本退出后自动删除。
 
 ### 8. 启动 Bot 前先做 delivery 检查
 
@@ -136,9 +136,9 @@ bash scripts/serve-bot.sh
 ### Phase 1. 首次接手 / 依赖准备
 
 必须先做：
-1. 确认当前目录是 skill 根目录，且 `project/pyproject.toml` 存在。
+1. 确认当前目录是 skill 根目录，且 `scripts/project/pyproject.toml` 存在。
 2. 执行 `bash scripts/bootstrap.sh`。
-3. 执行 `project/.venv/bin/fatecat --help`，确认 CLI 入口健康。
+3. 执行 `scripts/project/.venv/bin/fatecat --help`，确认 CLI 入口健康。
 4. 若仓库刚迁移过路径或执行器报错，再执行 `bash scripts/acceptance.sh --with-dev` 做一次全链路验收。
 
 更推荐直接执行：
@@ -148,7 +148,7 @@ bash scripts/preflight.sh --mode pure --bootstrap --pretty
 ```
 
 完成定义：
-- `project/.venv/bin/fatecat` 可执行
+- `scripts/project/.venv/bin/fatecat` 可执行
 - `fatecat` 至少暴露 `pure-analysis`、`health`、`serve`
 
 ### Phase 2. 配置与前置检查
@@ -235,7 +235,7 @@ bash scripts/preflight.sh \
 ### Pattern 1. 首次初始化并验证 CLI
 
 ```bash
-bash scripts/bootstrap.sh && project/.venv/bin/fatecat --help
+bash scripts/bootstrap.sh && scripts/project/.venv/bin/fatecat --help
 ```
 
 ### Pattern 2. 纯分析生产前检查
@@ -272,7 +272,7 @@ bash scripts/preflight.sh --mode pure --bootstrap --smoke --output-file output/p
 ### Pattern 6. 用命令行参数直接执行
 
 ```bash
-project/.venv/bin/fatecat pure-analysis \
+scripts/project/.venv/bin/fatecat pure-analysis \
   --birth-datetime '1990-01-01 08:00:00' \
   --gender 男 \
   --longitude 116.4074 \
@@ -290,7 +290,7 @@ project/.venv/bin/fatecat pure-analysis \
 - Steps:
   1. 执行 `bash scripts/preflight.sh --mode pure --bootstrap --pretty`
   2. 若仓库刚迁移过目录，再执行 `bash scripts/acceptance.sh --with-dev`
-  3. 必要时再执行 `project/.venv/bin/fatecat --help`
+  3. 必要时再执行 `scripts/project/.venv/bin/fatecat --help`
 - Expected output / acceptance:
   - 虚拟环境成功创建
   - CLI 帮助正常显示
@@ -313,7 +313,7 @@ project/.venv/bin/fatecat pure-analysis \
 
 - Input: 已经能做纯分析，现在要确认 API 入口达到可生产前状态
 - Steps:
-  1. 确认 `project/assets/config/.env` 等交付层配置已准备
+  1. 确认 `scripts/project/assets/config/.env` 等交付层配置已准备
   2. 执行 `bash scripts/preflight.sh --mode delivery --bootstrap --pretty`
   3. 执行 `bash scripts/serve-api.sh`
 - Expected output / acceptance:
@@ -354,14 +354,14 @@ project/.venv/bin/fatecat pure-analysis \
   - `scripts/serve-api.sh`
   - `scripts/serve-bot.sh`
   - `scripts/common.sh`
-  - `project/modules/fate_core/src/fate_core/cli.py`
-  - `project/modules/telegram/src/main.py`
+  - `scripts/project/modules/fate_core/src/fate_core/cli.py`
+  - `scripts/project/modules/telegram/src/main.py`
 - Verification path:
   - `bash scripts/bootstrap.sh`
   - `bash scripts/preflight.sh --mode pure --bootstrap --pretty`
-  - `project/.venv/bin/fatecat --help`
-  - `project/.venv/bin/fatecat pure-analysis --help`
-  - `project/.venv/bin/fatecat health --help`
+  - `scripts/project/.venv/bin/fatecat --help`
+  - `scripts/project/.venv/bin/fatecat pure-analysis --help`
+  - `scripts/project/.venv/bin/fatecat health --help`
   - `bash scripts/health.sh --mode pure --json --pretty`
   - `bash scripts/pure-analysis.sh --input-json '{"birthDateTime":"1990-01-01 08:00:00","gender":"男","longitude":116.4074,"latitude":39.9042}' --output-file /tmp/fatecat-sample.json --pretty`
 - Last updated: 2026-04-20

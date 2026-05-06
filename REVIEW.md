@@ -1,68 +1,65 @@
-# FateCat Self Review
+# FateCat 自审记录
 
-审查时间：2026-05-06 HKT +0800
+审查时间：2026-05-07 CST +0800
 
-## Verdict
+## 结论
 
-`PASS` for repository handoff and third-party audit readiness. `WARN` for direct public production reuse until live Bot / production environment / real credential verification is completed.
+本地仓库卫生、skill 包装装配、导出包 smoke 与第三方审计交接准备为 `PASS`。直接公网生产复用仍为 `WARN`，原因是真实 Bot、生产 API URL、CORS、真实凭证、远端 CI 与 legacy vendor 许可证复核仍需要外部环境或人工权限。
 
-当前本地 worktree 已完成安全、报告体系、前端隐私、交付卫生、生产门禁、vendor 审计元数据与本轮综合八字输出契约修复；本文件记录本地门禁证据，远端 CI 以提交推送后的 GitHub Actions 为准。
+当前 worktree 已完成根目录治理：真实源码收进 `scripts/project/`，生命周期资产收进 `scripts/project/assets/docs/lifecycle/`，根目录只保留 skill 入口、脚本、参考文档、审计文档和 GitHub 配置。
 
-## Current Evidence
+## 当前证据
 
-| Item | Evidence |
+| 项目 | 证据 |
 |---|---|
-| Branch | `main` |
-| Base HEAD before current worktree fix | `63b85ff fix: stabilize vendor integrity hashes` |
-| Remote CI for last pushed HEAD | success, `https://github.com/tukuaiai/fatecat/actions/runs/25410421740` |
-| Local acceptance | `bash scripts/acceptance.sh --with-dev` passed |
-| pytest | `46 passed in 7.66s` inside acceptance |
-| ruff | `All checks passed!` |
-| format | `87 files already formatted` |
-| mypy | `Success: no issues found in 21 source files` |
-| API smoke | passed, `http://127.0.0.1:8001/health` |
-| Bot smoke | dry-run passed |
-| Export hygiene | `export hygiene ok` before and after exported smoke |
-| Old deploy pack smoke | `bash project/assets/deploy/pack.sh` passed; archive scan only allowed `.env.example` matches |
-| Vendor health | validates required/optional vendor metadata and snapshot sha256; `licenseAuditRequired=5` |
-| Production readiness | `scripts/production-readiness.sh` added; static check passes with explicit production env, live checks require external URL/token |
+| 当前分支 | `main` |
+| 本次迁移前远端 HEAD | `b6274e8 chore: harden source asset hygiene` |
+| 当前目录形态 | 根 `project/` 已移除；根 `assets/` 已移除；源码根为 `scripts/project/` |
+| 未跟踪非忽略文件 | `git ls-files --others --exclude-standard` 返回 `0` |
+| 完整本地验收 | `bash scripts/acceptance.sh --with-dev` 在目录迁移后通过 |
+| pytest | acceptance 内 `48 passed` |
+| ruff | acceptance 内 `All checks passed!` |
+| format | acceptance 内 `88 files already formatted` |
+| mypy | acceptance 内 `Success: no issues found in 21 source files` |
+| API smoke | acceptance 内通过 |
+| Bot smoke | acceptance 内 dry-run 通过 |
+| 源仓卫生 | `bash scripts/check-source-hygiene.sh` 返回 `source hygiene ok` |
+| 隐私样例 | `bash scripts/check-privacy-fixtures.sh` 返回 `privacy fixtures ok`；vendor web 占位样例保持隔离 |
+| 导出包卫生 | `bash scripts/check-export-hygiene.sh /tmp/fatecat-acceptance/export/fatecat` 返回 `export hygiene ok` |
+| 空白字符检查 | `git diff --check` 与 `git diff --cached --check` 通过 |
 
-## Fixed In This Round
+## 本轮修复
 
-- API 记录接口增加 owner/admin 权限模型；`FATE_API_TOKEN` / `FATE_API_ADMIN_TOKEN` 是 admin token，`FATE_API_USER_TOKENS` 是用户级 owner token；支持 `X-FateCat-API-Key` 与 `Authorization: Bearer ...`。
-- CORS 改为 `FATE_CORS_ALLOW_ORIGINS` allowlist，默认空列表，不再默认 `*`。
-- API 未处理异常对外统一返回泛化错误，详细异常只进服务端日志。
-- 默认 `bazi` 计算使用 `extensions=True`，不再为默认八字报告计算紫微扩展；`ziwei` 独立体系才开启。
-- `/api/v1/report/markdown` 通过 `options.reportSystem` 输出 `bazi/ziwei` Markdown；`bazi` 为综合八字并包含袁天罡称骨，建除十二神退役为后续黄历/择日功能。
-- Web 与 Telegram 确认页只暴露综合八字、紫微斗数两个体系；`bone` / `jianchu` 不再作为独立报告体系。
-- 袁天罡称骨随默认综合八字报告输出；建除十二神从标准 Markdown、Web/API/Bot 体系选择和 `pure_analysis` profile 退役，仅保留低层计算器能力供后续黄历/择日功能复用。
-- Web/API/Bot 生成用户可见报告时隐藏非北京类真实出生地区，真实地点只用于经纬度解析、计算和受控记录。
-- 旧部署打包脚本清理 `.env`、私钥、证书、SQLite、日志和常见凭证 JSON，并在残留时拒绝打包。
-- `scripts/bootstrap.sh` 使用 `requirements.lock.txt` 作为 constraints，降低依赖漂移。
-- `project/.gitignore` 增加 `.dist/`，避免部署包产物进入未跟踪工作树。
-- `scripts/production-readiness.sh` 新增生产上线总门禁，覆盖 CORS、API token、真实 Bot token 口径、live API health 和 live Bot smoke。
-- `project/assets/vendor/vendor_sources.json` 升级到 v2，补齐 source/purpose/license/licenseStatus/distributionAllowed/revision/retrievedAt/snapshotSha256，并由 `scripts/vendor-health.sh` 校验快照完整性。
+- `project/` 移入 `scripts/project/`，满足根目录卫生要求。
+- 根 `assets/lifecycle/` 移入 `scripts/project/assets/docs/lifecycle/`。
+- 根脚本、CI、导出、live smoke、源仓卫生、隐私样例和文档路径同步到新目录结构。
+- `scripts/common.sh` 统一以 `scripts/project/` 作为项目根，以 `scripts/project/assets/docs/lifecycle/` 作为生命周期资产根。
+- 第一方 docs、tests、scripts 示例不再使用深圳、张三等非北京真实感样例，统一为北京 / 测试用户口径。
+- `scripts/check-privacy-fixtures.sh` 保持第三方 vendor web 样例隔离，防止其进入第一方文档、测试、脚本或生产 Web 输出。
+- `scripts/clean-runtime.sh` 默认清理根 `.history/`，并继续清理根输出、Python 缓存和工具缓存。
 
-## Remaining Risks
+## 剩余风险
 
-### Production Gaps
+### 生产验证缺口
 
-- Live Telegram Bot 未用真实 `FATE_BOT_TOKEN` 完成端到端发送验证。
-- 真实 webhook / 生产服务器 / systemd / 容器部署 / 生产数据库权限仍需外部环境验证。
-- 当前 owner/admin token 模型适合轻量 API 保护；如果要开放公网注册、多租户会话、token 轮换、审计日志和撤销能力，仍应接入成熟认证层。
+- 真实 `FATE_BOT_TOKEN` 尚未完成 Telegram Bot live 验证。
+- 真实 webhook、生产服务器、生产 API URL、CORS allowlist、systemd / 容器部署与生产数据库权限仍需外部环境验证。
+- 当前 owner/admin token 模型适合轻量 API 保护；若开放公网多租户，应接入成熟认证层，补齐 token 轮换、撤销、审计日志和限流。
 
-### Supply Chain / Vendor
+### 供应链与 vendor
 
-- vendor manifest 已补齐快照 sha256 与许可状态；其中 5 个 legacy vendor 缺上游 LICENSE，已标记 `NOASSERTION` / `auditRequired=true` / `distributionAllowed=false`。
-- `revision` 与 `retrievedAt` 对 legacy 快照仍为 `unknown`，不能替代法律和供应链人工审计。
+- `scripts/project/assets/vendor/` 保存完整外部源码快照，体积偏大是为了完整复用和审计。
+- 部分 legacy vendor 资产仍需人工许可证复核；`vendor-health.sh` 能校验元数据和哈希，不能替代法律审计。
+- 第三方 vendor web 样例可能包含原始 demo 占位数据。当前已被策略和测试隔离，公开再分发前仍建议审计人员复查。
 
-### Product Follow-up
+### 交付状态
 
-- 未来功能仍应按独立契约重建：健康预警、黄历、六爻、梅花、奇门、大六壬、择日、风水、占星、姓名合婚等不能回塞进默认八字报告。
-- 前端地区隐藏策略已按“非北京不展示真实地区”实现；若未来要显示更多地区，需要先明确隐私规则和审计口径。
+- 本次迁移涉及数千个文件，审查时应按目录迁移看待，而不是普通功能 diff。
+- 远端 CI 只有在本次迁移 commit 推送后才是最终权威结果。
 
-## Current Gate
+## 当前门禁
 
-- Local engineering gate: PASS
-- Third-party audit readiness: PASS with remaining risks documented
-- Public production release: WARN until live Bot / production network / real credentials and legacy vendor license audit are verified
+- 本地仓库卫生：PASS
+- skill 包装装配：PASS
+- 第三方审计准备：PASS，风险已记录
+- 直接公网生产发布：WARN，需完成 live Bot、生产网络、真实凭证、远端 CI 与 legacy vendor 许可证审计

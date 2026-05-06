@@ -55,8 +55,8 @@
 - 每次进入新阶段前，看 `stage-gates.md`，确认前一阶段的退出条件是否满足。
 - 每次接近交付或发布前，运行健康检查并采集运维包。
 
-## 与 `project/` 的关系
+## 与 `scripts/project/` 的关系
 
-- `project/` 是业务真相源。
+- `scripts/project/` 是业务真相源。
 - 生命周期包是治理真相源，用来记录为什么做、做到哪、还有什么风险。
-- 两者不能混写：业务实现放 `project/`，阶段证据放根级 `assets/lifecycle/`。
+- 两者不能混写：业务实现放 `scripts/project/modules/` 与项目配置区，阶段证据放 `scripts/project/assets/docs/lifecycle/`。

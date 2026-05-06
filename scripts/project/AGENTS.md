@@ -153,7 +153,7 @@ from _paths import (
 
 ```python
 load_dotenv("/home/xxx/.env")
-sys.path.insert(0, "/path/to/project/assets/vendor")
+sys.path.insert(0, "/path/to/scripts/project/assets/vendor")
 ```
 
 ---

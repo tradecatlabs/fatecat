@@ -26,22 +26,22 @@ bash scripts/preflight.sh --mode pure --with-dev --pretty
 
 ## `配置文件不存在`
 
-- 原因：`project/assets/config/.env` 缺失
-- 处理：先复制 `project/assets/config/.env.example` 或 `project/assets/config/agent.env.example`
+- 原因：`scripts/project/assets/config/.env` 缺失
+- 处理：先复制 `scripts/project/assets/config/.env.example` 或 `scripts/project/assets/config/agent.env.example`
 
 ## `未设置 FATE_BOT_TOKEN`
 
 - 原因：你在执行 `delivery` 检查或启动 Bot，但没有配置 token
-- 处理：补齐 `project/assets/config/.env` 后再执行 `bash scripts/preflight.sh --mode delivery --bootstrap --pretty`
+- 处理：补齐 `scripts/project/assets/config/.env` 后再执行 `bash scripts/preflight.sh --mode delivery --bootstrap --pretty`
 
 ## `缺少必需依赖`
 
-- 原因：`project/assets/vendor/` 下的运行依赖不完整
+- 原因：`scripts/project/assets/vendor/` 下的运行依赖不完整
 - 处理：先在仓库根目录完成完整 checkout，不要裁剪 vendor
 
 ## `找不到 runtime root`
 
-- 原因：`project/` 缺失或被误删
+- 原因：`scripts/project/` 缺失或被误删
 - 处理：恢复该目录，或重新从版本库 checkout 当前 skill 仓库
 
 ## `导出 bundle 启动后提示缺少虚拟环境`
@@ -56,7 +56,7 @@ bash scripts/preflight.sh --mode pure --with-dev --pretty
 
 ## `bundle 体积过大`
 
-- 原因：使用了完整导出模式，或根级 `assets/lifecycle/packs/` 已累积大量历史沉淀
+- 原因：使用了完整导出模式，或 `scripts/project/assets/docs/lifecycle/packs/` 已累积大量历史沉淀
 - 处理：优先改用 `bash scripts/export-runtime.sh --output-parent /tmp/export-lite --mode lite`
 
 ## `未发现生命周期包`
@@ -76,7 +76,7 @@ bash scripts/preflight.sh --mode pure --with-dev --pretty
 
 ## `delivery-smoke` 为什么会临时创建 `.env`
 
-- 原因：项目把 `project/assets/config/.env` 设为 delivery 硬前提，但本地 smoke 不应该逼你把真实密钥写进仓库
+- 原因：项目把 `scripts/project/assets/config/.env` 设为 delivery 硬前提，但本地 smoke 不应该逼你把真实密钥写进仓库
 - 处理：脚本会在缺少真实配置时自动生成一份临时 smoke `.env`，用于 delivery preflight 和 API/Bot smoke；脚本结束后自动删除
 
 ## `自动救活没有真正启用`
