@@ -1,111 +1,75 @@
 ---
 name: fatecat
-description: "FateCat 执行型命理排盘 skill：基于当前仓库完成依赖安装、健康检查、纯分析执行、JSON 文件输出，以及 API/Bot 交付前检查。Use when 你要让 agent 调用这个仓库生成命理排盘结果文件，或在上线前完成首次安装、配置检查、生产可用性校验。"
+description: "FateCat 执行型命理排盘 skill：安装并校验当前仓库，执行纯分析排盘，输出 JSON / Markdown，启动 Web / API / Telegram 交付层，并在发布前运行仓库卫生与生产就绪门禁。Use when 用户要求排盘、生成报告、启动 Web/API/Bot、验收 skill、导出 bundle、检查生产可用性。"
 ---
 
 # fatecat Skill
 
-这个 skill 的职责不是在文档层重写命理算法，而是指导 agent 直接调用当前仓库，把 FateCat 从“未安装 / 未配置 / 未校验”推进到“依赖就绪 / 健康通过 / 可以执行命理排盘并输出文件”的可运行状态。
+把 FateCat 从“仓库已存在”推进到“依赖就绪、健康通过、能真实执行排盘并交付结果”。本 skill 只编排当前仓库能力，不重写命理算法，不用文档替代真实命令证据。
 
 ## When to Use This Skill
 
 Trigger when any of these applies:
-- 你要让 agent 基于当前仓库执行一次命理排盘，并把结果写入 JSON 文件
-- 你要在首次接手仓库时完成依赖安装、虚拟环境准备、CLI 入口修复
-- 你要在正式执行任务前检查 `pure` 或 `delivery` 模式是否健康
-- 你要在生产前确认配置、依赖、入口命令、输出文件链路全部打通
-- 你要启动 FateCat 的 API 或 Bot 交付层，但必须先走前置检查
-- 你要给后续 agent 留下一套“先检查、再执行、最后验收”的标准运行手册
+- 用户要生成八字 / 紫微等命理排盘结果，且结果需要落到 JSON 或 Markdown 文件。
+- 用户要打开 Web HTML 页面录入出生日期、时间、地区、姓名并复制 Markdown。
+- 用户要启动或验收 FastAPI、Telegram Bot、CLI 或 Agent 交付入口。
+- 用户要首次安装仓库、修复虚拟环境、检查 `pure` / `delivery` 健康状态。
+- 用户要发布、导出、审计、检查仓库卫生、检查隐私样例或验证 skill bundle。
+- 用户要求“能不能生产复用”“上线前检查”“完整验收”“live Bot smoke”。
 
 ## Not For / Boundaries
 
-- 这个 skill 不重写 `scripts/project/assets/vendor/` 下的外部算法仓库，也不允许用文档替代真实执行结果。
-- 当前 FateCat 源码真相源在 `scripts/project/`；根目录的 `scripts/` 只是包装入口，不能在根目录再发明第二套运行时。
-- 纯命理排盘最少需要：`birthDateTime`、`gender`、`longitude`、`latitude`；缺一项都不应冒然执行。
-- `delivery` 模式依赖 `scripts/project/assets/config/.env` 等真实配置；没有配置时只能停在检查阶段，不能假装“可生产”。
-- 真正的生产可用，必须以健康检查、一次真实输出、必要时 API/Bot 启动验证为准；不能只看文档或只跑 `--help`。
+- 不在 `scripts/project/assets/vendor/` 内魔改第三方算法源码；vendor 默认只读，除非任务明确是供应链治理。
+- 不在根目录创建第二套业务源码；真实源码根固定为 `scripts/project/`。
+- 不把缺少真实 token、真实 API URL、生产 CORS、远程服务器权限的 dry-run 说成生产 live 验证。
+- 不在缺少 `birthDateTime`、`gender`、`longitude`、`latitude` 时直接执行纯分析。
+- 不把未来功能塞回默认综合八字报告；黄历、六爻、梅花、奇门、大六壬、风水、姓名合婚等必须走独立体系契约。
+- 不向用户前端展示除北京以外的真实地区样例；第一方示例统一使用北京 / 测试用户口径。
 
 ## Quick Reference
 
-### 0. 仓库定位
+### 1. 确认仓库位置
 
 ```bash
-pwd
+test -f SKILL.md && test -d scripts/project && test -d references
 ```
 
-期望当前目录是 skill 根目录，且存在 `scripts/project/`、`scripts/`、`SKILL.md`。
-
-### 1. 首次安装运行时
-
-```bash
-bash scripts/bootstrap.sh
-```
-
-如果要连开发依赖一起装：
+### 2. 首次安装运行时
 
 ```bash
 bash scripts/bootstrap.sh --with-dev
 ```
 
-### 2. 检查 CLI 是否可用
+### 3. 标准纯分析预检
 
 ```bash
-scripts/project/.venv/bin/fatecat --help
+bash scripts/preflight.sh --mode pure --bootstrap --pretty
 ```
 
-### 3. 检查纯分析健康状态
+### 4. 预检并生成样例输出
 
 ```bash
-bash scripts/health.sh --mode pure --json --pretty
+bash scripts/preflight.sh --mode pure --bootstrap --smoke --output-file output/preflight-sample.json --pretty
 ```
 
-### 3.5 一键执行标准预检
+### 5. 用输入文件生成 JSON
 
 ```bash
-bash scripts/preflight.sh --mode pure --bootstrap --smoke --pretty
+mkdir -p output
+bash scripts/pure-analysis.sh --input-file input.json --output-file output/result.json --pretty
 ```
 
-如果要检查交付层但暂不执行排盘：
-
-```bash
-bash scripts/preflight.sh --mode delivery --bootstrap --pretty
-```
-
-### 4. 检查交付层健康状态
-
-```bash
-bash scripts/health.sh --mode delivery --json --pretty
-```
-
-### 4.5 执行完整 skill 验收
-
-```bash
-bash scripts/acceptance.sh --with-dev
-```
-
-完整验收会覆盖 shell 语法、strict skill 校验、纯分析 smoke、vendor health、源仓卫生门禁、隐私示例门禁、全量 pytest、ruff、format、`fate_core` mypy、API 与 Bot dry-run 交付层 smoke、导出包卫生检查，以及导出后的 lite skill 包独立 smoke。
-
-### 5. 用 JSON 字符串直接执行排盘
+### 6. 用 JSON 字符串生成 JSON
 
 ```bash
 mkdir -p output
 bash scripts/pure-analysis.sh \
-  --input-json '{"birthDateTime":"1990-01-01 08:00:00","gender":"男","longitude":116.4074,"latitude":39.9042,"birthPlace":"北京市","name":"测试样本"}' \
-  --output-file output/bazi-result.json \
+  --input-json '{"birthDateTime":"1990-01-01 08:00:00","gender":"男","longitude":116.4074,"latitude":39.9042,"birthPlace":"北京市","name":"测试用户"}' \
+  --output-file output/result.json \
   --pretty
 ```
 
-### 6. 用输入文件执行排盘
-
-```bash
-mkdir -p output
-bash scripts/pure-analysis.sh \
-  --input-file input.json \
-  --output-file output/bazi-result.json \
-  --pretty
-```
-
-### 7. 启动 API 前先做 delivery 检查
+### 7. 启动 Web / API 前验收
 
 ```bash
 bash scripts/preflight.sh --mode delivery --bootstrap --pretty
@@ -113,15 +77,13 @@ bash scripts/delivery-smoke.sh --target api
 bash scripts/serve-api.sh
 ```
 
-API 启动后可打开原生 HTML Web 报告页：
+Web 地址：
 
 ```text
 http://127.0.0.1:8001/web
 ```
 
-如果当前仓库里还没有真实 `scripts/project/assets/config/.env`，`delivery-smoke.sh` 会自动注入一份临时 smoke 配置，脚本退出后自动删除。
-
-### 8. 启动 Bot 前先做 delivery 检查
+### 8. 启动 Telegram Bot 前验收
 
 ```bash
 bash scripts/preflight.sh --mode delivery --bootstrap --pretty
@@ -129,220 +91,116 @@ bash scripts/delivery-smoke.sh --target bot --startup-timeout 8
 bash scripts/serve-bot.sh
 ```
 
-说明：Bot smoke 默认走 dry-run 装配验证，证明 import、配置加载、handler 挂载和 CLI 启动链路全部可用，但不会真的连接 Telegram。
+### 9. 发布前完整验收
+
+```bash
+bash scripts/acceptance.sh --with-dev
+```
+
+### 10. 清理本地运行态
+
+```bash
+bash scripts/clean-runtime.sh
+```
+
+彻底重建虚拟环境时才加：
+
+```bash
+bash scripts/clean-runtime.sh --venv
+```
+
+### 11. 导出 lite skill 包并检查卫生
+
+```bash
+rm -rf /tmp/fatecat-export
+bash scripts/export-runtime.sh --output-parent /tmp/fatecat-export --mode lite
+bash scripts/check-export-hygiene.sh /tmp/fatecat-export/fatecat
+```
+
+### 12. 生产就绪门禁
+
+```bash
+bash scripts/production-readiness.sh --api-url https://your-domain.example --require-live-bot
+```
+
+没有真实生产 URL、CORS allowlist、API token 和 Telegram token 时，只能记录为“外部连通验证待执行”。
+
+### 13. 校验当前 skill
+
+```bash
+/home/lenovo/.codex/skills/auto-skill/scripts/validate-skill.sh /home/lenovo/.projects/fatecat --strict
+```
 
 ## Execution Logic
 
-### Phase 1. 首次接手 / 依赖准备
-
-必须先做：
-1. 确认当前目录是 skill 根目录，且 `scripts/project/pyproject.toml` 存在。
-2. 执行 `bash scripts/bootstrap.sh`。
-3. 执行 `scripts/project/.venv/bin/fatecat --help`，确认 CLI 入口健康。
-4. 若仓库刚迁移过路径或执行器报错，再执行 `bash scripts/acceptance.sh --with-dev` 做一次全链路验收。
-
-更推荐直接执行：
-
-```bash
-bash scripts/preflight.sh --mode pure --bootstrap --pretty
-```
-
-完成定义：
-- `scripts/project/.venv/bin/fatecat` 可执行
-- `fatecat` 至少暴露 `pure-analysis`、`health`、`serve`
-
-### Phase 2. 配置与前置检查
-
-执行前必须判断目标模式：
-- 只做排盘文件输出：走 `pure` 模式检查
-- 要启动 API/Bot：走 `delivery` 模式检查
-
-纯分析检查：
-
-```bash
-bash scripts/health.sh --mode pure --json --pretty
-```
-
-交付层检查：
-
-```bash
-bash scripts/health.sh --mode delivery --json --pretty
-```
-
-完成定义：
-- 输出中没有阻断性错误
-- 需要 `delivery` 时，配置文件和交付层依赖已就绪
-- 推荐优先使用统一入口：`bash scripts/preflight.sh --mode <pure|delivery> --bootstrap --pretty`
-
-### Phase 3. 输入验收
-
-在真正执行命理排盘前，agent 必须确认：
-- 出生时间格式可解析
-- 性别值符合 FateCat CLI 接受范围：`male` / `female` / `男` / `女`
-- 经度、纬度存在且是数字
-- 若要写文件，目标目录存在或可创建
-
-如果用户只给自然语言描述，没有给坐标，这个 skill 应先停在“收集输入”或“查地理坐标”阶段，不应直接执行。
-
-### Phase 4. 执行命理排盘并输出文件
-
-标准执行路径：
-
-```bash
-mkdir -p output
-bash scripts/pure-analysis.sh \
-  --input-json '{"birthDateTime":"1990-01-01 08:00:00","gender":"男","longitude":116.4074,"latitude":39.9042,"birthPlace":"北京市","name":"测试样本"}' \
-  --output-file output/bazi-result.json \
-  --pretty
-```
-
-如果需要把“预检 + 样例输出”一步完成，优先用：
-
-```bash
-bash scripts/preflight.sh \
-  --mode pure \
-  --bootstrap \
-  --smoke \
-  --output-file output/preflight-sample.json \
-  --pretty
-```
-
-完成定义：
-- 命令退出码为 0
-- 输出文件存在
-- 输出 JSON 可读取
-- 顶层至少能看到 `success`、`data`、`profile` 等结果字段
-
-### Phase 5. 生产前确认
-
-若目标是“确保可以生产后开始任务”，最少还要补这三步：
-1. 再跑一次目标模式的 `health`
-2. 保留一份真实输出文件作为验收样本
-3. 跑完整 `acceptance.sh --with-dev`，同时验证源码仓库 API/Bot 入口和导出包
-4. 如果走交付层，再启动一次目标 API 或 Bot 验证真实入口链路
-
-推荐验收顺序：
-1. `bash scripts/bootstrap.sh`
-2. `bash scripts/preflight.sh --mode pure --bootstrap --smoke --output-file output/preflight-sample.json --pretty`
-3. `bash scripts/pure-analysis.sh ... --output-file ...`
-4. 若要上线交付层：`bash scripts/preflight.sh --mode delivery --bootstrap --pretty`
-5. `bash scripts/delivery-smoke.sh --target api`
-6. `bash scripts/delivery-smoke.sh --target bot --startup-timeout 8`
-7. `bash scripts/serve-api.sh` 或 `bash scripts/serve-bot.sh`
-
-## Common Patterns
-
-### Pattern 1. 首次初始化并验证 CLI
-
-```bash
-bash scripts/bootstrap.sh && scripts/project/.venv/bin/fatecat --help
-```
-
-### Pattern 2. 纯分析生产前检查
-
-```bash
-bash scripts/preflight.sh --mode pure --bootstrap --pretty
-```
-
-### Pattern 3. 交付层生产前检查
-
-```bash
-bash scripts/preflight.sh --mode delivery --bootstrap --pretty
-```
-
-### Pattern 3.5. 交付层烟雾验证
-
-```bash
-bash scripts/delivery-smoke.sh --target api
-bash scripts/delivery-smoke.sh --target bot --startup-timeout 8
-```
-
-### Pattern 4. 直接落文件
-
-```bash
-mkdir -p output && bash scripts/pure-analysis.sh --input-file input.json --output-file output/result.json --pretty
-```
-
-### Pattern 5. 一步完成预检和烟雾输出
-
-```bash
-bash scripts/preflight.sh --mode pure --bootstrap --smoke --output-file output/preflight.json --pretty
-```
-
-### Pattern 6. 用命令行参数直接执行
-
-```bash
-scripts/project/.venv/bin/fatecat pure-analysis \
-  --birth-datetime '1990-01-01 08:00:00' \
-  --gender 男 \
-  --longitude 116.4074 \
-  --latitude 39.9042 \
-  --birth-place 北京市 \
-  --output-file output/result.json \
-  --pretty
-```
+1. 先定位目标：纯分析输出文件走 `pure`；Web / API / Bot 走 `delivery`；发布交付走 `acceptance`；公网生产走 `production-readiness`。
+2. 再补运行时：优先 `bash scripts/preflight.sh --mode <pure|delivery> --bootstrap --pretty`，不要手工拼散命令。
+3. 再验输入：排盘必须有出生时间、性别、经纬度；前端示例必须使用北京 / 测试用户。
+4. 再执行目标命令：生成文件、启动服务、导出 bundle 或跑门禁。
+5. 最后复核证据：退出码、输出文件、健康检查、smoke 日志、导出包卫生、Git 状态。
 
 ## Examples
 
-### Example 1: 首次接手仓库并确认可执行
+### Example 1: 首次接手仓库
 
-- Input: 一个刚拉下来的 FateCat skill 仓库，需要先确认能不能跑
-- Steps:
-  1. 执行 `bash scripts/preflight.sh --mode pure --bootstrap --pretty`
-  2. 若仓库刚迁移过目录，再执行 `bash scripts/acceptance.sh --with-dev`
-  3. 必要时再执行 `scripts/project/.venv/bin/fatecat --help`
-- Expected output / acceptance:
-  - 虚拟环境成功创建
-  - CLI 帮助正常显示
-  - `pure` 健康检查通过，没有阻断性错误
-
-### Example 2: 生成一份命理排盘 JSON 文件
-
-- Input: 用户给出出生时间、性别、经纬度，要求保存结果文件
-- Steps:
-  1. 先执行 `bash scripts/preflight.sh --mode pure --bootstrap --pretty`
-  2. 创建输出目录：`mkdir -p output`
-  3. 执行：
-     `bash scripts/pure-analysis.sh --input-json '{"birthDateTime":"1990-01-01 08:00:00","gender":"男","longitude":116.4074,"latitude":39.9042,"birthPlace":"北京市"}' --output-file output/bazi-result.json --pretty`
-- Expected output / acceptance:
-  - 命令成功结束
-  - `output/bazi-result.json` 存在
-  - 文件中有结构化命理结果，而不是空文件或报错栈
-
-### Example 3: 上线前验证 API 交付层
-
-- Input: 已经能做纯分析，现在要确认 API 入口达到可生产前状态
-- Steps:
-  1. 确认 `scripts/project/assets/config/.env` 等交付层配置已准备
-  2. 执行 `bash scripts/preflight.sh --mode delivery --bootstrap --pretty`
-  3. 执行 `bash scripts/serve-api.sh`
-- Expected output / acceptance:
-  - `delivery` 健康检查通过
-  - API 进程成功启动
-  - 不再出现缺配置、缺入口、缺依赖这类启动即失败问题
-
-### Example 4: agent 的标准执行顺序
-
-- Input: 用户说“开始做排盘，先确保环境没问题”
+- Input: 用户说“先检查这个 skill 能不能跑”。
 - Steps:
   1. `bash scripts/preflight.sh --mode pure --bootstrap --pretty`
-  2. 检查输入字段是否完整
-  3. `bash scripts/pure-analysis.sh ... --output-file ... --pretty`
-  4. 读取输出文件并向用户汇报
+  2. `scripts/project/.venv/bin/fatecat --help`
+  3. 必要时执行 `bash scripts/acceptance.sh --with-dev`
 - Expected output / acceptance:
-  - agent 不会跳过安装与检查直接开跑
-  - 每次真实执行前，都有前置健康证据
-  - 结果文件与口头汇报一致
+  - 虚拟环境创建成功。
+  - CLI 可执行。
+  - `pure` 健康检查通过。
+
+### Example 2: 生成排盘 JSON
+
+- Input: 用户给出出生时间、性别、经纬度、姓名，要求保存结果。
+- Steps:
+  1. 检查字段包含 `birthDateTime`、`gender`、`longitude`、`latitude`。
+  2. `bash scripts/preflight.sh --mode pure --bootstrap --pretty`
+  3. `bash scripts/pure-analysis.sh --input-file input.json --output-file output/result.json --pretty`
+- Expected output / acceptance:
+  - 命令退出码为 0。
+  - `output/result.json` 存在且可解析。
+  - 输出不是空文件、报错栈或模型臆造文本。
+
+### Example 3: 启动 Web HTML 页面
+
+- Input: 用户要浏览器输入出生日期、出生时间、出生地区、姓名，并复制 Markdown。
+- Steps:
+  1. `bash scripts/preflight.sh --mode delivery --bootstrap --pretty`
+  2. `bash scripts/delivery-smoke.sh --target api`
+  3. `bash scripts/serve-api.sh`
+- Expected output / acceptance:
+  - API smoke 通过。
+  - `/web` 可访问。
+  - 页面输出 Markdown，可复制。
+
+### Example 4: 发布前完整门禁
+
+- Input: 用户说“提交前检查到能交付”。
+- Steps:
+  1. `bash scripts/clean-runtime.sh`
+  2. `bash scripts/acceptance.sh --with-dev`
+  3. `git status --short --branch`
+- Expected output / acceptance:
+  - acceptance 全部通过。
+  - 未跟踪非忽略文件为 0。
+  - 没有运行态、缓存、真实 `.env` 或数据库文件混入版本控制。
 
 ## References
 
-- `references/index.md`: 总导航
-- `references/execution-playbook.md`: 标准执行链路与决策顺序
-- `references/commands.md`: 仓库脚本与命令入口
-- `references/io-contract.md`: 输入输出契约
-- `references/troubleshooting.md`: 常见失败模式与修复方向
-- `references/ops-pack.md`: 运维包与健康检查边界
-- `references/stage-gates.md`: 从“能跑”到“可生产”的阶段门禁
+- `references/index.md`: 文档导航。
+- `references/execution-playbook.md`: 标准执行顺序、模式判断和失败处理。
+- `references/commands.md`: 命令入口与使用场景。
+- `references/io-contract.md`: 输入输出契约。
+- `references/architecture.md`: 根 skill、包装脚本与 `scripts/project/` 的职责边界。
+- `references/ops-pack.md`: 运维包、delivery smoke 与生产边界。
+- `references/live-bot-verification.md`: 真实 Telegram token 验证。
+- `references/stage-gates.md`: 从可运行到可生产的阶段门禁。
+- `references/troubleshooting.md`: 常见失败与修复路径。
+- `references/migration-plan.md`: 当前目录迁移与根卫生口径。
 
 ## Maintenance
 
@@ -351,21 +209,18 @@ scripts/project/.venv/bin/fatecat pure-analysis \
   - `scripts/preflight.sh`
   - `scripts/health.sh`
   - `scripts/pure-analysis.sh`
-  - `scripts/serve-api.sh`
-  - `scripts/serve-bot.sh`
-  - `scripts/common.sh`
+  - `scripts/delivery-smoke.sh`
+  - `scripts/export-runtime.sh`
+  - `scripts/acceptance.sh`
   - `scripts/project/modules/fate_core/src/fate_core/cli.py`
+  - `scripts/project/modules/telegram/src/web_ui.py`
   - `scripts/project/modules/telegram/src/main.py`
-- Verification path:
-  - `bash scripts/bootstrap.sh`
+- Quality gate:
+  - `/home/lenovo/.codex/skills/auto-skill/scripts/validate-skill.sh /home/lenovo/.projects/fatecat --strict`
   - `bash scripts/preflight.sh --mode pure --bootstrap --pretty`
-  - `scripts/project/.venv/bin/fatecat --help`
-  - `scripts/project/.venv/bin/fatecat pure-analysis --help`
-  - `scripts/project/.venv/bin/fatecat health --help`
-  - `bash scripts/health.sh --mode pure --json --pretty`
-  - `bash scripts/pure-analysis.sh --input-json '{"birthDateTime":"1990-01-01 08:00:00","gender":"男","longitude":116.4074,"latitude":39.9042}' --output-file /tmp/fatecat-sample.json --pretty`
-- Last updated: 2026-04-20
+  - `bash scripts/acceptance.sh --with-dev`
+- Last updated: 2026-05-07
 - Known limits:
-  - 纯分析可以在无交付层配置时运行，但 `delivery` 模式不行
-  - 生产可用性最终取决于真实配置、真实依赖和一次真实执行结果
-  - 本 skill 只规定仓库内的标准运行路径，不替代外部部署系统的职责
+  - `delivery-smoke` 的 Bot 检查默认是 dry-run，不等于 Telegram live。
+  - 生产 live 验证必须依赖真实外部 URL、token、CORS 与网络权限。
+  - vendor 体积偏大是完整复用外部源码快照的取舍，不能无门禁删除。
