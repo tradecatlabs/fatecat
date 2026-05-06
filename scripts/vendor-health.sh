@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import subprocess
 import sys
 from pathlib import Path
 
@@ -38,18 +39,33 @@ REQUIRED_FIELDS = {
 IGNORED_DIRS = {".git", "node_modules", "__pycache__"}
 
 
+def snapshot_files(path: Path) -> list[str]:
+    try:
+        raw = subprocess.check_output(
+            ["git", "-C", str(path), "ls-files", "-z", "--", "."],
+            stderr=subprocess.DEVNULL,
+        )
+    except Exception:
+        files: list[str] = []
+        for item in path.rglob("*"):
+            rel_parts = item.relative_to(path).parts
+            if any(part in IGNORED_DIRS for part in rel_parts):
+                continue
+            if item.is_file():
+                files.append(item.relative_to(path).as_posix())
+        return sorted(files)
+
+    return sorted(item.decode("utf-8") for item in raw.split(b"\0") if item)
+
+
 def snapshot_sha256(path: Path) -> str:
     digest = hashlib.sha256()
-    for item in sorted(path.rglob("*")):
-        rel_parts = item.relative_to(path).parts
-        if any(part in IGNORED_DIRS for part in rel_parts):
-            continue
-        if item.is_file():
-            rel = item.relative_to(path).as_posix()
-            digest.update(rel.encode("utf-8"))
-            digest.update(b"\0")
-            digest.update(item.read_bytes())
-            digest.update(b"\0")
+    for rel in snapshot_files(path):
+        item = path / rel
+        digest.update(rel.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(item.read_bytes())
+        digest.update(b"\0")
     return digest.hexdigest()
 
 

@@ -59,7 +59,7 @@
       "revision": "unknown",
       "retrievedAt": "unknown",
       "revisionStatus": "legacy_snapshot_no_git_metadata",
-      "snapshotSha256": "ecd4f57b57faf8eef2f6e75d570660c0314a07a939d45132b89c786e9aedb075"
+      "snapshotSha256": "3817f93a677e0c63b353a94fa7275199f21582a36397edc2f90685b58aae9325"
     },
     {
       "id": "paipan",
@@ -189,7 +189,7 @@
       "revision": "unknown",
       "retrievedAt": "unknown",
       "revisionStatus": "legacy_snapshot_no_git_metadata",
-      "snapshotSha256": "1d2ead611e24b8bfcff9b8d1dfd9cfd310b09bf07278bd683da005c2e6367d94"
+      "snapshotSha256": "4accbb5d5eaef7e0e1f3a38690f97ed833cc99743bb9435950bfd93aea9361a0"
     },
     {
       "id": "bazi-name",

@@ -16,7 +16,7 @@
 | Base HEAD before this fix | `ba10edea76547c9239939017b4713c19c3f8e5e9` |
 | Remote CI for base | success, `https://github.com/tukuaiai/fatecat/actions/runs/25407053025` |
 | Local acceptance | `bash scripts/acceptance.sh --with-dev` passed |
-| pytest | `43 passed in 7.60s` inside acceptance |
+| pytest | `43 passed in 7.53s` inside acceptance |
 | ruff | `All checks passed!` |
 | format | `87 files already formatted` |
 | mypy | `Success: no issues found in 21 source files` |
