@@ -75,5 +75,7 @@ assets/docs/1.json
 complete_result.json
 complete_integration_result.json
 assets/docs/complete_integration_result.json
+assets/docs/archive/audit/*.json
+assets/docs/archive/raw-notes/*.txt
 services/telegram/complete_result.json
 services/telegram/complete_integration_result.json

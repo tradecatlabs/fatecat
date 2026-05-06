@@ -14,7 +14,7 @@ assets/
 │   └── classics/     # 命理古籍与基础语料文本
 ├── database/
 ├── deploy/
-├── docs/
+├── docs/          # 文档资产，内部按 architecture/operations/reference/roadmap/vendor/archive 分类
 ├── fate/
 ├── tasks/
 └── vendor/
@@ -27,7 +27,7 @@ assets/
   - `data/classics/`：命理古籍、基础知识语料与后续检索/切片输入源。
 - `database/`：数据库 schema 与静态定义；不放 `.db` 实库。
 - `deploy/`：打包、Agent 引导、环境自举脚本与机器可读部署清单。
-- `docs/`：文档、记录、结构说明。
+- `docs/`：文档资产真相源；架构、运维、参考、路线图、供应链研究与本地归档分区存放。
 - `fate/`：命理字段 profile、标准报告边界与未来功能登记真相源。
 - `tasks/`：执行教训、任务记忆与过程资产。
 - `vendor/`：外部成熟仓库快照，只读；`vendor_sources.json` 记录来源与分发边界。

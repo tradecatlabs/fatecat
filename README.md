@@ -399,7 +399,7 @@ bash scripts/check-export-hygiene.sh /tmp/fatecat-export/fatecat
 - [references/commands.md](references/commands.md)：命令速查。
 - [references/ops-pack.md](references/ops-pack.md)：运维与加固。
 - [project/README.md](project/README.md)：项目级产品说明与业务背景。
-- [project/assets/docs/功能状态.md](project/assets/docs/功能状态.md)：标准报告与未来功能边界。
+- [project/assets/docs/reference/功能状态.md](project/assets/docs/reference/功能状态.md)：标准报告与未来功能边界。
 
 <a id="disclaimer"></a>
 

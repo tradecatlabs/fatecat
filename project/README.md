@@ -43,9 +43,9 @@
 </p>
 
 <p>
-  <a href="./assets/docs/Agent%20%E4%B8%80%E9%94%AE%E9%83%A8%E7%BD%B2.md"><img src="https://img.shields.io/badge/📦_Agent_一键部署-查看文档-6C47FF?style=for-the-badge" alt="Agent 一键部署文档"></a>
-  <a href="./assets/docs/Telegram%20Bot%20%E5%90%AF%E5%8A%A8%E4%B8%8E%E9%87%8D%E5%90%AF%E6%8C%87%E5%8D%97.md"><img src="https://img.shields.io/badge/🤖_Telegram_启动-查看文档-26A5E4?style=for-the-badge" alt="Telegram 启动指南"></a>
-  <a href="./assets/docs/%E5%BD%93%E5%89%8D%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84.md"><img src="https://img.shields.io/badge/🗂️_目录结构-查看文档-2E8B57?style=for-the-badge" alt="当前目录结构"></a>
+  <a href="./assets/docs/operations/Agent%20%E4%B8%80%E9%94%AE%E9%83%A8%E7%BD%B2.md"><img src="https://img.shields.io/badge/📦_Agent_一键部署-查看文档-6C47FF?style=for-the-badge" alt="Agent 一键部署文档"></a>
+  <a href="./assets/docs/operations/Telegram%20Bot%20%E5%90%AF%E5%8A%A8%E4%B8%8E%E9%87%8D%E5%90%AF%E6%8C%87%E5%8D%97.md"><img src="https://img.shields.io/badge/🤖_Telegram_启动-查看文档-26A5E4?style=for-the-badge" alt="Telegram 启动指南"></a>
+  <a href="./assets/docs/architecture/%E5%BD%93%E5%89%8D%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84.md"><img src="https://img.shields.io/badge/🗂️_目录结构-查看文档-2E8B57?style=for-the-badge" alt="当前目录结构"></a>
   <a href="https://github.com/tukuaiai/tradecat"><img src="https://img.shields.io/badge/🐱_TradeCat-专业排盘基础设施-FF6A00?style=for-the-badge" alt="TradeCat Repo"></a>
 </p>
 
@@ -616,7 +616,7 @@ bash assets/deploy/bootstrap_agent.sh --profile harness --write-env-if-missing
 相关文件：
 
 - 机器可读清单：`assets/deploy/agent_manifest.json`
-- 部署说明：`assets/docs/Agent 一键部署.md`
+- 部署说明：`assets/docs/operations/Agent 一键部署.md`
 - Agent 配置模板：`assets/config/agent.env.example`
 
 Agent 场景推荐流程：
@@ -665,7 +665,7 @@ fatecat/
 
 目录重构与结构说明可继续查看：
 
-- `assets/docs/当前目录结构.md`
+- `assets/docs/architecture/当前目录结构.md`
 - `AGENTS.md`
 
 <details>
@@ -734,13 +734,14 @@ fatecat/
 
 | 文档 | 用途 | 适合什么时候看 |
 |------|------|----------------|
-| `assets/docs/Agent 一键部署.md` | Agent / OpenClaw / Harness 自举说明 | 你想一键部署或做自动化 |
-| `assets/docs/Telegram Bot 启动与重启指南.md` | Bot 启动、重启、日志与代理说明 | 你要跑 Telegram Bot |
-| `assets/docs/当前目录结构.md` | 当前实际目录组织说明 | 你要理解仓库分层 |
-| `assets/docs/系统架构图.md` | 系统结构说明 | 你要看整体架构 |
-| `assets/docs/序列图.md` | 链路时序说明 | 你要看请求流程 |
-| `assets/docs/功能清单.md` | 字段能力与功能总览 | 你要评估当前覆盖面 |
-| `assets/docs/功能状态.md` | 计算/呈现开关口径 | 你要调整报告显示范围 |
+| `assets/docs/README.md` | 文档资产分类索引 | 你要快速定位文档 |
+| `assets/docs/operations/Agent 一键部署.md` | Agent / OpenClaw / Harness 自举说明 | 你想一键部署或做自动化 |
+| `assets/docs/operations/Telegram Bot 启动与重启指南.md` | Bot 启动、重启、日志与代理说明 | 你要跑 Telegram Bot |
+| `assets/docs/architecture/当前目录结构.md` | 当前实际目录组织说明 | 你要理解仓库分层 |
+| `assets/docs/architecture/系统架构图.md` | 系统结构说明 | 你要看整体架构 |
+| `assets/docs/architecture/序列图.md` | 链路时序说明 | 你要看请求流程 |
+| `assets/docs/reference/功能清单.md` | 字段能力与功能总览 | 你要评估当前覆盖面 |
+| `assets/docs/reference/功能状态.md` | 计算/呈现开关口径 | 你要调整报告显示范围 |
 | `assets/vendor/README.md` | 外部成熟仓库依赖说明 | 你要核对底层依赖 |
 
 ## 故障排查
