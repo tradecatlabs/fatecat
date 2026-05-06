@@ -1,83 +1,210 @@
 {
-  "version": 1,
-  "distributionPolicy": "当前仓库保留 vendor 快照以保证离线 smoke 与 skill 导出可复现；后续若改为 artifact/LFS/submodule，必须先保持本 manifest 与 vendor-health 验证通过。",
+  "version": 2,
+  "snapshotRecordedAt": "2026-05-06",
+  "distributionPolicy": "当前仓库保留 vendor 快照以保证离线 smoke 与 skill 导出可复现；vendor-health 会校验路径、元数据与快照 sha256。licenseStatus=NOASSERTION 的条目必须人工复核，不能据此宣称许可已完成。",
   "required": [
     {
       "id": "lunar-python",
       "path": "github/lunar-python-master",
       "source": "https://github.com/6tail/lunar-python",
-      "purpose": "核心历法计算"
+      "purpose": "核心历法计算",
+      "license": "MIT",
+      "licenseStatus": "spdx",
+      "licenseFile": "LICENSE",
+      "distributionAllowed": true,
+      "revision": "unknown",
+      "retrievedAt": "unknown",
+      "revisionStatus": "legacy_snapshot_no_git_metadata",
+      "snapshotSha256": "317c6743be75b504e8cd994fedaf9e07876b3a482e3d149ac2a2913130ab2127"
     },
     {
       "id": "bazi-1",
       "path": "github/bazi-1-master",
       "source": "https://github.com/nicktaobo/bazi-1",
-      "purpose": "八字神煞、格局、调候与五行资料"
+      "purpose": "八字神煞、格局、调候与五行资料",
+      "license": "NOASSERTION",
+      "licenseStatus": "missing_upstream_license",
+      "licenseFile": null,
+      "distributionAllowed": false,
+      "auditRequired": true,
+      "revision": "unknown",
+      "retrievedAt": "unknown",
+      "revisionStatus": "legacy_snapshot_no_git_metadata",
+      "snapshotSha256": "d5b1977d47e56daf5d3d2329df95c058fff1d5a51fa947532aa1905d5f6d2ce9"
     },
     {
       "id": "sxwnl",
       "path": "github/sxwnl-master",
       "source": "https://github.com/sxwnl/sxwnl",
-      "purpose": "寿星万年历与天文历法"
+      "purpose": "寿星万年历与天文历法",
+      "license": "NOASSERTION",
+      "licenseStatus": "missing_upstream_license",
+      "licenseFile": null,
+      "distributionAllowed": false,
+      "auditRequired": true,
+      "revision": "unknown",
+      "retrievedAt": "unknown",
+      "revisionStatus": "legacy_snapshot_no_git_metadata",
+      "snapshotSha256": "a4f3bb30ba6e8de7dfe3241678bd81f2f7fdac147655b9f5bebee31212aba8ff"
     },
     {
       "id": "iztro",
       "path": "github/iztro-main",
       "source": "https://github.com/SylarLong/iztro",
-      "purpose": "紫微斗数与运限四化"
+      "purpose": "紫微斗数与运限四化",
+      "license": "MIT",
+      "licenseStatus": "spdx",
+      "licenseFile": "LICENSE",
+      "distributionAllowed": true,
+      "revision": "unknown",
+      "retrievedAt": "unknown",
+      "revisionStatus": "legacy_snapshot_no_git_metadata",
+      "snapshotSha256": "ecd4f57b57faf8eef2f6e75d570660c0314a07a939d45132b89c786e9aedb075"
     },
     {
       "id": "paipan",
       "path": "github/paipan-master",
       "source": "https://github.com/hkargc/paipan",
-      "purpose": "真太阳时与早晚子时"
+      "purpose": "真太阳时与早晚子时",
+      "license": "WTFPL-2.0",
+      "licenseStatus": "spdx",
+      "licenseFile": "LICENSE",
+      "distributionAllowed": true,
+      "revision": "unknown",
+      "retrievedAt": "unknown",
+      "revisionStatus": "legacy_snapshot_no_git_metadata",
+      "snapshotSha256": "244a203241e278eebe5ccc9c58bf7bd9a58ff9ac76ccbcfea39d1637bdea5a41"
     }
   ],
   "optionalFutureFeatures": [
     {
       "id": "fortel-ziweidoushu",
       "path": "github/fortel-ziweidoushu-main",
-      "source": "https://github.com/airicyu/fortel-ziweidoushu"
+      "source": "https://github.com/airicyu/fortel-ziweidoushu",
+      "purpose": "紫微斗数未来候选实现",
+      "license": "MIT",
+      "licenseStatus": "spdx",
+      "licenseFile": "LICENSE",
+      "distributionAllowed": true,
+      "revision": "unknown",
+      "retrievedAt": "unknown",
+      "revisionStatus": "legacy_snapshot_no_git_metadata",
+      "snapshotSha256": "8ffc561f728448284480d4a8de3a8ab9b4678b2233ef98ae89b831fa09feaf5a"
     },
     {
       "id": "mikaboshi",
       "path": "github/mikaboshi-main",
-      "source": "https://github.com/minagawah/mikaboshi"
+      "source": "https://github.com/minagawah/mikaboshi",
+      "purpose": "风水九星未来候选实现",
+      "license": "MIT",
+      "licenseStatus": "spdx",
+      "licenseFile": "LICENSE",
+      "distributionAllowed": true,
+      "revision": "unknown",
+      "retrievedAt": "unknown",
+      "revisionStatus": "legacy_snapshot_no_git_metadata",
+      "snapshotSha256": "d452977f14b7456918ab038892aa07f01a6d4ccdd1b44fea852a29fc7532e9a3"
     },
     {
       "id": "Chinese-Divination",
       "path": "github/Chinese-Divination-master",
-      "source": "https://github.com/volcanofly/Chinese-Divination"
+      "source": "https://github.com/volcanofly/Chinese-Divination",
+      "purpose": "六爻/梅花/奇门等未来候选实现",
+      "license": "NOASSERTION",
+      "licenseStatus": "missing_upstream_license",
+      "licenseFile": null,
+      "distributionAllowed": false,
+      "auditRequired": true,
+      "revision": "unknown",
+      "retrievedAt": "unknown",
+      "revisionStatus": "legacy_snapshot_no_git_metadata",
+      "snapshotSha256": "d55a73cb33583a21fda4ee5e43892c45528eedf04e73bad62a794216b936a20b"
     },
     {
       "id": "Iching",
       "path": "github/Iching-master",
-      "source": "https://github.com/l2yao/Iching"
+      "source": "https://github.com/l2yao/Iching",
+      "purpose": "易经系统未来候选实现",
+      "license": "NOASSERTION",
+      "licenseStatus": "missing_upstream_license",
+      "licenseFile": null,
+      "distributionAllowed": false,
+      "auditRequired": true,
+      "revision": "unknown",
+      "retrievedAt": "unknown",
+      "revisionStatus": "legacy_snapshot_no_git_metadata",
+      "snapshotSha256": "a7797136b00a8463d4d0f04e654b78212c52ae3604ff797343286325faec0518"
     },
     {
       "id": "holiday-calendar",
       "path": "github/holiday-and-chinese-almanac-calendar-main",
-      "source": "https://github.com/zqzess/holiday-and-chinese-almanac-calendar"
+      "source": "https://github.com/zqzess/holiday-and-chinese-almanac-calendar",
+      "purpose": "黄历/节假日未来候选数据",
+      "license": "MIT",
+      "licenseStatus": "spdx",
+      "licenseFile": "LICENSE",
+      "distributionAllowed": true,
+      "revision": "unknown",
+      "retrievedAt": "unknown",
+      "revisionStatus": "legacy_snapshot_no_git_metadata",
+      "snapshotSha256": "62442df3e776e5f14a32f2c60dcbe8228162ca3850555235cd8a097f268a9d46"
     },
     {
       "id": "chinese-calendar",
       "path": "github/chinese-calendar-master",
-      "source": "https://github.com/LKI/chinese-calendar"
+      "source": "https://github.com/LKI/chinese-calendar",
+      "purpose": "中国节假日未来候选数据",
+      "license": "MIT",
+      "licenseStatus": "spdx",
+      "licenseFile": "LICENSE",
+      "distributionAllowed": true,
+      "revision": "unknown",
+      "retrievedAt": "unknown",
+      "revisionStatus": "legacy_snapshot_no_git_metadata",
+      "snapshotSha256": "63bd2e9d0ed9e4acc76df0317e6a4515760c649e7780e5a773e1151fefdf1cb3"
     },
     {
       "id": "js_astro",
       "path": "github/js_astro-master",
-      "source": "https://github.com/astsakai/js_astro"
+      "source": "https://github.com/astsakai/js_astro",
+      "purpose": "天文占星未来候选实现",
+      "license": "MIT",
+      "licenseStatus": "spdx",
+      "licenseFile": "LICENSE",
+      "distributionAllowed": true,
+      "revision": "unknown",
+      "retrievedAt": "unknown",
+      "revisionStatus": "legacy_snapshot_no_git_metadata",
+      "snapshotSha256": "ae545158a8919165d12fbfd2d93ee4b619b373b3509679701924cc73a8436e7a"
     },
     {
       "id": "dantalion",
       "path": "github/dantalion-master",
-      "source": "https://github.com/kurone-kito/dantalion"
+      "source": "https://github.com/kurone-kito/dantalion",
+      "purpose": "占卜系统未来候选实现",
+      "license": "MIT",
+      "licenseStatus": "spdx",
+      "licenseFile": "LICENSE",
+      "distributionAllowed": true,
+      "revision": "unknown",
+      "retrievedAt": "unknown",
+      "revisionStatus": "legacy_snapshot_no_git_metadata",
+      "snapshotSha256": "1d2ead611e24b8bfcff9b8d1dfd9cfd310b09bf07278bd683da005c2e6367d94"
     },
     {
       "id": "bazi-name",
       "path": "github/bazi-name-master",
-      "source": "https://github.com/zhaolandelong/bazi-name"
+      "source": "https://github.com/zhaolandelong/bazi-name",
+      "purpose": "姓名学未来候选实现",
+      "license": "NOASSERTION",
+      "licenseStatus": "missing_upstream_license",
+      "licenseFile": null,
+      "distributionAllowed": false,
+      "auditRequired": true,
+      "revision": "unknown",
+      "retrievedAt": "unknown",
+      "revisionStatus": "legacy_snapshot_no_git_metadata",
+      "snapshotSha256": "7f3d882e063105590f586531626958f6d721b25756b06560949fc29e9f354edc"
     }
   ]
 }

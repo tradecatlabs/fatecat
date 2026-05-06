@@ -73,6 +73,35 @@ def test_calculate_api_returns_success_with_record_id(monkeypatch):
     assert saved["birth_place"] == "北京市"
 
 
+def test_user_token_can_write_only_own_record(monkeypatch):
+    saved = {}
+
+    def fake_save_record(**kwargs):
+        saved.update(kwargs)
+        return 43
+
+    monkeypatch.setattr("main.db.save_record", fake_save_record)
+    monkeypatch.setattr(main, "API_TOKEN", "")
+    monkeypatch.setenv("FATE_API_USER_TOKENS", "u1:user-token")
+
+    own_response = TestClient(app).post(
+        "/api/v1/bazi/calculate?user_id=u1",
+        json=_payload(),
+        headers={"X-FateCat-API-Key": "user-token"},
+    )
+    other_response = TestClient(app).post(
+        "/api/v1/bazi/calculate?user_id=u2",
+        json=_payload(),
+        headers={"X-FateCat-API-Key": "user-token"},
+    )
+
+    assert own_response.status_code == 200
+    assert own_response.json()["meta"]["recordId"] == 43
+    assert saved["user_id"] == "u1"
+    assert other_response.status_code == 403
+    assert other_response.json()["error"] == "无权访问该记录"
+
+
 def test_calculate_api_rejects_record_write_without_token(monkeypatch):
     monkeypatch.setattr(main, "API_TOKEN", "test-token")
 
@@ -91,6 +120,47 @@ def test_record_read_requires_api_token(monkeypatch):
 
     assert response.status_code == 403
     assert response.json()["error"] == "未授权"
+
+
+def test_user_token_cannot_read_other_user_record(monkeypatch):
+    monkeypatch.setattr(main, "API_TOKEN", "")
+    monkeypatch.setenv("FATE_API_USER_TOKENS", "u1:user-token")
+    monkeypatch.setattr(
+        "main.db.get_record",
+        lambda _record_id: {
+            "id": 1,
+            "userId": "u2",
+            "bizType": "bazi",
+            "input": {},
+            "bizData": {},
+            "createdAt": "2026-05-06T00:00:00+08:00",
+        },
+    )
+
+    response = TestClient(app).get("/api/v1/records/1", headers={"X-FateCat-API-Key": "user-token"})
+
+    assert response.status_code == 403
+    assert response.json()["error"] == "无权访问该记录"
+
+
+def test_admin_token_can_read_any_record(monkeypatch):
+    monkeypatch.setattr(main, "API_TOKEN", "admin-token")
+    monkeypatch.setattr(
+        "main.db.get_record",
+        lambda _record_id: {
+            "id": 1,
+            "userId": "u2",
+            "bizType": "bazi",
+            "input": {},
+            "bizData": {},
+            "createdAt": "2026-05-06T00:00:00+08:00",
+        },
+    )
+
+    response = TestClient(app).get("/api/v1/records/1", headers={"Authorization": "Bearer admin-token"})
+
+    assert response.status_code == 200
+    assert response.json()["data"]["userId"] == "u2"
 
 
 def test_markdown_report_api_selects_ziwei_without_bazi_blocks():

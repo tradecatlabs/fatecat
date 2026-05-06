@@ -275,6 +275,8 @@ FATE_SERVICE_HOST=0.0.0.0
 FATE_SERVICE_PORT=8001
 FATE_CORS_ALLOW_ORIGINS=https://your-domain.example
 FATE_API_TOKEN=change-me
+FATE_API_ADMIN_TOKEN=change-me-admin
+FATE_API_USER_TOKENS=u1:change-me-user-token
 ```
 
 <details>
@@ -579,8 +581,10 @@ curl -X POST "http://127.0.0.1:8001/api/v1/bazi/pure-analysis" \
 - JSON 响应统一附带 `branding`
 - Telegram 消息与报告正文也会附带免责声明与 TradeCat 广告位
 - 错误响应同样会带 branding，方便下游保留来源信息
-- 记录接口与带 `user_id` 的保存请求需要 `FATE_API_TOKEN`，支持 `X-FateCat-API-Key` 或 `Authorization: Bearer ...`
+- 记录接口与带 `user_id` 的保存请求需要 API token，支持 `X-FateCat-API-Key` 或 `Authorization: Bearer ...`
+- `FATE_API_TOKEN` / `FATE_API_ADMIN_TOKEN` 是 admin token，可访问全部记录；`FATE_API_USER_TOKENS=user_id:token,...` 是 owner token，只能访问自己的记录
 - CORS 通过 `FATE_CORS_ALLOW_ORIGINS` 配置；默认空列表，不默认放开公网跨域
+- 公网生产前执行 `bash scripts/production-readiness.sh --api-url <url> --require-live-bot`
 
 ### 统一配置原则
 

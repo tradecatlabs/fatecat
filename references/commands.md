@@ -98,6 +98,14 @@ FATE_BOT_TOKEN=<real-token> bash scripts/live-bot-smoke.sh
 
 说明：真实验收会连接 Telegram Bot API；无真实 token 时不得宣称线上通过。
 
+### 生产就绪门禁
+
+```bash
+bash scripts/production-readiness.sh --api-url https://your-domain.example --require-live-bot
+```
+
+说明：该门禁要求 API 鉴权、CORS allowlist、真实 token 口径，并可验证线上 `/health` 与真实 Telegram Bot API。缺少真实外部环境时，不得宣称生产 live 验收通过。
+
 ### Vendor 快照健康检查
 
 ```bash

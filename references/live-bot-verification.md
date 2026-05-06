@@ -10,6 +10,12 @@
 FATE_BOT_TOKEN=<real-token> bash scripts/live-bot-smoke.sh
 ```
 
+完整生产上线前建议使用总门禁：
+
+```bash
+bash scripts/production-readiness.sh --api-url https://your-domain.example --require-live-bot
+```
+
 脚本会调用 Telegram Bot API `get_me()`。如果 token 缺失、是 placeholder、网络不可达或 Telegram 返回错误，脚本必须失败。
 
 ## 验收结果解释

@@ -2,6 +2,7 @@ import logging
 import os
 import secrets
 import sys
+from dataclasses import dataclass
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -54,6 +55,16 @@ db.ensure_db()
 logger = logging.getLogger(__name__)
 
 
+@dataclass(frozen=True)
+class ApiPrincipal:
+    role: str
+    user_id: str | None = None
+
+    @property
+    def is_admin(self) -> bool:
+        return self.role == "admin"
+
+
 def _cors_allow_origins() -> list[str]:
     raw = os.getenv("FATE_CORS_ALLOW_ORIGINS", "").strip()
     if not raw:
@@ -71,12 +82,47 @@ def _extract_auth_token(x_api_key: str | None, authorization: str | None) -> str
     return ""
 
 
-def _require_record_access(x_api_key: str | None, authorization: str | None) -> None:
-    if not API_TOKEN:
+def _admin_tokens() -> list[str]:
+    tokens = [API_TOKEN, os.getenv("FATE_API_ADMIN_TOKEN", "").strip()]
+    return [token for token in dict.fromkeys(tokens) if token]
+
+
+def _user_tokens() -> dict[str, str]:
+    raw = os.getenv("FATE_API_USER_TOKENS", "").strip()
+    if not raw:
+        return {}
+
+    mapping: dict[str, str] = {}
+    for item in raw.split(","):
+        user_id, sep, token = item.strip().partition(":")
+        if sep and user_id.strip() and token.strip():
+            mapping[user_id.strip()] = token.strip()
+    return mapping
+
+
+def _require_record_access(x_api_key: str | None, authorization: str | None) -> ApiPrincipal:
+    admin_tokens = _admin_tokens()
+    user_tokens = _user_tokens()
+    if not admin_tokens and not user_tokens:
         raise HTTPException(status_code=403, detail="记录接口未启用")
     supplied = _extract_auth_token(x_api_key, authorization)
-    if not supplied or not secrets.compare_digest(supplied, API_TOKEN):
+    if not supplied:
         raise HTTPException(status_code=403, detail="未授权")
+    for token in admin_tokens:
+        if secrets.compare_digest(supplied, token):
+            return ApiPrincipal(role="admin")
+    for user_id, token in user_tokens.items():
+        if secrets.compare_digest(supplied, token):
+            return ApiPrincipal(role="user", user_id=user_id)
+    raise HTTPException(status_code=403, detail="未授权")
+
+
+def _require_owner_or_admin(principal: ApiPrincipal, user_id: str) -> None:
+    if principal.is_admin:
+        return
+    if principal.user_id == user_id:
+        return
+    raise HTTPException(status_code=403, detail="无权访问该记录")
 
 
 app = FastAPI(title="八字排盘服务", version="1.0.0")
@@ -270,7 +316,8 @@ def calculate_bazi(
     """计算八字排盘"""
     try:
         if user_id:
-            _require_record_access(x_fatecat_api_key, authorization)
+            principal = _require_record_access(x_fatecat_api_key, authorization)
+            _require_owner_or_admin(principal, user_id)
         result, calculator, birth_dt = _calculate_bazi_raw(req, report_system="bazi")
 
         ts_dt = calculator.true_solar_time if req.options.useTrueSolarTime else birth_dt
@@ -384,10 +431,11 @@ def get_record(
     authorization: str | None = Header(default=None),
 ):
     """获取记录"""
-    _require_record_access(x_fatecat_api_key, authorization)
+    principal = _require_record_access(x_fatecat_api_key, authorization)
     record = db.get_record(record_id)
     if not record:
         raise HTTPException(status_code=404, detail="Not found")
+    _require_owner_or_admin(principal, str(record["userId"]))
     return attach_branding({"success": True, "data": record})
 
 
@@ -400,7 +448,8 @@ def get_user_records(
     authorization: str | None = Header(default=None),
 ):
     """获取用户记录"""
-    _require_record_access(x_fatecat_api_key, authorization)
+    principal = _require_record_access(x_fatecat_api_key, authorization)
+    _require_owner_or_admin(principal, user_id)
     records = db.get_user_records(user_id, biz_type, limit)
     return attach_branding({"success": True, "data": records, "total": len(records)})
 
@@ -412,7 +461,11 @@ def delete_record(
     authorization: str | None = Header(default=None),
 ):
     """删除记录"""
-    _require_record_access(x_fatecat_api_key, authorization)
+    principal = _require_record_access(x_fatecat_api_key, authorization)
+    record = db.get_record(record_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Not found")
+    _require_owner_or_admin(principal, str(record["userId"]))
     if db.delete_record(record_id):
         return attach_branding({"success": True})
     raise HTTPException(status_code=404, detail="Not found")

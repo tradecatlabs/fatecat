@@ -306,6 +306,7 @@ bash scripts/acceptance.sh --with-dev
 bash scripts/delivery-smoke.sh --target api
 bash scripts/serve-api.sh
 bash scripts/delivery-smoke.sh --target bot --startup-timeout 8
+bash scripts/production-readiness.sh --api-url https://your-domain.example --require-live-bot
 bash scripts/clean-runtime.sh --dry-run
 bash scripts/export-runtime.sh --output-parent /tmp/fatecat-export --mode lite
 bash scripts/check-export-hygiene.sh /tmp/fatecat-export/fatecat
@@ -368,8 +369,10 @@ fatecat/
 API 安全开关：
 
 - `FATE_CORS_ALLOW_ORIGINS`：逗号分隔 CORS allowlist；默认空列表，不再默认 `*`。
-- `FATE_API_TOKEN`：启用记录读写接口的 API token；访问记录接口或通过 `user_id` 写记录时，需要 `X-FateCat-API-Key` 或 `Authorization: Bearer ...`。
-- 未配置 `FATE_API_TOKEN` 时，记录接口返回“记录接口未启用”，避免公网误暴露。
+- `FATE_API_TOKEN` / `FATE_API_ADMIN_TOKEN`：记录接口 admin token；admin 可访问全部记录。
+- `FATE_API_USER_TOKENS`：用户级 token，格式为 `user_id:token,user_id2:token2`；用户 token 只能写入、读取、列出、删除自己的记录。
+- 未配置任何 API token 时，记录接口返回“记录接口未启用”，避免公网误暴露。
+- 公网生产前运行 `bash scripts/production-readiness.sh --api-url <url> --require-live-bot`，缺少真实外部环境时不得宣称 live 验收通过。
 
 清理本地运行态：
 
