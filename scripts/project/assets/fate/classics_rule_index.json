@@ -31,6 +31,15 @@
       "doesNotApplyWhen": ["只进行民俗附录输出"]
     },
     {
+      "id": "bazi.balance_five_elements",
+      "system": "bazi",
+      "topic": "五行平衡",
+      "summary": "五行喜忌需结合五行分数、季节气势和日主状态，作为调候之外的平衡依据。",
+      "sources": ["项目五行评分规则", "滴天髓", "穷通宝鉴"],
+      "appliesWhen": ["五行分数、月令和日主状态齐备"],
+      "doesNotApplyWhen": ["只存在单一五行标签或缺少四柱数据"]
+    },
+    {
       "id": "bazi.pattern_by_month_command",
       "system": "bazi",
       "topic": "格局",
@@ -38,6 +47,24 @@
       "sources": ["子平真诠", "三命通会"],
       "appliesWhen": ["月令、天干透出和藏干信息齐备"],
       "doesNotApplyWhen": ["月柱缺失或节气边界未通过"]
+    },
+    {
+      "id": "bazi.pattern_root_transparency",
+      "system": "bazi",
+      "topic": "格局",
+      "summary": "格局成败应参考透干、通根、藏干和合化冲破，不只取月令名称。",
+      "sources": ["子平真诠", "三命通会", "项目格局规则"],
+      "appliesWhen": ["月令、透干、藏干和地支关系齐备"],
+      "doesNotApplyWhen": ["只输出简化排盘或缺少干支关系"]
+    },
+    {
+      "id": "bazi.stem_branch_relations",
+      "system": "bazi",
+      "topic": "干支关系",
+      "summary": "干支合冲刑害破、入库和透藏关系用于解释结构变化，应作为证据展开而非孤立断语。",
+      "sources": ["渊海子平", "三命通会", "项目干支关系规则"],
+      "appliesWhen": ["四柱干支和地支藏干齐备"],
+      "doesNotApplyWhen": ["只存在年柱或生肖数据"]
     },
     {
       "id": "bazi.spirits_auxiliary_only",

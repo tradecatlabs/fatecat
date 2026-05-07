@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -46,3 +47,26 @@ def test_classics_rule_index_is_traceable_and_bounded():
         assert rule["sources"]
         assert rule["appliesWhen"]
         assert rule["doesNotApplyWhen"]
+
+
+def test_emitted_analysis_evidence_rule_ids_exist_in_classics_index():
+    from bazi_calculator import BaziCalculator
+    from report_generator import build_report_hide
+
+    index = _load_json("classics_rule_index.json")
+    indexed_rule_ids = {rule["id"] for rule in index["rules"]}
+    result = BaziCalculator(
+        datetime(1990, 1, 1, 8, 0, 0),
+        "male",
+        116.4074,
+        latitude=39.9042,
+        name="测试样本",
+        birth_place="北京",
+        use_true_solar_time=True,
+    ).calculate(hide=build_report_hide("bazi"))
+
+    emitted_rule_ids = {
+        rule_id for item in result["analysisEvidence"]["items"].values() for rule_id in item.get("ruleIds", [])
+    }
+    assert emitted_rule_ids
+    assert emitted_rule_ids <= indexed_rule_ids

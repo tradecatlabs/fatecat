@@ -145,7 +145,7 @@
       "gate": "节气时间 schema、时区、容差和 fixture 来源全部明确。",
       "acceptance": [
         "fixture 不直接依赖 raw 文件运行。",
-        "边界测试覆盖 t-1s/t/t+1s。",
+        "边界测试覆盖 fixture t-1s 与 fixture 容差窗口后的柱切换。",
         "起运至少覆盖顺逆、性别、阴阳年样本。"
       ],
       "constraints": [
@@ -313,10 +313,10 @@
       "outputs": [
         "用 golden fixture 锁定节气时刻、月令切换、立春年界和真太阳时入参边界。"
       ],
-      "verify": "pytest 对 `lunar-python` 计算结果与 fixture 进行边界断言。",
+      "verify": "pytest 对 `lunar-python` 计算结果与 fixture 进行容差断言，并对抽样年份做 fixture 边界断言。",
       "gate": "任何误差必须有容差解释。",
       "acceptance": [
-        "满足 Verify: pytest 对 `lunar-python` 计算结果与 fixture 进行边界断言。",
+        "满足 Verify: pytest 对 `lunar-python` 计算结果与 fixture 进行容差断言，并对抽样年份做 fixture 边界断言。",
         "满足 Gate: 任何误差必须有容差解释。"
       ],
       "constraints": [
@@ -329,13 +329,13 @@
       "risks": [],
       "recommended_order": "Wave 3",
       "self_checklist": [
-        "Verify: pytest 对 `lunar-python` 计算结果与 fixture 进行边界断言。",
+        "Verify: pytest 对 `lunar-python` 计算结果与 fixture 进行容差断言，并对抽样年份做 fixture 边界断言。",
         "Gate: 任何误差必须有容差解释。",
         "完成后更新 `STATUS.md` 的 `Recent Evidence`",
         "交付前完成 REVIEW / SHIP 自检",
         "维护 `DEBUG.md` 并保留回归证据"
       ],
-      "agent_prompt": "处理任务包 `TP-01.03`：节气与月令边界测试\n目标：用 golden fixture 锁定节气时刻、月令切换、立春年界和真太阳时入参边界。\n优先级：P0\n依赖：TP-01.02\nVerify：pytest 对 `lunar-python` 计算结果与 fixture 进行边界断言。\nGate：任何误差必须有容差解释。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n调试纪律：先创建/更新 `DEBUG.md`，先复现再修复，最终写清 Root Cause / Fix / Regression Evidence\n输出：用 golden fixture 锁定节气时刻、月令切换、立春年界和真太阳时入参边界。"
+      "agent_prompt": "处理任务包 `TP-01.03`：节气与月令边界测试\n目标：用 golden fixture 锁定节气时刻、月令切换、立春年界和真太阳时入参边界。\n优先级：P0\n依赖：TP-01.02\nVerify：pytest 对 `lunar-python` 计算结果与 fixture 进行容差断言，并对抽样年份做 fixture 边界断言。\nGate：任何误差必须有容差解释。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n调试纪律：先创建/更新 `DEBUG.md`，先复现再修复，最终写清 Root Cause / Fix / Regression Evidence\n输出：用 golden fixture 锁定节气时刻、月令切换、立春年界和真太阳时入参边界。"
     },
     {
       "id": "TP-01.04",

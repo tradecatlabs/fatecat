@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 from datetime import datetime
 from pathlib import Path
@@ -65,7 +66,23 @@ def read_rows() -> list[dict[str, object]]:
     return rows
 
 
+def source_sha256() -> str:
+    """校验 raw 来源，防止 fixture 记录的来源哈希与实际文件漂移。"""
+    digest = hashlib.sha256()
+    with RAW_FILE.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def main() -> int:
+    actual_sha256 = source_sha256()
+    if actual_sha256 != SOURCE_SHA256:
+        raise RuntimeError(
+            f"raw source sha256 mismatch: expected {SOURCE_SHA256}, got {actual_sha256}; "
+            "请先复核 raw 表来源，再更新 SOURCE_SHA256。"
+        )
+
     rows = read_rows()
     payload = {
         "schemaVersion": 1,

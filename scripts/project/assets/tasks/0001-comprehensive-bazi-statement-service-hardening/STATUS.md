@@ -36,7 +36,7 @@
 | TP-07.02 | TP-07 | 2 | TP-07.01 | No | Done | 规则索引种子 JSON |  |  |
 | TP-07.03 | TP-07 | 2 | TP-07.02 | No | Done | evidence ruleIds 接入 |  |  |
 | TP-08 | ROOT | 1 | TP-01, TP-02, TP-05, TP-06 | No | Done | pytest/acceptance 门禁通过 |  |  |
-| TP-08.01 | TP-08 | 2 | - | No | Done | 全量 pytest 57 passed |  |  |
+| TP-08.01 | TP-08 | 2 | - | No | Done | 全量 pytest 59 passed |  |  |
 | TP-08.02 | TP-08 | 2 | TP-08.01 | No | Done | acceptance.sh --with-dev 通过 |  |  |
 | TP-09 | ROOT | 1 | TP-02, TP-04 | No | Done | README/SKILL/playbook/docs 同步 |  |  |
 | TP-09.01 | TP-09 | 2 | - | No | Done | 生产边界文档更新 |  |  |
@@ -52,21 +52,22 @@
 | 验证项 | 命令 | 结果 |
 | --- | --- | --- |
 | 任务树结构校验 | `python3 /home/lenovo/.codex/skills/auto-tasks/scripts/validate_tasks_tree.py --tasks-dir scripts/project/assets/tasks --phase auto` | 通过 |
-| Targeted pytest | `cd scripts/project && .venv/bin/python -m pytest -q tests/test_solar_terms_golden.py tests/test_fate_policy_assets.py tests/test_branding_support.py tests/fate_core/test_field_registry.py tests/fate_core/test_pure_analysis_usecase.py` | 20 passed |
-| Full pytest | `cd scripts/project && .venv/bin/python -m pytest -q tests modules/telegram/tests` | 57 passed |
+| Targeted pytest | `cd scripts/project && .venv/bin/python -m pytest -q tests/test_fate_policy_assets.py tests/test_solar_terms_golden.py` | 10 passed |
+| Full pytest | `cd scripts/project && .venv/bin/python -m pytest -q tests modules/telegram/tests` | 59 passed |
 | Ruff check | `cd scripts/project && RUFF_CACHE_DIR=/tmp/fatecat-ruff-cache .venv/bin/python -m ruff check .` | 通过 |
 | Ruff format | `cd scripts/project && RUFF_CACHE_DIR=/tmp/fatecat-ruff-cache .venv/bin/python -m ruff format --check .` | 91 files already formatted |
 | MyPy | `cd scripts/project && .venv/bin/python -m mypy -p fate_core` | Success |
 | Source hygiene | `bash scripts/check-source-hygiene.sh` | 通过 |
 | Privacy fixtures | `bash scripts/check-privacy-fixtures.sh` | 通过 |
 | Acceptance | `bash scripts/acceptance.sh --with-dev` | 通过；输出目录 /tmp/fatecat-acceptance |
-| Git delivery evidence | `python3 /home/lenovo/.codex/skills/auto-github/scripts/capture_delivery_evidence.py --out scripts/project/assets/tasks/0001-comprehensive-bazi-statement-service-hardening/GIT_DELIVERY_EVIDENCE.json` | 已生成 |
+| Git delivery evidence | `python3 /home/lenovo/.codex/skills/auto-github/scripts/capture_delivery_evidence.py --out /tmp/fatecat-git-delivery-evidence.json` | 本地可再生成；入库文件仅保留证据生成说明，避免实时工作树快照 self-blocking |
 
 # Residual External Unknowns
 - 真实生产 API 域名、CORS allowlist、API token：外部连通验证待执行。
 - 真实 Telegram Bot token 与 Bot API live smoke：外部连通验证待执行。
-- GitHub Actions 需要 push 后以远端 run 为准；本地 acceptance 已通过。
+- GitHub Actions 需要 push 后以远端最新 run 为准；本地 acceptance 已通过。
 
 # Notes
 - `assets/data/calendar/solar_terms/golden/solar_terms_1900_2030.json` 是测试 fixture，不替换生产 `lunar-python`。
 - raw 交节表与 `lunar-python` 在部分历史区间存在约 1 小时时区/DST 口径差异，fixture 已通过 `toleranceSeconds=3660` 显式记录。
+- raw 表不进入 Git 与导出包；重新生成 golden 需要按 `source_manifest.tsv` 取得同哈希本地 raw 文件。

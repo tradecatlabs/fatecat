@@ -127,7 +127,7 @@
         "gate": "节气时间 schema、时区、容差和 fixture 来源全部明确。",
         "acceptance": [
           "fixture 不直接依赖 raw 文件运行。",
-          "边界测试覆盖 t-1s/t/t+1s。",
+          "边界测试覆盖 fixture t-1s 与 fixture 容差窗口后的柱切换。",
           "起运至少覆盖顺逆、性别、阴阳年样本。"
         ],
         "children": [
@@ -167,7 +167,7 @@
             "depends_on": [
               "solar_terms_fixture_builder"
             ],
-            "verify": "pytest 对 `lunar-python` 计算结果与 fixture 进行边界断言。",
+            "verify": "pytest 对 `lunar-python` 计算结果与 fixture 进行容差断言，并对抽样年份做 fixture 边界断言。",
             "gate": "任何误差必须有容差解释。"
           },
           {

@@ -12,11 +12,11 @@
 - 运行新增 pytest：节气 golden、报告结构快照、隐私脱敏、输入契约、多端同源输出。
 - 运行 `bash scripts/vendor-health.sh`、`bash scripts/check-source-hygiene.sh`、`bash scripts/check-privacy-fixtures.sh`。
 - 运行 `bash scripts/acceptance.sh --with-dev`，确认导出包卫生与导出包 smoke 仍通过。
-- 在任务执行完成后生成 Git Delivery Evidence 与任务 closeout packet。
+- 在任务执行完成后生成本地 Git Delivery Evidence；实时工作树快照不作为入库真相源，最终交付以 clean worktree、commit hash、acceptance 与 push 后 CI 为准。
 - bugfix / regression / flaky 任务必须把 DEBUG.md 的回归证据串到 Recent Evidence
 - TP-01.01 | Verify: 输出 schema 文档和来源哈希对照。 | Gate: 确认 raw 表不会进入导出包。
 - TP-01.02 | Verify: fixture schema 校验和样本快照通过。 | Gate: 明确时区、容差、来源哈希。
-- TP-01.03 | Verify: pytest 对 `lunar-python` 计算结果与 fixture 进行边界断言。 | Gate: 任何误差必须有容差解释。
+- TP-01.03 | Verify: pytest 对 `lunar-python` 计算结果与 fixture 进行容差断言，并对抽样年份做 fixture 边界断言。 | Gate: 任何误差必须有容差解释。
 - TP-01.04 | Verify: pytest 覆盖起运顺逆样本。 | Gate: 起运样本来源和预期值必须可追溯。
 - TP-02.01 | Verify: 输出入口清单和默认块清单。 | Gate: 确认前端不应自行拼报告。
 - TP-02.02 | Verify: 结构快照不含紫微、黄历、建除、六爻等块。 | Gate: 非八字体系统一保留为独立 capability 或未来登记。
@@ -56,7 +56,7 @@
 - 标题: 节气 golden 回归
 - 验收标准:
   - fixture 不直接依赖 raw 文件运行。
-  - 边界测试覆盖 t-1s/t/t+1s。
+  - 边界测试覆盖 fixture t-1s 与 fixture 容差窗口后的柱切换。
   - 起运至少覆盖顺逆、性别、阴阳年样本。
 - Verify: pytest 新增节气 golden、月令边界、立春年界、起运样本测试。
 - Gate: 节气时间 schema、时区、容差和 fixture 来源全部明确。
@@ -82,7 +82,7 @@
 - 标题: 节气与月令边界测试
 - 验收标准:
   - 达成当前节点 objective，且输出物可复核
-- Verify: pytest 对 `lunar-python` 计算结果与 fixture 进行边界断言。
+- Verify: pytest 对 `lunar-python` 计算结果与 fixture 进行容差断言，并对抽样年份做 fixture 边界断言。
 - Gate: 任何误差必须有容差解释。
 - 输出物: 无
 

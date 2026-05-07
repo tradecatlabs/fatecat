@@ -13,11 +13,11 @@
 - `assets/docs/reference/综合八字陈述服务加固.md`
 - `tests/test_solar_terms_golden.py`
 - `tests/test_fate_policy_assets.py`
-- `GIT_DELIVERY_EVIDENCE.json`
+- `GIT_DELIVERY_EVIDENCE.json`（证据生成说明；实时 Git 快照请生成到 `/tmp`）
 
 ## Verification
 
-- `pytest`: 57 passed.
+- `pytest`: 59 passed.
 - `ruff check`: passed.
 - `ruff format --check`: passed.
 - `mypy -p fate_core`: passed.

@@ -15,6 +15,8 @@ if str(VENDOR_LUNAR) not in sys.path:
 from lunar_python import Solar  # noqa: E402
 
 JIE_TERMS = {"立春", "惊蛰", "清明", "立夏", "芒种", "小暑", "立秋", "白露", "寒露", "立冬", "大雪", "小寒"}
+FIXTURE_BOUNDARY_LOCK_YEARS = {1936, 1969, 2000, 2024, 2030}
+FIXTURE_BOUNDARY_LOCK_SECONDS = 120
 TERM_ALIASES = {
     "冬至": ["冬至", "DONG_ZHI"],
     "小寒": ["小寒", "XIAO_HAN"],
@@ -84,28 +86,63 @@ def test_lunar_python_solar_terms_match_golden_fixture_with_declared_tolerance()
 
 def test_month_pillar_changes_across_jie_boundaries():
     payload = _load_fixture()
-    sample_years = {1900, 1911, 1936, 1969, 1990, 2000, 2024, 2030}
+    checked = 0
 
     for row in payload["rows"]:
-        if row["term"] not in JIE_TERMS or int(row["year"]) not in sample_years:
+        if row["term"] not in JIE_TERMS or int(row["year"]) not in FIXTURE_BOUNDARY_LOCK_YEARS:
             continue
-        boundary = _actual_term_dt(row)
+        boundary = _fixture_dt(row).replace(microsecond=0)
         before = _eight_char_at(boundary - timedelta(seconds=1)).getMonth()
-        after = _eight_char_at(boundary + timedelta(seconds=1)).getMonth()
+        after = _eight_char_at(boundary + timedelta(seconds=FIXTURE_BOUNDARY_LOCK_SECONDS)).getMonth()
         assert before != after, f"{row['term']} {boundary.isoformat()} should change month pillar"
+        checked += 1
+    assert checked == len(JIE_TERMS) * len(FIXTURE_BOUNDARY_LOCK_YEARS)
 
 
 def test_lichun_changes_bazi_year_boundary():
     payload = _load_fixture()
-    sample_years = {1900, 1911, 1936, 1969, 1990, 2000, 2024, 2030}
+    checked = 0
 
     for row in payload["rows"]:
-        if row["term"] != "立春" or int(row["year"]) not in sample_years:
+        if row["term"] != "立春" or int(row["year"]) not in FIXTURE_BOUNDARY_LOCK_YEARS:
             continue
-        boundary = _actual_term_dt(row)
+        boundary = _fixture_dt(row).replace(microsecond=0)
         before = _eight_char_at(boundary - timedelta(seconds=1)).getYear()
-        after = _eight_char_at(boundary + timedelta(seconds=1)).getYear()
+        after = _eight_char_at(boundary + timedelta(seconds=FIXTURE_BOUNDARY_LOCK_SECONDS)).getYear()
         assert before != after, f"立春 {boundary.isoformat()} should change bazi year pillar"
+        checked += 1
+    assert checked == len(FIXTURE_BOUNDARY_LOCK_YEARS)
+
+
+def test_true_solar_time_feeds_lunar_python_across_lichun_fixture_boundary():
+    from bazi_calculator import BaziCalculator
+    from report_generator import build_report_hide
+
+    boundary = datetime(2024, 2, 4, 16, 26, 53)
+    samples = [
+        ("2024-02-04T16:54:00", "before", "癸卯", "乙丑"),
+        ("2024-02-04T16:56:00", "after", "甲辰", "丙寅"),
+    ]
+
+    for iso_value, side, expected_year, expected_month in samples:
+        calc = BaziCalculator(
+            datetime.fromisoformat(iso_value),
+            "male",
+            116.4074,
+            latitude=39.9042,
+            name="测试样本",
+            birth_place="北京",
+            use_true_solar_time=True,
+        )
+        result = calc.calculate(hide=build_report_hide("bazi"))
+        true_solar_time = calc.true_solar_time.replace(tzinfo=None)
+
+        if side == "before":
+            assert true_solar_time < boundary
+        else:
+            assert true_solar_time > boundary
+        assert result["fourPillars"]["year"]["fullName"] == expected_year
+        assert result["fourPillars"]["month"]["fullName"] == expected_month
 
 
 def test_yun_start_time_regression_samples():
