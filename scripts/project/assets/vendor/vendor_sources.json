@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "snapshotRecordedAt": "2026-05-06",
+  "snapshotRecordedAt": "2026-05-07",
   "distributionPolicy": "当前仓库保留 vendor 快照以保证离线 smoke 与 skill 导出可复现；vendor-health 会校验路径、元数据与快照 sha256。licenseStatus=NOASSERTION 的条目必须人工复核，不能据此宣称许可已完成。",
   "required": [
     {
@@ -77,6 +77,20 @@
     }
   ],
   "optionalFutureFeatures": [
+    {
+      "id": "MingLi-Bench",
+      "path": "github/MingLi-Bench-main",
+      "source": "https://github.com/DestinyLinker/MingLi-Bench",
+      "purpose": "八字与紫微斗数 LLM 推理评测基准，含 160 道选择题、预计算命盘和多模型 API runner",
+      "license": "MIT",
+      "licenseStatus": "spdx",
+      "licenseFile": "LICENSE",
+      "distributionAllowed": true,
+      "revision": "dd45b4d45516dfb657fce8c56d03f9653cc33dfc",
+      "retrievedAt": "2026-05-07",
+      "revisionStatus": "git_shallow_clone_head",
+      "snapshotSha256": "72a96b6edcee068ec9d93c9c306ae2e78bc611509fd5f8c8fae12d7469ed6c8f"
+    },
     {
       "id": "fortel-ziweidoushu",
       "path": "github/fortel-ziweidoushu-main",

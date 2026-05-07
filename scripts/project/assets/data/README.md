@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | `china_coordinates.csv` | 中国行政区经纬度数据 | 是 |
 | `classics/*.txt` | 已整理命理古籍与基础语料 | 可选 |
-| `classics/raw/` | 本地原始书籍、PDF、讲义、OCR 文本 | 否 |
+| `classics/raw/` | 本地原始书籍、PDF、讲义、OCR 文本与外部分发包 | 否 |
 | `calendar/solar_terms/raw/` | 本地交节时间原始表格 | 否 |
 
 ## 原始资料规则

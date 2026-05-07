@@ -1,4 +1,5 @@
 system	media_type	relative_path	bytes	sha256	source_name
+bazi_ziwei_skill	zip	bazi-ziwei-mingli-skill-v8.5.zip	62186087	25f54a5a67c6cfa079848741c4ba227de40da59e733404f2db4631f31b213ac8	https://drive.google.com/file/d/1Hp42pDlI-o-DpbfeVI04YfDjnkDa319Z/view?usp=sharing
 bazi	pdf	bazi/pdf/三命通会.pdf	1524206	7a96dda39e115e1286e0f80ab023d5fc154e9cdb2c0e1474179bfe405431f5fa	三命通会.pdf
 bazi	pdf	bazi/pdf/八字 - 子平格局命法元钥【上】简体版.pdf	4197497	9da2e2830ba8e08c6374086408493d9807d7054cbb690b1e244a52d2a9e5641c	八字 - 子平格局命法元钥【上】简体版.pdf
 bazi	pdf	bazi/pdf/八字 - 格局论命.pdf	781226	733ce09e69036c7650f87ff7b160067504df127597056a1ecccc5767c0f9323a	八字 - 格局论命.pdf

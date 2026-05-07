@@ -25,6 +25,7 @@ assets/vendor/
 
 | 库名 | 目录 | 语言 | 用途 | 来源 |
 |------|------|------|------|------|
+| MingLi-Bench | `assets/vendor/github/MingLi-Bench-main` | Python/JSON | 八字与紫微斗数 LLM 推理评测基准 | https://github.com/DestinyLinker/MingLi-Bench |
 | fortel-ziweidoushu | `assets/vendor/github/fortel-ziweidoushu-main` | TypeScript | 紫微斗数 | https://github.com/fortelzhao/fortel-ziweidoushu |
 | iztro | `assets/vendor/github/iztro-main` | TypeScript | 紫微斗数 | https://github.com/SylarLong/iztro |
 | dantalion | `assets/vendor/github/dantalion-master` | TypeScript | 现代八字分析 | https://github.com/nicktaobo/dantalion |
@@ -54,6 +55,7 @@ from _paths import (
 
 - `vendor_sources.json` 是 vendor 来源与分发边界的真相源。
 - 当前仓库保留 vendor 快照，以保证离线 smoke、导出包和 GitHub Actions 能复现。
+- Benchmark 类 vendor 只作为评测与参考资产，默认不接入生产运行链路。
 - 后续若切换到 release artifact、Git LFS、submodule 或按需下载，必须先保证 `scripts/vendor-health.sh` 通过。
 
 ## 维护规则

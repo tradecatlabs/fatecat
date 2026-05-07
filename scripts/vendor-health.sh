@@ -39,6 +39,17 @@ REQUIRED_FIELDS = {
 IGNORED_DIRS = {".git", "node_modules", "__pycache__"}
 
 
+def snapshot_files_from_fs(path: Path) -> list[str]:
+    files: list[str] = []
+    for item in path.rglob("*"):
+        rel_parts = item.relative_to(path).parts
+        if any(part in IGNORED_DIRS for part in rel_parts):
+            continue
+        if item.is_file():
+            files.append(item.relative_to(path).as_posix())
+    return sorted(files)
+
+
 def snapshot_files(path: Path) -> list[str]:
     try:
         raw = subprocess.check_output(
@@ -46,16 +57,12 @@ def snapshot_files(path: Path) -> list[str]:
             stderr=subprocess.DEVNULL,
         )
     except Exception:
-        files: list[str] = []
-        for item in path.rglob("*"):
-            rel_parts = item.relative_to(path).parts
-            if any(part in IGNORED_DIRS for part in rel_parts):
-                continue
-            if item.is_file():
-                files.append(item.relative_to(path).as_posix())
-        return sorted(files)
+        return snapshot_files_from_fs(path)
 
-    return sorted(item.decode("utf-8") for item in raw.split(b"\0") if item)
+    files = sorted(item.decode("utf-8") for item in raw.split(b"\0") if item)
+    if not files:
+        return snapshot_files_from_fs(path)
+    return files
 
 
 def snapshot_sha256(path: Path) -> str:
