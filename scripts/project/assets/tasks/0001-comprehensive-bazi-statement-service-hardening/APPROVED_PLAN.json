@@ -1,0 +1,605 @@
+{
+  "schema_version": "1.0.0",
+  "task": {
+    "objective": "综合八字陈述服务加固：锁定节气边界、默认报告结构、证据化陈述、输入隐私、多端同源输出、典籍引用与质量门禁。",
+    "overall_status": "In Progress",
+    "in_scope": [
+      "只加固当前生产方向：综合八字默认报告与同源服务链路。",
+      "建立节气、月令、立春年界、起运边界的 golden 回归项目。",
+      "锁定 Markdown 默认输出结构，并把非综合八字体系移出默认报告。",
+      "为八字核心结论补齐 evidence 契约，明确依据来源与权重边界。",
+      "加固 Web、API、Bot 同源输出、输入契约、隐私示例、质量门禁与服务化文档。"
+    ],
+    "out_of_scope": [
+      "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+      "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+      "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+      "不允许前端、API、Bot 各自拼装报告结构。"
+    ],
+    "task_level_acceptance": [
+      "综合八字默认报告结构有快照测试，非八字体系统一不可进入默认输出。",
+      "节气/月令/立春/起运边界有可复现 regression 测试，并进入 acceptance 门禁。",
+      "核心八字结论包含可机读 evidence，且权重边界明确。",
+      "Web、API、Bot 输出来自同一 report profile，复制 Markdown 与 API 返回一致。",
+      "隐私示例、脱敏规则、文档口径和 README/SKILL/playbook 完成同步。"
+    ],
+    "validation_plan": [
+      "运行新增 pytest：节气 golden、报告结构快照、隐私脱敏、输入契约、多端同源输出。",
+      "运行 `bash scripts/vendor-health.sh`、`bash scripts/check-source-hygiene.sh`、`bash scripts/check-privacy-fixtures.sh`。",
+      "运行 `bash scripts/acceptance.sh --with-dev`，确认导出包卫生与导出包 smoke 仍通过。",
+      "在任务执行完成后生成 Git Delivery Evidence 与任务 closeout packet。"
+    ],
+    "acceptance_standards": [
+      "不得引入真实非北京地区前端示例。",
+      "不得把民俗辅助、神煞、称骨提升为核心格局/喜忌权重。",
+      "不得把未来功能登记写成已生产。",
+      "不得让 raw、大文件、缓存、日志或用户输出进入导出包。"
+    ]
+  },
+  "context_packet": {
+    "requirement_alignment": [
+      "用户明确要求当前准备进服务的是加固和巩固现有综合八字陈述服务体系。",
+      "用户已确认综合八字范围：八字核心、八字动态运势、八字辅助解释、称骨民俗附录；紫微、黄历择日、占事、西方体系、铁板神数不进默认报告。",
+      "任务清单已明确 10 项：节气 golden、输出结构锁定、证据化、权重边界、输入契约、隐私、多端同源、典籍引用、质量门禁、服务化文档。"
+    ],
+    "repo_evidence": [
+      "`scripts/project/modules/telegram/src/bazi_calculator.py` 当前通过 `lunar-python` 执行四柱、节气、起运计算。",
+      "`scripts/project/assets/data/calendar/solar_terms/raw/` 已保存 1900-2030 交节时间原始表，当前被 Git 与导出包排除。",
+      "`scripts/project/assets/data/calendar/solar_terms/README.md` 明确 raw 表格当前只做交叉校验资料，不直接替换生产算法。",
+      "`scripts/project/assets/fate/` 维护报告边界、profile 与未来功能登记。",
+      "`scripts/acceptance.sh` 已覆盖 preflight、vendor health、source/privacy hygiene、pytest、ruff、mypy、delivery smoke、导出包 hygiene。"
+    ],
+    "constraints": [
+      "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+      "默认综合八字报告必须和独立体系隔离。",
+      "业务代码不得直接依赖 raw 目录。",
+      "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+      "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+    ],
+    "risks": [
+      "节气表字段格式、时区、精度可能不统一，需要先规范 schema 与容差。",
+      "报告结构快照可能暴露既有隐含耦合，需要分阶段收敛。",
+      "evidence 契约如果过度设计会拖慢落地，必须先覆盖核心结论再扩展。",
+      "典籍引用层存在版权与原文引用边界，先做规则索引和短引用，不复制大段原文。"
+    ],
+    "assumptions": [
+      "1900-2030 交节时间表默认以北京时间或中国常用历法时间表达，实际实现前必须验证时区。",
+      "综合八字默认报告继续保留袁天罡称骨为民俗附录，但不参与核心权重。",
+      "Web、API、Bot 当前可以统一到同一 report profile，而不需要重写三端入口。"
+    ],
+    "change_boundary": [
+      "允许修改 `scripts/project/modules/*`、`scripts/project/tests*`、`scripts/project/assets/fate/`、`scripts/project/assets/data/calendar/solar_terms/`、`scripts/project/assets/docs/`、`scripts/*.sh` 与任务文档。",
+      "不允许直接修改 vendor 快照以实现业务逻辑。",
+      "不允许把 raw 大文件加入 Git 或导出包。",
+      "当前任务树落地阶段只修改 `scripts/project/assets/tasks/`，业务实现另按执行波次推进。"
+    ],
+    "critical_ambiguities": [
+      "交节时间表是否包含秒级精度、是否为北京时间、是否存在重复文件冲突，需要 TP-01 实测确认。",
+      "证据化字段最终是否进入公开 API 返回，需要在 TP-03 schema gate 决定默认可见性。",
+      "典籍引用是否允许显示原文短句，需要在 TP-08 版权复核后决定。"
+    ],
+    "ambiguities": [
+      "报告结构快照使用完整 Markdown 还是结构目录抽样，优先做结构目录快照。",
+      "起运边界 goldens 先覆盖样本集还是全量组合，优先样本集加边界点。"
+    ],
+    "blockers": [
+      "无阻塞项；当前可以先完成任务树落地与第一执行波次规划。"
+    ],
+    "debug_focus": [
+      "若后续节气、起运、报告结构测试失败，必须补 DEBUG.md 记录根因、最小复现和回归证据。"
+    ],
+    "debug_mode": "Optional"
+  },
+  "plan": {
+    "planning_summary": "按生产服务地基优先级拆分：先锁节气/报告结构，再补 evidence 与边界治理，然后统一输入隐私和多端输出，最后补典籍引用、质量门禁与服务化文档。",
+    "simplest_path": "不新增预测体系，不重写历法算法；先把当前综合八字链路变成可回归、可审计、可多端一致的服务。",
+    "split_strategy": "父节点按治理主题组织，叶子节点按可独立验证的交付物拆分；TP-01 与 TP-02 是第一波，TP-03/TP-04 依赖结构稳定后推进，TP-07/TP-09 依赖前序契约闭合。",
+    "lifecycle_gates": [
+      "SPEC：综合八字范围、非目标体系、输入输出和质量门禁写入任务文档。",
+      "PLAN：完成 TP 任务树、依赖图、执行波次和验收清单。",
+      "BUILD：按 execution wave 推进叶子任务，所有业务改动绑定 TP 编号。",
+      "TEST：新增 pytest 与 acceptance 门禁覆盖核心路径。",
+      "REVIEW：自审报告结构、隐私、证据链、导出包卫生和文档口径。",
+      "SHIP：提交、推送、CI 通过，并生成 closeout 交付证据。",
+      "不得跳过未闭合 gate 直接进入下一阶段。"
+    ],
+    "review_gate": [
+      "默认报告不得混入紫微、黄历、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数。",
+      "每个新增测试必须有失败时能定位的断言与 fixture 来源。",
+      "每个证据字段必须可追溯到已有计算结果、规则索引或明确辅助体系。"
+    ],
+    "ship_readiness": [
+      "`bash scripts/acceptance.sh --with-dev` 通过。",
+      "GitHub Actions 通过。",
+      "任务 TODO 全部完成，STATUS 无 blocker。",
+      "README/SKILL/playbook 与当前生产能力边界一致。"
+    ],
+    "steps": [
+      {
+        "key": "solar_terms_golden",
+        "title": "节气 golden 回归",
+        "objective": "解析 1900-2030 交节时间表，建立节气、月令、立春年界和起运边界回归。",
+        "priority": "P0",
+        "type": "Foundation",
+        "parallelizable": false,
+        "status": "Not Started",
+        "verify": "pytest 新增节气 golden、月令边界、立春年界、起运样本测试。",
+        "gate": "节气时间 schema、时区、容差和 fixture 来源全部明确。",
+        "acceptance": [
+          "fixture 不直接依赖 raw 文件运行。",
+          "边界测试覆盖 t-1s/t/t+1s。",
+          "起运至少覆盖顺逆、性别、阴阳年样本。"
+        ],
+        "children": [
+          {
+            "key": "solar_terms_inventory",
+            "title": "盘点交节时间 raw 表",
+            "objective": "读取 CSV/XLS/XLSX 字段、年份覆盖、时区和精度，产出 normalized schema 设计。",
+            "priority": "P0",
+            "type": "Audit",
+            "parallelizable": false,
+            "status": "Not Started",
+            "verify": "输出 schema 文档和来源哈希对照。",
+            "gate": "确认 raw 表不会进入导出包。"
+          },
+          {
+            "key": "solar_terms_fixture_builder",
+            "title": "构建节气 golden fixture",
+            "objective": "从 raw 表抽取可提交的小型标准化 fixture 或可复现生成脚本。",
+            "priority": "P0",
+            "type": "Build",
+            "parallelizable": false,
+            "status": "Not Started",
+            "depends_on": [
+              "solar_terms_inventory"
+            ],
+            "verify": "fixture schema 校验和样本快照通过。",
+            "gate": "明确时区、容差、来源哈希。"
+          },
+          {
+            "key": "solar_terms_boundary_tests",
+            "title": "节气与月令边界测试",
+            "objective": "用 golden fixture 锁定节气时刻、月令切换、立春年界和真太阳时入参边界。",
+            "priority": "P0",
+            "type": "Test",
+            "parallelizable": false,
+            "status": "Not Started",
+            "depends_on": [
+              "solar_terms_fixture_builder"
+            ],
+            "verify": "pytest 对 `lunar-python` 计算结果与 fixture 进行边界断言。",
+            "gate": "任何误差必须有容差解释。"
+          },
+          {
+            "key": "yun_boundary_tests",
+            "title": "起运边界回归",
+            "objective": "建立 `yun.getStartSolar()` 样本回归，锁定起运年月日时分秒。",
+            "priority": "P0",
+            "type": "Test",
+            "parallelizable": false,
+            "status": "Not Started",
+            "depends_on": [
+              "solar_terms_fixture_builder"
+            ],
+            "verify": "pytest 覆盖起运顺逆样本。",
+            "gate": "起运样本来源和预期值必须可追溯。"
+          }
+        ]
+      },
+      {
+        "key": "report_structure_lock",
+        "title": "综合八字输出结构锁定",
+        "objective": "固定默认 Markdown 块，确保非综合八字体系不混入默认报告。",
+        "priority": "P0",
+        "type": "Contract",
+        "parallelizable": false,
+        "status": "Not Started",
+        "verify": "报告结构快照测试通过。",
+        "gate": "默认输出目录与 profile 契约一致。",
+        "children": [
+          {
+            "key": "report_profile_audit",
+            "title": "审计当前 report profile",
+            "objective": "定位 Web/API/Bot 当前使用的报告 profile 和 Markdown 拼装入口。",
+            "priority": "P0",
+            "type": "Audit",
+            "parallelizable": false,
+            "status": "Not Started",
+            "verify": "输出入口清单和默认块清单。",
+            "gate": "确认前端不应自行拼报告。"
+          },
+          {
+            "key": "default_bazi_blocks",
+            "title": "锁定综合八字默认块",
+            "objective": "将默认块限定为综合八字核心、动态运势、辅助解释、称骨民俗附录。",
+            "priority": "P0",
+            "type": "Build",
+            "parallelizable": false,
+            "status": "Not Started",
+            "depends_on": [
+              "report_profile_audit"
+            ],
+            "verify": "结构快照不含紫微、黄历、建除、六爻等块。",
+            "gate": "非八字体系统一保留为独立 capability 或未来登记。"
+          },
+          {
+            "key": "report_snapshot_tests",
+            "title": "报告结构快照测试",
+            "objective": "新增 Markdown 结构快照和块可见性测试。",
+            "priority": "P0",
+            "type": "Test",
+            "parallelizable": false,
+            "status": "Not Started",
+            "depends_on": [
+              "default_bazi_blocks"
+            ],
+            "verify": "pytest 快照测试通过。",
+            "gate": "快照只断言结构，不绑定易变大段文本。"
+          }
+        ]
+      },
+      {
+        "key": "bazi_evidence_contract",
+        "title": "八字核心证据化",
+        "objective": "为日主、旺衰、调候、格局、用神、干支关系等核心结论补 evidence 字段。",
+        "priority": "P0",
+        "type": "Contract",
+        "parallelizable": true,
+        "status": "Not Started",
+        "depends_on": [
+          "report_structure_lock"
+        ],
+        "verify": "核心结论 evidence schema 测试通过。",
+        "gate": "证据字段来源必须可追溯，不编造典籍引用。",
+        "children": [
+          {
+            "key": "evidence_schema",
+            "title": "定义 evidence schema",
+            "objective": "定义 source、basis、weight、visibility、risk、rule_id 等字段。",
+            "priority": "P0",
+            "type": "Design",
+            "parallelizable": false,
+            "status": "Not Started",
+            "verify": "schema 文档和测试 fixture 通过。",
+            "gate": "不改变现有公开输出，先兼容追加。"
+          },
+          {
+            "key": "evidence_mappers",
+            "title": "核心结论 evidence mapper",
+            "objective": "把月令、藏干、透干、五行、合冲刑害、调候、神煞、称骨映射为证据来源。",
+            "priority": "P0",
+            "type": "Build",
+            "parallelizable": false,
+            "status": "Not Started",
+            "depends_on": [
+              "evidence_schema"
+            ],
+            "verify": "单元测试覆盖至少日主、五行喜忌、格局、干支关系。",
+            "gate": "辅助体系不得提升为核心权重。"
+          },
+          {
+            "key": "evidence_rendering",
+            "title": "证据渲染与可见性",
+            "objective": "确定 evidence 在 API、Markdown、Web 中的默认显示/隐藏策略。",
+            "priority": "P1",
+            "type": "Build",
+            "parallelizable": true,
+            "status": "Not Started",
+            "depends_on": [
+              "evidence_mappers"
+            ],
+            "verify": "Markdown/API 快照覆盖 evidence 可见性。",
+            "gate": "面向用户显示克制，审计字段保留可机读。"
+          }
+        ]
+      },
+      {
+        "key": "weight_boundary_governance",
+        "title": "权重与边界治理",
+        "objective": "固定八字核心、动态运势、辅助体系、民俗附录的权重层级。",
+        "priority": "P0",
+        "type": "Governance",
+        "parallelizable": true,
+        "status": "Not Started",
+        "depends_on": [
+          "report_structure_lock"
+        ],
+        "verify": "profile/registry 测试确认非八字体系统一默认关闭。",
+        "gate": "神煞、称骨不得参与核心格局和喜忌判断。",
+        "children": [
+          {
+            "key": "capability_registry_boundary",
+            "title": "独立体系 capability 边界",
+            "objective": "把紫微、黄历择日、占事、西方体系、铁板神数等声明为独立或未来 capability。",
+            "priority": "P0",
+            "type": "Governance",
+            "parallelizable": true,
+            "status": "Not Started",
+            "verify": "registry/profile 文件与文档一致。",
+            "gate": "不得宣称未来功能已生产。"
+          },
+          {
+            "key": "weight_policy_tests",
+            "title": "权重策略测试",
+            "objective": "为核心/辅助/民俗权重边界添加测试和文档说明。",
+            "priority": "P1",
+            "type": "Test",
+            "parallelizable": true,
+            "status": "Not Started",
+            "depends_on": [
+              "capability_registry_boundary"
+            ],
+            "verify": "pytest 或静态配置测试通过。",
+            "gate": "称骨和神煞只作为辅助解释。"
+          }
+        ]
+      },
+      {
+        "key": "input_contract_privacy",
+        "title": "输入契约与隐私治理",
+        "objective": "加固姓名、性别、出生日期、时间、地区的必填/可选规则和隐私示例治理。",
+        "priority": "P0",
+        "type": "Contract",
+        "parallelizable": true,
+        "status": "Not Started",
+        "depends_on": [
+          "report_structure_lock"
+        ],
+        "verify": "输入缺字段、地区脱敏、前端示例白名单测试通过。",
+        "gate": "不得在用户前端显示真实非北京地区样例。",
+        "children": [
+          {
+            "key": "input_schema_validation",
+            "title": "输入 schema 与错误响应",
+            "objective": "明确缺字段、格式错误、地区解析失败的服务响应，不生成半残报告。",
+            "priority": "P0",
+            "type": "Build",
+            "parallelizable": true,
+            "status": "Not Started",
+            "verify": "API/Web/Bot 输入测试覆盖缺字段场景。",
+            "gate": "错误文案不泄露内部路径或真实样例。"
+          },
+          {
+            "key": "privacy_fixture_tests",
+            "title": "隐私与示例脱敏回归",
+            "objective": "统一北京/测试用户示例，禁止真实非北京地区进入前端样例和报告 fixture。",
+            "priority": "P0",
+            "type": "Test",
+            "parallelizable": true,
+            "status": "Not Started",
+            "verify": "`check-privacy-fixtures.sh` 与 pytest 脱敏测试通过。",
+            "gate": "新增 fixture 必须符合白名单。"
+          }
+        ]
+      },
+      {
+        "key": "channel_parity",
+        "title": "Web/API/Bot 同源输出",
+        "objective": "确保三端调用同一 report profile，Markdown 复制内容与 API 返回一致。",
+        "priority": "P0",
+        "type": "Integration",
+        "parallelizable": false,
+        "status": "Not Started",
+        "depends_on": [
+          "report_structure_lock",
+          "input_contract_privacy"
+        ],
+        "verify": "Web/API/Bot smoke 和快照测试确认输出同源。",
+        "gate": "前端不得自行拼装报告块。",
+        "children": [
+          {
+            "key": "report_profile_single_source",
+            "title": "报告 profile 单一真相源",
+            "objective": "收敛 Web、API、Bot 调用链路到同一 report profile 或同一 renderer。",
+            "priority": "P0",
+            "type": "Build",
+            "parallelizable": false,
+            "status": "Not Started",
+            "verify": "三端入口测试指向同一 profile。",
+            "gate": "不引入第二套 Markdown 拼装逻辑。"
+          },
+          {
+            "key": "markdown_copy_parity",
+            "title": "Markdown 复制一致性",
+            "objective": "保证 Web 复制 Markdown 与 API/Bot 产物结构一致。",
+            "priority": "P0",
+            "type": "Test",
+            "parallelizable": false,
+            "status": "Not Started",
+            "depends_on": [
+              "report_profile_single_source"
+            ],
+            "verify": "复制内容结构快照测试通过。",
+            "gate": "按钮/控件不影响报告内容。"
+          }
+        ]
+      },
+      {
+        "key": "classics_reference_layer",
+        "title": "八字典籍引用层",
+        "objective": "从已整理典籍中提炼格局、调候、用神规则索引，支持结论可追溯。",
+        "priority": "P1",
+        "type": "Knowledge",
+        "parallelizable": true,
+        "status": "Not Started",
+        "depends_on": [
+          "bazi_evidence_contract"
+        ],
+        "verify": "规则索引 schema、样本引用和版权边界测试通过。",
+        "gate": "不复制大段原文，不引用版权未复核资料。",
+        "children": [
+          {
+            "key": "classics_source_audit",
+            "title": "典籍来源与版权边界审计",
+            "objective": "盘点《渊海子平》《三命通会》《子平真诠》《滴天髓》《穷通宝鉴》可用文本与来源状态。",
+            "priority": "P1",
+            "type": "Audit",
+            "parallelizable": true,
+            "status": "Not Started",
+            "verify": "来源表与可用范围文档完成。",
+            "gate": "版权不明资料只能作为 raw 复核来源。"
+          },
+          {
+            "key": "rule_index_seed",
+            "title": "小型规则索引种子",
+            "objective": "先提炼格局、调候、用神的结构化规则索引种子。",
+            "priority": "P1",
+            "type": "Build",
+            "parallelizable": true,
+            "status": "Not Started",
+            "depends_on": [
+              "classics_source_audit"
+            ],
+            "verify": "规则索引 JSON/YAML schema 校验通过。",
+            "gate": "每条规则有来源、适用条件、禁用条件。"
+          },
+          {
+            "key": "rule_reference_integration",
+            "title": "规则引用接入 evidence",
+            "objective": "把可用规则索引接入 evidence，不改变核心算法判断。",
+            "priority": "P1",
+            "type": "Integration",
+            "parallelizable": true,
+            "status": "Not Started",
+            "depends_on": [
+              "rule_index_seed"
+            ],
+            "verify": "evidence rule_id 与短依据测试通过。",
+            "gate": "规则引用是追溯层，不是新算法替换。"
+          }
+        ]
+      },
+      {
+        "key": "quality_gates",
+        "title": "质量门禁加固",
+        "objective": "把新增回归测试、隐私测试、结构测试和导出包卫生纳入 acceptance。",
+        "priority": "P0",
+        "type": "Quality",
+        "parallelizable": false,
+        "status": "Not Started",
+        "depends_on": [
+          "solar_terms_golden",
+          "report_structure_lock",
+          "input_contract_privacy",
+          "channel_parity"
+        ],
+        "verify": "`bash scripts/acceptance.sh --with-dev` 覆盖新增门禁并通过。",
+        "gate": "新增门禁失败时输出可定位原因。",
+        "children": [
+          {
+            "key": "pytest_gate_expansion",
+            "title": "pytest 门禁扩展",
+            "objective": "把节气、起运、报告结构、隐私、同源输出测试纳入现有 pytest 目录。",
+            "priority": "P0",
+            "type": "Test",
+            "parallelizable": false,
+            "status": "Not Started",
+            "verify": "本地 pytest 全量通过。",
+            "gate": "测试不能依赖外部网络和真实凭证。"
+          },
+          {
+            "key": "acceptance_script_update",
+            "title": "acceptance 脚本更新",
+            "objective": "必要时更新 acceptance/preflight，确保新增门禁在本地和 CI 运行。",
+            "priority": "P0",
+            "type": "CI",
+            "parallelizable": false,
+            "status": "Not Started",
+            "depends_on": [
+              "pytest_gate_expansion"
+            ],
+            "verify": "acceptance 本地通过。",
+            "gate": "导出包仍不包含 raw、大文件、缓存、日志。"
+          }
+        ]
+      },
+      {
+        "key": "service_docs",
+        "title": "服务化文档同步",
+        "objective": "更新 README、SKILL、execution playbook 和架构文档，明确当前生产边界。",
+        "priority": "P1",
+        "type": "Docs",
+        "parallelizable": true,
+        "status": "Not Started",
+        "depends_on": [
+          "report_structure_lock",
+          "weight_boundary_governance"
+        ],
+        "verify": "文档口径与 profile/registry 一致。",
+        "gate": "不得把未来能力写成已实现。",
+        "children": [
+          {
+            "key": "readme_skill_update",
+            "title": "README/SKILL 生产边界更新",
+            "objective": "明确当前生产服务只支持综合八字默认报告，其他体系为独立或未来 capability。",
+            "priority": "P1",
+            "type": "Docs",
+            "parallelizable": true,
+            "status": "Not Started",
+            "verify": "README/SKILL 与输出结构一致。",
+            "gate": "不夸大生产能力。"
+          },
+          {
+            "key": "playbook_architecture_update",
+            "title": "playbook 与架构文档更新",
+            "objective": "同步 execution playbook、AGENTS.md 和相关架构文档。",
+            "priority": "P1",
+            "type": "Docs",
+            "parallelizable": true,
+            "status": "Not Started",
+            "depends_on": [
+              "readme_skill_update"
+            ],
+            "verify": "文档路径和职责边界一致。",
+            "gate": "架构调整必须更新 AGENTS.md。"
+          }
+        ]
+      },
+      {
+        "key": "ship_control",
+        "title": "交付控制与 closeout",
+        "objective": "完成版本控制、推送、CI、任务 closeout 和交付证据归档。",
+        "priority": "P0",
+        "type": "Ship",
+        "parallelizable": false,
+        "status": "Not Started",
+        "depends_on": [
+          "quality_gates",
+          "service_docs",
+          "classics_reference_layer",
+          "bazi_evidence_contract",
+          "weight_boundary_governance"
+        ],
+        "verify": "Git status clean、CI 通过、Task Closeout Packet 生成。",
+        "gate": "无 blocker，无未提交实现改动。",
+        "children": [
+          {
+            "key": "delivery_evidence",
+            "title": "生成交付证据",
+            "objective": "捕获 git delivery evidence、验证命令结果和剩余风险。",
+            "priority": "P0",
+            "type": "Ship",
+            "parallelizable": false,
+            "status": "Not Started",
+            "verify": "交付证据 JSON 生成。",
+            "gate": "不得伪造 CI 或测试结果。"
+          },
+          {
+            "key": "task_closeout",
+            "title": "任务 closeout",
+            "objective": "完成 TODO/STATUS，生成 Task Closeout Packet 并沉淀后续事项。",
+            "priority": "P0",
+            "type": "Ship",
+            "parallelizable": false,
+            "status": "Not Started",
+            "depends_on": [
+              "delivery_evidence"
+            ],
+            "verify": "auto-tasks closeout 校验通过。",
+            "gate": "所有叶子项完成或明确延期。"
+          }
+        ]
+      }
+    ]
+  }
+}

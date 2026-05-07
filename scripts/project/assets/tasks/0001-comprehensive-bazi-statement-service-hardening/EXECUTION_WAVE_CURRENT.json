@@ -1,0 +1,609 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-05-07T09:46:20+08:00",
+  "meta": {
+    "task_id": "0001",
+    "slug": "comprehensive-bazi-statement-service-hardening",
+    "phase": "EXECUTE_WAVE",
+    "source_task_package_set": "/home/lenovo/.projects/fatecat/scripts/project/assets/tasks/0001-comprehensive-bazi-statement-service-hardening/TASK_PACKAGE_SET.json",
+    "selection": "current"
+  },
+  "overview": {
+    "overall_status": "In Progress",
+    "leaf_total": 25,
+    "ready_leaf_count": 2,
+    "selected_leaf_count": 2,
+    "selected_wave_numbers": [
+      1
+    ]
+  },
+  "ready_leaf_ids": [
+    "TP-01.01",
+    "TP-02.01"
+  ],
+  "selected_leaf_ids": [
+    "TP-01.01",
+    "TP-02.01"
+  ],
+  "execution_waves": [
+    {
+      "wave": 1,
+      "leaf_ids": [
+        "TP-01.01",
+        "TP-02.01"
+      ]
+    },
+    {
+      "wave": 2,
+      "leaf_ids": [
+        "TP-01.02",
+        "TP-02.02"
+      ]
+    },
+    {
+      "wave": 3,
+      "leaf_ids": [
+        "TP-01.03",
+        "TP-01.04",
+        "TP-02.03"
+      ]
+    },
+    {
+      "wave": 4,
+      "leaf_ids": [
+        "TP-03.01",
+        "TP-04.01",
+        "TP-05.01",
+        "TP-05.02"
+      ]
+    },
+    {
+      "wave": 5,
+      "leaf_ids": [
+        "TP-03.02",
+        "TP-04.02",
+        "TP-06.01"
+      ]
+    },
+    {
+      "wave": 6,
+      "leaf_ids": [
+        "TP-03.03",
+        "TP-06.02",
+        "TP-09.01"
+      ]
+    },
+    {
+      "wave": 7,
+      "leaf_ids": [
+        "TP-07.01",
+        "TP-08.01",
+        "TP-09.02"
+      ]
+    },
+    {
+      "wave": 8,
+      "leaf_ids": [
+        "TP-07.02",
+        "TP-08.02"
+      ]
+    },
+    {
+      "wave": 9,
+      "leaf_ids": [
+        "TP-07.03"
+      ]
+    },
+    {
+      "wave": 10,
+      "leaf_ids": [
+        "TP-10.01"
+      ]
+    },
+    {
+      "wave": 11,
+      "leaf_ids": [
+        "TP-10.02"
+      ]
+    }
+  ],
+  "execution_batch": [
+    {
+      "id": "TP-01.01",
+      "title": "盘点交节时间 raw 表",
+      "priority": "P0",
+      "objective": "读取 CSV/XLS/XLSX 字段、年份覆盖、时区和精度，产出 normalized schema 设计。",
+      "status": "Not Started",
+      "ready": true,
+      "wave": 1,
+      "parallelizable": false,
+      "effective_leaf_dependencies": [],
+      "unresolved_dependencies": [],
+      "verify": "输出 schema 文档和来源哈希对照。",
+      "gate": "确认 raw 表不会进入导出包。",
+      "inputs": [],
+      "actions": [
+        "读取 CSV/XLS/XLSX 字段、年份覆盖、时区和精度，产出 normalized schema 设计。"
+      ],
+      "outputs": [
+        "读取 CSV/XLS/XLSX 字段、年份覆盖、时区和精度，产出 normalized schema 设计。"
+      ],
+      "acceptance": [
+        "满足 Verify: 输出 schema 文档和来源哈希对照。",
+        "满足 Gate: 确认 raw 表不会进入导出包。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 1",
+      "self_checklist": [
+        "Verify: 输出 schema 文档和来源哈希对照。",
+        "Gate: 确认 raw 表不会进入导出包。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-01.01`：盘点交节时间 raw 表\n目标：读取 CSV/XLS/XLSX 字段、年份覆盖、时区和精度，产出 normalized schema 设计。\n优先级：P0\n依赖：无\nVerify：输出 schema 文档和来源哈希对照。\nGate：确认 raw 表不会进入导出包。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：读取 CSV/XLS/XLSX 字段、年份覆盖、时区和精度，产出 normalized schema 设计。"
+    },
+    {
+      "id": "TP-02.01",
+      "title": "审计当前 report profile",
+      "priority": "P0",
+      "objective": "定位 Web/API/Bot 当前使用的报告 profile 和 Markdown 拼装入口。",
+      "status": "Not Started",
+      "ready": true,
+      "wave": 1,
+      "parallelizable": false,
+      "effective_leaf_dependencies": [],
+      "unresolved_dependencies": [],
+      "verify": "输出入口清单和默认块清单。",
+      "gate": "确认前端不应自行拼报告。",
+      "inputs": [],
+      "actions": [
+        "定位 Web/API/Bot 当前使用的报告 profile 和 Markdown 拼装入口。"
+      ],
+      "outputs": [
+        "定位 Web/API/Bot 当前使用的报告 profile 和 Markdown 拼装入口。"
+      ],
+      "acceptance": [
+        "满足 Verify: 输出入口清单和默认块清单。",
+        "满足 Gate: 确认前端不应自行拼报告。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 1",
+      "self_checklist": [
+        "Verify: 输出入口清单和默认块清单。",
+        "Gate: 确认前端不应自行拼报告。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-02.01`：审计当前 report profile\n目标：定位 Web/API/Bot 当前使用的报告 profile 和 Markdown 拼装入口。\n优先级：P0\n依赖：无\nVerify：输出入口清单和默认块清单。\nGate：确认前端不应自行拼报告。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：定位 Web/API/Bot 当前使用的报告 profile 和 Markdown 拼装入口。"
+    }
+  ],
+  "blocked_leafs": [
+    {
+      "id": "TP-01.02",
+      "status": "Not Started",
+      "wave": 2,
+      "unresolved_dependencies": [
+        "TP-01.01"
+      ],
+      "blocking_reasons": [
+        "TP-01.01:Not Started"
+      ]
+    },
+    {
+      "id": "TP-01.03",
+      "status": "Not Started",
+      "wave": 3,
+      "unresolved_dependencies": [
+        "TP-01.02"
+      ],
+      "blocking_reasons": [
+        "TP-01.02:Not Started"
+      ]
+    },
+    {
+      "id": "TP-01.04",
+      "status": "Not Started",
+      "wave": 3,
+      "unresolved_dependencies": [
+        "TP-01.02"
+      ],
+      "blocking_reasons": [
+        "TP-01.02:Not Started"
+      ]
+    },
+    {
+      "id": "TP-02.02",
+      "status": "Not Started",
+      "wave": 2,
+      "unresolved_dependencies": [
+        "TP-02.01"
+      ],
+      "blocking_reasons": [
+        "TP-02.01:Not Started"
+      ]
+    },
+    {
+      "id": "TP-02.03",
+      "status": "Not Started",
+      "wave": 3,
+      "unresolved_dependencies": [
+        "TP-02.02"
+      ],
+      "blocking_reasons": [
+        "TP-02.02:Not Started"
+      ]
+    },
+    {
+      "id": "TP-03.01",
+      "status": "Not Started",
+      "wave": 4,
+      "unresolved_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03"
+      ],
+      "blocking_reasons": [
+        "TP-02.01:Not Started",
+        "TP-02.02:Not Started",
+        "TP-02.03:Not Started"
+      ]
+    },
+    {
+      "id": "TP-03.02",
+      "status": "Not Started",
+      "wave": 5,
+      "unresolved_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-03.01"
+      ],
+      "blocking_reasons": [
+        "TP-02.01:Not Started",
+        "TP-02.02:Not Started",
+        "TP-02.03:Not Started",
+        "TP-03.01:Not Started"
+      ]
+    },
+    {
+      "id": "TP-03.03",
+      "status": "Not Started",
+      "wave": 6,
+      "unresolved_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-03.02"
+      ],
+      "blocking_reasons": [
+        "TP-02.01:Not Started",
+        "TP-02.02:Not Started",
+        "TP-02.03:Not Started",
+        "TP-03.02:Not Started"
+      ]
+    },
+    {
+      "id": "TP-04.01",
+      "status": "Not Started",
+      "wave": 4,
+      "unresolved_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03"
+      ],
+      "blocking_reasons": [
+        "TP-02.01:Not Started",
+        "TP-02.02:Not Started",
+        "TP-02.03:Not Started"
+      ]
+    },
+    {
+      "id": "TP-04.02",
+      "status": "Not Started",
+      "wave": 5,
+      "unresolved_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-04.01"
+      ],
+      "blocking_reasons": [
+        "TP-02.01:Not Started",
+        "TP-02.02:Not Started",
+        "TP-02.03:Not Started",
+        "TP-04.01:Not Started"
+      ]
+    },
+    {
+      "id": "TP-05.01",
+      "status": "Not Started",
+      "wave": 4,
+      "unresolved_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03"
+      ],
+      "blocking_reasons": [
+        "TP-02.01:Not Started",
+        "TP-02.02:Not Started",
+        "TP-02.03:Not Started"
+      ]
+    },
+    {
+      "id": "TP-05.02",
+      "status": "Not Started",
+      "wave": 4,
+      "unresolved_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03"
+      ],
+      "blocking_reasons": [
+        "TP-02.01:Not Started",
+        "TP-02.02:Not Started",
+        "TP-02.03:Not Started"
+      ]
+    },
+    {
+      "id": "TP-06.01",
+      "status": "Not Started",
+      "wave": 5,
+      "unresolved_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-05.01",
+        "TP-05.02"
+      ],
+      "blocking_reasons": [
+        "TP-02.01:Not Started",
+        "TP-02.02:Not Started",
+        "TP-02.03:Not Started",
+        "TP-05.01:Not Started",
+        "TP-05.02:Not Started"
+      ]
+    },
+    {
+      "id": "TP-06.02",
+      "status": "Not Started",
+      "wave": 6,
+      "unresolved_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-05.01",
+        "TP-05.02",
+        "TP-06.01"
+      ],
+      "blocking_reasons": [
+        "TP-02.01:Not Started",
+        "TP-02.02:Not Started",
+        "TP-02.03:Not Started",
+        "TP-05.01:Not Started",
+        "TP-05.02:Not Started",
+        "TP-06.01:Not Started"
+      ]
+    },
+    {
+      "id": "TP-07.01",
+      "status": "Not Started",
+      "wave": 7,
+      "unresolved_dependencies": [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03"
+      ],
+      "blocking_reasons": [
+        "TP-03.01:Not Started",
+        "TP-03.02:Not Started",
+        "TP-03.03:Not Started"
+      ]
+    },
+    {
+      "id": "TP-07.02",
+      "status": "Not Started",
+      "wave": 8,
+      "unresolved_dependencies": [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03",
+        "TP-07.01"
+      ],
+      "blocking_reasons": [
+        "TP-03.01:Not Started",
+        "TP-03.02:Not Started",
+        "TP-03.03:Not Started",
+        "TP-07.01:Not Started"
+      ]
+    },
+    {
+      "id": "TP-07.03",
+      "status": "Not Started",
+      "wave": 9,
+      "unresolved_dependencies": [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03",
+        "TP-07.02"
+      ],
+      "blocking_reasons": [
+        "TP-03.01:Not Started",
+        "TP-03.02:Not Started",
+        "TP-03.03:Not Started",
+        "TP-07.02:Not Started"
+      ]
+    },
+    {
+      "id": "TP-08.01",
+      "status": "Not Started",
+      "wave": 7,
+      "unresolved_dependencies": [
+        "TP-01.01",
+        "TP-01.02",
+        "TP-01.03",
+        "TP-01.04",
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-05.01",
+        "TP-05.02",
+        "TP-06.01",
+        "TP-06.02"
+      ],
+      "blocking_reasons": [
+        "TP-01.01:Not Started",
+        "TP-01.02:Not Started",
+        "TP-01.03:Not Started",
+        "TP-01.04:Not Started",
+        "TP-02.01:Not Started",
+        "TP-02.02:Not Started",
+        "TP-02.03:Not Started",
+        "TP-05.01:Not Started",
+        "TP-05.02:Not Started",
+        "TP-06.01:Not Started",
+        "TP-06.02:Not Started"
+      ]
+    },
+    {
+      "id": "TP-08.02",
+      "status": "Not Started",
+      "wave": 8,
+      "unresolved_dependencies": [
+        "TP-01.01",
+        "TP-01.02",
+        "TP-01.03",
+        "TP-01.04",
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-05.01",
+        "TP-05.02",
+        "TP-06.01",
+        "TP-06.02",
+        "TP-08.01"
+      ],
+      "blocking_reasons": [
+        "TP-01.01:Not Started",
+        "TP-01.02:Not Started",
+        "TP-01.03:Not Started",
+        "TP-01.04:Not Started",
+        "TP-02.01:Not Started",
+        "TP-02.02:Not Started",
+        "TP-02.03:Not Started",
+        "TP-05.01:Not Started",
+        "TP-05.02:Not Started",
+        "TP-06.01:Not Started",
+        "TP-06.02:Not Started",
+        "TP-08.01:Not Started"
+      ]
+    },
+    {
+      "id": "TP-09.01",
+      "status": "Not Started",
+      "wave": 6,
+      "unresolved_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-04.01",
+        "TP-04.02"
+      ],
+      "blocking_reasons": [
+        "TP-02.01:Not Started",
+        "TP-02.02:Not Started",
+        "TP-02.03:Not Started",
+        "TP-04.01:Not Started",
+        "TP-04.02:Not Started"
+      ]
+    },
+    {
+      "id": "TP-09.02",
+      "status": "Not Started",
+      "wave": 7,
+      "unresolved_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-04.01",
+        "TP-04.02",
+        "TP-09.01"
+      ],
+      "blocking_reasons": [
+        "TP-02.01:Not Started",
+        "TP-02.02:Not Started",
+        "TP-02.03:Not Started",
+        "TP-04.01:Not Started",
+        "TP-04.02:Not Started",
+        "TP-09.01:Not Started"
+      ]
+    },
+    {
+      "id": "TP-10.01",
+      "status": "Not Started",
+      "wave": 10,
+      "unresolved_dependencies": [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03",
+        "TP-04.01",
+        "TP-04.02",
+        "TP-07.01",
+        "TP-07.02",
+        "TP-07.03",
+        "TP-08.01",
+        "TP-08.02",
+        "TP-09.01",
+        "TP-09.02"
+      ],
+      "blocking_reasons": [
+        "TP-03.01:Not Started",
+        "TP-03.02:Not Started",
+        "TP-03.03:Not Started",
+        "TP-04.01:Not Started",
+        "TP-04.02:Not Started",
+        "TP-07.01:Not Started",
+        "TP-07.02:Not Started",
+        "TP-07.03:Not Started",
+        "TP-08.01:Not Started",
+        "TP-08.02:Not Started",
+        "TP-09.01:Not Started",
+        "TP-09.02:Not Started"
+      ]
+    },
+    {
+      "id": "TP-10.02",
+      "status": "Not Started",
+      "wave": 11,
+      "unresolved_dependencies": [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03",
+        "TP-04.01",
+        "TP-04.02",
+        "TP-07.01",
+        "TP-07.02",
+        "TP-07.03",
+        "TP-08.01",
+        "TP-08.02",
+        "TP-09.01",
+        "TP-09.02",
+        "TP-10.01"
+      ],
+      "blocking_reasons": [
+        "TP-03.01:Not Started",
+        "TP-03.02:Not Started",
+        "TP-03.03:Not Started",
+        "TP-04.01:Not Started",
+        "TP-04.02:Not Started",
+        "TP-07.01:Not Started",
+        "TP-07.02:Not Started",
+        "TP-07.03:Not Started",
+        "TP-08.01:Not Started",
+        "TP-08.02:Not Started",
+        "TP-09.01:Not Started",
+        "TP-09.02:Not Started",
+        "TP-10.01:Not Started"
+      ]
+    }
+  ]
+}

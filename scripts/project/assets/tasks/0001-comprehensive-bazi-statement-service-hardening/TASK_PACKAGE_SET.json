@@ -1,0 +1,2282 @@
+{
+  "schema_version": "1.0.0",
+  "meta": {
+    "task_id": "0001",
+    "slug": "comprehensive-bazi-statement-service-hardening",
+    "phase": "DECOMPOSE_AND_FILL",
+    "overall_status": "In Progress",
+    "source_context_packet": "/home/lenovo/.projects/fatecat/scripts/project/assets/tasks/0001-comprehensive-bazi-statement-service-hardening/APPROVED_PLAN.json#context_packet",
+    "asset_bundle_manifest": "/home/lenovo/.projects/fatecat/scripts/project/assets/tasks/0001-comprehensive-bazi-statement-service-hardening/ASSET_BUNDLE.json"
+  },
+  "requirement_alignment": [
+    "用户明确要求当前准备进服务的是加固和巩固现有综合八字陈述服务体系。",
+    "用户已确认综合八字范围：八字核心、八字动态运势、八字辅助解释、称骨民俗附录；紫微、黄历择日、占事、西方体系、铁板神数不进默认报告。",
+    "任务清单已明确 10 项：节气 golden、输出结构锁定、证据化、权重边界、输入契约、隐私、多端同源、典籍引用、质量门禁、服务化文档。"
+  ],
+  "global_constraints": [
+    "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+    "默认综合八字报告必须和独立体系隔离。",
+    "业务代码不得直接依赖 raw 目录。",
+    "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+    "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+  ],
+  "task_tree": {
+    "ascii_tree": "- ROOT\n  ├─ TP-01 [branch] [P0] 节气 golden 回归\n  │  ├─ TP-01.01 [leaf] [P0] 盘点交节时间 raw 表\n  │  ├─ TP-01.02 [leaf] [P0] 构建节气 golden fixture\n  │  ├─ TP-01.03 [leaf] [P0] 节气与月令边界测试\n  │  └─ TP-01.04 [leaf] [P0] 起运边界回归\n  ├─ TP-02 [branch] [P0] 综合八字输出结构锁定\n  │  ├─ TP-02.01 [leaf] [P0] 审计当前 report profile\n  │  ├─ TP-02.02 [leaf] [P0] 锁定综合八字默认块\n  │  └─ TP-02.03 [leaf] [P0] 报告结构快照测试\n  ├─ TP-03 [branch] [P0] 八字核心证据化\n  │  ├─ TP-03.01 [leaf] [P0] 定义 evidence schema\n  │  ├─ TP-03.02 [leaf] [P0] 核心结论 evidence mapper\n  │  └─ TP-03.03 [leaf] [P1] 证据渲染与可见性\n  ├─ TP-04 [branch] [P0] 权重与边界治理\n  │  ├─ TP-04.01 [leaf] [P0] 独立体系 capability 边界\n  │  └─ TP-04.02 [leaf] [P1] 权重策略测试\n  ├─ TP-05 [branch] [P0] 输入契约与隐私治理\n  │  ├─ TP-05.01 [leaf] [P0] 输入 schema 与错误响应\n  │  └─ TP-05.02 [leaf] [P0] 隐私与示例脱敏回归\n  ├─ TP-06 [branch] [P0] Web/API/Bot 同源输出\n  │  ├─ TP-06.01 [leaf] [P0] 报告 profile 单一真相源\n  │  └─ TP-06.02 [leaf] [P0] Markdown 复制一致性\n  ├─ TP-07 [branch] [P1] 八字典籍引用层\n  │  ├─ TP-07.01 [leaf] [P1] 典籍来源与版权边界审计\n  │  ├─ TP-07.02 [leaf] [P1] 小型规则索引种子\n  │  └─ TP-07.03 [leaf] [P1] 规则引用接入 evidence\n  ├─ TP-08 [branch] [P0] 质量门禁加固\n  │  ├─ TP-08.01 [leaf] [P0] pytest 门禁扩展\n  │  └─ TP-08.02 [leaf] [P0] acceptance 脚本更新\n  ├─ TP-09 [branch] [P1] 服务化文档同步\n  │  ├─ TP-09.01 [leaf] [P1] README/SKILL 生产边界更新\n  │  └─ TP-09.02 [leaf] [P1] playbook 与架构文档更新\n  └─ TP-10 [branch] [P0] 交付控制与 closeout\n     ├─ TP-10.01 [leaf] [P0] 生成交付证据\n     └─ TP-10.02 [leaf] [P0] 任务 closeout",
+    "leaf_nodes": [
+      "TP-01.01",
+      "TP-01.02",
+      "TP-01.03",
+      "TP-01.04",
+      "TP-02.01",
+      "TP-02.02",
+      "TP-02.03",
+      "TP-03.01",
+      "TP-03.02",
+      "TP-03.03",
+      "TP-04.01",
+      "TP-04.02",
+      "TP-05.01",
+      "TP-05.02",
+      "TP-06.01",
+      "TP-06.02",
+      "TP-07.01",
+      "TP-07.02",
+      "TP-07.03",
+      "TP-08.01",
+      "TP-08.02",
+      "TP-09.01",
+      "TP-09.02",
+      "TP-10.01",
+      "TP-10.02"
+    ],
+    "execution_waves": [
+      [
+        "TP-01.01",
+        "TP-02.01"
+      ],
+      [
+        "TP-01.02",
+        "TP-02.02"
+      ],
+      [
+        "TP-01.03",
+        "TP-01.04",
+        "TP-02.03"
+      ],
+      [
+        "TP-03.01",
+        "TP-04.01",
+        "TP-05.01",
+        "TP-05.02"
+      ],
+      [
+        "TP-03.02",
+        "TP-04.02",
+        "TP-06.01"
+      ],
+      [
+        "TP-03.03",
+        "TP-06.02",
+        "TP-09.01"
+      ],
+      [
+        "TP-07.01",
+        "TP-08.01",
+        "TP-09.02"
+      ],
+      [
+        "TP-07.02",
+        "TP-08.02"
+      ],
+      [
+        "TP-07.03"
+      ],
+      [
+        "TP-10.01"
+      ],
+      [
+        "TP-10.02"
+      ]
+    ],
+    "next_executable_leaves": [
+      "TP-01.01",
+      "TP-02.01"
+    ]
+  },
+  "packages": [
+    {
+      "id": "TP-01",
+      "title": "节气 golden 回归",
+      "priority": "P0",
+      "type": "Foundation",
+      "objective": "解析 1900-2030 交节时间表，建立节气、月令、立春年界和起运边界回归。",
+      "parent_id": "ROOT",
+      "depth": 1,
+      "child_ids": [
+        "TP-01.01",
+        "TP-01.02",
+        "TP-01.03",
+        "TP-01.04"
+      ],
+      "leaf": false,
+      "depends_on": [],
+      "effective_leaf_dependencies": [],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "解析 1900-2030 交节时间表，建立节气、月令、立春年界和起运边界回归。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "解析 1900-2030 交节时间表，建立节气、月令、立春年界和起运边界回归。"
+      ],
+      "outputs": [
+        "解析 1900-2030 交节时间表，建立节气、月令、立春年界和起运边界回归。"
+      ],
+      "verify": "pytest 新增节气 golden、月令边界、立春年界、起运样本测试。",
+      "gate": "节气时间 schema、时区、容差和 fixture 来源全部明确。",
+      "acceptance": [
+        "fixture 不直接依赖 raw 文件运行。",
+        "边界测试覆盖 t-1s/t/t+1s。",
+        "起运至少覆盖顺逆、性别、阴阳年样本。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "先完成子节点后再收敛父节点",
+      "self_checklist": [
+        "确认全部子节点完成且状态已收敛后再结束该任务包"
+      ],
+      "agent_prompt": "处理任务包 `TP-01`：节气 golden 回归\n目标：解析 1900-2030 交节时间表，建立节气、月令、立春年界和起运边界回归。\n优先级：P0\n依赖：无\nVerify：pytest 新增节气 golden、月令边界、立春年界、起运样本测试。\nGate：节气时间 schema、时区、容差和 fixture 来源全部明确。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：解析 1900-2030 交节时间表，建立节气、月令、立春年界和起运边界回归。"
+    },
+    {
+      "id": "TP-01.01",
+      "title": "盘点交节时间 raw 表",
+      "priority": "P0",
+      "type": "Audit",
+      "objective": "读取 CSV/XLS/XLSX 字段、年份覆盖、时区和精度，产出 normalized schema 设计。",
+      "parent_id": "TP-01",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [],
+      "ready": true,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "读取 CSV/XLS/XLSX 字段、年份覆盖、时区和精度，产出 normalized schema 设计。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "读取 CSV/XLS/XLSX 字段、年份覆盖、时区和精度，产出 normalized schema 设计。"
+      ],
+      "outputs": [
+        "读取 CSV/XLS/XLSX 字段、年份覆盖、时区和精度，产出 normalized schema 设计。"
+      ],
+      "verify": "输出 schema 文档和来源哈希对照。",
+      "gate": "确认 raw 表不会进入导出包。",
+      "acceptance": [
+        "满足 Verify: 输出 schema 文档和来源哈希对照。",
+        "满足 Gate: 确认 raw 表不会进入导出包。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 1",
+      "self_checklist": [
+        "Verify: 输出 schema 文档和来源哈希对照。",
+        "Gate: 确认 raw 表不会进入导出包。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-01.01`：盘点交节时间 raw 表\n目标：读取 CSV/XLS/XLSX 字段、年份覆盖、时区和精度，产出 normalized schema 设计。\n优先级：P0\n依赖：无\nVerify：输出 schema 文档和来源哈希对照。\nGate：确认 raw 表不会进入导出包。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：读取 CSV/XLS/XLSX 字段、年份覆盖、时区和精度，产出 normalized schema 设计。"
+    },
+    {
+      "id": "TP-01.02",
+      "title": "构建节气 golden fixture",
+      "priority": "P0",
+      "type": "Build",
+      "objective": "从 raw 表抽取可提交的小型标准化 fixture 或可复现生成脚本。",
+      "parent_id": "TP-01",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-01.01"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-01.01"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": true,
+      "status": "Not Started",
+      "in_scope": [
+        "从 raw 表抽取可提交的小型标准化 fixture 或可复现生成脚本。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "从 raw 表抽取可提交的小型标准化 fixture 或可复现生成脚本。"
+      ],
+      "outputs": [
+        "从 raw 表抽取可提交的小型标准化 fixture 或可复现生成脚本。"
+      ],
+      "verify": "fixture schema 校验和样本快照通过。",
+      "gate": "明确时区、容差、来源哈希。",
+      "acceptance": [
+        "满足 Verify: fixture schema 校验和样本快照通过。",
+        "满足 Gate: 明确时区、容差、来源哈希。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 2",
+      "self_checklist": [
+        "Verify: fixture schema 校验和样本快照通过。",
+        "Gate: 明确时区、容差、来源哈希。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检",
+        "维护 `DEBUG.md` 并保留回归证据"
+      ],
+      "agent_prompt": "处理任务包 `TP-01.02`：构建节气 golden fixture\n目标：从 raw 表抽取可提交的小型标准化 fixture 或可复现生成脚本。\n优先级：P0\n依赖：TP-01.01\nVerify：fixture schema 校验和样本快照通过。\nGate：明确时区、容差、来源哈希。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n调试纪律：先创建/更新 `DEBUG.md`，先复现再修复，最终写清 Root Cause / Fix / Regression Evidence\n输出：从 raw 表抽取可提交的小型标准化 fixture 或可复现生成脚本。"
+    },
+    {
+      "id": "TP-01.03",
+      "title": "节气与月令边界测试",
+      "priority": "P0",
+      "type": "Test",
+      "objective": "用 golden fixture 锁定节气时刻、月令切换、立春年界和真太阳时入参边界。",
+      "parent_id": "TP-01",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-01.02"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-01.02"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": true,
+      "status": "Not Started",
+      "in_scope": [
+        "用 golden fixture 锁定节气时刻、月令切换、立春年界和真太阳时入参边界。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "用 golden fixture 锁定节气时刻、月令切换、立春年界和真太阳时入参边界。"
+      ],
+      "outputs": [
+        "用 golden fixture 锁定节气时刻、月令切换、立春年界和真太阳时入参边界。"
+      ],
+      "verify": "pytest 对 `lunar-python` 计算结果与 fixture 进行边界断言。",
+      "gate": "任何误差必须有容差解释。",
+      "acceptance": [
+        "满足 Verify: pytest 对 `lunar-python` 计算结果与 fixture 进行边界断言。",
+        "满足 Gate: 任何误差必须有容差解释。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 3",
+      "self_checklist": [
+        "Verify: pytest 对 `lunar-python` 计算结果与 fixture 进行边界断言。",
+        "Gate: 任何误差必须有容差解释。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检",
+        "维护 `DEBUG.md` 并保留回归证据"
+      ],
+      "agent_prompt": "处理任务包 `TP-01.03`：节气与月令边界测试\n目标：用 golden fixture 锁定节气时刻、月令切换、立春年界和真太阳时入参边界。\n优先级：P0\n依赖：TP-01.02\nVerify：pytest 对 `lunar-python` 计算结果与 fixture 进行边界断言。\nGate：任何误差必须有容差解释。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n调试纪律：先创建/更新 `DEBUG.md`，先复现再修复，最终写清 Root Cause / Fix / Regression Evidence\n输出：用 golden fixture 锁定节气时刻、月令切换、立春年界和真太阳时入参边界。"
+    },
+    {
+      "id": "TP-01.04",
+      "title": "起运边界回归",
+      "priority": "P0",
+      "type": "Test",
+      "objective": "建立 `yun.getStartSolar()` 样本回归，锁定起运年月日时分秒。",
+      "parent_id": "TP-01",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-01.02"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-01.02"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": true,
+      "status": "Not Started",
+      "in_scope": [
+        "建立 `yun.getStartSolar()` 样本回归，锁定起运年月日时分秒。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "建立 `yun.getStartSolar()` 样本回归，锁定起运年月日时分秒。"
+      ],
+      "outputs": [
+        "建立 `yun.getStartSolar()` 样本回归，锁定起运年月日时分秒。"
+      ],
+      "verify": "pytest 覆盖起运顺逆样本。",
+      "gate": "起运样本来源和预期值必须可追溯。",
+      "acceptance": [
+        "满足 Verify: pytest 覆盖起运顺逆样本。",
+        "满足 Gate: 起运样本来源和预期值必须可追溯。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 3",
+      "self_checklist": [
+        "Verify: pytest 覆盖起运顺逆样本。",
+        "Gate: 起运样本来源和预期值必须可追溯。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检",
+        "维护 `DEBUG.md` 并保留回归证据"
+      ],
+      "agent_prompt": "处理任务包 `TP-01.04`：起运边界回归\n目标：建立 `yun.getStartSolar()` 样本回归，锁定起运年月日时分秒。\n优先级：P0\n依赖：TP-01.02\nVerify：pytest 覆盖起运顺逆样本。\nGate：起运样本来源和预期值必须可追溯。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n调试纪律：先创建/更新 `DEBUG.md`，先复现再修复，最终写清 Root Cause / Fix / Regression Evidence\n输出：建立 `yun.getStartSolar()` 样本回归，锁定起运年月日时分秒。"
+    },
+    {
+      "id": "TP-02",
+      "title": "综合八字输出结构锁定",
+      "priority": "P0",
+      "type": "Contract",
+      "objective": "固定默认 Markdown 块，确保非综合八字体系不混入默认报告。",
+      "parent_id": "ROOT",
+      "depth": 1,
+      "child_ids": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03"
+      ],
+      "leaf": false,
+      "depends_on": [],
+      "effective_leaf_dependencies": [],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "固定默认 Markdown 块，确保非综合八字体系不混入默认报告。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "固定默认 Markdown 块，确保非综合八字体系不混入默认报告。"
+      ],
+      "outputs": [
+        "固定默认 Markdown 块，确保非综合八字体系不混入默认报告。"
+      ],
+      "verify": "报告结构快照测试通过。",
+      "gate": "默认输出目录与 profile 契约一致。",
+      "acceptance": [
+        "满足 Verify: 报告结构快照测试通过。",
+        "满足 Gate: 默认输出目录与 profile 契约一致。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "先完成子节点后再收敛父节点",
+      "self_checklist": [
+        "确认全部子节点完成且状态已收敛后再结束该任务包"
+      ],
+      "agent_prompt": "处理任务包 `TP-02`：综合八字输出结构锁定\n目标：固定默认 Markdown 块，确保非综合八字体系不混入默认报告。\n优先级：P0\n依赖：无\nVerify：报告结构快照测试通过。\nGate：默认输出目录与 profile 契约一致。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：固定默认 Markdown 块，确保非综合八字体系不混入默认报告。"
+    },
+    {
+      "id": "TP-02.01",
+      "title": "审计当前 report profile",
+      "priority": "P0",
+      "type": "Audit",
+      "objective": "定位 Web/API/Bot 当前使用的报告 profile 和 Markdown 拼装入口。",
+      "parent_id": "TP-02",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [],
+      "ready": true,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "定位 Web/API/Bot 当前使用的报告 profile 和 Markdown 拼装入口。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "定位 Web/API/Bot 当前使用的报告 profile 和 Markdown 拼装入口。"
+      ],
+      "outputs": [
+        "定位 Web/API/Bot 当前使用的报告 profile 和 Markdown 拼装入口。"
+      ],
+      "verify": "输出入口清单和默认块清单。",
+      "gate": "确认前端不应自行拼报告。",
+      "acceptance": [
+        "满足 Verify: 输出入口清单和默认块清单。",
+        "满足 Gate: 确认前端不应自行拼报告。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 1",
+      "self_checklist": [
+        "Verify: 输出入口清单和默认块清单。",
+        "Gate: 确认前端不应自行拼报告。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-02.01`：审计当前 report profile\n目标：定位 Web/API/Bot 当前使用的报告 profile 和 Markdown 拼装入口。\n优先级：P0\n依赖：无\nVerify：输出入口清单和默认块清单。\nGate：确认前端不应自行拼报告。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：定位 Web/API/Bot 当前使用的报告 profile 和 Markdown 拼装入口。"
+    },
+    {
+      "id": "TP-02.02",
+      "title": "锁定综合八字默认块",
+      "priority": "P0",
+      "type": "Build",
+      "objective": "将默认块限定为综合八字核心、动态运势、辅助解释、称骨民俗附录。",
+      "parent_id": "TP-02",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-02.01"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-02.01"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "将默认块限定为综合八字核心、动态运势、辅助解释、称骨民俗附录。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "将默认块限定为综合八字核心、动态运势、辅助解释、称骨民俗附录。"
+      ],
+      "outputs": [
+        "将默认块限定为综合八字核心、动态运势、辅助解释、称骨民俗附录。"
+      ],
+      "verify": "结构快照不含紫微、黄历、建除、六爻等块。",
+      "gate": "非八字体系统一保留为独立 capability 或未来登记。",
+      "acceptance": [
+        "满足 Verify: 结构快照不含紫微、黄历、建除、六爻等块。",
+        "满足 Gate: 非八字体系统一保留为独立 capability 或未来登记。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 2",
+      "self_checklist": [
+        "Verify: 结构快照不含紫微、黄历、建除、六爻等块。",
+        "Gate: 非八字体系统一保留为独立 capability 或未来登记。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-02.02`：锁定综合八字默认块\n目标：将默认块限定为综合八字核心、动态运势、辅助解释、称骨民俗附录。\n优先级：P0\n依赖：TP-02.01\nVerify：结构快照不含紫微、黄历、建除、六爻等块。\nGate：非八字体系统一保留为独立 capability 或未来登记。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：将默认块限定为综合八字核心、动态运势、辅助解释、称骨民俗附录。"
+    },
+    {
+      "id": "TP-02.03",
+      "title": "报告结构快照测试",
+      "priority": "P0",
+      "type": "Test",
+      "objective": "新增 Markdown 结构快照和块可见性测试。",
+      "parent_id": "TP-02",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-02.02"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-02.02"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "新增 Markdown 结构快照和块可见性测试。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "新增 Markdown 结构快照和块可见性测试。"
+      ],
+      "outputs": [
+        "新增 Markdown 结构快照和块可见性测试。"
+      ],
+      "verify": "pytest 快照测试通过。",
+      "gate": "快照只断言结构，不绑定易变大段文本。",
+      "acceptance": [
+        "满足 Verify: pytest 快照测试通过。",
+        "满足 Gate: 快照只断言结构，不绑定易变大段文本。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 3",
+      "self_checklist": [
+        "Verify: pytest 快照测试通过。",
+        "Gate: 快照只断言结构，不绑定易变大段文本。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-02.03`：报告结构快照测试\n目标：新增 Markdown 结构快照和块可见性测试。\n优先级：P0\n依赖：TP-02.02\nVerify：pytest 快照测试通过。\nGate：快照只断言结构，不绑定易变大段文本。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：新增 Markdown 结构快照和块可见性测试。"
+    },
+    {
+      "id": "TP-03",
+      "title": "八字核心证据化",
+      "priority": "P0",
+      "type": "Contract",
+      "objective": "为日主、旺衰、调候、格局、用神、干支关系等核心结论补 evidence 字段。",
+      "parent_id": "ROOT",
+      "depth": 1,
+      "child_ids": [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03"
+      ],
+      "leaf": false,
+      "depends_on": [
+        "TP-02"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "为日主、旺衰、调候、格局、用神、干支关系等核心结论补 evidence 字段。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "为日主、旺衰、调候、格局、用神、干支关系等核心结论补 evidence 字段。"
+      ],
+      "outputs": [
+        "为日主、旺衰、调候、格局、用神、干支关系等核心结论补 evidence 字段。"
+      ],
+      "verify": "核心结论 evidence schema 测试通过。",
+      "gate": "证据字段来源必须可追溯，不编造典籍引用。",
+      "acceptance": [
+        "满足 Verify: 核心结论 evidence schema 测试通过。",
+        "满足 Gate: 证据字段来源必须可追溯，不编造典籍引用。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "先完成子节点后再收敛父节点",
+      "self_checklist": [
+        "确认全部子节点完成且状态已收敛后再结束该任务包"
+      ],
+      "agent_prompt": "处理任务包 `TP-03`：八字核心证据化\n目标：为日主、旺衰、调候、格局、用神、干支关系等核心结论补 evidence 字段。\n优先级：P0\n依赖：TP-02.01, TP-02.02, TP-02.03\nVerify：核心结论 evidence schema 测试通过。\nGate：证据字段来源必须可追溯，不编造典籍引用。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：为日主、旺衰、调候、格局、用神、干支关系等核心结论补 evidence 字段。"
+    },
+    {
+      "id": "TP-03.01",
+      "title": "定义 evidence schema",
+      "priority": "P0",
+      "type": "Design",
+      "objective": "定义 source、basis、weight、visibility、risk、rule_id 等字段。",
+      "parent_id": "TP-03",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "定义 source、basis、weight、visibility、risk、rule_id 等字段。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "定义 source、basis、weight、visibility、risk、rule_id 等字段。"
+      ],
+      "outputs": [
+        "定义 source、basis、weight、visibility、risk、rule_id 等字段。"
+      ],
+      "verify": "schema 文档和测试 fixture 通过。",
+      "gate": "不改变现有公开输出，先兼容追加。",
+      "acceptance": [
+        "满足 Verify: schema 文档和测试 fixture 通过。",
+        "满足 Gate: 不改变现有公开输出，先兼容追加。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 4",
+      "self_checklist": [
+        "Verify: schema 文档和测试 fixture 通过。",
+        "Gate: 不改变现有公开输出，先兼容追加。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-03.01`：定义 evidence schema\n目标：定义 source、basis、weight、visibility、risk、rule_id 等字段。\n优先级：P0\n依赖：TP-02.01, TP-02.02, TP-02.03\nVerify：schema 文档和测试 fixture 通过。\nGate：不改变现有公开输出，先兼容追加。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：定义 source、basis、weight、visibility、risk、rule_id 等字段。"
+    },
+    {
+      "id": "TP-03.02",
+      "title": "核心结论 evidence mapper",
+      "priority": "P0",
+      "type": "Build",
+      "objective": "把月令、藏干、透干、五行、合冲刑害、调候、神煞、称骨映射为证据来源。",
+      "parent_id": "TP-03",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-03.01"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-03.01"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "把月令、藏干、透干、五行、合冲刑害、调候、神煞、称骨映射为证据来源。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "把月令、藏干、透干、五行、合冲刑害、调候、神煞、称骨映射为证据来源。"
+      ],
+      "outputs": [
+        "把月令、藏干、透干、五行、合冲刑害、调候、神煞、称骨映射为证据来源。"
+      ],
+      "verify": "单元测试覆盖至少日主、五行喜忌、格局、干支关系。",
+      "gate": "辅助体系不得提升为核心权重。",
+      "acceptance": [
+        "满足 Verify: 单元测试覆盖至少日主、五行喜忌、格局、干支关系。",
+        "满足 Gate: 辅助体系不得提升为核心权重。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 5",
+      "self_checklist": [
+        "Verify: 单元测试覆盖至少日主、五行喜忌、格局、干支关系。",
+        "Gate: 辅助体系不得提升为核心权重。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-03.02`：核心结论 evidence mapper\n目标：把月令、藏干、透干、五行、合冲刑害、调候、神煞、称骨映射为证据来源。\n优先级：P0\n依赖：TP-02.01, TP-02.02, TP-02.03, TP-03.01\nVerify：单元测试覆盖至少日主、五行喜忌、格局、干支关系。\nGate：辅助体系不得提升为核心权重。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：把月令、藏干、透干、五行、合冲刑害、调候、神煞、称骨映射为证据来源。"
+    },
+    {
+      "id": "TP-03.03",
+      "title": "证据渲染与可见性",
+      "priority": "P1",
+      "type": "Build",
+      "objective": "确定 evidence 在 API、Markdown、Web 中的默认显示/隐藏策略。",
+      "parent_id": "TP-03",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-03.02"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-03.02"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "确定 evidence 在 API、Markdown、Web 中的默认显示/隐藏策略。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "确定 evidence 在 API、Markdown、Web 中的默认显示/隐藏策略。"
+      ],
+      "outputs": [
+        "确定 evidence 在 API、Markdown、Web 中的默认显示/隐藏策略。"
+      ],
+      "verify": "Markdown/API 快照覆盖 evidence 可见性。",
+      "gate": "面向用户显示克制，审计字段保留可机读。",
+      "acceptance": [
+        "满足 Verify: Markdown/API 快照覆盖 evidence 可见性。",
+        "满足 Gate: 面向用户显示克制，审计字段保留可机读。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 6",
+      "self_checklist": [
+        "Verify: Markdown/API 快照覆盖 evidence 可见性。",
+        "Gate: 面向用户显示克制，审计字段保留可机读。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-03.03`：证据渲染与可见性\n目标：确定 evidence 在 API、Markdown、Web 中的默认显示/隐藏策略。\n优先级：P1\n依赖：TP-02.01, TP-02.02, TP-02.03, TP-03.02\nVerify：Markdown/API 快照覆盖 evidence 可见性。\nGate：面向用户显示克制，审计字段保留可机读。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：确定 evidence 在 API、Markdown、Web 中的默认显示/隐藏策略。"
+    },
+    {
+      "id": "TP-04",
+      "title": "权重与边界治理",
+      "priority": "P0",
+      "type": "Governance",
+      "objective": "固定八字核心、动态运势、辅助体系、民俗附录的权重层级。",
+      "parent_id": "ROOT",
+      "depth": 1,
+      "child_ids": [
+        "TP-04.01",
+        "TP-04.02"
+      ],
+      "leaf": false,
+      "depends_on": [
+        "TP-02"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "固定八字核心、动态运势、辅助体系、民俗附录的权重层级。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "固定八字核心、动态运势、辅助体系、民俗附录的权重层级。"
+      ],
+      "outputs": [
+        "固定八字核心、动态运势、辅助体系、民俗附录的权重层级。"
+      ],
+      "verify": "profile/registry 测试确认非八字体系统一默认关闭。",
+      "gate": "神煞、称骨不得参与核心格局和喜忌判断。",
+      "acceptance": [
+        "满足 Verify: profile/registry 测试确认非八字体系统一默认关闭。",
+        "满足 Gate: 神煞、称骨不得参与核心格局和喜忌判断。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "先完成子节点后再收敛父节点",
+      "self_checklist": [
+        "确认全部子节点完成且状态已收敛后再结束该任务包"
+      ],
+      "agent_prompt": "处理任务包 `TP-04`：权重与边界治理\n目标：固定八字核心、动态运势、辅助体系、民俗附录的权重层级。\n优先级：P0\n依赖：TP-02.01, TP-02.02, TP-02.03\nVerify：profile/registry 测试确认非八字体系统一默认关闭。\nGate：神煞、称骨不得参与核心格局和喜忌判断。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：固定八字核心、动态运势、辅助体系、民俗附录的权重层级。"
+    },
+    {
+      "id": "TP-04.01",
+      "title": "独立体系 capability 边界",
+      "priority": "P0",
+      "type": "Governance",
+      "objective": "把紫微、黄历择日、占事、西方体系、铁板神数等声明为独立或未来 capability。",
+      "parent_id": "TP-04",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "把紫微、黄历择日、占事、西方体系、铁板神数等声明为独立或未来 capability。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "把紫微、黄历择日、占事、西方体系、铁板神数等声明为独立或未来 capability。"
+      ],
+      "outputs": [
+        "把紫微、黄历择日、占事、西方体系、铁板神数等声明为独立或未来 capability。"
+      ],
+      "verify": "registry/profile 文件与文档一致。",
+      "gate": "不得宣称未来功能已生产。",
+      "acceptance": [
+        "满足 Verify: registry/profile 文件与文档一致。",
+        "满足 Gate: 不得宣称未来功能已生产。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 4",
+      "self_checklist": [
+        "Verify: registry/profile 文件与文档一致。",
+        "Gate: 不得宣称未来功能已生产。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-04.01`：独立体系 capability 边界\n目标：把紫微、黄历择日、占事、西方体系、铁板神数等声明为独立或未来 capability。\n优先级：P0\n依赖：TP-02.01, TP-02.02, TP-02.03\nVerify：registry/profile 文件与文档一致。\nGate：不得宣称未来功能已生产。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：把紫微、黄历择日、占事、西方体系、铁板神数等声明为独立或未来 capability。"
+    },
+    {
+      "id": "TP-04.02",
+      "title": "权重策略测试",
+      "priority": "P1",
+      "type": "Test",
+      "objective": "为核心/辅助/民俗权重边界添加测试和文档说明。",
+      "parent_id": "TP-04",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-04.01"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-04.01"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "为核心/辅助/民俗权重边界添加测试和文档说明。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "为核心/辅助/民俗权重边界添加测试和文档说明。"
+      ],
+      "outputs": [
+        "为核心/辅助/民俗权重边界添加测试和文档说明。"
+      ],
+      "verify": "pytest 或静态配置测试通过。",
+      "gate": "称骨和神煞只作为辅助解释。",
+      "acceptance": [
+        "满足 Verify: pytest 或静态配置测试通过。",
+        "满足 Gate: 称骨和神煞只作为辅助解释。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 5",
+      "self_checklist": [
+        "Verify: pytest 或静态配置测试通过。",
+        "Gate: 称骨和神煞只作为辅助解释。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-04.02`：权重策略测试\n目标：为核心/辅助/民俗权重边界添加测试和文档说明。\n优先级：P1\n依赖：TP-02.01, TP-02.02, TP-02.03, TP-04.01\nVerify：pytest 或静态配置测试通过。\nGate：称骨和神煞只作为辅助解释。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：为核心/辅助/民俗权重边界添加测试和文档说明。"
+    },
+    {
+      "id": "TP-05",
+      "title": "输入契约与隐私治理",
+      "priority": "P0",
+      "type": "Contract",
+      "objective": "加固姓名、性别、出生日期、时间、地区的必填/可选规则和隐私示例治理。",
+      "parent_id": "ROOT",
+      "depth": 1,
+      "child_ids": [
+        "TP-05.01",
+        "TP-05.02"
+      ],
+      "leaf": false,
+      "depends_on": [
+        "TP-02"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "加固姓名、性别、出生日期、时间、地区的必填/可选规则和隐私示例治理。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "加固姓名、性别、出生日期、时间、地区的必填/可选规则和隐私示例治理。"
+      ],
+      "outputs": [
+        "加固姓名、性别、出生日期、时间、地区的必填/可选规则和隐私示例治理。"
+      ],
+      "verify": "输入缺字段、地区脱敏、前端示例白名单测试通过。",
+      "gate": "不得在用户前端显示真实非北京地区样例。",
+      "acceptance": [
+        "满足 Verify: 输入缺字段、地区脱敏、前端示例白名单测试通过。",
+        "满足 Gate: 不得在用户前端显示真实非北京地区样例。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "先完成子节点后再收敛父节点",
+      "self_checklist": [
+        "确认全部子节点完成且状态已收敛后再结束该任务包"
+      ],
+      "agent_prompt": "处理任务包 `TP-05`：输入契约与隐私治理\n目标：加固姓名、性别、出生日期、时间、地区的必填/可选规则和隐私示例治理。\n优先级：P0\n依赖：TP-02.01, TP-02.02, TP-02.03\nVerify：输入缺字段、地区脱敏、前端示例白名单测试通过。\nGate：不得在用户前端显示真实非北京地区样例。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：加固姓名、性别、出生日期、时间、地区的必填/可选规则和隐私示例治理。"
+    },
+    {
+      "id": "TP-05.01",
+      "title": "输入 schema 与错误响应",
+      "priority": "P0",
+      "type": "Build",
+      "objective": "明确缺字段、格式错误、地区解析失败的服务响应，不生成半残报告。",
+      "parent_id": "TP-05",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "明确缺字段、格式错误、地区解析失败的服务响应，不生成半残报告。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "明确缺字段、格式错误、地区解析失败的服务响应，不生成半残报告。"
+      ],
+      "outputs": [
+        "明确缺字段、格式错误、地区解析失败的服务响应，不生成半残报告。"
+      ],
+      "verify": "API/Web/Bot 输入测试覆盖缺字段场景。",
+      "gate": "错误文案不泄露内部路径或真实样例。",
+      "acceptance": [
+        "满足 Verify: API/Web/Bot 输入测试覆盖缺字段场景。",
+        "满足 Gate: 错误文案不泄露内部路径或真实样例。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 4",
+      "self_checklist": [
+        "Verify: API/Web/Bot 输入测试覆盖缺字段场景。",
+        "Gate: 错误文案不泄露内部路径或真实样例。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-05.01`：输入 schema 与错误响应\n目标：明确缺字段、格式错误、地区解析失败的服务响应，不生成半残报告。\n优先级：P0\n依赖：TP-02.01, TP-02.02, TP-02.03\nVerify：API/Web/Bot 输入测试覆盖缺字段场景。\nGate：错误文案不泄露内部路径或真实样例。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：明确缺字段、格式错误、地区解析失败的服务响应，不生成半残报告。"
+    },
+    {
+      "id": "TP-05.02",
+      "title": "隐私与示例脱敏回归",
+      "priority": "P0",
+      "type": "Test",
+      "objective": "统一北京/测试用户示例，禁止真实非北京地区进入前端样例和报告 fixture。",
+      "parent_id": "TP-05",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": true,
+      "status": "Not Started",
+      "in_scope": [
+        "统一北京/测试用户示例，禁止真实非北京地区进入前端样例和报告 fixture。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "统一北京/测试用户示例，禁止真实非北京地区进入前端样例和报告 fixture。"
+      ],
+      "outputs": [
+        "统一北京/测试用户示例，禁止真实非北京地区进入前端样例和报告 fixture。"
+      ],
+      "verify": "`check-privacy-fixtures.sh` 与 pytest 脱敏测试通过。",
+      "gate": "新增 fixture 必须符合白名单。",
+      "acceptance": [
+        "满足 Verify: `check-privacy-fixtures.sh` 与 pytest 脱敏测试通过。",
+        "满足 Gate: 新增 fixture 必须符合白名单。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 4",
+      "self_checklist": [
+        "Verify: `check-privacy-fixtures.sh` 与 pytest 脱敏测试通过。",
+        "Gate: 新增 fixture 必须符合白名单。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检",
+        "维护 `DEBUG.md` 并保留回归证据"
+      ],
+      "agent_prompt": "处理任务包 `TP-05.02`：隐私与示例脱敏回归\n目标：统一北京/测试用户示例，禁止真实非北京地区进入前端样例和报告 fixture。\n优先级：P0\n依赖：TP-02.01, TP-02.02, TP-02.03\nVerify：`check-privacy-fixtures.sh` 与 pytest 脱敏测试通过。\nGate：新增 fixture 必须符合白名单。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n调试纪律：先创建/更新 `DEBUG.md`，先复现再修复，最终写清 Root Cause / Fix / Regression Evidence\n输出：统一北京/测试用户示例，禁止真实非北京地区进入前端样例和报告 fixture。"
+    },
+    {
+      "id": "TP-06",
+      "title": "Web/API/Bot 同源输出",
+      "priority": "P0",
+      "type": "Integration",
+      "objective": "确保三端调用同一 report profile，Markdown 复制内容与 API 返回一致。",
+      "parent_id": "ROOT",
+      "depth": 1,
+      "child_ids": [
+        "TP-06.01",
+        "TP-06.02"
+      ],
+      "leaf": false,
+      "depends_on": [
+        "TP-02",
+        "TP-05"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-05.01",
+        "TP-05.02"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "确保三端调用同一 report profile，Markdown 复制内容与 API 返回一致。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "确保三端调用同一 report profile，Markdown 复制内容与 API 返回一致。"
+      ],
+      "outputs": [
+        "确保三端调用同一 report profile，Markdown 复制内容与 API 返回一致。"
+      ],
+      "verify": "Web/API/Bot smoke 和快照测试确认输出同源。",
+      "gate": "前端不得自行拼装报告块。",
+      "acceptance": [
+        "满足 Verify: Web/API/Bot smoke 和快照测试确认输出同源。",
+        "满足 Gate: 前端不得自行拼装报告块。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "先完成子节点后再收敛父节点",
+      "self_checklist": [
+        "确认全部子节点完成且状态已收敛后再结束该任务包"
+      ],
+      "agent_prompt": "处理任务包 `TP-06`：Web/API/Bot 同源输出\n目标：确保三端调用同一 report profile，Markdown 复制内容与 API 返回一致。\n优先级：P0\n依赖：TP-02.01, TP-02.02, TP-02.03, TP-05.01, TP-05.02\nVerify：Web/API/Bot smoke 和快照测试确认输出同源。\nGate：前端不得自行拼装报告块。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：确保三端调用同一 report profile，Markdown 复制内容与 API 返回一致。"
+    },
+    {
+      "id": "TP-06.01",
+      "title": "报告 profile 单一真相源",
+      "priority": "P0",
+      "type": "Build",
+      "objective": "收敛 Web、API、Bot 调用链路到同一 report profile 或同一 renderer。",
+      "parent_id": "TP-06",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-05.01",
+        "TP-05.02"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "收敛 Web、API、Bot 调用链路到同一 report profile 或同一 renderer。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "收敛 Web、API、Bot 调用链路到同一 report profile 或同一 renderer。"
+      ],
+      "outputs": [
+        "收敛 Web、API、Bot 调用链路到同一 report profile 或同一 renderer。"
+      ],
+      "verify": "三端入口测试指向同一 profile。",
+      "gate": "不引入第二套 Markdown 拼装逻辑。",
+      "acceptance": [
+        "满足 Verify: 三端入口测试指向同一 profile。",
+        "满足 Gate: 不引入第二套 Markdown 拼装逻辑。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 5",
+      "self_checklist": [
+        "Verify: 三端入口测试指向同一 profile。",
+        "Gate: 不引入第二套 Markdown 拼装逻辑。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-06.01`：报告 profile 单一真相源\n目标：收敛 Web、API、Bot 调用链路到同一 report profile 或同一 renderer。\n优先级：P0\n依赖：TP-02.01, TP-02.02, TP-02.03, TP-05.01, TP-05.02\nVerify：三端入口测试指向同一 profile。\nGate：不引入第二套 Markdown 拼装逻辑。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：收敛 Web、API、Bot 调用链路到同一 report profile 或同一 renderer。"
+    },
+    {
+      "id": "TP-06.02",
+      "title": "Markdown 复制一致性",
+      "priority": "P0",
+      "type": "Test",
+      "objective": "保证 Web 复制 Markdown 与 API/Bot 产物结构一致。",
+      "parent_id": "TP-06",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-06.01"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-05.01",
+        "TP-05.02",
+        "TP-06.01"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "保证 Web 复制 Markdown 与 API/Bot 产物结构一致。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "保证 Web 复制 Markdown 与 API/Bot 产物结构一致。"
+      ],
+      "outputs": [
+        "保证 Web 复制 Markdown 与 API/Bot 产物结构一致。"
+      ],
+      "verify": "复制内容结构快照测试通过。",
+      "gate": "按钮/控件不影响报告内容。",
+      "acceptance": [
+        "满足 Verify: 复制内容结构快照测试通过。",
+        "满足 Gate: 按钮/控件不影响报告内容。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 6",
+      "self_checklist": [
+        "Verify: 复制内容结构快照测试通过。",
+        "Gate: 按钮/控件不影响报告内容。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-06.02`：Markdown 复制一致性\n目标：保证 Web 复制 Markdown 与 API/Bot 产物结构一致。\n优先级：P0\n依赖：TP-02.01, TP-02.02, TP-02.03, TP-05.01, TP-05.02, TP-06.01\nVerify：复制内容结构快照测试通过。\nGate：按钮/控件不影响报告内容。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：保证 Web 复制 Markdown 与 API/Bot 产物结构一致。"
+    },
+    {
+      "id": "TP-07",
+      "title": "八字典籍引用层",
+      "priority": "P1",
+      "type": "Knowledge",
+      "objective": "从已整理典籍中提炼格局、调候、用神规则索引，支持结论可追溯。",
+      "parent_id": "ROOT",
+      "depth": 1,
+      "child_ids": [
+        "TP-07.01",
+        "TP-07.02",
+        "TP-07.03"
+      ],
+      "leaf": false,
+      "depends_on": [
+        "TP-03"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "从已整理典籍中提炼格局、调候、用神规则索引，支持结论可追溯。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "从已整理典籍中提炼格局、调候、用神规则索引，支持结论可追溯。"
+      ],
+      "outputs": [
+        "从已整理典籍中提炼格局、调候、用神规则索引，支持结论可追溯。"
+      ],
+      "verify": "规则索引 schema、样本引用和版权边界测试通过。",
+      "gate": "不复制大段原文，不引用版权未复核资料。",
+      "acceptance": [
+        "满足 Verify: 规则索引 schema、样本引用和版权边界测试通过。",
+        "满足 Gate: 不复制大段原文，不引用版权未复核资料。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "先完成子节点后再收敛父节点",
+      "self_checklist": [
+        "确认全部子节点完成且状态已收敛后再结束该任务包"
+      ],
+      "agent_prompt": "处理任务包 `TP-07`：八字典籍引用层\n目标：从已整理典籍中提炼格局、调候、用神规则索引，支持结论可追溯。\n优先级：P1\n依赖：TP-03.01, TP-03.02, TP-03.03\nVerify：规则索引 schema、样本引用和版权边界测试通过。\nGate：不复制大段原文，不引用版权未复核资料。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：从已整理典籍中提炼格局、调候、用神规则索引，支持结论可追溯。"
+    },
+    {
+      "id": "TP-07.01",
+      "title": "典籍来源与版权边界审计",
+      "priority": "P1",
+      "type": "Audit",
+      "objective": "盘点《渊海子平》《三命通会》《子平真诠》《滴天髓》《穷通宝鉴》可用文本与来源状态。",
+      "parent_id": "TP-07",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "盘点《渊海子平》《三命通会》《子平真诠》《滴天髓》《穷通宝鉴》可用文本与来源状态。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "盘点《渊海子平》《三命通会》《子平真诠》《滴天髓》《穷通宝鉴》可用文本与来源状态。"
+      ],
+      "outputs": [
+        "盘点《渊海子平》《三命通会》《子平真诠》《滴天髓》《穷通宝鉴》可用文本与来源状态。"
+      ],
+      "verify": "来源表与可用范围文档完成。",
+      "gate": "版权不明资料只能作为 raw 复核来源。",
+      "acceptance": [
+        "满足 Verify: 来源表与可用范围文档完成。",
+        "满足 Gate: 版权不明资料只能作为 raw 复核来源。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 7",
+      "self_checklist": [
+        "Verify: 来源表与可用范围文档完成。",
+        "Gate: 版权不明资料只能作为 raw 复核来源。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-07.01`：典籍来源与版权边界审计\n目标：盘点《渊海子平》《三命通会》《子平真诠》《滴天髓》《穷通宝鉴》可用文本与来源状态。\n优先级：P1\n依赖：TP-03.01, TP-03.02, TP-03.03\nVerify：来源表与可用范围文档完成。\nGate：版权不明资料只能作为 raw 复核来源。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：盘点《渊海子平》《三命通会》《子平真诠》《滴天髓》《穷通宝鉴》可用文本与来源状态。"
+    },
+    {
+      "id": "TP-07.02",
+      "title": "小型规则索引种子",
+      "priority": "P1",
+      "type": "Build",
+      "objective": "先提炼格局、调候、用神的结构化规则索引种子。",
+      "parent_id": "TP-07",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-07.01"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03",
+        "TP-07.01"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "先提炼格局、调候、用神的结构化规则索引种子。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "先提炼格局、调候、用神的结构化规则索引种子。"
+      ],
+      "outputs": [
+        "先提炼格局、调候、用神的结构化规则索引种子。"
+      ],
+      "verify": "规则索引 JSON/YAML schema 校验通过。",
+      "gate": "每条规则有来源、适用条件、禁用条件。",
+      "acceptance": [
+        "满足 Verify: 规则索引 JSON/YAML schema 校验通过。",
+        "满足 Gate: 每条规则有来源、适用条件、禁用条件。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 8",
+      "self_checklist": [
+        "Verify: 规则索引 JSON/YAML schema 校验通过。",
+        "Gate: 每条规则有来源、适用条件、禁用条件。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-07.02`：小型规则索引种子\n目标：先提炼格局、调候、用神的结构化规则索引种子。\n优先级：P1\n依赖：TP-03.01, TP-03.02, TP-03.03, TP-07.01\nVerify：规则索引 JSON/YAML schema 校验通过。\nGate：每条规则有来源、适用条件、禁用条件。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：先提炼格局、调候、用神的结构化规则索引种子。"
+    },
+    {
+      "id": "TP-07.03",
+      "title": "规则引用接入 evidence",
+      "priority": "P1",
+      "type": "Integration",
+      "objective": "把可用规则索引接入 evidence，不改变核心算法判断。",
+      "parent_id": "TP-07",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-07.02"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03",
+        "TP-07.02"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "把可用规则索引接入 evidence，不改变核心算法判断。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "把可用规则索引接入 evidence，不改变核心算法判断。"
+      ],
+      "outputs": [
+        "把可用规则索引接入 evidence，不改变核心算法判断。"
+      ],
+      "verify": "evidence rule_id 与短依据测试通过。",
+      "gate": "规则引用是追溯层，不是新算法替换。",
+      "acceptance": [
+        "满足 Verify: evidence rule_id 与短依据测试通过。",
+        "满足 Gate: 规则引用是追溯层，不是新算法替换。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 9",
+      "self_checklist": [
+        "Verify: evidence rule_id 与短依据测试通过。",
+        "Gate: 规则引用是追溯层，不是新算法替换。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-07.03`：规则引用接入 evidence\n目标：把可用规则索引接入 evidence，不改变核心算法判断。\n优先级：P1\n依赖：TP-03.01, TP-03.02, TP-03.03, TP-07.02\nVerify：evidence rule_id 与短依据测试通过。\nGate：规则引用是追溯层，不是新算法替换。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：把可用规则索引接入 evidence，不改变核心算法判断。"
+    },
+    {
+      "id": "TP-08",
+      "title": "质量门禁加固",
+      "priority": "P0",
+      "type": "Quality",
+      "objective": "把新增回归测试、隐私测试、结构测试和导出包卫生纳入 acceptance。",
+      "parent_id": "ROOT",
+      "depth": 1,
+      "child_ids": [
+        "TP-08.01",
+        "TP-08.02"
+      ],
+      "leaf": false,
+      "depends_on": [
+        "TP-01",
+        "TP-02",
+        "TP-05",
+        "TP-06"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-01.01",
+        "TP-01.02",
+        "TP-01.03",
+        "TP-01.04",
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-05.01",
+        "TP-05.02",
+        "TP-06.01",
+        "TP-06.02"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "把新增回归测试、隐私测试、结构测试和导出包卫生纳入 acceptance。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "把新增回归测试、隐私测试、结构测试和导出包卫生纳入 acceptance。"
+      ],
+      "outputs": [
+        "把新增回归测试、隐私测试、结构测试和导出包卫生纳入 acceptance。"
+      ],
+      "verify": "`bash scripts/acceptance.sh --with-dev` 覆盖新增门禁并通过。",
+      "gate": "新增门禁失败时输出可定位原因。",
+      "acceptance": [
+        "满足 Verify: `bash scripts/acceptance.sh --with-dev` 覆盖新增门禁并通过。",
+        "满足 Gate: 新增门禁失败时输出可定位原因。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "先完成子节点后再收敛父节点",
+      "self_checklist": [
+        "确认全部子节点完成且状态已收敛后再结束该任务包"
+      ],
+      "agent_prompt": "处理任务包 `TP-08`：质量门禁加固\n目标：把新增回归测试、隐私测试、结构测试和导出包卫生纳入 acceptance。\n优先级：P0\n依赖：TP-01.01, TP-01.02, TP-01.03, TP-01.04, TP-02.01, TP-02.02, TP-02.03, TP-05.01, TP-05.02, TP-06.01, TP-06.02\nVerify：`bash scripts/acceptance.sh --with-dev` 覆盖新增门禁并通过。\nGate：新增门禁失败时输出可定位原因。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：把新增回归测试、隐私测试、结构测试和导出包卫生纳入 acceptance。"
+    },
+    {
+      "id": "TP-08.01",
+      "title": "pytest 门禁扩展",
+      "priority": "P0",
+      "type": "Test",
+      "objective": "把节气、起运、报告结构、隐私、同源输出测试纳入现有 pytest 目录。",
+      "parent_id": "TP-08",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-01.01",
+        "TP-01.02",
+        "TP-01.03",
+        "TP-01.04",
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-05.01",
+        "TP-05.02",
+        "TP-06.01",
+        "TP-06.02"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "把节气、起运、报告结构、隐私、同源输出测试纳入现有 pytest 目录。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "把节气、起运、报告结构、隐私、同源输出测试纳入现有 pytest 目录。"
+      ],
+      "outputs": [
+        "把节气、起运、报告结构、隐私、同源输出测试纳入现有 pytest 目录。"
+      ],
+      "verify": "本地 pytest 全量通过。",
+      "gate": "测试不能依赖外部网络和真实凭证。",
+      "acceptance": [
+        "满足 Verify: 本地 pytest 全量通过。",
+        "满足 Gate: 测试不能依赖外部网络和真实凭证。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 7",
+      "self_checklist": [
+        "Verify: 本地 pytest 全量通过。",
+        "Gate: 测试不能依赖外部网络和真实凭证。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-08.01`：pytest 门禁扩展\n目标：把节气、起运、报告结构、隐私、同源输出测试纳入现有 pytest 目录。\n优先级：P0\n依赖：TP-01.01, TP-01.02, TP-01.03, TP-01.04, TP-02.01, TP-02.02, TP-02.03, TP-05.01, TP-05.02, TP-06.01, TP-06.02\nVerify：本地 pytest 全量通过。\nGate：测试不能依赖外部网络和真实凭证。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：把节气、起运、报告结构、隐私、同源输出测试纳入现有 pytest 目录。"
+    },
+    {
+      "id": "TP-08.02",
+      "title": "acceptance 脚本更新",
+      "priority": "P0",
+      "type": "CI",
+      "objective": "必要时更新 acceptance/preflight，确保新增门禁在本地和 CI 运行。",
+      "parent_id": "TP-08",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-08.01"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-01.01",
+        "TP-01.02",
+        "TP-01.03",
+        "TP-01.04",
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-05.01",
+        "TP-05.02",
+        "TP-06.01",
+        "TP-06.02",
+        "TP-08.01"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "必要时更新 acceptance/preflight，确保新增门禁在本地和 CI 运行。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "必要时更新 acceptance/preflight，确保新增门禁在本地和 CI 运行。"
+      ],
+      "outputs": [
+        "必要时更新 acceptance/preflight，确保新增门禁在本地和 CI 运行。"
+      ],
+      "verify": "acceptance 本地通过。",
+      "gate": "导出包仍不包含 raw、大文件、缓存、日志。",
+      "acceptance": [
+        "满足 Verify: acceptance 本地通过。",
+        "满足 Gate: 导出包仍不包含 raw、大文件、缓存、日志。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 8",
+      "self_checklist": [
+        "Verify: acceptance 本地通过。",
+        "Gate: 导出包仍不包含 raw、大文件、缓存、日志。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-08.02`：acceptance 脚本更新\n目标：必要时更新 acceptance/preflight，确保新增门禁在本地和 CI 运行。\n优先级：P0\n依赖：TP-01.01, TP-01.02, TP-01.03, TP-01.04, TP-02.01, TP-02.02, TP-02.03, TP-05.01, TP-05.02, TP-06.01, TP-06.02, TP-08.01\nVerify：acceptance 本地通过。\nGate：导出包仍不包含 raw、大文件、缓存、日志。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：必要时更新 acceptance/preflight，确保新增门禁在本地和 CI 运行。"
+    },
+    {
+      "id": "TP-09",
+      "title": "服务化文档同步",
+      "priority": "P1",
+      "type": "Docs",
+      "objective": "更新 README、SKILL、execution playbook 和架构文档，明确当前生产边界。",
+      "parent_id": "ROOT",
+      "depth": 1,
+      "child_ids": [
+        "TP-09.01",
+        "TP-09.02"
+      ],
+      "leaf": false,
+      "depends_on": [
+        "TP-02",
+        "TP-04"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-04.01",
+        "TP-04.02"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "更新 README、SKILL、execution playbook 和架构文档，明确当前生产边界。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "更新 README、SKILL、execution playbook 和架构文档，明确当前生产边界。"
+      ],
+      "outputs": [
+        "更新 README、SKILL、execution playbook 和架构文档，明确当前生产边界。"
+      ],
+      "verify": "文档口径与 profile/registry 一致。",
+      "gate": "不得把未来能力写成已实现。",
+      "acceptance": [
+        "满足 Verify: 文档口径与 profile/registry 一致。",
+        "满足 Gate: 不得把未来能力写成已实现。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "先完成子节点后再收敛父节点",
+      "self_checklist": [
+        "确认全部子节点完成且状态已收敛后再结束该任务包"
+      ],
+      "agent_prompt": "处理任务包 `TP-09`：服务化文档同步\n目标：更新 README、SKILL、execution playbook 和架构文档，明确当前生产边界。\n优先级：P1\n依赖：TP-02.01, TP-02.02, TP-02.03, TP-04.01, TP-04.02\nVerify：文档口径与 profile/registry 一致。\nGate：不得把未来能力写成已实现。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：更新 README、SKILL、execution playbook 和架构文档，明确当前生产边界。"
+    },
+    {
+      "id": "TP-09.01",
+      "title": "README/SKILL 生产边界更新",
+      "priority": "P1",
+      "type": "Docs",
+      "objective": "明确当前生产服务只支持综合八字默认报告，其他体系为独立或未来 capability。",
+      "parent_id": "TP-09",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-04.01",
+        "TP-04.02"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "明确当前生产服务只支持综合八字默认报告，其他体系为独立或未来 capability。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "明确当前生产服务只支持综合八字默认报告，其他体系为独立或未来 capability。"
+      ],
+      "outputs": [
+        "明确当前生产服务只支持综合八字默认报告，其他体系为独立或未来 capability。"
+      ],
+      "verify": "README/SKILL 与输出结构一致。",
+      "gate": "不夸大生产能力。",
+      "acceptance": [
+        "满足 Verify: README/SKILL 与输出结构一致。",
+        "满足 Gate: 不夸大生产能力。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 6",
+      "self_checklist": [
+        "Verify: README/SKILL 与输出结构一致。",
+        "Gate: 不夸大生产能力。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-09.01`：README/SKILL 生产边界更新\n目标：明确当前生产服务只支持综合八字默认报告，其他体系为独立或未来 capability。\n优先级：P1\n依赖：TP-02.01, TP-02.02, TP-02.03, TP-04.01, TP-04.02\nVerify：README/SKILL 与输出结构一致。\nGate：不夸大生产能力。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：明确当前生产服务只支持综合八字默认报告，其他体系为独立或未来 capability。"
+    },
+    {
+      "id": "TP-09.02",
+      "title": "playbook 与架构文档更新",
+      "priority": "P1",
+      "type": "Docs",
+      "objective": "同步 execution playbook、AGENTS.md 和相关架构文档。",
+      "parent_id": "TP-09",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-09.01"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-04.01",
+        "TP-04.02",
+        "TP-09.01"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "同步 execution playbook、AGENTS.md 和相关架构文档。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "同步 execution playbook、AGENTS.md 和相关架构文档。"
+      ],
+      "outputs": [
+        "同步 execution playbook、AGENTS.md 和相关架构文档。"
+      ],
+      "verify": "文档路径和职责边界一致。",
+      "gate": "架构调整必须更新 AGENTS.md。",
+      "acceptance": [
+        "满足 Verify: 文档路径和职责边界一致。",
+        "满足 Gate: 架构调整必须更新 AGENTS.md。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 7",
+      "self_checklist": [
+        "Verify: 文档路径和职责边界一致。",
+        "Gate: 架构调整必须更新 AGENTS.md。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-09.02`：playbook 与架构文档更新\n目标：同步 execution playbook、AGENTS.md 和相关架构文档。\n优先级：P1\n依赖：TP-02.01, TP-02.02, TP-02.03, TP-04.01, TP-04.02, TP-09.01\nVerify：文档路径和职责边界一致。\nGate：架构调整必须更新 AGENTS.md。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：同步 execution playbook、AGENTS.md 和相关架构文档。"
+    },
+    {
+      "id": "TP-10",
+      "title": "交付控制与 closeout",
+      "priority": "P0",
+      "type": "Ship",
+      "objective": "完成版本控制、推送、CI、任务 closeout 和交付证据归档。",
+      "parent_id": "ROOT",
+      "depth": 1,
+      "child_ids": [
+        "TP-10.01",
+        "TP-10.02"
+      ],
+      "leaf": false,
+      "depends_on": [
+        "TP-03",
+        "TP-04",
+        "TP-07",
+        "TP-08",
+        "TP-09"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03",
+        "TP-04.01",
+        "TP-04.02",
+        "TP-07.01",
+        "TP-07.02",
+        "TP-07.03",
+        "TP-08.01",
+        "TP-08.02",
+        "TP-09.01",
+        "TP-09.02"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "完成版本控制、推送、CI、任务 closeout 和交付证据归档。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "完成版本控制、推送、CI、任务 closeout 和交付证据归档。"
+      ],
+      "outputs": [
+        "完成版本控制、推送、CI、任务 closeout 和交付证据归档。"
+      ],
+      "verify": "Git status clean、CI 通过、Task Closeout Packet 生成。",
+      "gate": "无 blocker，无未提交实现改动。",
+      "acceptance": [
+        "满足 Verify: Git status clean、CI 通过、Task Closeout Packet 生成。",
+        "满足 Gate: 无 blocker，无未提交实现改动。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "先完成子节点后再收敛父节点",
+      "self_checklist": [
+        "确认全部子节点完成且状态已收敛后再结束该任务包"
+      ],
+      "agent_prompt": "处理任务包 `TP-10`：交付控制与 closeout\n目标：完成版本控制、推送、CI、任务 closeout 和交付证据归档。\n优先级：P0\n依赖：TP-03.01, TP-03.02, TP-03.03, TP-04.01, TP-04.02, TP-07.01, TP-07.02, TP-07.03, TP-08.01, TP-08.02, TP-09.01, TP-09.02\nVerify：Git status clean、CI 通过、Task Closeout Packet 生成。\nGate：无 blocker，无未提交实现改动。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：完成版本控制、推送、CI、任务 closeout 和交付证据归档。"
+    },
+    {
+      "id": "TP-10.01",
+      "title": "生成交付证据",
+      "priority": "P0",
+      "type": "Ship",
+      "objective": "捕获 git delivery evidence、验证命令结果和剩余风险。",
+      "parent_id": "TP-10",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03",
+        "TP-04.01",
+        "TP-04.02",
+        "TP-07.01",
+        "TP-07.02",
+        "TP-07.03",
+        "TP-08.01",
+        "TP-08.02",
+        "TP-09.01",
+        "TP-09.02"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "捕获 git delivery evidence、验证命令结果和剩余风险。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "捕获 git delivery evidence、验证命令结果和剩余风险。"
+      ],
+      "outputs": [
+        "捕获 git delivery evidence、验证命令结果和剩余风险。"
+      ],
+      "verify": "交付证据 JSON 生成。",
+      "gate": "不得伪造 CI 或测试结果。",
+      "acceptance": [
+        "满足 Verify: 交付证据 JSON 生成。",
+        "满足 Gate: 不得伪造 CI 或测试结果。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 10",
+      "self_checklist": [
+        "Verify: 交付证据 JSON 生成。",
+        "Gate: 不得伪造 CI 或测试结果。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-10.01`：生成交付证据\n目标：捕获 git delivery evidence、验证命令结果和剩余风险。\n优先级：P0\n依赖：TP-03.01, TP-03.02, TP-03.03, TP-04.01, TP-04.02, TP-07.01, TP-07.02, TP-07.03, TP-08.01, TP-08.02, TP-09.01, TP-09.02\nVerify：交付证据 JSON 生成。\nGate：不得伪造 CI 或测试结果。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：捕获 git delivery evidence、验证命令结果和剩余风险。"
+    },
+    {
+      "id": "TP-10.02",
+      "title": "任务 closeout",
+      "priority": "P0",
+      "type": "Ship",
+      "objective": "完成 TODO/STATUS，生成 Task Closeout Packet 并沉淀后续事项。",
+      "parent_id": "TP-10",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-10.01"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03",
+        "TP-04.01",
+        "TP-04.02",
+        "TP-07.01",
+        "TP-07.02",
+        "TP-07.03",
+        "TP-08.01",
+        "TP-08.02",
+        "TP-09.01",
+        "TP-09.02",
+        "TP-10.01"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Not Started",
+      "in_scope": [
+        "完成 TODO/STATUS，生成 Task Closeout Packet 并沉淀后续事项。"
+      ],
+      "out_of_scope": [
+        "不实现紫微、六爻、梅花、奇门、大六壬、西方占星、塔罗、铁板神数等新体系。",
+        "不把 raw 书籍、Drive zip 或版权未复核资料直接接入生产运行链路。",
+        "不重写成熟历法库；节气项目先做 golden 校验与回归门禁。",
+        "不允许前端、API、Bot 各自拼装报告结构。"
+      ],
+      "inputs": [],
+      "actions": [
+        "完成 TODO/STATUS，生成 Task Closeout Packet 并沉淀后续事项。"
+      ],
+      "outputs": [
+        "完成 TODO/STATUS，生成 Task Closeout Packet 并沉淀后续事项。"
+      ],
+      "verify": "auto-tasks closeout 校验通过。",
+      "gate": "所有叶子项完成或明确延期。",
+      "acceptance": [
+        "满足 Verify: auto-tasks closeout 校验通过。",
+        "满足 Gate: 所有叶子项完成或明确延期。"
+      ],
+      "constraints": [
+        "遵循胶水原则：继续复用 `lunar-python` 等成熟库，自研只做 fixture、adapter、provider、evidence 与报告编排。",
+        "默认综合八字报告必须和独立体系隔离。",
+        "业务代码不得直接依赖 raw 目录。",
+        "任何高风险断语必须受免责声明约束，不得替代医疗、法律、金融、心理诊断。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 11",
+      "self_checklist": [
+        "Verify: auto-tasks closeout 校验通过。",
+        "Gate: 所有叶子项完成或明确延期。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-10.02`：任务 closeout\n目标：完成 TODO/STATUS，生成 Task Closeout Packet 并沉淀后续事项。\n优先级：P0\n依赖：TP-03.01, TP-03.02, TP-03.03, TP-04.01, TP-04.02, TP-07.01, TP-07.02, TP-07.03, TP-08.01, TP-08.02, TP-09.01, TP-09.02, TP-10.01\nVerify：auto-tasks closeout 校验通过。\nGate：所有叶子项完成或明确延期。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：完成 TODO/STATUS，生成 Task Closeout Packet 并沉淀后续事项。"
+    }
+  ]
+}

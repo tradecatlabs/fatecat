@@ -1,0 +1,441 @@
+{
+  "schema_version": "1.0.0",
+  "task_meta": {
+    "objective": "综合八字陈述服务加固：锁定节气边界、默认报告结构、证据化陈述、输入隐私、多端同源输出、典籍引用与质量门禁。",
+    "overall_status": "In Progress",
+    "task_dir": "/home/lenovo/.projects/fatecat/scripts/project/assets/tasks/0001-comprehensive-bazi-statement-service-hardening"
+  },
+  "source_plan": {
+    "schema_version": "1.0.0",
+    "plan_path": "/home/lenovo/.projects/fatecat/scripts/project/assets/tasks/0001-comprehensive-bazi-statement-service-hardening/APPROVED_PLAN.json"
+  },
+  "generated_assets": [
+    {
+      "id": "tree-spec",
+      "type": "task-tree-spec",
+      "path": "/home/lenovo/.projects/fatecat/scripts/project/assets/tasks/0001-comprehensive-bazi-statement-service-hardening/TREE_SPEC.json",
+      "description": "approved plan 编译后的递归任务树规格",
+      "source_step_keys": [
+        "solar_terms_golden",
+        "solar_terms_inventory",
+        "solar_terms_fixture_builder",
+        "solar_terms_boundary_tests",
+        "yun_boundary_tests",
+        "report_structure_lock",
+        "report_profile_audit",
+        "default_bazi_blocks",
+        "report_snapshot_tests",
+        "bazi_evidence_contract",
+        "evidence_schema",
+        "evidence_mappers",
+        "evidence_rendering",
+        "weight_boundary_governance",
+        "capability_registry_boundary",
+        "weight_policy_tests",
+        "input_contract_privacy",
+        "input_schema_validation",
+        "privacy_fixture_tests",
+        "channel_parity",
+        "report_profile_single_source",
+        "markdown_copy_parity",
+        "classics_reference_layer",
+        "classics_source_audit",
+        "rule_index_seed",
+        "rule_reference_integration",
+        "quality_gates",
+        "pytest_gate_expansion",
+        "acceptance_script_update",
+        "service_docs",
+        "readme_skill_update",
+        "playbook_architecture_update",
+        "ship_control",
+        "delivery_evidence",
+        "task_closeout"
+      ]
+    },
+    {
+      "id": "asset-bundle",
+      "type": "asset-bundle-manifest",
+      "path": "/home/lenovo/.projects/fatecat/scripts/project/assets/tasks/0001-comprehensive-bazi-statement-service-hardening/ASSET_BUNDLE.json",
+      "description": "编译输出的资产包 manifest",
+      "source_step_keys": [
+        "solar_terms_golden",
+        "solar_terms_inventory",
+        "solar_terms_fixture_builder",
+        "solar_terms_boundary_tests",
+        "yun_boundary_tests",
+        "report_structure_lock",
+        "report_profile_audit",
+        "default_bazi_blocks",
+        "report_snapshot_tests",
+        "bazi_evidence_contract",
+        "evidence_schema",
+        "evidence_mappers",
+        "evidence_rendering",
+        "weight_boundary_governance",
+        "capability_registry_boundary",
+        "weight_policy_tests",
+        "input_contract_privacy",
+        "input_schema_validation",
+        "privacy_fixture_tests",
+        "channel_parity",
+        "report_profile_single_source",
+        "markdown_copy_parity",
+        "classics_reference_layer",
+        "classics_source_audit",
+        "rule_index_seed",
+        "rule_reference_integration",
+        "quality_gates",
+        "pytest_gate_expansion",
+        "acceptance_script_update",
+        "service_docs",
+        "readme_skill_update",
+        "playbook_architecture_update",
+        "ship_control",
+        "delivery_evidence",
+        "task_closeout"
+      ]
+    },
+    {
+      "id": "task-package-set",
+      "type": "task-package-set",
+      "path": "/home/lenovo/.projects/fatecat/scripts/project/assets/tasks/0001-comprehensive-bazi-statement-service-hardening/TASK_PACKAGE_SET.json",
+      "description": "编译输出的结构化任务包集合",
+      "source_step_keys": [
+        "solar_terms_golden",
+        "solar_terms_inventory",
+        "solar_terms_fixture_builder",
+        "solar_terms_boundary_tests",
+        "yun_boundary_tests",
+        "report_structure_lock",
+        "report_profile_audit",
+        "default_bazi_blocks",
+        "report_snapshot_tests",
+        "bazi_evidence_contract",
+        "evidence_schema",
+        "evidence_mappers",
+        "evidence_rendering",
+        "weight_boundary_governance",
+        "capability_registry_boundary",
+        "weight_policy_tests",
+        "input_contract_privacy",
+        "input_schema_validation",
+        "privacy_fixture_tests",
+        "channel_parity",
+        "report_profile_single_source",
+        "markdown_copy_parity",
+        "classics_reference_layer",
+        "classics_source_audit",
+        "rule_index_seed",
+        "rule_reference_integration",
+        "quality_gates",
+        "pytest_gate_expansion",
+        "acceptance_script_update",
+        "service_docs",
+        "readme_skill_update",
+        "playbook_architecture_update",
+        "ship_control",
+        "delivery_evidence",
+        "task_closeout"
+      ]
+    },
+    {
+      "id": "task-doc-set",
+      "type": "task-docs",
+      "description": "README/CONTEXT/ACCEPTANCE/PLAN/TODO/STATUS 任务文档集合",
+      "source_step_keys": [
+        "solar_terms_golden",
+        "solar_terms_inventory",
+        "solar_terms_fixture_builder",
+        "solar_terms_boundary_tests",
+        "yun_boundary_tests",
+        "report_structure_lock",
+        "report_profile_audit",
+        "default_bazi_blocks",
+        "report_snapshot_tests",
+        "bazi_evidence_contract",
+        "evidence_schema",
+        "evidence_mappers",
+        "evidence_rendering",
+        "weight_boundary_governance",
+        "capability_registry_boundary",
+        "weight_policy_tests",
+        "input_contract_privacy",
+        "input_schema_validation",
+        "privacy_fixture_tests",
+        "channel_parity",
+        "report_profile_single_source",
+        "markdown_copy_parity",
+        "classics_reference_layer",
+        "classics_source_audit",
+        "rule_index_seed",
+        "rule_reference_integration",
+        "quality_gates",
+        "pytest_gate_expansion",
+        "acceptance_script_update",
+        "service_docs",
+        "readme_skill_update",
+        "playbook_architecture_update",
+        "ship_control",
+        "delivery_evidence",
+        "task_closeout"
+      ],
+      "path": "/home/lenovo/.projects/fatecat/scripts/project/assets/tasks/0001-comprehensive-bazi-statement-service-hardening"
+    }
+  ],
+  "logical_deliverables": [
+    {
+      "step_key": "solar_terms_golden",
+      "step_id": "TP-01",
+      "outputs": [
+        "解析 1900-2030 交节时间表，建立节气、月令、立春年界和起运边界回归。"
+      ]
+    },
+    {
+      "step_key": "solar_terms_inventory",
+      "step_id": "TP-01.01",
+      "outputs": [
+        "读取 CSV/XLS/XLSX 字段、年份覆盖、时区和精度，产出 normalized schema 设计。"
+      ]
+    },
+    {
+      "step_key": "solar_terms_fixture_builder",
+      "step_id": "TP-01.02",
+      "outputs": [
+        "从 raw 表抽取可提交的小型标准化 fixture 或可复现生成脚本。"
+      ]
+    },
+    {
+      "step_key": "solar_terms_boundary_tests",
+      "step_id": "TP-01.03",
+      "outputs": [
+        "用 golden fixture 锁定节气时刻、月令切换、立春年界和真太阳时入参边界。"
+      ]
+    },
+    {
+      "step_key": "yun_boundary_tests",
+      "step_id": "TP-01.04",
+      "outputs": [
+        "建立 `yun.getStartSolar()` 样本回归，锁定起运年月日时分秒。"
+      ]
+    },
+    {
+      "step_key": "report_structure_lock",
+      "step_id": "TP-02",
+      "outputs": [
+        "固定默认 Markdown 块，确保非综合八字体系不混入默认报告。"
+      ]
+    },
+    {
+      "step_key": "report_profile_audit",
+      "step_id": "TP-02.01",
+      "outputs": [
+        "定位 Web/API/Bot 当前使用的报告 profile 和 Markdown 拼装入口。"
+      ]
+    },
+    {
+      "step_key": "default_bazi_blocks",
+      "step_id": "TP-02.02",
+      "outputs": [
+        "将默认块限定为综合八字核心、动态运势、辅助解释、称骨民俗附录。"
+      ]
+    },
+    {
+      "step_key": "report_snapshot_tests",
+      "step_id": "TP-02.03",
+      "outputs": [
+        "新增 Markdown 结构快照和块可见性测试。"
+      ]
+    },
+    {
+      "step_key": "bazi_evidence_contract",
+      "step_id": "TP-03",
+      "outputs": [
+        "为日主、旺衰、调候、格局、用神、干支关系等核心结论补 evidence 字段。"
+      ]
+    },
+    {
+      "step_key": "evidence_schema",
+      "step_id": "TP-03.01",
+      "outputs": [
+        "定义 source、basis、weight、visibility、risk、rule_id 等字段。"
+      ]
+    },
+    {
+      "step_key": "evidence_mappers",
+      "step_id": "TP-03.02",
+      "outputs": [
+        "把月令、藏干、透干、五行、合冲刑害、调候、神煞、称骨映射为证据来源。"
+      ]
+    },
+    {
+      "step_key": "evidence_rendering",
+      "step_id": "TP-03.03",
+      "outputs": [
+        "确定 evidence 在 API、Markdown、Web 中的默认显示/隐藏策略。"
+      ]
+    },
+    {
+      "step_key": "weight_boundary_governance",
+      "step_id": "TP-04",
+      "outputs": [
+        "固定八字核心、动态运势、辅助体系、民俗附录的权重层级。"
+      ]
+    },
+    {
+      "step_key": "capability_registry_boundary",
+      "step_id": "TP-04.01",
+      "outputs": [
+        "把紫微、黄历择日、占事、西方体系、铁板神数等声明为独立或未来 capability。"
+      ]
+    },
+    {
+      "step_key": "weight_policy_tests",
+      "step_id": "TP-04.02",
+      "outputs": [
+        "为核心/辅助/民俗权重边界添加测试和文档说明。"
+      ]
+    },
+    {
+      "step_key": "input_contract_privacy",
+      "step_id": "TP-05",
+      "outputs": [
+        "加固姓名、性别、出生日期、时间、地区的必填/可选规则和隐私示例治理。"
+      ]
+    },
+    {
+      "step_key": "input_schema_validation",
+      "step_id": "TP-05.01",
+      "outputs": [
+        "明确缺字段、格式错误、地区解析失败的服务响应，不生成半残报告。"
+      ]
+    },
+    {
+      "step_key": "privacy_fixture_tests",
+      "step_id": "TP-05.02",
+      "outputs": [
+        "统一北京/测试用户示例，禁止真实非北京地区进入前端样例和报告 fixture。"
+      ]
+    },
+    {
+      "step_key": "channel_parity",
+      "step_id": "TP-06",
+      "outputs": [
+        "确保三端调用同一 report profile，Markdown 复制内容与 API 返回一致。"
+      ]
+    },
+    {
+      "step_key": "report_profile_single_source",
+      "step_id": "TP-06.01",
+      "outputs": [
+        "收敛 Web、API、Bot 调用链路到同一 report profile 或同一 renderer。"
+      ]
+    },
+    {
+      "step_key": "markdown_copy_parity",
+      "step_id": "TP-06.02",
+      "outputs": [
+        "保证 Web 复制 Markdown 与 API/Bot 产物结构一致。"
+      ]
+    },
+    {
+      "step_key": "classics_reference_layer",
+      "step_id": "TP-07",
+      "outputs": [
+        "从已整理典籍中提炼格局、调候、用神规则索引，支持结论可追溯。"
+      ]
+    },
+    {
+      "step_key": "classics_source_audit",
+      "step_id": "TP-07.01",
+      "outputs": [
+        "盘点《渊海子平》《三命通会》《子平真诠》《滴天髓》《穷通宝鉴》可用文本与来源状态。"
+      ]
+    },
+    {
+      "step_key": "rule_index_seed",
+      "step_id": "TP-07.02",
+      "outputs": [
+        "先提炼格局、调候、用神的结构化规则索引种子。"
+      ]
+    },
+    {
+      "step_key": "rule_reference_integration",
+      "step_id": "TP-07.03",
+      "outputs": [
+        "把可用规则索引接入 evidence，不改变核心算法判断。"
+      ]
+    },
+    {
+      "step_key": "quality_gates",
+      "step_id": "TP-08",
+      "outputs": [
+        "把新增回归测试、隐私测试、结构测试和导出包卫生纳入 acceptance。"
+      ]
+    },
+    {
+      "step_key": "pytest_gate_expansion",
+      "step_id": "TP-08.01",
+      "outputs": [
+        "把节气、起运、报告结构、隐私、同源输出测试纳入现有 pytest 目录。"
+      ]
+    },
+    {
+      "step_key": "acceptance_script_update",
+      "step_id": "TP-08.02",
+      "outputs": [
+        "必要时更新 acceptance/preflight，确保新增门禁在本地和 CI 运行。"
+      ]
+    },
+    {
+      "step_key": "service_docs",
+      "step_id": "TP-09",
+      "outputs": [
+        "更新 README、SKILL、execution playbook 和架构文档，明确当前生产边界。"
+      ]
+    },
+    {
+      "step_key": "readme_skill_update",
+      "step_id": "TP-09.01",
+      "outputs": [
+        "明确当前生产服务只支持综合八字默认报告，其他体系为独立或未来 capability。"
+      ]
+    },
+    {
+      "step_key": "playbook_architecture_update",
+      "step_id": "TP-09.02",
+      "outputs": [
+        "同步 execution playbook、AGENTS.md 和相关架构文档。"
+      ]
+    },
+    {
+      "step_key": "ship_control",
+      "step_id": "TP-10",
+      "outputs": [
+        "完成版本控制、推送、CI、任务 closeout 和交付证据归档。"
+      ]
+    },
+    {
+      "step_key": "delivery_evidence",
+      "step_id": "TP-10.01",
+      "outputs": [
+        "捕获 git delivery evidence、验证命令结果和剩余风险。"
+      ]
+    },
+    {
+      "step_key": "task_closeout",
+      "step_id": "TP-10.02",
+      "outputs": [
+        "完成 TODO/STATUS，生成 Task Closeout Packet 并沉淀后续事项。"
+      ]
+    }
+  ],
+  "execution_snapshot": {
+    "total_nodes": 35,
+    "total_leaf_nodes": 25,
+    "ready_leaf_ids": [
+      "TP-01.01",
+      "TP-02.01"
+    ]
+  }
+}
