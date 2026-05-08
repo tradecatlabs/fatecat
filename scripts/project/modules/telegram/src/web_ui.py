@@ -67,6 +67,7 @@ class WebReportResult:
     input_payload: dict[str, Any]
     report_system: str
     report_system_label: str
+    workbench: dict[str, Any]
 
 
 def render_web_report_page(
@@ -179,6 +180,7 @@ def _build_report(form: WebReportForm) -> WebReportResult:
         input_payload=payload,
         report_system=report_system,
         report_system_label=REPORT_SYSTEM_LABELS[report_system],
+        workbench=_build_workbench_payload(calc_result, report_system),
     )
 
 
@@ -371,6 +373,7 @@ def _render_report(result: WebReportResult) -> str:
     raw_json = json.dumps(result.input_payload, ensure_ascii=False, indent=2)
     return "\n".join(
         [
+            _render_workbench(result),
             "<h2>Markdown 输出</h2>",
             f"<p>当前输出体系：{_h(result.report_system_label)}</p>",
             '<p><button type="button" id="copy-report">复制 Markdown</button></p>',
@@ -382,6 +385,152 @@ def _render_report(result: WebReportResult) -> str:
             "</details>",
         ]
     )
+
+
+def _build_workbench_payload(calc_result: dict[str, Any], report_system: str) -> dict[str, Any]:
+    """构建 Web 工作台数据；只消费后端结构化结果，不定义命理规则。"""
+    if report_system == "ziwei":
+        return {
+            "system": "ziwei",
+            "palaces": calc_result.get("palaceAnalysis", []),
+            "starTaxonomy": calc_result.get("ziweiStarTaxonomy", {}),
+            "mutagenFlow": calc_result.get("ziweiMutagenFlow", {}),
+            "palaceTopics": calc_result.get("ziweiPalaceTopics", []),
+            "goldenGuards": calc_result.get("ziweiGoldenGuards", {}),
+        }
+    return {
+        "system": "bazi",
+        "fourPillars": calc_result.get("fourPillars", {}),
+        "tenGods": calc_result.get("tenGods", {}),
+        "hiddenStems": calc_result.get("hiddenStems", {}),
+        "wuxingScores": calc_result.get("wuxingScores", {}),
+        "geju": calc_result.get("geju", {}),
+        "yongShen": calc_result.get("yongShen", {}),
+        "majorFortune": calc_result.get("majorFortune", {}),
+        "annualFortune": calc_result.get("annualFortune", []),
+        "baziBenchmark": calc_result.get("baziBenchmark", {}),
+    }
+
+
+def _render_workbench(result: WebReportResult) -> str:
+    if result.report_system == "ziwei":
+        return _render_ziwei_workbench(result.workbench)
+    return _render_bazi_workbench(result.workbench)
+
+
+def _render_bazi_workbench(workbench: dict[str, Any]) -> str:
+    pillars = workbench.get("fourPillars", {}) if isinstance(workbench.get("fourPillars"), dict) else {}
+    pillar_rows = []
+    for key, label in [("year", "年柱"), ("month", "月柱"), ("day", "日柱"), ("hour", "时柱")]:
+        item = pillars.get(key, {}) if isinstance(pillars.get(key), dict) else {}
+        pillar_rows.append([label, item.get("fullName", ""), item.get("stem", ""), item.get("branch", "")])
+    benchmark = workbench.get("baziBenchmark", {}) if isinstance(workbench.get("baziBenchmark"), dict) else {}
+    strength = benchmark.get("strengthScore", {}) if isinstance(benchmark.get("strengthScore"), dict) else {}
+    renyuan = benchmark.get("renYuanSiling", {}) if isinstance(benchmark.get("renYuanSiling"), dict) else {}
+    yongshen = workbench.get("yongShen", {}) if isinstance(workbench.get("yongShen"), dict) else {}
+    geju = workbench.get("geju", {}) if isinstance(workbench.get("geju"), dict) else {}
+    trigger_rows = []
+    for item in benchmark.get("fortuneTriggers", [])[:12] if isinstance(benchmark.get("fortuneTriggers"), list) else []:
+        if isinstance(item, dict):
+            trigger_rows.append([item.get("year", ""), item.get("ganZhi", ""), "；".join(item.get("reasons", []))])
+    if not trigger_rows:
+        trigger_rows.append(["-", "-", "当前样本未命中已登记触发项"])
+    return "\n".join(
+        [
+            '<section id="bazi-workbench">',
+            "<h2>八字工作台</h2>",
+            "<p>该区域只展示后端结构化字段；复制 Markdown 内容不受工作台影响。</p>",
+            "<details open><summary>四柱 / 十神 / 藏干</summary>",
+            "<pre><code>"
+            + _h(tabulate(pillar_rows, headers=["柱位", "干支", "天干", "地支"], tablefmt="psql"))
+            + "</code></pre>",
+            "</details>",
+            "<details><summary>五行强弱与人元司令</summary>",
+            "<pre><code>"
+            + _h(
+                json.dumps(
+                    {
+                        "strengthScore": strength,
+                        "renYuanSiling": renyuan,
+                        "wuxingScores": workbench.get("wuxingScores", {}),
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+            + "</code></pre>",
+            "</details>",
+            "<details><summary>格局与用神策略</summary>",
+            "<pre><code>"
+            + _h(
+                json.dumps(
+                    {
+                        "geju": geju,
+                        "yongShen": yongshen,
+                        "yongShenStrategies": benchmark.get("yongShenStrategies", []),
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+            + "</code></pre>",
+            "</details>",
+            "<details><summary>大运流年触发</summary>",
+            "<pre><code>"
+            + _h(tabulate(trigger_rows, headers=["年份", "干支", "触发依据"], tablefmt="psql"))
+            + "</code></pre>",
+            "</details>",
+            "</section>",
+        ]
+    )
+
+
+def _render_ziwei_workbench(workbench: dict[str, Any]) -> str:
+    palaces = workbench.get("palaces", []) if isinstance(workbench.get("palaces"), list) else []
+    palace_rows = []
+    for palace in palaces:
+        if not isinstance(palace, dict):
+            continue
+        palace_rows.append(
+            [
+                palace.get("name", ""),
+                palace.get("earthlyBranch", ""),
+                "、".join(_star_name_list(palace.get("majorStars"))),
+                "命" if palace.get("isOriginalPalace") else "",
+                "身" if palace.get("isBodyPalace") else "",
+            ]
+        )
+    taxonomy = workbench.get("starTaxonomy", {}) if isinstance(workbench.get("starTaxonomy"), dict) else {}
+    mutagen_flow = workbench.get("mutagenFlow", {}) if isinstance(workbench.get("mutagenFlow"), dict) else {}
+    return "\n".join(
+        [
+            '<section id="ziwei-workbench">',
+            "<h2>紫微工作台</h2>",
+            "<p>该区域只展示后端 iztro 结构化字段与解释索引；紫微仍为 standalone 输出。</p>",
+            "<details open><summary>十二宫 / 星曜</summary>",
+            "<pre><code>"
+            + _h(tabulate(palace_rows, headers=["宫位", "地支", "主星", "命宫", "身宫"], tablefmt="psql"))
+            + "</code></pre>",
+            "</details>",
+            "<details><summary>星曜分类 / 庙旺利陷</summary>",
+            "<pre><code>" + _h(json.dumps(taxonomy, ensure_ascii=False, indent=2)) + "</code></pre>",
+            "</details>",
+            "<details><summary>四化飞入 / 运限</summary>",
+            "<pre><code>" + _h(json.dumps(mutagen_flow, ensure_ascii=False, indent=2)) + "</code></pre>",
+            "</details>",
+            "</section>",
+        ]
+    )
+
+
+def _star_name_list(stars: object) -> list[str]:
+    if not isinstance(stars, list):
+        return []
+    names = []
+    for star in stars:
+        if isinstance(star, dict) and star.get("name"):
+            names.append(str(star.get("name")))
+    return names
 
 
 def _render_copy_script() -> str:

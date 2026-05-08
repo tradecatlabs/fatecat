@@ -1,0 +1,600 @@
+{
+  "schema_version": "1.0.0",
+  "task": {
+    "objective": "八字与紫微标杆级加固：对标市面强排盘系统，补齐准确性、规则库、解释层、命例 golden、Web 工作台与生产验收。",
+    "overall_status": "Done",
+    "in_scope": [
+      "只聚焦当前两条主体系：综合八字 bazi 与紫微斗数 ziwei。",
+      "八字方向补齐排盘准确性、强弱评分、格局用神、干支关系、动态运势与命例回归。",
+      "紫微方向补齐星盘完整性、星曜分类、庙旺陷、三方四正、四化飞入、运限联动、格局识别与命例回归。",
+      "Web 方向只做八字/紫微专业工作台与同源输出，不引入其他预测体系。",
+      "所有新增核心结论必须具备 evidence、规则 ID、测试或 golden 证据。"
+    ],
+    "out_of_scope": [
+      "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+      "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+      "不复制商业 App 文案、私有算法或版权未复核资料。",
+      "不修改 vendor 源码作为业务实现方式。",
+      "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+    ],
+    "task_level_acceptance": [
+      "八字 P0 边界、格局、用神、强弱、干支关系和运势触发有可复现测试或 golden。",
+      "紫微 P0 命盘、星曜、宫位关系、四化、运限和解释层有可复现测试或 golden。",
+      "Web/API/Bot 继续使用同一能力契约与报告 profile，前端不自行拼命理结论。",
+      "文档明确当前生产能力、未实现能力、标杆缺口和下一步执行波次。",
+      "`bash scripts/acceptance.sh` 通过，远端 CI 覆盖最终提交。"
+    ],
+    "validation_plan": [
+      "任务树阶段运行 auto-tasks 文档校验。",
+      "实现阶段新增或更新 pytest：八字 golden、紫微 golden、报告结构、API/Web 同源、隐私样例。",
+      "每批实现后运行 `cd scripts/project && .venv/bin/pytest ...` 的针对性测试。",
+      "出货前运行 `bash scripts/acceptance.sh`。",
+      "推送后检查 GitHub Actions 最新 run 成功。"
+    ],
+    "acceptance_standards": [
+      "不得把 planned 功能描述成 production。",
+      "不得让神煞、称骨、民俗附录影响八字核心格局和喜忌。",
+      "不得让紫微解释覆盖或篡改 iztro 原始星盘事实。",
+      "不得在前端示例显示真实非北京地区。",
+      "所有外部资料来源必须可追溯。"
+    ]
+  },
+  "context_packet": {
+    "requirement_alignment": [
+      "用户明确要求当前主要体系成熟的只有八字和紫微，先把这两个体系打磨到完美状态。",
+      "用户要求对标市面最强排盘系统的全部功能，并先完成深度调研、对比、路线图落盘。",
+      "已新增 `assets/docs/roadmap/八字紫微标杆对标路线图.md` 作为路线图真相源。",
+      "本任务只负责任务树和执行计划落盘，业务代码实现按后续 execution wave 推进。"
+    ],
+    "repo_evidence": [
+      "`assets/fate/capabilities/registry.json` 显示 `bazi` 与 `ziwei` 均为 production，其中 `bazi` 是唯一 default。",
+      "`assets/fate/capabilities/profiles/bazi.json` 与 `ziwei.json` 定义两个体系的报告 profile。",
+      "`modules/fate_core/usecases/calculate_ziwei.py` 已存在紫微独立 usecase 与 `ziweiInterpretation`。",
+      "`modules/telegram/src/bazi_calculator.py` 已包含综合八字计算、evidence、真太阳时、格局用神、动态运势等遗留生产链路。",
+      "`assets/data/bazi/golden/statement_cases.json` 已存在第一批八字命例 golden。",
+      "`assets/data/calendar/solar_terms/golden/solar_terms_1900_2030.json` 已存在节气 golden。",
+      "最新 `git status --short --branch` 在任务创建前显示 main 与 origin/main 同步，但已有路线图文档未提交。"
+    ],
+    "constraints": [
+      "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+      "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+      "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+      "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+      "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+    ],
+    "risks": [
+      "市面商业产品功能无法完全通过公开资料复核，需要把公开证据与人工复核项分开。",
+      "八字格局、用神、强弱有多流派冲突，必须先定义流派口径和冲突优先级。",
+      "紫微不同派别对星曜、四化、飞星和限运解释差异大，必须记录配置口径。",
+      "规则库扩张容易造成报告膨胀，必须保持结构化输出与 Markdown 输出边界。",
+      "命例 golden 若来源不清会污染准确性评估，必须记录来源和授权。"
+    ],
+    "assumptions": [
+      "当前第一阶段以 FateCat 已接入的 lunar-python、bazi-1 和 iztro 为底座，不先替换核心库。",
+      "对标目标是功能结构和验证方法，不是复制商业产品文案。",
+      "Web 工作台可以分阶段实现，先结构化数据和点击展开，再做视觉增强。",
+      "MingLi-Bench 与外部 Drive 资料后续只作为评测/资料候选，进入生产前必须做版权和可复核性分级。"
+    ],
+    "change_boundary": [
+      "允许修改 `scripts/project/assets/tasks/0002-bazi-ziwei-benchmark-hardening/` 与 `scripts/project/assets/tasks/INDEX.md` 落盘任务树。",
+      "本轮允许保留已新增路线图文档与索引修改。",
+      "业务实现阶段允许修改 `modules/fate_core/`、`modules/telegram/`、`assets/fate/`、`assets/data/`、`tests/` 和相关文档。",
+      "禁止修改 vendor 快照来承载业务逻辑。",
+      "禁止引入未复核版权文本作为生产规则库。"
+    ],
+    "critical_ambiguities": [
+      "不同标杆产品的私有功能无法完全公开验证；解决方式是只落公开可复核功能结构，把人工复核列为后续任务。",
+      "八字与紫微多流派差异会影响最终断语；解决方式是先把流派配置写入输出和 evidence。",
+      "是否做完整前端工作台取决于后续执行资源；任务树先把数据契约作为前置。"
+    ],
+    "ambiguities": [
+      "命例库采用公开名人命例、匿名合成命例还是外部 benchmark，需要在实现前分级。",
+      "紫微格局识别第一批覆盖哪些格局，需要结合 iztro 输出字段和公开资料确认。"
+    ],
+    "blockers": [
+      "当前无任务树落盘阻塞项。"
+    ],
+    "debug_focus": [
+      "若后续出现计算结果与 golden 冲突，必须新增 DEBUG.md 记录数据来源、口径差异、根因和回归证据。",
+      "若 Web/API/Bot 输出不一致，必须以能力 usecase 与 report profile 为单一真相源排查。"
+    ],
+    "debug_mode": "Optional"
+  },
+  "plan": {
+    "planning_summary": "按两个主体系的成熟度缺口拆分：先做共同治理和标杆证据，再做八字准确性与规则库，再做紫微盘面完整性与解释库，最后做 Web 工作台、验收和出货。",
+    "simplest_path": "不新增新体系，不替换底层成熟库；先把现有 bazi/ziwei 的计算事实、规则 evidence、命例 golden 和输出体验补齐。",
+    "split_strategy": "顶层按治理域拆分，叶子按可独立实现和验证的交付物拆分；P0 先覆盖准确性和 evidence，P1 再覆盖专题和工作台。",
+    "lifecycle_gates": [
+      "SPEC：路线图、标杆来源、范围边界、当前缺口已写入文档和任务上下文。",
+      "PLAN：递归任务树、依赖图、执行波次、验收清单全部落盘并通过校验。",
+      "BUILD：按 execution wave 执行叶子节点，每批实现绑定 TP 编号。",
+      "TEST：新增测试覆盖对应 TP 验收，不允许只改代码不补测试。",
+      "REVIEW：自审准确性、规则 evidence、隐私、输出边界和导出包卫生。",
+      "SHIP：提交、推送、CI 通过，任务 closeout 更新。",
+      "不得跳过未闭合 gate 直接进入下一阶段。"
+    ],
+    "review_gate": [
+      "每个核心结论必须可追溯到底层计算、规则 ID、fixture 或公开来源。",
+      "八字和紫微输出必须保持体系隔离。",
+      "Web 不允许自行拼装命理判断，只消费后端结构化结果。",
+      "新增资料不得违反版权和隐私边界。"
+    ],
+    "ship_readiness": [
+      "`bash scripts/acceptance.sh` 通过。",
+      "Git 工作树干净，当前分支推送远端。",
+      "GitHub Actions 最新 run 成功。",
+      "任务 TODO 全部关闭，STATUS 无 blocker，closeout 证据完整。"
+    ],
+    "steps": [
+      {
+        "key": "benchmark_governance",
+        "title": "标杆证据与能力边界治理",
+        "objective": "把八字/紫微对标范围、公开来源、不可复制边界和当前能力基线固定下来。",
+        "priority": "P0",
+        "type": "Governance",
+        "parallelizable": false,
+        "status": "Not Started",
+        "children": [
+          {
+            "key": "benchmark_source_registry",
+            "title": "建立标杆来源登记表",
+            "objective": "把问真、从真版、Bazilabs、NCC、文墨天机、紫微 Palace、iztro 等公开来源登记为可复核资料。",
+            "priority": "P0",
+            "type": "Audit",
+            "parallelizable": true,
+            "status": "Not Started",
+            "verify": "文档列出来源、体系、可对标点、复核 URL 和版权边界。",
+            "gate": "不得复制商业产品文案或私有算法。",
+            "acceptance": [
+              "来源表进入 `assets/docs/vendor/` 或 roadmap 附录。",
+              "不可验证项标记为人工复核。"
+            ]
+          },
+          {
+            "key": "current_capability_baseline",
+            "title": "固化当前 bazi/ziwei 能力基线",
+            "objective": "输出当前字段、报告块、API/Web/Bot 入口和测试覆盖的基线快照。",
+            "priority": "P0",
+            "type": "Audit",
+            "parallelizable": true,
+            "status": "Not Started",
+            "verify": "生成当前能力矩阵并链接到 registry/profile/tests。",
+            "gate": "基线必须来自仓库文件和命令输出。"
+          },
+          {
+            "key": "feature_gap_matrix",
+            "title": "建立 P0/P1/P2 缺口矩阵",
+            "objective": "把八字和紫微缺口拆成准确性、规则库、解释层、动态运势、Web 工作台、命例验证六类。",
+            "priority": "P0",
+            "type": "Plan",
+            "parallelizable": false,
+            "status": "Not Started",
+            "depends_on": [
+              "benchmark_source_registry",
+              "current_capability_baseline"
+            ],
+            "verify": "缺口矩阵与本任务树 TP 节点互相可追溯。",
+            "gate": "不得把 planned 缺口写成 production。"
+          }
+        ]
+      },
+      {
+        "key": "bazi_accuracy_p0",
+        "title": "八字准确性 P0 加固",
+        "objective": "锁定八字排盘、边界、强弱、干支关系和动态运势的准确性地基。",
+        "priority": "P0",
+        "type": "Build",
+        "parallelizable": false,
+        "status": "Not Started",
+        "depends_on": [
+          "benchmark_governance"
+        ],
+        "children": [
+          {
+            "key": "bazi_time_boundary_golden",
+            "title": "补早晚子时与真太阳时边界 golden",
+            "objective": "建立早晚子时、真太阳时入参、立春年界、月令切换的组合边界测试。",
+            "priority": "P0",
+            "type": "Test",
+            "parallelizable": false,
+            "status": "Not Started",
+            "verify": "pytest 覆盖边界样本并进入 acceptance。",
+            "gate": "每个样本记录来源、时区、预期柱变化。"
+          },
+          {
+            "key": "bazi_renyuan_siling",
+            "title": "补人元司令与月令权重",
+            "objective": "结构化输出人元司令、月令权重和旺相休囚死相关依据。",
+            "priority": "P0",
+            "type": "Build",
+            "parallelizable": false,
+            "status": "Not Started",
+            "verify": "新增字段、规则 ID 和 fixture 断言。",
+            "gate": "字段不得破坏现有 Markdown 默认结构。"
+          },
+          {
+            "key": "bazi_strength_score_golden",
+            "title": "补强弱评分 golden",
+            "objective": "锁定日主强弱评分的月令、通根、透干、藏干、五行分数权重。",
+            "priority": "P0",
+            "type": "Test",
+            "parallelizable": false,
+            "status": "Not Started",
+            "verify": "典型强、弱、中和、从格边界命例测试通过。",
+            "gate": "评分口径写入 evidence 与文档。"
+          },
+          {
+            "key": "bazi_ganzhi_priority",
+            "title": "补干支关系优先级",
+            "objective": "明确合化、三会、三合、冲刑害破、入库、拱合、伏吟反吟的判定和展示优先级。",
+            "priority": "P0",
+            "type": "Build",
+            "parallelizable": false,
+            "status": "Not Started",
+            "verify": "干支关系 golden 和规则 ID 覆盖主要组合。",
+            "gate": "合化是否成化必须有依据字段。"
+          },
+          {
+            "key": "bazi_fortune_trigger_golden",
+            "title": "补大运流年流月触发 golden",
+            "objective": "锁定岁运并临、天克地冲、伏吟反吟、流月触发等动态运势边界。",
+            "priority": "P0",
+            "type": "Test",
+            "parallelizable": false,
+            "status": "Not Started",
+            "verify": "新增动态运势 fixture 与 pytest。",
+            "gate": "动态触发只作为趋势依据，不输出确定未来。"
+          }
+        ]
+      },
+      {
+        "key": "bazi_rule_library",
+        "title": "八字规则库与解释层",
+        "objective": "把格局、用神、十神、调候、专题解释做成可追溯规则层。",
+        "priority": "P0",
+        "type": "Build",
+        "parallelizable": false,
+        "status": "Not Started",
+        "depends_on": [
+          "bazi_accuracy_p0"
+        ],
+        "children": [
+          {
+            "key": "bazi_pattern_registry",
+            "title": "建立格局规则 registry",
+            "objective": "覆盖正格、变格、从格、专旺、化气的第一批规则和典型命例。",
+            "priority": "P0",
+            "type": "Build",
+            "parallelizable": false,
+            "status": "Not Started",
+            "verify": "规则索引、evidence 和 golden 互相可追溯。",
+            "gate": "无法稳定判定的格局必须输出不确定原因。"
+          },
+          {
+            "key": "bazi_yongshen_strategy",
+            "title": "拆分用神策略口径",
+            "objective": "把调候、扶抑、通关、病药拆成独立依据，处理口径冲突。",
+            "priority": "P0",
+            "type": "Build",
+            "parallelizable": false,
+            "status": "Not Started",
+            "verify": "用神输出包含 strategy、basis、conflicts、ruleIds。",
+            "gate": "不得把单一调候结论包装成全部用神结论。"
+          },
+          {
+            "key": "bazi_tengod_interpretation",
+            "title": "建立十神组合解释库",
+            "objective": "为透干、藏干、十神数量、十神组合和十神成局建立结构化解释。",
+            "priority": "P1",
+            "type": "Build",
+            "parallelizable": true,
+            "status": "Not Started",
+            "verify": "十神解释字段和 Markdown 摘要测试通过。",
+            "gate": "十神解释必须引用盘面证据。"
+          },
+          {
+            "key": "bazi_classics_rule_index",
+            "title": "扩展八字典籍规则索引",
+            "objective": "从已整理典籍资料中提炼规则 ID，不直接复制大段原文。",
+            "priority": "P1",
+            "type": "Research",
+            "parallelizable": true,
+            "status": "Not Started",
+            "verify": "规则索引包含来源、短依据、适用条件和版权边界。",
+            "gate": "版权未复核内容不得进入生产文案。"
+          },
+          {
+            "key": "bazi_topic_reports",
+            "title": "设计八字专题报告",
+            "objective": "建立事业、财运、婚姻、健康、学业、迁移等专题结构，但保持默认报告克制。",
+            "priority": "P1",
+            "type": "Design",
+            "parallelizable": true,
+            "status": "Not Started",
+            "verify": "专题 profile 与默认 Markdown 隔离测试通过。",
+            "gate": "健康等高风险专题必须有更强免责声明。"
+          }
+        ]
+      },
+      {
+        "key": "ziwei_chart_p0",
+        "title": "紫微完整盘面 P0 加固",
+        "objective": "吃透 iztro 输出，补齐星曜分类、宫位关系、四化飞入和紫微 golden。",
+        "priority": "P0",
+        "type": "Build",
+        "parallelizable": false,
+        "status": "Not Started",
+        "depends_on": [
+          "benchmark_governance"
+        ],
+        "children": [
+          {
+            "key": "ziwei_iztro_contract",
+            "title": "审计 iztro 输出契约",
+            "objective": "确认 iztro 当前可用字段、配置插件、运限和四化能力，形成适配清单。",
+            "priority": "P0",
+            "type": "Audit",
+            "parallelizable": false,
+            "status": "Not Started",
+            "verify": "输出字段矩阵和未用字段清单。",
+            "gate": "只读 vendor，不魔改 iztro。"
+          },
+          {
+            "key": "ziwei_star_taxonomy",
+            "title": "补星曜分类与亮度字段",
+            "objective": "结构化主星、辅星、杂曜、煞曜、吉曜与庙旺利陷字段。",
+            "priority": "P0",
+            "type": "Build",
+            "parallelizable": false,
+            "status": "Not Started",
+            "depends_on": [
+              "ziwei_iztro_contract"
+            ],
+            "verify": "十二宫星曜分类和亮度测试通过。",
+            "gate": "不得丢失 iztro 原始 palaces。"
+          },
+          {
+            "key": "ziwei_palace_relations",
+            "title": "补宫位关系结构",
+            "objective": "结构化对宫、夹宫、借宫、三方四正和宫位组合。",
+            "priority": "P0",
+            "type": "Build",
+            "parallelizable": false,
+            "status": "Not Started",
+            "depends_on": [
+              "ziwei_iztro_contract"
+            ],
+            "verify": "命宫、身宫、事业、财帛、夫妻等宫位关系测试通过。",
+            "gate": "关系字段必须能追到宫位和地支。"
+          },
+          {
+            "key": "ziwei_mutagen_flow",
+            "title": "补四化飞入与冲照会照",
+            "objective": "在生年、大限、流年、流月、流日、流时四化基础上补飞入、冲照、会照解释字段。",
+            "priority": "P0",
+            "type": "Build",
+            "parallelizable": false,
+            "status": "Not Started",
+            "depends_on": [
+              "ziwei_iztro_contract"
+            ],
+            "verify": "四化落宫、飞入、冲照、会照字段测试通过。",
+            "gate": "四化解释不得覆盖原始四化事实。"
+          },
+          {
+            "key": "ziwei_golden_cases",
+            "title": "建立紫微命例 golden",
+            "objective": "建立紫微命盘、命身宫、主星、四化、运限的第一批 fixture。",
+            "priority": "P0",
+            "type": "Test",
+            "parallelizable": false,
+            "status": "Not Started",
+            "depends_on": [
+              "ziwei_star_taxonomy",
+              "ziwei_palace_relations",
+              "ziwei_mutagen_flow"
+            ],
+            "verify": "pytest 锁定紫微 P0 字段和解释层结构。",
+            "gate": "命例来源必须可追溯或使用合成匿名样本。"
+          }
+        ]
+      },
+      {
+        "key": "ziwei_interpretation_library",
+        "title": "紫微解释库与运限联动",
+        "objective": "建立星曜百科、主星组合、十二宫专题、格局识别和本命/大限/流年三层联动。",
+        "priority": "P1",
+        "type": "Build",
+        "parallelizable": false,
+        "status": "Not Started",
+        "depends_on": [
+          "ziwei_chart_p0"
+        ],
+        "children": [
+          {
+            "key": "ziwei_star_encyclopedia",
+            "title": "建立星曜百科索引",
+            "objective": "为主要星曜建立宫位、亮度、四化条件下的基础解释索引。",
+            "priority": "P1",
+            "type": "Build",
+            "parallelizable": true,
+            "status": "Not Started",
+            "verify": "星曜索引 schema 和抽样解释测试通过。",
+            "gate": "解释必须标注适用条件。"
+          },
+          {
+            "key": "ziwei_main_star_combos",
+            "title": "扩展主星组合规则",
+            "objective": "补紫府、机月同梁、杀破狼等第一批主星组合解释。",
+            "priority": "P1",
+            "type": "Build",
+            "parallelizable": true,
+            "status": "Not Started",
+            "verify": "组合识别和 evidence rule ID 测试通过。",
+            "gate": "组合缺条件时输出不成立原因。"
+          },
+          {
+            "key": "ziwei_palace_topics",
+            "title": "建立十二宫专题解释",
+            "objective": "每宫输出主星、辅星、四化、三方四正、限运触发的结构化专题。",
+            "priority": "P1",
+            "type": "Build",
+            "parallelizable": true,
+            "status": "Not Started",
+            "verify": "十二宫专题快照测试通过。",
+            "gate": "专题解释不得输出恐吓式断语。"
+          },
+          {
+            "key": "ziwei_fortune_linkage",
+            "title": "深化本命大限流年联动",
+            "objective": "输出本命为体、大限成形、流年触发的三层因果链。",
+            "priority": "P1",
+            "type": "Build",
+            "parallelizable": false,
+            "status": "Not Started",
+            "depends_on": [
+              "ziwei_star_encyclopedia",
+              "ziwei_main_star_combos",
+              "ziwei_palace_topics"
+            ],
+            "verify": "联动解释包含本命宫位、大限宫位、流年四化和风险边界。",
+            "gate": "不得把趋势解释写成确定未来。"
+          }
+        ]
+      },
+      {
+        "key": "web_workbench",
+        "title": "八字紫微 Web 专业工作台",
+        "objective": "把 Web 从报告复制页升级为八字/紫微结构化查看和点击展开工作台。",
+        "priority": "P1",
+        "type": "Frontend",
+        "parallelizable": false,
+        "status": "Not Started",
+        "depends_on": [
+          "bazi_rule_library",
+          "ziwei_interpretation_library"
+        ],
+        "children": [
+          {
+            "key": "web_shared_data_contract",
+            "title": "统一 Web 数据契约",
+            "objective": "定义 Web 只消费 capability/usecase 结构化结果，不自行拼命理结论。",
+            "priority": "P0",
+            "type": "Contract",
+            "parallelizable": false,
+            "status": "Not Started",
+            "verify": "API 与 Web 测试断言同源字段。",
+            "gate": "前端不得重复实现命理规则。"
+          },
+          {
+            "key": "web_bazi_workbench",
+            "title": "实现八字工作台",
+            "objective": "四柱、十神、藏干、五行、格局、用神、大运流年可点击展开。",
+            "priority": "P1",
+            "type": "Frontend",
+            "parallelizable": true,
+            "status": "Not Started",
+            "depends_on": [
+              "web_shared_data_contract"
+            ],
+            "verify": "Web 测试覆盖八字工作台结构和复制 Markdown。",
+            "gate": "默认 Markdown 结构不被前端改写。"
+          },
+          {
+            "key": "web_ziwei_workbench",
+            "title": "实现紫微工作台",
+            "objective": "十二宫、星曜、四化、运限可点击展开解释。",
+            "priority": "P1",
+            "type": "Frontend",
+            "parallelizable": true,
+            "status": "Not Started",
+            "depends_on": [
+              "web_shared_data_contract"
+            ],
+            "verify": "Web 测试覆盖紫微工作台结构和 standalone 输出。",
+            "gate": "紫微不得混入八字默认报告。"
+          },
+          {
+            "key": "web_privacy_regression",
+            "title": "补 Web 隐私回归",
+            "objective": "保证示例数据仍为北京/测试用户，不显示真实非北京地区样例。",
+            "priority": "P0",
+            "type": "Test",
+            "parallelizable": true,
+            "status": "Not Started",
+            "depends_on": [
+              "web_shared_data_contract"
+            ],
+            "verify": "privacy fixtures gate 和 Web 测试通过。",
+            "gate": "真实地区只用于后端计算，不进前端示例。"
+          }
+        ]
+      },
+      {
+        "key": "quality_ship",
+        "title": "质量门禁、文档同步与交付",
+        "objective": "把所有新增能力纳入测试、文档、acceptance、版本控制和远端 CI。",
+        "priority": "P0",
+        "type": "Ship",
+        "parallelizable": false,
+        "status": "Not Started",
+        "depends_on": [
+          "web_workbench"
+        ],
+        "children": [
+          {
+            "key": "acceptance_gate_update",
+            "title": "更新 acceptance 门禁",
+            "objective": "确保新增八字/紫微 golden、Web 工作台和隐私回归进入发布门禁。",
+            "priority": "P0",
+            "type": "Test",
+            "parallelizable": false,
+            "status": "Not Started",
+            "verify": "`bash scripts/acceptance.sh` 覆盖新增测试并通过。",
+            "gate": "导出包卫生继续通过。"
+          },
+          {
+            "key": "docs_sync",
+            "title": "同步 README、功能状态与路线文档",
+            "objective": "更新当前能力、未实现能力、对标路线和使用边界。",
+            "priority": "P0",
+            "type": "Docs",
+            "parallelizable": true,
+            "status": "Not Started",
+            "verify": "文档无 planned/production 口径冲突。",
+            "gate": "不把未来能力写成已生产。"
+          },
+          {
+            "key": "self_review_audit",
+            "title": "执行自审和审计清单",
+            "objective": "检查准确性、evidence、隐私、输出边界、导出包、CI 和残留问题。",
+            "priority": "P0",
+            "type": "Review",
+            "parallelizable": false,
+            "status": "Not Started",
+            "depends_on": [
+              "acceptance_gate_update",
+              "docs_sync"
+            ],
+            "verify": "输出审计摘要并记录剩余风险。",
+            "gate": "阻断项必须修复或明确标为 blocker。"
+          },
+          {
+            "key": "git_delivery_closeout",
+            "title": "提交推送与 closeout",
+            "objective": "提交、推送、检查 GitHub Actions，更新任务 closeout 证据。",
+            "priority": "P0",
+            "type": "Ship",
+            "parallelizable": false,
+            "status": "Not Started",
+            "depends_on": [
+              "self_review_audit"
+            ],
+            "verify": "git clean、远端 CI 成功、closeout 文档完整。",
+            "gate": "不得在 CI 未覆盖最新提交时宣称完成。"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "schema_version": "2.0.0",
+  "artifact_type": "delivery_evidence_manifest",
+  "status": "regeneratable",
+  "reason": "实时 Git 状态快照不作为入库真相源；该类快照一旦提交就会天然落后于包含它的提交，容易形成 self-blocking 交付证据。",
+  "live_evidence_command": "python3 /home/lenovo/.codex/skills/auto-github/scripts/capture_delivery_evidence.py --out /tmp/fatecat-git-delivery-evidence.json",
+  "closeout_packet_command": "python3 /home/lenovo/.codex/skills/auto-tasks/scripts/build_task_closeout.py --task-dir scripts/project/assets/tasks/0002-bazi-ziwei-benchmark-hardening --task-package-set scripts/project/assets/tasks/0002-bazi-ziwei-benchmark-hardening/TASK_PACKAGE_SET.json --out /tmp/fatecat-0002-closeout-packet.json --strict",
+  "authoritative_release_evidence": [
+    "git status --short --branch",
+    "git rev-parse HEAD",
+    "bash scripts/acceptance.sh",
+    "gh run list --limit 5"
+  ],
+  "tracked_file_policy": {
+    "must_not_record_live_worktree_counts": true,
+    "must_not_claim_current_ci_run_for_uncommitted_diff": true,
+    "must_not_be_used_as_the_only_ship_gate": true
+  },
+  "handoff_notes": [
+    "提交前可生成 /tmp/fatecat-git-delivery-evidence.json 作为本地交接快照。",
+    "提交并推送后，以 GitHub Actions 最新成功 run 和干净 worktree 命令输出作为最终交付证据。",
+    "若需要长期归档，应归档命令、commit hash、CI run URL 与 acceptance 输出摘要，而不是提交实时工作树快照。"
+  ]
+}

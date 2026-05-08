@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "source": "synthetic_anonymous_fixture",
+  "cases": [
+    {
+      "id": "beijing_1990_male",
+      "input": {
+        "birthDateTime": "1990-01-01 08:00:00",
+        "gender": "男",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京",
+        "name": "测试样本"
+      },
+      "expected": {
+        "palaceCount": 12,
+        "lifePalace": {
+          "name": "财帛",
+          "earthlyBranch": "巳",
+          "majorStars": ["太阴"]
+        },
+        "bodyPalace": {
+          "name": "财帛",
+          "earthlyBranch": "巳",
+          "majorStars": ["太阴"]
+        },
+        "mutagenPlacementCount": 4,
+        "fortuneLinkCount": 5,
+        "requiredRuleIds": [
+          "ziwei.star_taxonomy",
+          "ziwei.palace_relations",
+          "ziwei.mutagen_flow",
+          "ziwei.golden_case_guard"
+        ]
+      }
+    }
+  ]
+}

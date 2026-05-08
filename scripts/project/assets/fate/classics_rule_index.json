@@ -121,6 +121,69 @@
       "doesNotApplyWhen": ["只输出基础四柱"]
     },
     {
+      "id": "bazi.renyuan_siling_weight",
+      "system": "bazi",
+      "topic": "人元司令",
+      "summary": "人元司令用于说明月令内部藏干分野，需与节气距离、月支藏干和五行旺相休囚死共同展示。",
+      "sources": ["项目 SILING 表", "月令分野规则"],
+      "appliesWhen": ["月支、上一节气和节后天数齐备"],
+      "doesNotApplyWhen": ["节气距离缺失或只做民俗附录"]
+    },
+    {
+      "id": "bazi.strength_score_golden",
+      "system": "bazi",
+      "topic": "强弱评分",
+      "summary": "日主强弱评分需保留 weak、strongScore、五行分数、十二长生状态和最终五档标签，便于命例回归。",
+      "sources": ["bazi-1", "项目强弱映射回归"],
+      "appliesWhen": ["四柱、藏干和五行评分齐备"],
+      "doesNotApplyWhen": ["只存在生肖或年柱"]
+    },
+    {
+      "id": "bazi.ganzhi_priority",
+      "system": "bazi",
+      "topic": "干支关系优先级",
+      "summary": "干支关系展示应按合化、三会、三合、六合、冲刑害破、入库等优先级组织，并标明是否只作结构证据。",
+      "sources": ["bazi-1 ganzhi.py", "项目干支关系规则"],
+      "appliesWhen": ["四柱干支和地支关系表齐备"],
+      "doesNotApplyWhen": ["缺少完整四柱"]
+    },
+    {
+      "id": "bazi.fortune_trigger_boundary",
+      "system": "bazi",
+      "topic": "岁运触发",
+      "summary": "岁运并临、伏吟反吟、天克地冲等只作为动态运势触发证据，不输出确定未来。",
+      "sources": ["lunar-python 运势字段", "项目动态触发规则"],
+      "appliesWhen": ["大运、流年或流月字段齐备"],
+      "doesNotApplyWhen": ["未计算动态运势"]
+    },
+    {
+      "id": "bazi.yongshen_strategy",
+      "system": "bazi",
+      "topic": "用神策略",
+      "summary": "用神解释需区分调候、扶抑、通关、病药等策略，并记录策略冲突和依据来源。",
+      "sources": ["穷通宝鉴", "子平真诠", "项目用神策略边界"],
+      "appliesWhen": ["日主、月令、调候、五行分数和干支关系齐备"],
+      "doesNotApplyWhen": ["只输出单一调候查表结果"]
+    },
+    {
+      "id": "bazi.ten_god_structure",
+      "system": "bazi",
+      "topic": "十神结构",
+      "summary": "十神解释必须引用透干、藏干和盘面位置，统计摘要仅作为结构证据。",
+      "sources": ["bazi-1 十神表", "项目十神结构规则"],
+      "appliesWhen": ["tenGods 字段齐备"],
+      "doesNotApplyWhen": ["缺少日主或十神映射"]
+    },
+    {
+      "id": "bazi.topic_profile_boundary",
+      "system": "bazi",
+      "topic": "专题报告边界",
+      "summary": "事业、财运、婚姻、健康、学业、迁移等专题必须作为独立 profile 或工作台模块，不污染默认报告。",
+      "sources": ["项目报告 profile 策略"],
+      "appliesWhen": ["需要专题化输出"],
+      "doesNotApplyWhen": ["默认综合八字 Markdown"]
+    },
+    {
       "id": "bazi.spirits_auxiliary_only",
       "system": "bazi",
       "topic": "神煞",
@@ -272,6 +335,105 @@
       "sources": ["iztro horoscope", "项目紫微解释边界"],
       "appliesWhen": ["horoscope 返回 decadal/yearly/monthly/daily/hourly"],
       "doesNotApplyWhen": ["未计算运限数据"]
+    },
+    {
+      "id": "ziwei.star_taxonomy",
+      "system": "ziwei",
+      "topic": "星曜分类",
+      "summary": "星曜需按主星、辅星、煞星、杂曜等分类汇总，解释层不得丢失原始星曜归宫。",
+      "sources": ["iztro palace stars", "项目紫微标杆加固"],
+      "appliesWhen": ["palaceAnalysis 包含 majorStars/minorStars/adjectiveStars"],
+      "doesNotApplyWhen": ["只存在星名文本"]
+    },
+    {
+      "id": "ziwei.brightness_state",
+      "system": "ziwei",
+      "topic": "庙旺利陷",
+      "summary": "星曜亮度字段应与星名、宫位、作用域同时展示，只作解释条件，不单独断吉凶。",
+      "sources": ["iztro star.brightness", "项目紫微标杆加固"],
+      "appliesWhen": ["星曜含 brightness 字段"],
+      "doesNotApplyWhen": ["亮度字段缺失"]
+    },
+    {
+      "id": "ziwei.palace_relations",
+      "system": "ziwei",
+      "topic": "宫位关系",
+      "summary": "宫位关系需保留本宫、对宫、夹宫、命身宫标记和宫干支，作为专题解释证据。",
+      "sources": ["iztro palaces", "项目宫位关系规则"],
+      "appliesWhen": ["十二宫索引齐备"],
+      "doesNotApplyWhen": ["宫位数量不足十二"]
+    },
+    {
+      "id": "ziwei.opposite_palace",
+      "system": "ziwei",
+      "topic": "对宫",
+      "summary": "对宫按十二宫相隔六宫的结构关系展示，不代替三方四正原生输出。",
+      "sources": ["项目宫位索引规则"],
+      "appliesWhen": ["宫位 index 可用"],
+      "doesNotApplyWhen": ["宫位 index 缺失"]
+    },
+    {
+      "id": "ziwei.sandwiched_palaces",
+      "system": "ziwei",
+      "topic": "夹宫",
+      "summary": "夹宫记录本宫左右相邻宫位，用于后续夹辅夹煞等规则，不直接输出确定性断语。",
+      "sources": ["项目宫位索引规则"],
+      "appliesWhen": ["宫位 index 可用"],
+      "doesNotApplyWhen": ["宫位 index 缺失"]
+    },
+    {
+      "id": "ziwei.mutagen_flow",
+      "system": "ziwei",
+      "topic": "四化飞入",
+      "summary": "四化飞入需记录四化名、星曜、落宫、作用域和对宫结构，避免本命与运限混读。",
+      "sources": ["iztro star.mutagen", "iztro horoscope"],
+      "appliesWhen": ["星曜或 horoscope 包含四化字段"],
+      "doesNotApplyWhen": ["未计算四化"]
+    },
+    {
+      "id": "ziwei.mutagen_opposition",
+      "system": "ziwei",
+      "topic": "四化冲照会照",
+      "summary": "四化冲照会照先以落宫与对宫结构作证据登记，完整飞星派断法需后续流派配置。",
+      "sources": ["项目紫微解释边界"],
+      "appliesWhen": ["落宫和对宫关系齐备"],
+      "doesNotApplyWhen": ["宫位关系缺失"]
+    },
+    {
+      "id": "ziwei.golden_case_guard",
+      "system": "ziwei",
+      "topic": "紫微命例回归",
+      "summary": "紫微 golden 需锁定十二宫数量、命身宫、主星、四化数量和运限联动数量。",
+      "sources": ["项目紫微 golden fixture"],
+      "appliesWhen": ["紫微命盘结构化输出齐备"],
+      "doesNotApplyWhen": ["只输出简化紫微基础"]
+    },
+    {
+      "id": "ziwei.star_encyclopedia_seed",
+      "system": "ziwei",
+      "topic": "星曜百科",
+      "summary": "星曜百科种子只登记星曜分类、样本宫位、亮度和四化条件，完整解释后续规则化扩展。",
+      "sources": ["iztro star fields", "项目星曜百科索引"],
+      "appliesWhen": ["星曜字段齐备"],
+      "doesNotApplyWhen": ["星曜来源不明"]
+    },
+    {
+      "id": "ziwei.pattern_match_seed",
+      "system": "ziwei",
+      "topic": "紫微格局",
+      "summary": "紫微格局识别先以主星集合做候选匹配，并输出缺失条件，不作强断。",
+      "sources": ["项目紫微格局种子规则"],
+      "appliesWhen": ["主星集合齐备"],
+      "doesNotApplyWhen": ["主星字段缺失"]
+    },
+    {
+      "id": "ziwei.palace_topic",
+      "system": "ziwei",
+      "topic": "十二宫专题",
+      "summary": "十二宫专题汇总主星、辅星、杂曜、四化、三方四正和限运字段，保持风险边界。",
+      "sources": ["iztro palaces", "项目十二宫专题规则"],
+      "appliesWhen": ["十二宫字段齐备"],
+      "doesNotApplyWhen": ["默认综合八字报告"]
     },
     {
       "id": "ziwei.basic_palaces",

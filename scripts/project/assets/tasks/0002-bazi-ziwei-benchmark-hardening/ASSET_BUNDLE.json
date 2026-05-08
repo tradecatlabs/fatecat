@@ -1,0 +1,461 @@
+{
+  "schema_version": "1.0.0",
+  "task_meta": {
+    "objective": "八字与紫微标杆级加固：对标市面强排盘系统，补齐准确性、规则库、解释层、命例 golden、Web 工作台与生产验收。",
+    "overall_status": "Done",
+    "task_dir": "/home/lenovo/.projects/fatecat/scripts/project/assets/tasks/0002-bazi-ziwei-benchmark-hardening"
+  },
+  "source_plan": {
+    "schema_version": "1.0.0",
+    "plan_path": "/home/lenovo/.projects/fatecat/scripts/project/assets/tasks/0002-bazi-ziwei-benchmark-hardening/APPROVED_PLAN.json"
+  },
+  "generated_assets": [
+    {
+      "id": "tree-spec",
+      "type": "task-tree-spec",
+      "path": "/home/lenovo/.projects/fatecat/scripts/project/assets/tasks/0002-bazi-ziwei-benchmark-hardening/TREE_SPEC.json",
+      "description": "approved plan 编译后的递归任务树规格",
+      "source_step_keys": [
+        "benchmark_governance",
+        "benchmark_source_registry",
+        "current_capability_baseline",
+        "feature_gap_matrix",
+        "bazi_accuracy_p0",
+        "bazi_time_boundary_golden",
+        "bazi_renyuan_siling",
+        "bazi_strength_score_golden",
+        "bazi_ganzhi_priority",
+        "bazi_fortune_trigger_golden",
+        "bazi_rule_library",
+        "bazi_pattern_registry",
+        "bazi_yongshen_strategy",
+        "bazi_tengod_interpretation",
+        "bazi_classics_rule_index",
+        "bazi_topic_reports",
+        "ziwei_chart_p0",
+        "ziwei_iztro_contract",
+        "ziwei_star_taxonomy",
+        "ziwei_palace_relations",
+        "ziwei_mutagen_flow",
+        "ziwei_golden_cases",
+        "ziwei_interpretation_library",
+        "ziwei_star_encyclopedia",
+        "ziwei_main_star_combos",
+        "ziwei_palace_topics",
+        "ziwei_fortune_linkage",
+        "web_workbench",
+        "web_shared_data_contract",
+        "web_bazi_workbench",
+        "web_ziwei_workbench",
+        "web_privacy_regression",
+        "quality_ship",
+        "acceptance_gate_update",
+        "docs_sync",
+        "self_review_audit",
+        "git_delivery_closeout"
+      ]
+    },
+    {
+      "id": "asset-bundle",
+      "type": "asset-bundle-manifest",
+      "path": "/home/lenovo/.projects/fatecat/scripts/project/assets/tasks/0002-bazi-ziwei-benchmark-hardening/ASSET_BUNDLE.json",
+      "description": "编译输出的资产包 manifest",
+      "source_step_keys": [
+        "benchmark_governance",
+        "benchmark_source_registry",
+        "current_capability_baseline",
+        "feature_gap_matrix",
+        "bazi_accuracy_p0",
+        "bazi_time_boundary_golden",
+        "bazi_renyuan_siling",
+        "bazi_strength_score_golden",
+        "bazi_ganzhi_priority",
+        "bazi_fortune_trigger_golden",
+        "bazi_rule_library",
+        "bazi_pattern_registry",
+        "bazi_yongshen_strategy",
+        "bazi_tengod_interpretation",
+        "bazi_classics_rule_index",
+        "bazi_topic_reports",
+        "ziwei_chart_p0",
+        "ziwei_iztro_contract",
+        "ziwei_star_taxonomy",
+        "ziwei_palace_relations",
+        "ziwei_mutagen_flow",
+        "ziwei_golden_cases",
+        "ziwei_interpretation_library",
+        "ziwei_star_encyclopedia",
+        "ziwei_main_star_combos",
+        "ziwei_palace_topics",
+        "ziwei_fortune_linkage",
+        "web_workbench",
+        "web_shared_data_contract",
+        "web_bazi_workbench",
+        "web_ziwei_workbench",
+        "web_privacy_regression",
+        "quality_ship",
+        "acceptance_gate_update",
+        "docs_sync",
+        "self_review_audit",
+        "git_delivery_closeout"
+      ]
+    },
+    {
+      "id": "task-package-set",
+      "type": "task-package-set",
+      "path": "/home/lenovo/.projects/fatecat/scripts/project/assets/tasks/0002-bazi-ziwei-benchmark-hardening/TASK_PACKAGE_SET.json",
+      "description": "编译输出的结构化任务包集合",
+      "source_step_keys": [
+        "benchmark_governance",
+        "benchmark_source_registry",
+        "current_capability_baseline",
+        "feature_gap_matrix",
+        "bazi_accuracy_p0",
+        "bazi_time_boundary_golden",
+        "bazi_renyuan_siling",
+        "bazi_strength_score_golden",
+        "bazi_ganzhi_priority",
+        "bazi_fortune_trigger_golden",
+        "bazi_rule_library",
+        "bazi_pattern_registry",
+        "bazi_yongshen_strategy",
+        "bazi_tengod_interpretation",
+        "bazi_classics_rule_index",
+        "bazi_topic_reports",
+        "ziwei_chart_p0",
+        "ziwei_iztro_contract",
+        "ziwei_star_taxonomy",
+        "ziwei_palace_relations",
+        "ziwei_mutagen_flow",
+        "ziwei_golden_cases",
+        "ziwei_interpretation_library",
+        "ziwei_star_encyclopedia",
+        "ziwei_main_star_combos",
+        "ziwei_palace_topics",
+        "ziwei_fortune_linkage",
+        "web_workbench",
+        "web_shared_data_contract",
+        "web_bazi_workbench",
+        "web_ziwei_workbench",
+        "web_privacy_regression",
+        "quality_ship",
+        "acceptance_gate_update",
+        "docs_sync",
+        "self_review_audit",
+        "git_delivery_closeout"
+      ]
+    },
+    {
+      "id": "task-doc-set",
+      "type": "task-docs",
+      "description": "README/CONTEXT/ACCEPTANCE/PLAN/TODO/STATUS 任务文档集合",
+      "source_step_keys": [
+        "benchmark_governance",
+        "benchmark_source_registry",
+        "current_capability_baseline",
+        "feature_gap_matrix",
+        "bazi_accuracy_p0",
+        "bazi_time_boundary_golden",
+        "bazi_renyuan_siling",
+        "bazi_strength_score_golden",
+        "bazi_ganzhi_priority",
+        "bazi_fortune_trigger_golden",
+        "bazi_rule_library",
+        "bazi_pattern_registry",
+        "bazi_yongshen_strategy",
+        "bazi_tengod_interpretation",
+        "bazi_classics_rule_index",
+        "bazi_topic_reports",
+        "ziwei_chart_p0",
+        "ziwei_iztro_contract",
+        "ziwei_star_taxonomy",
+        "ziwei_palace_relations",
+        "ziwei_mutagen_flow",
+        "ziwei_golden_cases",
+        "ziwei_interpretation_library",
+        "ziwei_star_encyclopedia",
+        "ziwei_main_star_combos",
+        "ziwei_palace_topics",
+        "ziwei_fortune_linkage",
+        "web_workbench",
+        "web_shared_data_contract",
+        "web_bazi_workbench",
+        "web_ziwei_workbench",
+        "web_privacy_regression",
+        "quality_ship",
+        "acceptance_gate_update",
+        "docs_sync",
+        "self_review_audit",
+        "git_delivery_closeout"
+      ],
+      "path": "/home/lenovo/.projects/fatecat/scripts/project/assets/tasks/0002-bazi-ziwei-benchmark-hardening"
+    }
+  ],
+  "logical_deliverables": [
+    {
+      "step_key": "benchmark_governance",
+      "step_id": "TP-01",
+      "outputs": [
+        "把八字/紫微对标范围、公开来源、不可复制边界和当前能力基线固定下来。"
+      ]
+    },
+    {
+      "step_key": "benchmark_source_registry",
+      "step_id": "TP-01.01",
+      "outputs": [
+        "把问真、从真版、Bazilabs、NCC、文墨天机、紫微 Palace、iztro 等公开来源登记为可复核资料。"
+      ]
+    },
+    {
+      "step_key": "current_capability_baseline",
+      "step_id": "TP-01.02",
+      "outputs": [
+        "输出当前字段、报告块、API/Web/Bot 入口和测试覆盖的基线快照。"
+      ]
+    },
+    {
+      "step_key": "feature_gap_matrix",
+      "step_id": "TP-01.03",
+      "outputs": [
+        "把八字和紫微缺口拆成准确性、规则库、解释层、动态运势、Web 工作台、命例验证六类。"
+      ]
+    },
+    {
+      "step_key": "bazi_accuracy_p0",
+      "step_id": "TP-02",
+      "outputs": [
+        "锁定八字排盘、边界、强弱、干支关系和动态运势的准确性地基。"
+      ]
+    },
+    {
+      "step_key": "bazi_time_boundary_golden",
+      "step_id": "TP-02.01",
+      "outputs": [
+        "建立早晚子时、真太阳时入参、立春年界、月令切换的组合边界测试。"
+      ]
+    },
+    {
+      "step_key": "bazi_renyuan_siling",
+      "step_id": "TP-02.02",
+      "outputs": [
+        "结构化输出人元司令、月令权重和旺相休囚死相关依据。"
+      ]
+    },
+    {
+      "step_key": "bazi_strength_score_golden",
+      "step_id": "TP-02.03",
+      "outputs": [
+        "锁定日主强弱评分的月令、通根、透干、藏干、五行分数权重。"
+      ]
+    },
+    {
+      "step_key": "bazi_ganzhi_priority",
+      "step_id": "TP-02.04",
+      "outputs": [
+        "明确合化、三会、三合、冲刑害破、入库、拱合、伏吟反吟的判定和展示优先级。"
+      ]
+    },
+    {
+      "step_key": "bazi_fortune_trigger_golden",
+      "step_id": "TP-02.05",
+      "outputs": [
+        "锁定岁运并临、天克地冲、伏吟反吟、流月触发等动态运势边界。"
+      ]
+    },
+    {
+      "step_key": "bazi_rule_library",
+      "step_id": "TP-03",
+      "outputs": [
+        "把格局、用神、十神、调候、专题解释做成可追溯规则层。"
+      ]
+    },
+    {
+      "step_key": "bazi_pattern_registry",
+      "step_id": "TP-03.01",
+      "outputs": [
+        "覆盖正格、变格、从格、专旺、化气的第一批规则和典型命例。"
+      ]
+    },
+    {
+      "step_key": "bazi_yongshen_strategy",
+      "step_id": "TP-03.02",
+      "outputs": [
+        "把调候、扶抑、通关、病药拆成独立依据，处理口径冲突。"
+      ]
+    },
+    {
+      "step_key": "bazi_tengod_interpretation",
+      "step_id": "TP-03.03",
+      "outputs": [
+        "为透干、藏干、十神数量、十神组合和十神成局建立结构化解释。"
+      ]
+    },
+    {
+      "step_key": "bazi_classics_rule_index",
+      "step_id": "TP-03.04",
+      "outputs": [
+        "从已整理典籍资料中提炼规则 ID，不直接复制大段原文。"
+      ]
+    },
+    {
+      "step_key": "bazi_topic_reports",
+      "step_id": "TP-03.05",
+      "outputs": [
+        "建立事业、财运、婚姻、健康、学业、迁移等专题结构，但保持默认报告克制。"
+      ]
+    },
+    {
+      "step_key": "ziwei_chart_p0",
+      "step_id": "TP-04",
+      "outputs": [
+        "吃透 iztro 输出，补齐星曜分类、宫位关系、四化飞入和紫微 golden。"
+      ]
+    },
+    {
+      "step_key": "ziwei_iztro_contract",
+      "step_id": "TP-04.01",
+      "outputs": [
+        "确认 iztro 当前可用字段、配置插件、运限和四化能力，形成适配清单。"
+      ]
+    },
+    {
+      "step_key": "ziwei_star_taxonomy",
+      "step_id": "TP-04.02",
+      "outputs": [
+        "结构化主星、辅星、杂曜、煞曜、吉曜与庙旺利陷字段。"
+      ]
+    },
+    {
+      "step_key": "ziwei_palace_relations",
+      "step_id": "TP-04.03",
+      "outputs": [
+        "结构化对宫、夹宫、借宫、三方四正和宫位组合。"
+      ]
+    },
+    {
+      "step_key": "ziwei_mutagen_flow",
+      "step_id": "TP-04.04",
+      "outputs": [
+        "在生年、大限、流年、流月、流日、流时四化基础上补飞入、冲照、会照解释字段。"
+      ]
+    },
+    {
+      "step_key": "ziwei_golden_cases",
+      "step_id": "TP-04.05",
+      "outputs": [
+        "建立紫微命盘、命身宫、主星、四化、运限的第一批 fixture。"
+      ]
+    },
+    {
+      "step_key": "ziwei_interpretation_library",
+      "step_id": "TP-05",
+      "outputs": [
+        "建立星曜百科、主星组合、十二宫专题、格局识别和本命/大限/流年三层联动。"
+      ]
+    },
+    {
+      "step_key": "ziwei_star_encyclopedia",
+      "step_id": "TP-05.01",
+      "outputs": [
+        "为主要星曜建立宫位、亮度、四化条件下的基础解释索引。"
+      ]
+    },
+    {
+      "step_key": "ziwei_main_star_combos",
+      "step_id": "TP-05.02",
+      "outputs": [
+        "补紫府、机月同梁、杀破狼等第一批主星组合解释。"
+      ]
+    },
+    {
+      "step_key": "ziwei_palace_topics",
+      "step_id": "TP-05.03",
+      "outputs": [
+        "每宫输出主星、辅星、四化、三方四正、限运触发的结构化专题。"
+      ]
+    },
+    {
+      "step_key": "ziwei_fortune_linkage",
+      "step_id": "TP-05.04",
+      "outputs": [
+        "输出本命为体、大限成形、流年触发的三层因果链。"
+      ]
+    },
+    {
+      "step_key": "web_workbench",
+      "step_id": "TP-06",
+      "outputs": [
+        "把 Web 从报告复制页升级为八字/紫微结构化查看和点击展开工作台。"
+      ]
+    },
+    {
+      "step_key": "web_shared_data_contract",
+      "step_id": "TP-06.01",
+      "outputs": [
+        "定义 Web 只消费 capability/usecase 结构化结果，不自行拼命理结论。"
+      ]
+    },
+    {
+      "step_key": "web_bazi_workbench",
+      "step_id": "TP-06.02",
+      "outputs": [
+        "四柱、十神、藏干、五行、格局、用神、大运流年可点击展开。"
+      ]
+    },
+    {
+      "step_key": "web_ziwei_workbench",
+      "step_id": "TP-06.03",
+      "outputs": [
+        "十二宫、星曜、四化、运限可点击展开解释。"
+      ]
+    },
+    {
+      "step_key": "web_privacy_regression",
+      "step_id": "TP-06.04",
+      "outputs": [
+        "保证示例数据仍为北京/测试用户，不显示真实非北京地区样例。"
+      ]
+    },
+    {
+      "step_key": "quality_ship",
+      "step_id": "TP-07",
+      "outputs": [
+        "把所有新增能力纳入测试、文档、acceptance、版本控制和远端 CI。"
+      ]
+    },
+    {
+      "step_key": "acceptance_gate_update",
+      "step_id": "TP-07.01",
+      "outputs": [
+        "确保新增八字/紫微 golden、Web 工作台和隐私回归进入发布门禁。"
+      ]
+    },
+    {
+      "step_key": "docs_sync",
+      "step_id": "TP-07.02",
+      "outputs": [
+        "更新当前能力、未实现能力、对标路线和使用边界。"
+      ]
+    },
+    {
+      "step_key": "self_review_audit",
+      "step_id": "TP-07.03",
+      "outputs": [
+        "检查准确性、evidence、隐私、输出边界、导出包、CI 和残留问题。"
+      ]
+    },
+    {
+      "step_key": "git_delivery_closeout",
+      "step_id": "TP-07.04",
+      "outputs": [
+        "提交、推送、检查 GitHub Actions，更新任务 closeout 证据。"
+      ]
+    }
+  ],
+  "execution_snapshot": {
+    "total_nodes": 37,
+    "total_leaf_nodes": 30,
+    "ready_leaf_ids": [],
+    "done_leaf_nodes": 30
+  }
+}

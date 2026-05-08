@@ -1,0 +1,114 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-05-08T19:02:25+08:00",
+  "meta": {
+    "task_id": "0002",
+    "slug": "bazi-ziwei-benchmark-hardening",
+    "phase": "EXECUTE_WAVE",
+    "source_task_package_set": "/home/lenovo/.projects/fatecat/scripts/project/assets/tasks/0002-bazi-ziwei-benchmark-hardening/TASK_PACKAGE_SET.json",
+    "selection": "current"
+  },
+  "overview": {
+    "overall_status": "Done",
+    "leaf_total": 30,
+    "ready_leaf_count": 0,
+    "selected_leaf_count": 0,
+    "selected_wave_numbers": []
+  },
+  "ready_leaf_ids": [],
+  "selected_leaf_ids": [],
+  "execution_waves": [
+    {
+      "wave": 1,
+      "leaf_ids": [
+        "TP-01.01",
+        "TP-01.02"
+      ]
+    },
+    {
+      "wave": 2,
+      "leaf_ids": [
+        "TP-01.03"
+      ]
+    },
+    {
+      "wave": 3,
+      "leaf_ids": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-02.04",
+        "TP-02.05",
+        "TP-04.01"
+      ]
+    },
+    {
+      "wave": 4,
+      "leaf_ids": [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03",
+        "TP-03.04",
+        "TP-03.05",
+        "TP-04.02",
+        "TP-04.03",
+        "TP-04.04"
+      ]
+    },
+    {
+      "wave": 5,
+      "leaf_ids": [
+        "TP-04.05"
+      ]
+    },
+    {
+      "wave": 6,
+      "leaf_ids": [
+        "TP-05.01",
+        "TP-05.02",
+        "TP-05.03"
+      ]
+    },
+    {
+      "wave": 7,
+      "leaf_ids": [
+        "TP-05.04"
+      ]
+    },
+    {
+      "wave": 8,
+      "leaf_ids": [
+        "TP-06.01"
+      ]
+    },
+    {
+      "wave": 9,
+      "leaf_ids": [
+        "TP-06.02",
+        "TP-06.03",
+        "TP-06.04"
+      ]
+    },
+    {
+      "wave": 10,
+      "leaf_ids": [
+        "TP-07.01",
+        "TP-07.02"
+      ]
+    },
+    {
+      "wave": 11,
+      "leaf_ids": [
+        "TP-07.03"
+      ]
+    },
+    {
+      "wave": 12,
+      "leaf_ids": [
+        "TP-07.04"
+      ]
+    }
+  ],
+  "execution_batch": [],
+  "blocked_leafs": []
+}

@@ -1,0 +1,2497 @@
+{
+  "schema_version": "1.0.0",
+  "meta": {
+    "task_id": "0002",
+    "slug": "bazi-ziwei-benchmark-hardening",
+    "phase": "DECOMPOSE_AND_FILL",
+    "overall_status": "Done",
+    "source_context_packet": "/home/lenovo/.projects/fatecat/scripts/project/assets/tasks/0002-bazi-ziwei-benchmark-hardening/APPROVED_PLAN.json#context_packet",
+    "asset_bundle_manifest": "/home/lenovo/.projects/fatecat/scripts/project/assets/tasks/0002-bazi-ziwei-benchmark-hardening/ASSET_BUNDLE.json"
+  },
+  "requirement_alignment": [
+    "用户明确要求当前主要体系成熟的只有八字和紫微，先把这两个体系打磨到完美状态。",
+    "用户要求对标市面最强排盘系统的全部功能，并先完成深度调研、对比、路线图落盘。",
+    "已新增 `assets/docs/roadmap/八字紫微标杆对标路线图.md` 作为路线图真相源。",
+    "本任务只负责任务树和执行计划落盘，业务代码实现按后续 execution wave 推进。"
+  ],
+  "global_constraints": [
+    "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+    "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+    "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+    "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+    "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+  ],
+  "task_tree": {
+    "ascii_tree": "- ROOT\n  ├─ TP-01 [branch] [P0] 标杆证据与能力边界治理\n  │  ├─ TP-01.01 [leaf] [P0] 建立标杆来源登记表\n  │  ├─ TP-01.02 [leaf] [P0] 固化当前 bazi/ziwei 能力基线\n  │  └─ TP-01.03 [leaf] [P0] 建立 P0/P1/P2 缺口矩阵\n  ├─ TP-02 [branch] [P0] 八字准确性 P0 加固\n  │  ├─ TP-02.01 [leaf] [P0] 补早晚子时与真太阳时边界 golden\n  │  ├─ TP-02.02 [leaf] [P0] 补人元司令与月令权重\n  │  ├─ TP-02.03 [leaf] [P0] 补强弱评分 golden\n  │  ├─ TP-02.04 [leaf] [P0] 补干支关系优先级\n  │  └─ TP-02.05 [leaf] [P0] 补大运流年流月触发 golden\n  ├─ TP-03 [branch] [P0] 八字规则库与解释层\n  │  ├─ TP-03.01 [leaf] [P0] 建立格局规则 registry\n  │  ├─ TP-03.02 [leaf] [P0] 拆分用神策略口径\n  │  ├─ TP-03.03 [leaf] [P1] 建立十神组合解释库\n  │  ├─ TP-03.04 [leaf] [P1] 扩展八字典籍规则索引\n  │  └─ TP-03.05 [leaf] [P1] 设计八字专题报告\n  ├─ TP-04 [branch] [P0] 紫微完整盘面 P0 加固\n  │  ├─ TP-04.01 [leaf] [P0] 审计 iztro 输出契约\n  │  ├─ TP-04.02 [leaf] [P0] 补星曜分类与亮度字段\n  │  ├─ TP-04.03 [leaf] [P0] 补宫位关系结构\n  │  ├─ TP-04.04 [leaf] [P0] 补四化飞入与冲照会照\n  │  └─ TP-04.05 [leaf] [P0] 建立紫微命例 golden\n  ├─ TP-05 [branch] [P1] 紫微解释库与运限联动\n  │  ├─ TP-05.01 [leaf] [P1] 建立星曜百科索引\n  │  ├─ TP-05.02 [leaf] [P1] 扩展主星组合规则\n  │  ├─ TP-05.03 [leaf] [P1] 建立十二宫专题解释\n  │  └─ TP-05.04 [leaf] [P1] 深化本命大限流年联动\n  ├─ TP-06 [branch] [P1] 八字紫微 Web 专业工作台\n  │  ├─ TP-06.01 [leaf] [P0] 统一 Web 数据契约\n  │  ├─ TP-06.02 [leaf] [P1] 实现八字工作台\n  │  ├─ TP-06.03 [leaf] [P1] 实现紫微工作台\n  │  └─ TP-06.04 [leaf] [P0] 补 Web 隐私回归\n  └─ TP-07 [branch] [P0] 质量门禁、文档同步与交付\n     ├─ TP-07.01 [leaf] [P0] 更新 acceptance 门禁\n     ├─ TP-07.02 [leaf] [P0] 同步 README、功能状态与路线文档\n     ├─ TP-07.03 [leaf] [P0] 执行自审和审计清单\n     └─ TP-07.04 [leaf] [P0] 提交推送与 closeout",
+    "leaf_nodes": [
+      "TP-01.01",
+      "TP-01.02",
+      "TP-01.03",
+      "TP-02.01",
+      "TP-02.02",
+      "TP-02.03",
+      "TP-02.04",
+      "TP-02.05",
+      "TP-03.01",
+      "TP-03.02",
+      "TP-03.03",
+      "TP-03.04",
+      "TP-03.05",
+      "TP-04.01",
+      "TP-04.02",
+      "TP-04.03",
+      "TP-04.04",
+      "TP-04.05",
+      "TP-05.01",
+      "TP-05.02",
+      "TP-05.03",
+      "TP-05.04",
+      "TP-06.01",
+      "TP-06.02",
+      "TP-06.03",
+      "TP-06.04",
+      "TP-07.01",
+      "TP-07.02",
+      "TP-07.03",
+      "TP-07.04"
+    ],
+    "execution_waves": [
+      [
+        "TP-01.01",
+        "TP-01.02"
+      ],
+      [
+        "TP-01.03"
+      ],
+      [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-02.04",
+        "TP-02.05",
+        "TP-04.01"
+      ],
+      [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03",
+        "TP-03.04",
+        "TP-03.05",
+        "TP-04.02",
+        "TP-04.03",
+        "TP-04.04"
+      ],
+      [
+        "TP-04.05"
+      ],
+      [
+        "TP-05.01",
+        "TP-05.02",
+        "TP-05.03"
+      ],
+      [
+        "TP-05.04"
+      ],
+      [
+        "TP-06.01"
+      ],
+      [
+        "TP-06.02",
+        "TP-06.03",
+        "TP-06.04"
+      ],
+      [
+        "TP-07.01",
+        "TP-07.02"
+      ],
+      [
+        "TP-07.03"
+      ],
+      [
+        "TP-07.04"
+      ]
+    ],
+    "next_executable_leaves": [
+      "TP-01.01",
+      "TP-01.02"
+    ]
+  },
+  "packages": [
+    {
+      "id": "TP-01",
+      "title": "标杆证据与能力边界治理",
+      "priority": "P0",
+      "type": "Governance",
+      "objective": "把八字/紫微对标范围、公开来源、不可复制边界和当前能力基线固定下来。",
+      "parent_id": "ROOT",
+      "depth": 1,
+      "child_ids": [
+        "TP-01.01",
+        "TP-01.02",
+        "TP-01.03"
+      ],
+      "leaf": false,
+      "depends_on": [],
+      "effective_leaf_dependencies": [],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "把八字/紫微对标范围、公开来源、不可复制边界和当前能力基线固定下来。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "把八字/紫微对标范围、公开来源、不可复制边界和当前能力基线固定下来。"
+      ],
+      "outputs": [
+        "把八字/紫微对标范围、公开来源、不可复制边界和当前能力基线固定下来。"
+      ],
+      "verify": "确认子节点范围、依赖与状态闭环",
+      "gate": "任务目标与上下文已确认",
+      "acceptance": [
+        "满足 Verify: 确认子节点范围、依赖与状态闭环",
+        "满足 Gate: 任务目标与上下文已确认"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "先完成子节点后再收敛父节点",
+      "self_checklist": [
+        "确认全部子节点完成且状态已收敛后再结束该任务包"
+      ],
+      "agent_prompt": "处理任务包 `TP-01`：标杆证据与能力边界治理\n目标：把八字/紫微对标范围、公开来源、不可复制边界和当前能力基线固定下来。\n优先级：P0\n依赖：无\nVerify：确认子节点范围、依赖与状态闭环\nGate：任务目标与上下文已确认\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：把八字/紫微对标范围、公开来源、不可复制边界和当前能力基线固定下来。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-01.01",
+      "title": "建立标杆来源登记表",
+      "priority": "P0",
+      "type": "Audit",
+      "objective": "把问真、从真版、Bazilabs、NCC、文墨天机、紫微 Palace、iztro 等公开来源登记为可复核资料。",
+      "parent_id": "TP-01",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "把问真、从真版、Bazilabs、NCC、文墨天机、紫微 Palace、iztro 等公开来源登记为可复核资料。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "把问真、从真版、Bazilabs、NCC、文墨天机、紫微 Palace、iztro 等公开来源登记为可复核资料。"
+      ],
+      "outputs": [
+        "把问真、从真版、Bazilabs、NCC、文墨天机、紫微 Palace、iztro 等公开来源登记为可复核资料。"
+      ],
+      "verify": "文档列出来源、体系、可对标点、复核 URL 和版权边界。",
+      "gate": "不得复制商业产品文案或私有算法。",
+      "acceptance": [
+        "来源表进入 `assets/docs/vendor/` 或 roadmap 附录。",
+        "不可验证项标记为人工复核。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 1",
+      "self_checklist": [
+        "Verify: 文档列出来源、体系、可对标点、复核 URL 和版权边界。",
+        "Gate: 不得复制商业产品文案或私有算法。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-01.01`：建立标杆来源登记表\n目标：把问真、从真版、Bazilabs、NCC、文墨天机、紫微 Palace、iztro 等公开来源登记为可复核资料。\n优先级：P0\n依赖：无\nVerify：文档列出来源、体系、可对标点、复核 URL 和版权边界。\nGate：不得复制商业产品文案或私有算法。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：把问真、从真版、Bazilabs、NCC、文墨天机、紫微 Palace、iztro 等公开来源登记为可复核资料。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-01.02",
+      "title": "固化当前 bazi/ziwei 能力基线",
+      "priority": "P0",
+      "type": "Audit",
+      "objective": "输出当前字段、报告块、API/Web/Bot 入口和测试覆盖的基线快照。",
+      "parent_id": "TP-01",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "输出当前字段、报告块、API/Web/Bot 入口和测试覆盖的基线快照。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "输出当前字段、报告块、API/Web/Bot 入口和测试覆盖的基线快照。"
+      ],
+      "outputs": [
+        "输出当前字段、报告块、API/Web/Bot 入口和测试覆盖的基线快照。"
+      ],
+      "verify": "生成当前能力矩阵并链接到 registry/profile/tests。",
+      "gate": "基线必须来自仓库文件和命令输出。",
+      "acceptance": [
+        "满足 Verify: 生成当前能力矩阵并链接到 registry/profile/tests。",
+        "满足 Gate: 基线必须来自仓库文件和命令输出。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 1",
+      "self_checklist": [
+        "Verify: 生成当前能力矩阵并链接到 registry/profile/tests。",
+        "Gate: 基线必须来自仓库文件和命令输出。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-01.02`：固化当前 bazi/ziwei 能力基线\n目标：输出当前字段、报告块、API/Web/Bot 入口和测试覆盖的基线快照。\n优先级：P0\n依赖：无\nVerify：生成当前能力矩阵并链接到 registry/profile/tests。\nGate：基线必须来自仓库文件和命令输出。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：输出当前字段、报告块、API/Web/Bot 入口和测试覆盖的基线快照。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-01.03",
+      "title": "建立 P0/P1/P2 缺口矩阵",
+      "priority": "P0",
+      "type": "Plan",
+      "objective": "把八字和紫微缺口拆成准确性、规则库、解释层、动态运势、Web 工作台、命例验证六类。",
+      "parent_id": "TP-01",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-01.01",
+        "TP-01.02"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-01.01",
+        "TP-01.02"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "把八字和紫微缺口拆成准确性、规则库、解释层、动态运势、Web 工作台、命例验证六类。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "把八字和紫微缺口拆成准确性、规则库、解释层、动态运势、Web 工作台、命例验证六类。"
+      ],
+      "outputs": [
+        "把八字和紫微缺口拆成准确性、规则库、解释层、动态运势、Web 工作台、命例验证六类。"
+      ],
+      "verify": "缺口矩阵与本任务树 TP 节点互相可追溯。",
+      "gate": "不得把 planned 缺口写成 production。",
+      "acceptance": [
+        "满足 Verify: 缺口矩阵与本任务树 TP 节点互相可追溯。",
+        "满足 Gate: 不得把 planned 缺口写成 production。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 2",
+      "self_checklist": [
+        "Verify: 缺口矩阵与本任务树 TP 节点互相可追溯。",
+        "Gate: 不得把 planned 缺口写成 production。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-01.03`：建立 P0/P1/P2 缺口矩阵\n目标：把八字和紫微缺口拆成准确性、规则库、解释层、动态运势、Web 工作台、命例验证六类。\n优先级：P0\n依赖：TP-01.01, TP-01.02\nVerify：缺口矩阵与本任务树 TP 节点互相可追溯。\nGate：不得把 planned 缺口写成 production。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：把八字和紫微缺口拆成准确性、规则库、解释层、动态运势、Web 工作台、命例验证六类。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-02",
+      "title": "八字准确性 P0 加固",
+      "priority": "P0",
+      "type": "Build",
+      "objective": "锁定八字排盘、边界、强弱、干支关系和动态运势的准确性地基。",
+      "parent_id": "ROOT",
+      "depth": 1,
+      "child_ids": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-02.04",
+        "TP-02.05"
+      ],
+      "leaf": false,
+      "depends_on": [
+        "TP-01"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-01.01",
+        "TP-01.02",
+        "TP-01.03"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "锁定八字排盘、边界、强弱、干支关系和动态运势的准确性地基。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "锁定八字排盘、边界、强弱、干支关系和动态运势的准确性地基。"
+      ],
+      "outputs": [
+        "锁定八字排盘、边界、强弱、干支关系和动态运势的准确性地基。"
+      ],
+      "verify": "确认子节点范围、依赖与状态闭环",
+      "gate": "前置步骤已完成: benchmark_governance",
+      "acceptance": [
+        "满足 Verify: 确认子节点范围、依赖与状态闭环",
+        "满足 Gate: 前置步骤已完成: benchmark_governance"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "先完成子节点后再收敛父节点",
+      "self_checklist": [
+        "确认全部子节点完成且状态已收敛后再结束该任务包"
+      ],
+      "agent_prompt": "处理任务包 `TP-02`：八字准确性 P0 加固\n目标：锁定八字排盘、边界、强弱、干支关系和动态运势的准确性地基。\n优先级：P0\n依赖：TP-01.01, TP-01.02, TP-01.03\nVerify：确认子节点范围、依赖与状态闭环\nGate：前置步骤已完成: benchmark_governance\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：锁定八字排盘、边界、强弱、干支关系和动态运势的准确性地基。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-02.01",
+      "title": "补早晚子时与真太阳时边界 golden",
+      "priority": "P0",
+      "type": "Test",
+      "objective": "建立早晚子时、真太阳时入参、立春年界、月令切换的组合边界测试。",
+      "parent_id": "TP-02",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-01.01",
+        "TP-01.02",
+        "TP-01.03"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "建立早晚子时、真太阳时入参、立春年界、月令切换的组合边界测试。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "建立早晚子时、真太阳时入参、立春年界、月令切换的组合边界测试。"
+      ],
+      "outputs": [
+        "建立早晚子时、真太阳时入参、立春年界、月令切换的组合边界测试。"
+      ],
+      "verify": "pytest 覆盖边界样本并进入 acceptance。",
+      "gate": "每个样本记录来源、时区、预期柱变化。",
+      "acceptance": [
+        "满足 Verify: pytest 覆盖边界样本并进入 acceptance。",
+        "满足 Gate: 每个样本记录来源、时区、预期柱变化。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 3",
+      "self_checklist": [
+        "Verify: pytest 覆盖边界样本并进入 acceptance。",
+        "Gate: 每个样本记录来源、时区、预期柱变化。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-02.01`：补早晚子时与真太阳时边界 golden\n目标：建立早晚子时、真太阳时入参、立春年界、月令切换的组合边界测试。\n优先级：P0\n依赖：TP-01.01, TP-01.02, TP-01.03\nVerify：pytest 覆盖边界样本并进入 acceptance。\nGate：每个样本记录来源、时区、预期柱变化。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：建立早晚子时、真太阳时入参、立春年界、月令切换的组合边界测试。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-02.02",
+      "title": "补人元司令与月令权重",
+      "priority": "P0",
+      "type": "Build",
+      "objective": "结构化输出人元司令、月令权重和旺相休囚死相关依据。",
+      "parent_id": "TP-02",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-01.01",
+        "TP-01.02",
+        "TP-01.03"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "结构化输出人元司令、月令权重和旺相休囚死相关依据。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "结构化输出人元司令、月令权重和旺相休囚死相关依据。"
+      ],
+      "outputs": [
+        "结构化输出人元司令、月令权重和旺相休囚死相关依据。"
+      ],
+      "verify": "新增字段、规则 ID 和 fixture 断言。",
+      "gate": "字段不得破坏现有 Markdown 默认结构。",
+      "acceptance": [
+        "满足 Verify: 新增字段、规则 ID 和 fixture 断言。",
+        "满足 Gate: 字段不得破坏现有 Markdown 默认结构。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 3",
+      "self_checklist": [
+        "Verify: 新增字段、规则 ID 和 fixture 断言。",
+        "Gate: 字段不得破坏现有 Markdown 默认结构。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-02.02`：补人元司令与月令权重\n目标：结构化输出人元司令、月令权重和旺相休囚死相关依据。\n优先级：P0\n依赖：TP-01.01, TP-01.02, TP-01.03\nVerify：新增字段、规则 ID 和 fixture 断言。\nGate：字段不得破坏现有 Markdown 默认结构。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：结构化输出人元司令、月令权重和旺相休囚死相关依据。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-02.03",
+      "title": "补强弱评分 golden",
+      "priority": "P0",
+      "type": "Test",
+      "objective": "锁定日主强弱评分的月令、通根、透干、藏干、五行分数权重。",
+      "parent_id": "TP-02",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-01.01",
+        "TP-01.02",
+        "TP-01.03"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "锁定日主强弱评分的月令、通根、透干、藏干、五行分数权重。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "锁定日主强弱评分的月令、通根、透干、藏干、五行分数权重。"
+      ],
+      "outputs": [
+        "锁定日主强弱评分的月令、通根、透干、藏干、五行分数权重。"
+      ],
+      "verify": "典型强、弱、中和、从格边界命例测试通过。",
+      "gate": "评分口径写入 evidence 与文档。",
+      "acceptance": [
+        "满足 Verify: 典型强、弱、中和、从格边界命例测试通过。",
+        "满足 Gate: 评分口径写入 evidence 与文档。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 3",
+      "self_checklist": [
+        "Verify: 典型强、弱、中和、从格边界命例测试通过。",
+        "Gate: 评分口径写入 evidence 与文档。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-02.03`：补强弱评分 golden\n目标：锁定日主强弱评分的月令、通根、透干、藏干、五行分数权重。\n优先级：P0\n依赖：TP-01.01, TP-01.02, TP-01.03\nVerify：典型强、弱、中和、从格边界命例测试通过。\nGate：评分口径写入 evidence 与文档。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：锁定日主强弱评分的月令、通根、透干、藏干、五行分数权重。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-02.04",
+      "title": "补干支关系优先级",
+      "priority": "P0",
+      "type": "Build",
+      "objective": "明确合化、三会、三合、冲刑害破、入库、拱合、伏吟反吟的判定和展示优先级。",
+      "parent_id": "TP-02",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-01.01",
+        "TP-01.02",
+        "TP-01.03"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "明确合化、三会、三合、冲刑害破、入库、拱合、伏吟反吟的判定和展示优先级。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "明确合化、三会、三合、冲刑害破、入库、拱合、伏吟反吟的判定和展示优先级。"
+      ],
+      "outputs": [
+        "明确合化、三会、三合、冲刑害破、入库、拱合、伏吟反吟的判定和展示优先级。"
+      ],
+      "verify": "干支关系 golden 和规则 ID 覆盖主要组合。",
+      "gate": "合化是否成化必须有依据字段。",
+      "acceptance": [
+        "满足 Verify: 干支关系 golden 和规则 ID 覆盖主要组合。",
+        "满足 Gate: 合化是否成化必须有依据字段。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 3",
+      "self_checklist": [
+        "Verify: 干支关系 golden 和规则 ID 覆盖主要组合。",
+        "Gate: 合化是否成化必须有依据字段。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-02.04`：补干支关系优先级\n目标：明确合化、三会、三合、冲刑害破、入库、拱合、伏吟反吟的判定和展示优先级。\n优先级：P0\n依赖：TP-01.01, TP-01.02, TP-01.03\nVerify：干支关系 golden 和规则 ID 覆盖主要组合。\nGate：合化是否成化必须有依据字段。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：明确合化、三会、三合、冲刑害破、入库、拱合、伏吟反吟的判定和展示优先级。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-02.05",
+      "title": "补大运流年流月触发 golden",
+      "priority": "P0",
+      "type": "Test",
+      "objective": "锁定岁运并临、天克地冲、伏吟反吟、流月触发等动态运势边界。",
+      "parent_id": "TP-02",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-01.01",
+        "TP-01.02",
+        "TP-01.03"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "锁定岁运并临、天克地冲、伏吟反吟、流月触发等动态运势边界。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "锁定岁运并临、天克地冲、伏吟反吟、流月触发等动态运势边界。"
+      ],
+      "outputs": [
+        "锁定岁运并临、天克地冲、伏吟反吟、流月触发等动态运势边界。"
+      ],
+      "verify": "新增动态运势 fixture 与 pytest。",
+      "gate": "动态触发只作为趋势依据，不输出确定未来。",
+      "acceptance": [
+        "满足 Verify: 新增动态运势 fixture 与 pytest。",
+        "满足 Gate: 动态触发只作为趋势依据，不输出确定未来。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 3",
+      "self_checklist": [
+        "Verify: 新增动态运势 fixture 与 pytest。",
+        "Gate: 动态触发只作为趋势依据，不输出确定未来。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-02.05`：补大运流年流月触发 golden\n目标：锁定岁运并临、天克地冲、伏吟反吟、流月触发等动态运势边界。\n优先级：P0\n依赖：TP-01.01, TP-01.02, TP-01.03\nVerify：新增动态运势 fixture 与 pytest。\nGate：动态触发只作为趋势依据，不输出确定未来。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：锁定岁运并临、天克地冲、伏吟反吟、流月触发等动态运势边界。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-03",
+      "title": "八字规则库与解释层",
+      "priority": "P0",
+      "type": "Build",
+      "objective": "把格局、用神、十神、调候、专题解释做成可追溯规则层。",
+      "parent_id": "ROOT",
+      "depth": 1,
+      "child_ids": [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03",
+        "TP-03.04",
+        "TP-03.05"
+      ],
+      "leaf": false,
+      "depends_on": [
+        "TP-02"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-02.04",
+        "TP-02.05"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "把格局、用神、十神、调候、专题解释做成可追溯规则层。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "把格局、用神、十神、调候、专题解释做成可追溯规则层。"
+      ],
+      "outputs": [
+        "把格局、用神、十神、调候、专题解释做成可追溯规则层。"
+      ],
+      "verify": "确认子节点范围、依赖与状态闭环",
+      "gate": "前置步骤已完成: bazi_accuracy_p0",
+      "acceptance": [
+        "满足 Verify: 确认子节点范围、依赖与状态闭环",
+        "满足 Gate: 前置步骤已完成: bazi_accuracy_p0"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "先完成子节点后再收敛父节点",
+      "self_checklist": [
+        "确认全部子节点完成且状态已收敛后再结束该任务包"
+      ],
+      "agent_prompt": "处理任务包 `TP-03`：八字规则库与解释层\n目标：把格局、用神、十神、调候、专题解释做成可追溯规则层。\n优先级：P0\n依赖：TP-02.01, TP-02.02, TP-02.03, TP-02.04, TP-02.05\nVerify：确认子节点范围、依赖与状态闭环\nGate：前置步骤已完成: bazi_accuracy_p0\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：把格局、用神、十神、调候、专题解释做成可追溯规则层。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-03.01",
+      "title": "建立格局规则 registry",
+      "priority": "P0",
+      "type": "Build",
+      "objective": "覆盖正格、变格、从格、专旺、化气的第一批规则和典型命例。",
+      "parent_id": "TP-03",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-02.04",
+        "TP-02.05"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "覆盖正格、变格、从格、专旺、化气的第一批规则和典型命例。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "覆盖正格、变格、从格、专旺、化气的第一批规则和典型命例。"
+      ],
+      "outputs": [
+        "覆盖正格、变格、从格、专旺、化气的第一批规则和典型命例。"
+      ],
+      "verify": "规则索引、evidence 和 golden 互相可追溯。",
+      "gate": "无法稳定判定的格局必须输出不确定原因。",
+      "acceptance": [
+        "满足 Verify: 规则索引、evidence 和 golden 互相可追溯。",
+        "满足 Gate: 无法稳定判定的格局必须输出不确定原因。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 4",
+      "self_checklist": [
+        "Verify: 规则索引、evidence 和 golden 互相可追溯。",
+        "Gate: 无法稳定判定的格局必须输出不确定原因。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-03.01`：建立格局规则 registry\n目标：覆盖正格、变格、从格、专旺、化气的第一批规则和典型命例。\n优先级：P0\n依赖：TP-02.01, TP-02.02, TP-02.03, TP-02.04, TP-02.05\nVerify：规则索引、evidence 和 golden 互相可追溯。\nGate：无法稳定判定的格局必须输出不确定原因。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：覆盖正格、变格、从格、专旺、化气的第一批规则和典型命例。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-03.02",
+      "title": "拆分用神策略口径",
+      "priority": "P0",
+      "type": "Build",
+      "objective": "把调候、扶抑、通关、病药拆成独立依据，处理口径冲突。",
+      "parent_id": "TP-03",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-02.04",
+        "TP-02.05"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "把调候、扶抑、通关、病药拆成独立依据，处理口径冲突。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "把调候、扶抑、通关、病药拆成独立依据，处理口径冲突。"
+      ],
+      "outputs": [
+        "把调候、扶抑、通关、病药拆成独立依据，处理口径冲突。"
+      ],
+      "verify": "用神输出包含 strategy、basis、conflicts、ruleIds。",
+      "gate": "不得把单一调候结论包装成全部用神结论。",
+      "acceptance": [
+        "满足 Verify: 用神输出包含 strategy、basis、conflicts、ruleIds。",
+        "满足 Gate: 不得把单一调候结论包装成全部用神结论。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 4",
+      "self_checklist": [
+        "Verify: 用神输出包含 strategy、basis、conflicts、ruleIds。",
+        "Gate: 不得把单一调候结论包装成全部用神结论。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-03.02`：拆分用神策略口径\n目标：把调候、扶抑、通关、病药拆成独立依据，处理口径冲突。\n优先级：P0\n依赖：TP-02.01, TP-02.02, TP-02.03, TP-02.04, TP-02.05\nVerify：用神输出包含 strategy、basis、conflicts、ruleIds。\nGate：不得把单一调候结论包装成全部用神结论。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：把调候、扶抑、通关、病药拆成独立依据，处理口径冲突。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-03.03",
+      "title": "建立十神组合解释库",
+      "priority": "P1",
+      "type": "Build",
+      "objective": "为透干、藏干、十神数量、十神组合和十神成局建立结构化解释。",
+      "parent_id": "TP-03",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-02.04",
+        "TP-02.05"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "为透干、藏干、十神数量、十神组合和十神成局建立结构化解释。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "为透干、藏干、十神数量、十神组合和十神成局建立结构化解释。"
+      ],
+      "outputs": [
+        "为透干、藏干、十神数量、十神组合和十神成局建立结构化解释。"
+      ],
+      "verify": "十神解释字段和 Markdown 摘要测试通过。",
+      "gate": "十神解释必须引用盘面证据。",
+      "acceptance": [
+        "满足 Verify: 十神解释字段和 Markdown 摘要测试通过。",
+        "满足 Gate: 十神解释必须引用盘面证据。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 4",
+      "self_checklist": [
+        "Verify: 十神解释字段和 Markdown 摘要测试通过。",
+        "Gate: 十神解释必须引用盘面证据。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-03.03`：建立十神组合解释库\n目标：为透干、藏干、十神数量、十神组合和十神成局建立结构化解释。\n优先级：P1\n依赖：TP-02.01, TP-02.02, TP-02.03, TP-02.04, TP-02.05\nVerify：十神解释字段和 Markdown 摘要测试通过。\nGate：十神解释必须引用盘面证据。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：为透干、藏干、十神数量、十神组合和十神成局建立结构化解释。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-03.04",
+      "title": "扩展八字典籍规则索引",
+      "priority": "P1",
+      "type": "Research",
+      "objective": "从已整理典籍资料中提炼规则 ID，不直接复制大段原文。",
+      "parent_id": "TP-03",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-02.04",
+        "TP-02.05"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "从已整理典籍资料中提炼规则 ID，不直接复制大段原文。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "从已整理典籍资料中提炼规则 ID，不直接复制大段原文。"
+      ],
+      "outputs": [
+        "从已整理典籍资料中提炼规则 ID，不直接复制大段原文。"
+      ],
+      "verify": "规则索引包含来源、短依据、适用条件和版权边界。",
+      "gate": "版权未复核内容不得进入生产文案。",
+      "acceptance": [
+        "满足 Verify: 规则索引包含来源、短依据、适用条件和版权边界。",
+        "满足 Gate: 版权未复核内容不得进入生产文案。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 4",
+      "self_checklist": [
+        "Verify: 规则索引包含来源、短依据、适用条件和版权边界。",
+        "Gate: 版权未复核内容不得进入生产文案。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-03.04`：扩展八字典籍规则索引\n目标：从已整理典籍资料中提炼规则 ID，不直接复制大段原文。\n优先级：P1\n依赖：TP-02.01, TP-02.02, TP-02.03, TP-02.04, TP-02.05\nVerify：规则索引包含来源、短依据、适用条件和版权边界。\nGate：版权未复核内容不得进入生产文案。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：从已整理典籍资料中提炼规则 ID，不直接复制大段原文。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-03.05",
+      "title": "设计八字专题报告",
+      "priority": "P1",
+      "type": "Design",
+      "objective": "建立事业、财运、婚姻、健康、学业、迁移等专题结构，但保持默认报告克制。",
+      "parent_id": "TP-03",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-02.01",
+        "TP-02.02",
+        "TP-02.03",
+        "TP-02.04",
+        "TP-02.05"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "建立事业、财运、婚姻、健康、学业、迁移等专题结构，但保持默认报告克制。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "建立事业、财运、婚姻、健康、学业、迁移等专题结构，但保持默认报告克制。"
+      ],
+      "outputs": [
+        "建立事业、财运、婚姻、健康、学业、迁移等专题结构，但保持默认报告克制。"
+      ],
+      "verify": "专题 profile 与默认 Markdown 隔离测试通过。",
+      "gate": "健康等高风险专题必须有更强免责声明。",
+      "acceptance": [
+        "满足 Verify: 专题 profile 与默认 Markdown 隔离测试通过。",
+        "满足 Gate: 健康等高风险专题必须有更强免责声明。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 4",
+      "self_checklist": [
+        "Verify: 专题 profile 与默认 Markdown 隔离测试通过。",
+        "Gate: 健康等高风险专题必须有更强免责声明。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-03.05`：设计八字专题报告\n目标：建立事业、财运、婚姻、健康、学业、迁移等专题结构，但保持默认报告克制。\n优先级：P1\n依赖：TP-02.01, TP-02.02, TP-02.03, TP-02.04, TP-02.05\nVerify：专题 profile 与默认 Markdown 隔离测试通过。\nGate：健康等高风险专题必须有更强免责声明。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：建立事业、财运、婚姻、健康、学业、迁移等专题结构，但保持默认报告克制。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-04",
+      "title": "紫微完整盘面 P0 加固",
+      "priority": "P0",
+      "type": "Build",
+      "objective": "吃透 iztro 输出，补齐星曜分类、宫位关系、四化飞入和紫微 golden。",
+      "parent_id": "ROOT",
+      "depth": 1,
+      "child_ids": [
+        "TP-04.01",
+        "TP-04.02",
+        "TP-04.03",
+        "TP-04.04",
+        "TP-04.05"
+      ],
+      "leaf": false,
+      "depends_on": [
+        "TP-01"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-01.01",
+        "TP-01.02",
+        "TP-01.03"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "吃透 iztro 输出，补齐星曜分类、宫位关系、四化飞入和紫微 golden。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "吃透 iztro 输出，补齐星曜分类、宫位关系、四化飞入和紫微 golden。"
+      ],
+      "outputs": [
+        "吃透 iztro 输出，补齐星曜分类、宫位关系、四化飞入和紫微 golden。"
+      ],
+      "verify": "确认子节点范围、依赖与状态闭环",
+      "gate": "前置步骤已完成: benchmark_governance",
+      "acceptance": [
+        "满足 Verify: 确认子节点范围、依赖与状态闭环",
+        "满足 Gate: 前置步骤已完成: benchmark_governance"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "先完成子节点后再收敛父节点",
+      "self_checklist": [
+        "确认全部子节点完成且状态已收敛后再结束该任务包"
+      ],
+      "agent_prompt": "处理任务包 `TP-04`：紫微完整盘面 P0 加固\n目标：吃透 iztro 输出，补齐星曜分类、宫位关系、四化飞入和紫微 golden。\n优先级：P0\n依赖：TP-01.01, TP-01.02, TP-01.03\nVerify：确认子节点范围、依赖与状态闭环\nGate：前置步骤已完成: benchmark_governance\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：吃透 iztro 输出，补齐星曜分类、宫位关系、四化飞入和紫微 golden。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-04.01",
+      "title": "审计 iztro 输出契约",
+      "priority": "P0",
+      "type": "Audit",
+      "objective": "确认 iztro 当前可用字段、配置插件、运限和四化能力，形成适配清单。",
+      "parent_id": "TP-04",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-01.01",
+        "TP-01.02",
+        "TP-01.03"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "确认 iztro 当前可用字段、配置插件、运限和四化能力，形成适配清单。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "确认 iztro 当前可用字段、配置插件、运限和四化能力，形成适配清单。"
+      ],
+      "outputs": [
+        "确认 iztro 当前可用字段、配置插件、运限和四化能力，形成适配清单。"
+      ],
+      "verify": "输出字段矩阵和未用字段清单。",
+      "gate": "只读 vendor，不魔改 iztro。",
+      "acceptance": [
+        "满足 Verify: 输出字段矩阵和未用字段清单。",
+        "满足 Gate: 只读 vendor，不魔改 iztro。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 3",
+      "self_checklist": [
+        "Verify: 输出字段矩阵和未用字段清单。",
+        "Gate: 只读 vendor，不魔改 iztro。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-04.01`：审计 iztro 输出契约\n目标：确认 iztro 当前可用字段、配置插件、运限和四化能力，形成适配清单。\n优先级：P0\n依赖：TP-01.01, TP-01.02, TP-01.03\nVerify：输出字段矩阵和未用字段清单。\nGate：只读 vendor，不魔改 iztro。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：确认 iztro 当前可用字段、配置插件、运限和四化能力，形成适配清单。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-04.02",
+      "title": "补星曜分类与亮度字段",
+      "priority": "P0",
+      "type": "Build",
+      "objective": "结构化主星、辅星、杂曜、煞曜、吉曜与庙旺利陷字段。",
+      "parent_id": "TP-04",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-04.01"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-01.01",
+        "TP-01.02",
+        "TP-01.03",
+        "TP-04.01"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "结构化主星、辅星、杂曜、煞曜、吉曜与庙旺利陷字段。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "结构化主星、辅星、杂曜、煞曜、吉曜与庙旺利陷字段。"
+      ],
+      "outputs": [
+        "结构化主星、辅星、杂曜、煞曜、吉曜与庙旺利陷字段。"
+      ],
+      "verify": "十二宫星曜分类和亮度测试通过。",
+      "gate": "不得丢失 iztro 原始 palaces。",
+      "acceptance": [
+        "满足 Verify: 十二宫星曜分类和亮度测试通过。",
+        "满足 Gate: 不得丢失 iztro 原始 palaces。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 4",
+      "self_checklist": [
+        "Verify: 十二宫星曜分类和亮度测试通过。",
+        "Gate: 不得丢失 iztro 原始 palaces。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-04.02`：补星曜分类与亮度字段\n目标：结构化主星、辅星、杂曜、煞曜、吉曜与庙旺利陷字段。\n优先级：P0\n依赖：TP-01.01, TP-01.02, TP-01.03, TP-04.01\nVerify：十二宫星曜分类和亮度测试通过。\nGate：不得丢失 iztro 原始 palaces。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：结构化主星、辅星、杂曜、煞曜、吉曜与庙旺利陷字段。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-04.03",
+      "title": "补宫位关系结构",
+      "priority": "P0",
+      "type": "Build",
+      "objective": "结构化对宫、夹宫、借宫、三方四正和宫位组合。",
+      "parent_id": "TP-04",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-04.01"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-01.01",
+        "TP-01.02",
+        "TP-01.03",
+        "TP-04.01"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "结构化对宫、夹宫、借宫、三方四正和宫位组合。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "结构化对宫、夹宫、借宫、三方四正和宫位组合。"
+      ],
+      "outputs": [
+        "结构化对宫、夹宫、借宫、三方四正和宫位组合。"
+      ],
+      "verify": "命宫、身宫、事业、财帛、夫妻等宫位关系测试通过。",
+      "gate": "关系字段必须能追到宫位和地支。",
+      "acceptance": [
+        "满足 Verify: 命宫、身宫、事业、财帛、夫妻等宫位关系测试通过。",
+        "满足 Gate: 关系字段必须能追到宫位和地支。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 4",
+      "self_checklist": [
+        "Verify: 命宫、身宫、事业、财帛、夫妻等宫位关系测试通过。",
+        "Gate: 关系字段必须能追到宫位和地支。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-04.03`：补宫位关系结构\n目标：结构化对宫、夹宫、借宫、三方四正和宫位组合。\n优先级：P0\n依赖：TP-01.01, TP-01.02, TP-01.03, TP-04.01\nVerify：命宫、身宫、事业、财帛、夫妻等宫位关系测试通过。\nGate：关系字段必须能追到宫位和地支。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：结构化对宫、夹宫、借宫、三方四正和宫位组合。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-04.04",
+      "title": "补四化飞入与冲照会照",
+      "priority": "P0",
+      "type": "Build",
+      "objective": "在生年、大限、流年、流月、流日、流时四化基础上补飞入、冲照、会照解释字段。",
+      "parent_id": "TP-04",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-04.01"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-01.01",
+        "TP-01.02",
+        "TP-01.03",
+        "TP-04.01"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "在生年、大限、流年、流月、流日、流时四化基础上补飞入、冲照、会照解释字段。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "在生年、大限、流年、流月、流日、流时四化基础上补飞入、冲照、会照解释字段。"
+      ],
+      "outputs": [
+        "在生年、大限、流年、流月、流日、流时四化基础上补飞入、冲照、会照解释字段。"
+      ],
+      "verify": "四化落宫、飞入、冲照、会照字段测试通过。",
+      "gate": "四化解释不得覆盖原始四化事实。",
+      "acceptance": [
+        "满足 Verify: 四化落宫、飞入、冲照、会照字段测试通过。",
+        "满足 Gate: 四化解释不得覆盖原始四化事实。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 4",
+      "self_checklist": [
+        "Verify: 四化落宫、飞入、冲照、会照字段测试通过。",
+        "Gate: 四化解释不得覆盖原始四化事实。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-04.04`：补四化飞入与冲照会照\n目标：在生年、大限、流年、流月、流日、流时四化基础上补飞入、冲照、会照解释字段。\n优先级：P0\n依赖：TP-01.01, TP-01.02, TP-01.03, TP-04.01\nVerify：四化落宫、飞入、冲照、会照字段测试通过。\nGate：四化解释不得覆盖原始四化事实。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：在生年、大限、流年、流月、流日、流时四化基础上补飞入、冲照、会照解释字段。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-04.05",
+      "title": "建立紫微命例 golden",
+      "priority": "P0",
+      "type": "Test",
+      "objective": "建立紫微命盘、命身宫、主星、四化、运限的第一批 fixture。",
+      "parent_id": "TP-04",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-04.02",
+        "TP-04.03",
+        "TP-04.04"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-01.01",
+        "TP-01.02",
+        "TP-01.03",
+        "TP-04.02",
+        "TP-04.03",
+        "TP-04.04"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": true,
+      "status": "Done",
+      "in_scope": [
+        "建立紫微命盘、命身宫、主星、四化、运限的第一批 fixture。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "建立紫微命盘、命身宫、主星、四化、运限的第一批 fixture。"
+      ],
+      "outputs": [
+        "建立紫微命盘、命身宫、主星、四化、运限的第一批 fixture。"
+      ],
+      "verify": "pytest 锁定紫微 P0 字段和解释层结构。",
+      "gate": "命例来源必须可追溯或使用合成匿名样本。",
+      "acceptance": [
+        "满足 Verify: pytest 锁定紫微 P0 字段和解释层结构。",
+        "满足 Gate: 命例来源必须可追溯或使用合成匿名样本。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 5",
+      "self_checklist": [
+        "Verify: pytest 锁定紫微 P0 字段和解释层结构。",
+        "Gate: 命例来源必须可追溯或使用合成匿名样本。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检",
+        "维护 `DEBUG.md` 并保留回归证据"
+      ],
+      "agent_prompt": "处理任务包 `TP-04.05`：建立紫微命例 golden\n目标：建立紫微命盘、命身宫、主星、四化、运限的第一批 fixture。\n优先级：P0\n依赖：TP-01.01, TP-01.02, TP-01.03, TP-04.02, TP-04.03, TP-04.04\nVerify：pytest 锁定紫微 P0 字段和解释层结构。\nGate：命例来源必须可追溯或使用合成匿名样本。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n调试纪律：先创建/更新 `DEBUG.md`，先复现再修复，最终写清 Root Cause / Fix / Regression Evidence\n输出：建立紫微命盘、命身宫、主星、四化、运限的第一批 fixture。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-05",
+      "title": "紫微解释库与运限联动",
+      "priority": "P1",
+      "type": "Build",
+      "objective": "建立星曜百科、主星组合、十二宫专题、格局识别和本命/大限/流年三层联动。",
+      "parent_id": "ROOT",
+      "depth": 1,
+      "child_ids": [
+        "TP-05.01",
+        "TP-05.02",
+        "TP-05.03",
+        "TP-05.04"
+      ],
+      "leaf": false,
+      "depends_on": [
+        "TP-04"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-04.01",
+        "TP-04.02",
+        "TP-04.03",
+        "TP-04.04",
+        "TP-04.05"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "建立星曜百科、主星组合、十二宫专题、格局识别和本命/大限/流年三层联动。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "建立星曜百科、主星组合、十二宫专题、格局识别和本命/大限/流年三层联动。"
+      ],
+      "outputs": [
+        "建立星曜百科、主星组合、十二宫专题、格局识别和本命/大限/流年三层联动。"
+      ],
+      "verify": "确认子节点范围、依赖与状态闭环",
+      "gate": "前置步骤已完成: ziwei_chart_p0",
+      "acceptance": [
+        "满足 Verify: 确认子节点范围、依赖与状态闭环",
+        "满足 Gate: 前置步骤已完成: ziwei_chart_p0"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "先完成子节点后再收敛父节点",
+      "self_checklist": [
+        "确认全部子节点完成且状态已收敛后再结束该任务包"
+      ],
+      "agent_prompt": "处理任务包 `TP-05`：紫微解释库与运限联动\n目标：建立星曜百科、主星组合、十二宫专题、格局识别和本命/大限/流年三层联动。\n优先级：P1\n依赖：TP-04.01, TP-04.02, TP-04.03, TP-04.04, TP-04.05\nVerify：确认子节点范围、依赖与状态闭环\nGate：前置步骤已完成: ziwei_chart_p0\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：建立星曜百科、主星组合、十二宫专题、格局识别和本命/大限/流年三层联动。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-05.01",
+      "title": "建立星曜百科索引",
+      "priority": "P1",
+      "type": "Build",
+      "objective": "为主要星曜建立宫位、亮度、四化条件下的基础解释索引。",
+      "parent_id": "TP-05",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-04.01",
+        "TP-04.02",
+        "TP-04.03",
+        "TP-04.04",
+        "TP-04.05"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "为主要星曜建立宫位、亮度、四化条件下的基础解释索引。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "为主要星曜建立宫位、亮度、四化条件下的基础解释索引。"
+      ],
+      "outputs": [
+        "为主要星曜建立宫位、亮度、四化条件下的基础解释索引。"
+      ],
+      "verify": "星曜索引 schema 和抽样解释测试通过。",
+      "gate": "解释必须标注适用条件。",
+      "acceptance": [
+        "满足 Verify: 星曜索引 schema 和抽样解释测试通过。",
+        "满足 Gate: 解释必须标注适用条件。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 6",
+      "self_checklist": [
+        "Verify: 星曜索引 schema 和抽样解释测试通过。",
+        "Gate: 解释必须标注适用条件。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-05.01`：建立星曜百科索引\n目标：为主要星曜建立宫位、亮度、四化条件下的基础解释索引。\n优先级：P1\n依赖：TP-04.01, TP-04.02, TP-04.03, TP-04.04, TP-04.05\nVerify：星曜索引 schema 和抽样解释测试通过。\nGate：解释必须标注适用条件。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：为主要星曜建立宫位、亮度、四化条件下的基础解释索引。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-05.02",
+      "title": "扩展主星组合规则",
+      "priority": "P1",
+      "type": "Build",
+      "objective": "补紫府、机月同梁、杀破狼等第一批主星组合解释。",
+      "parent_id": "TP-05",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-04.01",
+        "TP-04.02",
+        "TP-04.03",
+        "TP-04.04",
+        "TP-04.05"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "补紫府、机月同梁、杀破狼等第一批主星组合解释。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "补紫府、机月同梁、杀破狼等第一批主星组合解释。"
+      ],
+      "outputs": [
+        "补紫府、机月同梁、杀破狼等第一批主星组合解释。"
+      ],
+      "verify": "组合识别和 evidence rule ID 测试通过。",
+      "gate": "组合缺条件时输出不成立原因。",
+      "acceptance": [
+        "满足 Verify: 组合识别和 evidence rule ID 测试通过。",
+        "满足 Gate: 组合缺条件时输出不成立原因。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 6",
+      "self_checklist": [
+        "Verify: 组合识别和 evidence rule ID 测试通过。",
+        "Gate: 组合缺条件时输出不成立原因。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-05.02`：扩展主星组合规则\n目标：补紫府、机月同梁、杀破狼等第一批主星组合解释。\n优先级：P1\n依赖：TP-04.01, TP-04.02, TP-04.03, TP-04.04, TP-04.05\nVerify：组合识别和 evidence rule ID 测试通过。\nGate：组合缺条件时输出不成立原因。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：补紫府、机月同梁、杀破狼等第一批主星组合解释。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-05.03",
+      "title": "建立十二宫专题解释",
+      "priority": "P1",
+      "type": "Build",
+      "objective": "每宫输出主星、辅星、四化、三方四正、限运触发的结构化专题。",
+      "parent_id": "TP-05",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-04.01",
+        "TP-04.02",
+        "TP-04.03",
+        "TP-04.04",
+        "TP-04.05"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "每宫输出主星、辅星、四化、三方四正、限运触发的结构化专题。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "每宫输出主星、辅星、四化、三方四正、限运触发的结构化专题。"
+      ],
+      "outputs": [
+        "每宫输出主星、辅星、四化、三方四正、限运触发的结构化专题。"
+      ],
+      "verify": "十二宫专题快照测试通过。",
+      "gate": "专题解释不得输出恐吓式断语。",
+      "acceptance": [
+        "满足 Verify: 十二宫专题快照测试通过。",
+        "满足 Gate: 专题解释不得输出恐吓式断语。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 6",
+      "self_checklist": [
+        "Verify: 十二宫专题快照测试通过。",
+        "Gate: 专题解释不得输出恐吓式断语。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-05.03`：建立十二宫专题解释\n目标：每宫输出主星、辅星、四化、三方四正、限运触发的结构化专题。\n优先级：P1\n依赖：TP-04.01, TP-04.02, TP-04.03, TP-04.04, TP-04.05\nVerify：十二宫专题快照测试通过。\nGate：专题解释不得输出恐吓式断语。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：每宫输出主星、辅星、四化、三方四正、限运触发的结构化专题。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-05.04",
+      "title": "深化本命大限流年联动",
+      "priority": "P1",
+      "type": "Build",
+      "objective": "输出本命为体、大限成形、流年触发的三层因果链。",
+      "parent_id": "TP-05",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-05.01",
+        "TP-05.02",
+        "TP-05.03"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-04.01",
+        "TP-04.02",
+        "TP-04.03",
+        "TP-04.04",
+        "TP-04.05",
+        "TP-05.01",
+        "TP-05.02",
+        "TP-05.03"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "输出本命为体、大限成形、流年触发的三层因果链。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "输出本命为体、大限成形、流年触发的三层因果链。"
+      ],
+      "outputs": [
+        "输出本命为体、大限成形、流年触发的三层因果链。"
+      ],
+      "verify": "联动解释包含本命宫位、大限宫位、流年四化和风险边界。",
+      "gate": "不得把趋势解释写成确定未来。",
+      "acceptance": [
+        "满足 Verify: 联动解释包含本命宫位、大限宫位、流年四化和风险边界。",
+        "满足 Gate: 不得把趋势解释写成确定未来。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 7",
+      "self_checklist": [
+        "Verify: 联动解释包含本命宫位、大限宫位、流年四化和风险边界。",
+        "Gate: 不得把趋势解释写成确定未来。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-05.04`：深化本命大限流年联动\n目标：输出本命为体、大限成形、流年触发的三层因果链。\n优先级：P1\n依赖：TP-04.01, TP-04.02, TP-04.03, TP-04.04, TP-04.05, TP-05.01, TP-05.02, TP-05.03\nVerify：联动解释包含本命宫位、大限宫位、流年四化和风险边界。\nGate：不得把趋势解释写成确定未来。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：输出本命为体、大限成形、流年触发的三层因果链。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-06",
+      "title": "八字紫微 Web 专业工作台",
+      "priority": "P1",
+      "type": "Frontend",
+      "objective": "把 Web 从报告复制页升级为八字/紫微结构化查看和点击展开工作台。",
+      "parent_id": "ROOT",
+      "depth": 1,
+      "child_ids": [
+        "TP-06.01",
+        "TP-06.02",
+        "TP-06.03",
+        "TP-06.04"
+      ],
+      "leaf": false,
+      "depends_on": [
+        "TP-03",
+        "TP-05"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03",
+        "TP-03.04",
+        "TP-03.05",
+        "TP-05.01",
+        "TP-05.02",
+        "TP-05.03",
+        "TP-05.04"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "把 Web 从报告复制页升级为八字/紫微结构化查看和点击展开工作台。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "把 Web 从报告复制页升级为八字/紫微结构化查看和点击展开工作台。"
+      ],
+      "outputs": [
+        "把 Web 从报告复制页升级为八字/紫微结构化查看和点击展开工作台。"
+      ],
+      "verify": "确认子节点范围、依赖与状态闭环",
+      "gate": "前置步骤已完成: bazi_rule_library, ziwei_interpretation_library",
+      "acceptance": [
+        "满足 Verify: 确认子节点范围、依赖与状态闭环",
+        "满足 Gate: 前置步骤已完成: bazi_rule_library, ziwei_interpretation_library"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "先完成子节点后再收敛父节点",
+      "self_checklist": [
+        "确认全部子节点完成且状态已收敛后再结束该任务包"
+      ],
+      "agent_prompt": "处理任务包 `TP-06`：八字紫微 Web 专业工作台\n目标：把 Web 从报告复制页升级为八字/紫微结构化查看和点击展开工作台。\n优先级：P1\n依赖：TP-03.01, TP-03.02, TP-03.03, TP-03.04, TP-03.05, TP-05.01, TP-05.02, TP-05.03, TP-05.04\nVerify：确认子节点范围、依赖与状态闭环\nGate：前置步骤已完成: bazi_rule_library, ziwei_interpretation_library\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：把 Web 从报告复制页升级为八字/紫微结构化查看和点击展开工作台。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-06.01",
+      "title": "统一 Web 数据契约",
+      "priority": "P0",
+      "type": "Contract",
+      "objective": "定义 Web 只消费 capability/usecase 结构化结果，不自行拼命理结论。",
+      "parent_id": "TP-06",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03",
+        "TP-03.04",
+        "TP-03.05",
+        "TP-05.01",
+        "TP-05.02",
+        "TP-05.03",
+        "TP-05.04"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "定义 Web 只消费 capability/usecase 结构化结果，不自行拼命理结论。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "定义 Web 只消费 capability/usecase 结构化结果，不自行拼命理结论。"
+      ],
+      "outputs": [
+        "定义 Web 只消费 capability/usecase 结构化结果，不自行拼命理结论。"
+      ],
+      "verify": "API 与 Web 测试断言同源字段。",
+      "gate": "前端不得重复实现命理规则。",
+      "acceptance": [
+        "满足 Verify: API 与 Web 测试断言同源字段。",
+        "满足 Gate: 前端不得重复实现命理规则。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 8",
+      "self_checklist": [
+        "Verify: API 与 Web 测试断言同源字段。",
+        "Gate: 前端不得重复实现命理规则。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-06.01`：统一 Web 数据契约\n目标：定义 Web 只消费 capability/usecase 结构化结果，不自行拼命理结论。\n优先级：P0\n依赖：TP-03.01, TP-03.02, TP-03.03, TP-03.04, TP-03.05, TP-05.01, TP-05.02, TP-05.03, TP-05.04\nVerify：API 与 Web 测试断言同源字段。\nGate：前端不得重复实现命理规则。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：定义 Web 只消费 capability/usecase 结构化结果，不自行拼命理结论。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-06.02",
+      "title": "实现八字工作台",
+      "priority": "P1",
+      "type": "Frontend",
+      "objective": "四柱、十神、藏干、五行、格局、用神、大运流年可点击展开。",
+      "parent_id": "TP-06",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-06.01"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03",
+        "TP-03.04",
+        "TP-03.05",
+        "TP-05.01",
+        "TP-05.02",
+        "TP-05.03",
+        "TP-05.04",
+        "TP-06.01"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "四柱、十神、藏干、五行、格局、用神、大运流年可点击展开。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "四柱、十神、藏干、五行、格局、用神、大运流年可点击展开。"
+      ],
+      "outputs": [
+        "四柱、十神、藏干、五行、格局、用神、大运流年可点击展开。"
+      ],
+      "verify": "Web 测试覆盖八字工作台结构和复制 Markdown。",
+      "gate": "默认 Markdown 结构不被前端改写。",
+      "acceptance": [
+        "满足 Verify: Web 测试覆盖八字工作台结构和复制 Markdown。",
+        "满足 Gate: 默认 Markdown 结构不被前端改写。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 9",
+      "self_checklist": [
+        "Verify: Web 测试覆盖八字工作台结构和复制 Markdown。",
+        "Gate: 默认 Markdown 结构不被前端改写。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-06.02`：实现八字工作台\n目标：四柱、十神、藏干、五行、格局、用神、大运流年可点击展开。\n优先级：P1\n依赖：TP-03.01, TP-03.02, TP-03.03, TP-03.04, TP-03.05, TP-05.01, TP-05.02, TP-05.03, TP-05.04, TP-06.01\nVerify：Web 测试覆盖八字工作台结构和复制 Markdown。\nGate：默认 Markdown 结构不被前端改写。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：四柱、十神、藏干、五行、格局、用神、大运流年可点击展开。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-06.03",
+      "title": "实现紫微工作台",
+      "priority": "P1",
+      "type": "Frontend",
+      "objective": "十二宫、星曜、四化、运限可点击展开解释。",
+      "parent_id": "TP-06",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-06.01"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03",
+        "TP-03.04",
+        "TP-03.05",
+        "TP-05.01",
+        "TP-05.02",
+        "TP-05.03",
+        "TP-05.04",
+        "TP-06.01"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "十二宫、星曜、四化、运限可点击展开解释。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "十二宫、星曜、四化、运限可点击展开解释。"
+      ],
+      "outputs": [
+        "十二宫、星曜、四化、运限可点击展开解释。"
+      ],
+      "verify": "Web 测试覆盖紫微工作台结构和 standalone 输出。",
+      "gate": "紫微不得混入八字默认报告。",
+      "acceptance": [
+        "满足 Verify: Web 测试覆盖紫微工作台结构和 standalone 输出。",
+        "满足 Gate: 紫微不得混入八字默认报告。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 9",
+      "self_checklist": [
+        "Verify: Web 测试覆盖紫微工作台结构和 standalone 输出。",
+        "Gate: 紫微不得混入八字默认报告。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-06.03`：实现紫微工作台\n目标：十二宫、星曜、四化、运限可点击展开解释。\n优先级：P1\n依赖：TP-03.01, TP-03.02, TP-03.03, TP-03.04, TP-03.05, TP-05.01, TP-05.02, TP-05.03, TP-05.04, TP-06.01\nVerify：Web 测试覆盖紫微工作台结构和 standalone 输出。\nGate：紫微不得混入八字默认报告。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：十二宫、星曜、四化、运限可点击展开解释。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-06.04",
+      "title": "补 Web 隐私回归",
+      "priority": "P0",
+      "type": "Test",
+      "objective": "保证示例数据仍为北京/测试用户，不显示真实非北京地区样例。",
+      "parent_id": "TP-06",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-06.01"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-03.01",
+        "TP-03.02",
+        "TP-03.03",
+        "TP-03.04",
+        "TP-03.05",
+        "TP-05.01",
+        "TP-05.02",
+        "TP-05.03",
+        "TP-05.04",
+        "TP-06.01"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": true,
+      "status": "Done",
+      "in_scope": [
+        "保证示例数据仍为北京/测试用户，不显示真实非北京地区样例。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "保证示例数据仍为北京/测试用户，不显示真实非北京地区样例。"
+      ],
+      "outputs": [
+        "保证示例数据仍为北京/测试用户，不显示真实非北京地区样例。"
+      ],
+      "verify": "privacy fixtures gate 和 Web 测试通过。",
+      "gate": "真实地区只用于后端计算，不进前端示例。",
+      "acceptance": [
+        "满足 Verify: privacy fixtures gate 和 Web 测试通过。",
+        "满足 Gate: 真实地区只用于后端计算，不进前端示例。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 9",
+      "self_checklist": [
+        "Verify: privacy fixtures gate 和 Web 测试通过。",
+        "Gate: 真实地区只用于后端计算，不进前端示例。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检",
+        "维护 `DEBUG.md` 并保留回归证据"
+      ],
+      "agent_prompt": "处理任务包 `TP-06.04`：补 Web 隐私回归\n目标：保证示例数据仍为北京/测试用户，不显示真实非北京地区样例。\n优先级：P0\n依赖：TP-03.01, TP-03.02, TP-03.03, TP-03.04, TP-03.05, TP-05.01, TP-05.02, TP-05.03, TP-05.04, TP-06.01\nVerify：privacy fixtures gate 和 Web 测试通过。\nGate：真实地区只用于后端计算，不进前端示例。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n调试纪律：先创建/更新 `DEBUG.md`，先复现再修复，最终写清 Root Cause / Fix / Regression Evidence\n输出：保证示例数据仍为北京/测试用户，不显示真实非北京地区样例。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-07",
+      "title": "质量门禁、文档同步与交付",
+      "priority": "P0",
+      "type": "Ship",
+      "objective": "把所有新增能力纳入测试、文档、acceptance、版本控制和远端 CI。",
+      "parent_id": "ROOT",
+      "depth": 1,
+      "child_ids": [
+        "TP-07.01",
+        "TP-07.02",
+        "TP-07.03",
+        "TP-07.04"
+      ],
+      "leaf": false,
+      "depends_on": [
+        "TP-06"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-06.01",
+        "TP-06.02",
+        "TP-06.03",
+        "TP-06.04"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "把所有新增能力纳入测试、文档、acceptance、版本控制和远端 CI。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "把所有新增能力纳入测试、文档、acceptance、版本控制和远端 CI。"
+      ],
+      "outputs": [
+        "把所有新增能力纳入测试、文档、acceptance、版本控制和远端 CI。"
+      ],
+      "verify": "确认子节点范围、依赖与状态闭环",
+      "gate": "前置步骤已完成: web_workbench",
+      "acceptance": [
+        "满足 Verify: 确认子节点范围、依赖与状态闭环",
+        "满足 Gate: 前置步骤已完成: web_workbench"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "先完成子节点后再收敛父节点",
+      "self_checklist": [
+        "确认全部子节点完成且状态已收敛后再结束该任务包"
+      ],
+      "agent_prompt": "处理任务包 `TP-07`：质量门禁、文档同步与交付\n目标：把所有新增能力纳入测试、文档、acceptance、版本控制和远端 CI。\n优先级：P0\n依赖：TP-06.01, TP-06.02, TP-06.03, TP-06.04\nVerify：确认子节点范围、依赖与状态闭环\nGate：前置步骤已完成: web_workbench\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：把所有新增能力纳入测试、文档、acceptance、版本控制和远端 CI。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-07.01",
+      "title": "更新 acceptance 门禁",
+      "priority": "P0",
+      "type": "Test",
+      "objective": "确保新增八字/紫微 golden、Web 工作台和隐私回归进入发布门禁。",
+      "parent_id": "TP-07",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-06.01",
+        "TP-06.02",
+        "TP-06.03",
+        "TP-06.04"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": true,
+      "status": "Done",
+      "in_scope": [
+        "确保新增八字/紫微 golden、Web 工作台和隐私回归进入发布门禁。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "确保新增八字/紫微 golden、Web 工作台和隐私回归进入发布门禁。"
+      ],
+      "outputs": [
+        "确保新增八字/紫微 golden、Web 工作台和隐私回归进入发布门禁。"
+      ],
+      "verify": "`bash scripts/acceptance.sh` 覆盖新增测试并通过。",
+      "gate": "导出包卫生继续通过。",
+      "acceptance": [
+        "满足 Verify: `bash scripts/acceptance.sh` 覆盖新增测试并通过。",
+        "满足 Gate: 导出包卫生继续通过。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 10",
+      "self_checklist": [
+        "Verify: `bash scripts/acceptance.sh` 覆盖新增测试并通过。",
+        "Gate: 导出包卫生继续通过。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检",
+        "维护 `DEBUG.md` 并保留回归证据"
+      ],
+      "agent_prompt": "处理任务包 `TP-07.01`：更新 acceptance 门禁\n目标：确保新增八字/紫微 golden、Web 工作台和隐私回归进入发布门禁。\n优先级：P0\n依赖：TP-06.01, TP-06.02, TP-06.03, TP-06.04\nVerify：`bash scripts/acceptance.sh` 覆盖新增测试并通过。\nGate：导出包卫生继续通过。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n调试纪律：先创建/更新 `DEBUG.md`，先复现再修复，最终写清 Root Cause / Fix / Regression Evidence\n输出：确保新增八字/紫微 golden、Web 工作台和隐私回归进入发布门禁。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-07.02",
+      "title": "同步 README、功能状态与路线文档",
+      "priority": "P0",
+      "type": "Docs",
+      "objective": "更新当前能力、未实现能力、对标路线和使用边界。",
+      "parent_id": "TP-07",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [],
+      "effective_leaf_dependencies": [
+        "TP-06.01",
+        "TP-06.02",
+        "TP-06.03",
+        "TP-06.04"
+      ],
+      "ready": false,
+      "parallelizable": true,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "更新当前能力、未实现能力、对标路线和使用边界。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "更新当前能力、未实现能力、对标路线和使用边界。"
+      ],
+      "outputs": [
+        "更新当前能力、未实现能力、对标路线和使用边界。"
+      ],
+      "verify": "文档无 planned/production 口径冲突。",
+      "gate": "不把未来能力写成已生产。",
+      "acceptance": [
+        "满足 Verify: 文档无 planned/production 口径冲突。",
+        "满足 Gate: 不把未来能力写成已生产。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 10",
+      "self_checklist": [
+        "Verify: 文档无 planned/production 口径冲突。",
+        "Gate: 不把未来能力写成已生产。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-07.02`：同步 README、功能状态与路线文档\n目标：更新当前能力、未实现能力、对标路线和使用边界。\n优先级：P0\n依赖：TP-06.01, TP-06.02, TP-06.03, TP-06.04\nVerify：文档无 planned/production 口径冲突。\nGate：不把未来能力写成已生产。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：更新当前能力、未实现能力、对标路线和使用边界。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-07.03",
+      "title": "执行自审和审计清单",
+      "priority": "P0",
+      "type": "Review",
+      "objective": "检查准确性、evidence、隐私、输出边界、导出包、CI 和残留问题。",
+      "parent_id": "TP-07",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-07.01",
+        "TP-07.02"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-06.01",
+        "TP-06.02",
+        "TP-06.03",
+        "TP-06.04",
+        "TP-07.01",
+        "TP-07.02"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "检查准确性、evidence、隐私、输出边界、导出包、CI 和残留问题。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "检查准确性、evidence、隐私、输出边界、导出包、CI 和残留问题。"
+      ],
+      "outputs": [
+        "检查准确性、evidence、隐私、输出边界、导出包、CI 和残留问题。"
+      ],
+      "verify": "输出审计摘要并记录剩余风险。",
+      "gate": "阻断项必须修复或明确标为 blocker。",
+      "acceptance": [
+        "满足 Verify: 输出审计摘要并记录剩余风险。",
+        "满足 Gate: 阻断项必须修复或明确标为 blocker。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 11",
+      "self_checklist": [
+        "Verify: 输出审计摘要并记录剩余风险。",
+        "Gate: 阻断项必须修复或明确标为 blocker。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-07.03`：执行自审和审计清单\n目标：检查准确性、evidence、隐私、输出边界、导出包、CI 和残留问题。\n优先级：P0\n依赖：TP-06.01, TP-06.02, TP-06.03, TP-06.04, TP-07.01, TP-07.02\nVerify：输出审计摘要并记录剩余风险。\nGate：阻断项必须修复或明确标为 blocker。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：检查准确性、evidence、隐私、输出边界、导出包、CI 和残留问题。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    },
+    {
+      "id": "TP-07.04",
+      "title": "提交推送与 closeout",
+      "priority": "P0",
+      "type": "Ship",
+      "objective": "提交、推送、检查 GitHub Actions，更新任务 closeout 证据。",
+      "parent_id": "TP-07",
+      "depth": 2,
+      "child_ids": [],
+      "leaf": true,
+      "depends_on": [
+        "TP-07.03"
+      ],
+      "effective_leaf_dependencies": [
+        "TP-06.01",
+        "TP-06.02",
+        "TP-06.03",
+        "TP-06.04",
+        "TP-07.03"
+      ],
+      "ready": false,
+      "parallelizable": false,
+      "debug_required": false,
+      "status": "Done",
+      "in_scope": [
+        "提交、推送、检查 GitHub Actions，更新任务 closeout 证据。"
+      ],
+      "out_of_scope": [
+        "不新增六爻、奇门、大六壬、风水、姓名合婚、西方占星、塔罗等新体系实现。",
+        "不把紫微、黄历、梅花或未来体系混入默认综合八字 Markdown。",
+        "不复制商业 App 文案、私有算法或版权未复核资料。",
+        "不修改 vendor 源码作为业务实现方式。",
+        "不把 raw 大文件、缓存、日志、用户输出加入导出包。"
+      ],
+      "inputs": [],
+      "actions": [
+        "提交、推送、检查 GitHub Actions，更新任务 closeout 证据。"
+      ],
+      "outputs": [
+        "提交、推送、检查 GitHub Actions，更新任务 closeout 证据。"
+      ],
+      "verify": "git clean、远端 CI 成功、closeout 文档完整。",
+      "gate": "不得在 CI 未覆盖最新提交时宣称完成。",
+      "acceptance": [
+        "满足 Verify: git clean、远端 CI 成功、closeout 文档完整。",
+        "满足 Gate: 不得在 CI 未覆盖最新提交时宣称完成。"
+      ],
+      "constraints": [
+        "胶水原则优先：优先复用 lunar-python、bazi-1、iztro、现有 vendor 和成熟开源库。",
+        "自研只允许做连接、编排、规则索引、evidence 映射、报告组织和 UI。",
+        "八字仍是唯一默认 Markdown 生产报告；紫微必须 standalone。",
+        "所有核心断语必须有 evidence 或规则索引，不允许只靠自然语言脑补。",
+        "架构或目录职责变化必须同步更新对应 AGENTS.md。"
+      ],
+      "risks": [],
+      "recommended_order": "Wave 12",
+      "self_checklist": [
+        "Verify: git clean、远端 CI 成功、closeout 文档完整。",
+        "Gate: 不得在 CI 未覆盖最新提交时宣称完成。",
+        "完成后更新 `STATUS.md` 的 `Recent Evidence`",
+        "交付前完成 REVIEW / SHIP 自检"
+      ],
+      "agent_prompt": "处理任务包 `TP-07.04`：提交推送与 closeout\n目标：提交、推送、检查 GitHub Actions，更新任务 closeout 证据。\n优先级：P0\n依赖：TP-06.01, TP-06.02, TP-06.03, TP-06.04, TP-07.03\nVerify：git clean、远端 CI 成功、closeout 文档完整。\nGate：不得在 CI 未覆盖最新提交时宣称完成。\n执行纪律：不得跳过 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP` 中未闭合的 gate\n输出：提交、推送、检查 GitHub Actions，更新任务 closeout 证据。",
+      "evidence": "已落地并通过本地 acceptance：88 passed，ruff/mypy/delivery/export smoke 均通过。"
+    }
+  ]
+}
