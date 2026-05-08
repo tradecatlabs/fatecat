@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "registryVersion": "2026-05-08.rule-depth.1",
+  "registryVersion": "2026-05-08.rule-depth.2",
   "description": "八字与紫微规则深度 registry。这里只保存规则条件、证据字段、权重、冲突策略和风险边界，不保存商业产品文案或大段典籍原文。",
   "copyrightBoundary": "summary_only_no_commercial_copy",
   "rules": [
@@ -11,11 +11,23 @@
       "topic": "日主强弱",
       "priority": 100,
       "weight": 0.9,
-      "evidenceFields": ["baziBenchmark.renYuanSiling", "baziBenchmark.strengthScore", "hiddenStems", "tenGods"],
-      "conditions": ["月令、人元司令、通根、透干、藏干、五行分数齐备"],
+      "evidenceFields": [
+        "baziBenchmark.renYuanSiling",
+        "baziBenchmark.strengthScore",
+        "hiddenStems",
+        "tenGods"
+      ],
+      "conditions": [
+        "月令、人元司令、通根、透干、藏干、五行分数齐备"
+      ],
       "conflictPolicy": "强弱结论必须允许中和、偏强、偏弱等灰度标签；不得由单一五行分数硬断。",
       "riskBoundary": "只作八字结构证据，不输出确定性人生结论。",
-      "sourceRuleIds": ["bazi.month_command_priority", "bazi.day_master_strength", "bazi.renyuan_siling_weight", "bazi.strength_score_golden"]
+      "sourceRuleIds": [
+        "bazi.month_command_priority",
+        "bazi.day_master_strength",
+        "bazi.renyuan_siling_weight",
+        "bazi.strength_score_golden"
+      ]
     },
     {
       "id": "bazi.depth.pattern.establishment",
@@ -24,11 +36,22 @@
       "topic": "格局成败",
       "priority": 95,
       "weight": 0.86,
-      "evidenceFields": ["geju", "baziBenchmark.patternRegistry", "baziBenchmark.ganzhiPriority"],
-      "conditions": ["月令可定", "透干、藏干和合冲关系可追溯"],
+      "evidenceFields": [
+        "geju",
+        "baziBenchmark.patternRegistry",
+        "baziBenchmark.ganzhiPriority"
+      ],
+      "conditions": [
+        "月令可定",
+        "透干、藏干和合冲关系可追溯"
+      ],
       "conflictPolicy": "无法确认成格时输出候选格局和缺失条件，不把候选写成定格。",
       "riskBoundary": "格局只影响解释优先级，不替代完整命例判断。",
-      "sourceRuleIds": ["bazi.pattern_by_month_command", "bazi.pattern_root_transparency", "bazi.ganzhi_priority"]
+      "sourceRuleIds": [
+        "bazi.pattern_by_month_command",
+        "bazi.pattern_root_transparency",
+        "bazi.ganzhi_priority"
+      ]
     },
     {
       "id": "bazi.depth.yongshen.strategy_matrix",
@@ -37,11 +60,22 @@
       "topic": "用神策略",
       "priority": 92,
       "weight": 0.84,
-      "evidenceFields": ["yongShen", "baziBenchmark.yongShenStrategies", "climateScores", "wuxingScores"],
-      "conditions": ["调候、扶抑、通关、病药至少有一类可解释依据"],
+      "evidenceFields": [
+        "yongShen",
+        "baziBenchmark.yongShenStrategies",
+        "climateScores",
+        "wuxingScores"
+      ],
+      "conditions": [
+        "调候、扶抑、通关、病药至少有一类可解释依据"
+      ],
       "conflictPolicy": "调候、扶抑、格局用神冲突时保留多策略，不用单一结论覆盖全部。",
       "riskBoundary": "用神输出为传统文化分析，不承诺现实结果。",
-      "sourceRuleIds": ["bazi.regulating_climate", "bazi.balance_five_elements", "bazi.yongshen_strategy"]
+      "sourceRuleIds": [
+        "bazi.regulating_climate",
+        "bazi.balance_five_elements",
+        "bazi.yongshen_strategy"
+      ]
     },
     {
       "id": "bazi.depth.relation.collision_priority",
@@ -50,11 +84,20 @@
       "topic": "干支关系",
       "priority": 88,
       "weight": 0.78,
-      "evidenceFields": ["ganzhiRelations", "branchRelations", "baziBenchmark.ganzhiPriority"],
-      "conditions": ["天干、地支、藏干关系可展开"],
+      "evidenceFields": [
+        "ganzhiRelations",
+        "branchRelations",
+        "baziBenchmark.ganzhiPriority"
+      ],
+      "conditions": [
+        "天干、地支、藏干关系可展开"
+      ],
       "conflictPolicy": "合冲刑害破按优先级展示；合化是否成化必须另列依据，缺依据则只登记合象。",
       "riskBoundary": "关系触发只作结构变化证据。",
-      "sourceRuleIds": ["bazi.stem_branch_relations", "bazi.ganzhi_priority"]
+      "sourceRuleIds": [
+        "bazi.stem_branch_relations",
+        "bazi.ganzhi_priority"
+      ]
     },
     {
       "id": "bazi.depth.fortune.trigger_chain",
@@ -63,11 +106,21 @@
       "topic": "岁运触发",
       "priority": 80,
       "weight": 0.72,
-      "evidenceFields": ["majorFortune", "annualFortune", "monthlyFortune", "baziBenchmark.fortuneTriggers"],
-      "conditions": ["大运、流年、流月至少一层可用"],
+      "evidenceFields": [
+        "majorFortune",
+        "annualFortune",
+        "monthlyFortune",
+        "baziBenchmark.fortuneTriggers"
+      ],
+      "conditions": [
+        "大运、流年、流月至少一层可用"
+      ],
       "conflictPolicy": "动态触发不得覆盖原局结构；只说明何处被引动。",
       "riskBoundary": "不得输出必然事件、灾祸或高风险决策建议。",
-      "sourceRuleIds": ["bazi.fortune_trigger_boundary", "bazi.fortune_start_boundary"]
+      "sourceRuleIds": [
+        "bazi.fortune_trigger_boundary",
+        "bazi.fortune_start_boundary"
+      ]
     },
     {
       "id": "bazi.depth.auxiliary.boundary_guard",
@@ -76,11 +129,19 @@
       "topic": "辅助体系边界",
       "priority": 60,
       "weight": 0.45,
-      "evidenceFields": ["spiritsFull", "boneWeight"],
-      "conditions": ["报告包含神煞或称骨"],
+      "evidenceFields": [
+        "spiritsFull",
+        "boneWeight"
+      ],
+      "conditions": [
+        "报告包含神煞或称骨"
+      ],
       "conflictPolicy": "神煞、称骨只能辅助描述，不参与核心强弱、喜忌和格局定性。",
       "riskBoundary": "民俗附录不得输出恐吓式断语。",
-      "sourceRuleIds": ["bazi.spirits_auxiliary_only", "folk.bone_weight_appendix_only"]
+      "sourceRuleIds": [
+        "bazi.spirits_auxiliary_only",
+        "folk.bone_weight_appendix_only"
+      ]
     },
     {
       "id": "ziwei.depth.star.brightness_weight",
@@ -89,11 +150,19 @@
       "topic": "星曜亮度",
       "priority": 100,
       "weight": 0.88,
-      "evidenceFields": ["ziweiStarTaxonomy", "palaceAnalysis"],
-      "conditions": ["星曜、宫位、庙旺利陷字段齐备"],
+      "evidenceFields": [
+        "ziweiStarTaxonomy",
+        "palaceAnalysis"
+      ],
+      "conditions": [
+        "星曜、宫位、庙旺利陷字段齐备"
+      ],
       "conflictPolicy": "亮度只修正解释强弱，不单独决定吉凶。",
       "riskBoundary": "不得脱离宫位、四化和三方四正作断语。",
-      "sourceRuleIds": ["ziwei.star_taxonomy", "ziwei.brightness_state"]
+      "sourceRuleIds": [
+        "ziwei.star_taxonomy",
+        "ziwei.brightness_state"
+      ]
     },
     {
       "id": "ziwei.depth.palace.triad_focus",
@@ -102,11 +171,20 @@
       "topic": "三方四正",
       "priority": 96,
       "weight": 0.86,
-      "evidenceFields": ["ziweiInterpretation.surroundedPalaces", "ziweiPalaceRelations"],
-      "conditions": ["命宫或身宫三方四正可取得"],
+      "evidenceFields": [
+        "ziweiInterpretation.surroundedPalaces",
+        "ziweiPalaceRelations"
+      ],
+      "conditions": [
+        "命宫或身宫三方四正可取得"
+      ],
       "conflictPolicy": "原生 surroundedPalaces 优先；手工对宫/夹宫只作补充结构。",
       "riskBoundary": "只输出宫位关系证据，不代替流派断法。",
-      "sourceRuleIds": ["ziwei.surrounded_palaces", "ziwei.palace_relations", "ziwei.opposite_palace"]
+      "sourceRuleIds": [
+        "ziwei.surrounded_palaces",
+        "ziwei.palace_relations",
+        "ziwei.opposite_palace"
+      ]
     },
     {
       "id": "ziwei.depth.mutagen.scope_chain",
@@ -115,11 +193,20 @@
       "topic": "四化层级",
       "priority": 92,
       "weight": 0.83,
-      "evidenceFields": ["ziweiMutagenFlow", "ziweiHoroscope"],
-      "conditions": ["生年、大限、流年、流月、流日或流时四化至少一层可用"],
+      "evidenceFields": [
+        "ziweiMutagenFlow",
+        "ziweiHoroscope"
+      ],
+      "conditions": [
+        "生年、大限、流年、流月、流日或流时四化至少一层可用"
+      ],
       "conflictPolicy": "本命四化与运限四化必须分层，不得混读。",
       "riskBoundary": "四化引动只作趋势证据，不输出必然事件。",
-      "sourceRuleIds": ["ziwei.mutagen_scope", "ziwei.mutagen_flow", "ziwei.mutagen_opposition"]
+      "sourceRuleIds": [
+        "ziwei.mutagen_scope",
+        "ziwei.mutagen_flow",
+        "ziwei.mutagen_opposition"
+      ]
     },
     {
       "id": "ziwei.depth.pattern.condition_matrix",
@@ -128,11 +215,19 @@
       "topic": "紫微格局",
       "priority": 85,
       "weight": 0.74,
-      "evidenceFields": ["ziweiPatternMatches", "ziweiStarEncyclopedia"],
-      "conditions": ["主星集合、宫位与缺失条件可列出"],
+      "evidenceFields": [
+        "ziweiPatternMatches",
+        "ziweiStarEncyclopedia"
+      ],
+      "conditions": [
+        "主星集合、宫位与缺失条件可列出"
+      ],
       "conflictPolicy": "格局未满足时输出 missingStars，不把候选格局写成成立。",
       "riskBoundary": "格局解释必须保留不成立原因。",
-      "sourceRuleIds": ["ziwei.pattern_match_seed", "ziwei.star_encyclopedia_seed"]
+      "sourceRuleIds": [
+        "ziwei.pattern_match_seed",
+        "ziwei.star_encyclopedia_seed"
+      ]
     },
     {
       "id": "ziwei.depth.palace.topic_matrix",
@@ -141,11 +236,18 @@
       "topic": "十二宫专题",
       "priority": 78,
       "weight": 0.68,
-      "evidenceFields": ["ziweiPalaceTopics", "palaceAnalysis"],
-      "conditions": ["十二宫数量完整"],
+      "evidenceFields": [
+        "ziweiPalaceTopics",
+        "palaceAnalysis"
+      ],
+      "conditions": [
+        "十二宫数量完整"
+      ],
       "conflictPolicy": "专题解释必须回到宫位、星曜、四化和限运，不输出孤立断语。",
       "riskBoundary": "健康、财富、婚恋等主题不得替代专业建议。",
-      "sourceRuleIds": ["ziwei.palace_topic"]
+      "sourceRuleIds": [
+        "ziwei.palace_topic"
+      ]
     },
     {
       "id": "ziwei.depth.fortune.linkage_chain",
@@ -154,11 +256,264 @@
       "topic": "运限联动",
       "priority": 75,
       "weight": 0.66,
-      "evidenceFields": ["ziweiInterpretation.fortuneLinks", "ziweiHoroscope"],
-      "conditions": ["本命、大限、流年等至少两层结构可对照"],
+      "evidenceFields": [
+        "ziweiInterpretation.fortuneLinks",
+        "ziweiHoroscope"
+      ],
+      "conditions": [
+        "本命、大限、流年等至少两层结构可对照"
+      ],
       "conflictPolicy": "本命为体、运限为用；运限不得反向覆盖本命盘面事实。",
       "riskBoundary": "运限只说明时间层级触发，不保证事件结果。",
-      "sourceRuleIds": ["ziwei.fortune_linkage", "ziwei.horoscope_cycles"]
+      "sourceRuleIds": [
+        "ziwei.fortune_linkage",
+        "ziwei.horoscope_cycles"
+      ]
+    },
+    {
+      "id": "bazi.depth.pattern.regular_vs_special",
+      "system": "bazi",
+      "layer": "core",
+      "topic": "格局正变",
+      "priority": 94,
+      "weight": 0.82,
+      "evidenceFields": [
+        "geju",
+        "baziBenchmark.patternRegistry"
+      ],
+      "conditions": [
+        "月令格局已识别",
+        "高级格局条件未完全自证时保持候选"
+      ],
+      "conflictPolicy": "正格、变格、从格、化气和专旺必须按成败条件分层，不互相覆盖。",
+      "riskBoundary": "高级格局未具备 golden 时不得输出强断。",
+      "sourceRuleIds": [
+        "bazi.pattern_by_month_command",
+        "bazi.pattern_root_transparency"
+      ]
+    },
+    {
+      "id": "bazi.depth.pattern.follow_transform_guard",
+      "system": "bazi",
+      "layer": "boundary",
+      "topic": "从格化气保护",
+      "priority": 70,
+      "weight": 0.62,
+      "evidenceFields": [
+        "geju",
+        "baziBenchmark.patternRegistry"
+      ],
+      "conditions": [
+        "出现从格、化气、专旺等高级格局候选"
+      ],
+      "conflictPolicy": "缺少完整成败条件时只登记候选和缺口，不写成已成立。",
+      "riskBoundary": "高级格局需要更多匿名命例 golden 后再提升置信度。",
+      "sourceRuleIds": [
+        "bazi.pattern_by_month_command",
+        "bazi.pattern_root_transparency"
+      ]
+    },
+    {
+      "id": "bazi.depth.yongshen.tiaohou_priority",
+      "system": "bazi",
+      "layer": "core",
+      "topic": "调候优先级",
+      "priority": 91,
+      "weight": 0.81,
+      "evidenceFields": [
+        "climateScores",
+        "yongShen.tiaohouRaw",
+        "baziBenchmark.yongShenStrategies"
+      ],
+      "conditions": [
+        "寒暖燥湿可计算",
+        "调候原始依据存在"
+      ],
+      "conflictPolicy": "调候优先说明季节气候，不直接覆盖扶抑、通关和格局用神。",
+      "riskBoundary": "调候只作传统规则解释，不等于现实建议。",
+      "sourceRuleIds": [
+        "bazi.regulating_climate",
+        "bazi.yongshen_strategy"
+      ]
+    },
+    {
+      "id": "bazi.depth.tengod.structure_profile",
+      "system": "bazi",
+      "layer": "core",
+      "topic": "十神组合",
+      "priority": 84,
+      "weight": 0.74,
+      "evidenceFields": [
+        "tenGods",
+        "baziBenchmark.tenGodStructure"
+      ],
+      "conditions": [
+        "透干、藏干十神可统计"
+      ],
+      "conflictPolicy": "十神数量只作摘要，解释必须回到位置、透藏和组合关系。",
+      "riskBoundary": "不得用单一十神标签输出确定人生断语。",
+      "sourceRuleIds": [
+        "bazi.ten_god_structure"
+      ]
+    },
+    {
+      "id": "bazi.depth.climate.seasonal_adjustment",
+      "system": "bazi",
+      "layer": "core",
+      "topic": "寒暖燥湿",
+      "priority": 82,
+      "weight": 0.73,
+      "evidenceFields": [
+        "climateScores",
+        "baziBenchmark.renYuanSiling"
+      ],
+      "conditions": [
+        "月令、人元司令和温湿度字段齐备"
+      ],
+      "conflictPolicy": "寒暖燥湿影响调候权重，但不单独决定格局。",
+      "riskBoundary": "五行脏腑和健康类解释必须另加强免责声明。",
+      "sourceRuleIds": [
+        "bazi.regulating_climate",
+        "bazi.renyuan_siling_weight"
+      ]
+    },
+    {
+      "id": "bazi.depth.fortune.month_trigger",
+      "system": "bazi",
+      "layer": "dynamic",
+      "topic": "流月触发",
+      "priority": 72,
+      "weight": 0.64,
+      "evidenceFields": [
+        "monthlyFortune",
+        "baziBenchmark.fortuneTriggers"
+      ],
+      "conditions": [
+        "流月字段可用"
+      ],
+      "conflictPolicy": "流月只细化大运/流年触发，不反向覆盖原局。",
+      "riskBoundary": "短周期趋势不得包装成确定事件。",
+      "sourceRuleIds": [
+        "bazi.fortune_trigger_boundary"
+      ]
+    },
+    {
+      "id": "ziwei.depth.pattern.sha_po_lang",
+      "system": "ziwei",
+      "layer": "core",
+      "topic": "杀破狼候选",
+      "priority": 84,
+      "weight": 0.72,
+      "evidenceFields": [
+        "ziweiPatternMatches"
+      ],
+      "conditions": [
+        "七杀、破军、贪狼主星集合可验证"
+      ],
+      "conflictPolicy": "只登记主星集合命中，完整格局需宫位、四化和煞忌条件。",
+      "riskBoundary": "不得把组合候选写成确定人生事件。",
+      "sourceRuleIds": [
+        "ziwei.pattern_match_seed"
+      ]
+    },
+    {
+      "id": "ziwei.depth.pattern.ji_yue_tong_liang",
+      "system": "ziwei",
+      "layer": "core",
+      "topic": "机月同梁候选",
+      "priority": 83,
+      "weight": 0.7,
+      "evidenceFields": [
+        "ziweiPatternMatches"
+      ],
+      "conditions": [
+        "天机、太阴、天梁主星集合可验证"
+      ],
+      "conflictPolicy": "只登记组合候选，完整格局需宫位、亮度和四化条件。",
+      "riskBoundary": "不得脱离宫位输出强断。",
+      "sourceRuleIds": [
+        "ziwei.pattern_match_seed"
+      ]
+    },
+    {
+      "id": "ziwei.depth.star.encyclopedia_condition",
+      "system": "ziwei",
+      "layer": "topic",
+      "topic": "星曜百科条件",
+      "priority": 76,
+      "weight": 0.69,
+      "evidenceFields": [
+        "ziweiStarEncyclopedia"
+      ],
+      "conditions": [
+        "星曜名称、分类、样本宫位、亮度和四化条件齐备"
+      ],
+      "conflictPolicy": "百科解释必须条件化，不输出脱盘断语。",
+      "riskBoundary": "星曜解释只作传统文化参考。",
+      "sourceRuleIds": [
+        "ziwei.star_encyclopedia_seed",
+        "ziwei.brightness_state"
+      ]
+    },
+    {
+      "id": "ziwei.depth.mutagen.opposition_guard",
+      "system": "ziwei",
+      "layer": "dynamic",
+      "topic": "四化冲照保护",
+      "priority": 82,
+      "weight": 0.67,
+      "evidenceFields": [
+        "ziweiMutagenFlow.placements"
+      ],
+      "conditions": [
+        "四化落宫和对宫可确定"
+      ],
+      "conflictPolicy": "冲照会照只按落宫/对宫登记；完整飞星派需要独立配置。",
+      "riskBoundary": "四化不得覆盖原始盘面事实。",
+      "sourceRuleIds": [
+        "ziwei.mutagen_flow",
+        "ziwei.mutagen_opposition"
+      ]
+    },
+    {
+      "id": "ziwei.depth.palace.topic_risk_boundary",
+      "system": "ziwei",
+      "layer": "boundary",
+      "topic": "十二宫专题风险",
+      "priority": 62,
+      "weight": 0.55,
+      "evidenceFields": [
+        "ziweiPalaceTopics"
+      ],
+      "conditions": [
+        "十二宫专题输出存在"
+      ],
+      "conflictPolicy": "健康、财富、婚恋等专题不得替代医疗、金融、法律或心理建议。",
+      "riskBoundary": "禁止恐吓式和确定式断语。",
+      "sourceRuleIds": [
+        "ziwei.palace_topic"
+      ]
+    },
+    {
+      "id": "ziwei.depth.fortune.decadal_yearly_bridge",
+      "system": "ziwei",
+      "layer": "dynamic",
+      "topic": "大限流年桥接",
+      "priority": 74,
+      "weight": 0.64,
+      "evidenceFields": [
+        "ziweiInterpretation.fortuneLinks",
+        "ziweiHoroscope"
+      ],
+      "conditions": [
+        "本命和至少一层运限可对照"
+      ],
+      "conflictPolicy": "大限定阶段，流年触发主题，流月/流日/流时只作细化。",
+      "riskBoundary": "动态运限不保证事件结果。",
+      "sourceRuleIds": [
+        "ziwei.fortune_linkage",
+        "ziwei.horoscope_cycles"
+      ]
     }
   ]
 }

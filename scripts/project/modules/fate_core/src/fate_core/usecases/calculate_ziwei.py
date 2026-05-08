@@ -9,6 +9,7 @@ from fate_core.usecases.calculate_pure_analysis import (
     normalize_gender,
 )
 from fate_core.usecases.rule_depth import (
+    build_conflict_resolution,
     build_rule_application,
     collect_source_rule_ids,
     registry_version,
@@ -361,11 +362,15 @@ def _build_ziwei_rule_depth(data: dict[str, Any]) -> dict[str, Any]:
     mutagen = data.get("ziweiMutagenFlow", {}) if isinstance(data.get("ziweiMutagenFlow"), dict) else {}
     patterns = data.get("ziweiPatternMatches", [])
     topics = data.get("ziweiPalaceTopics", [])
+    encyclopedia = data.get("ziweiStarEncyclopedia", {}) if isinstance(data.get("ziweiStarEncyclopedia"), dict) else {}
     interpretation = data.get("ziweiInterpretation", {}) if isinstance(data.get("ziweiInterpretation"), dict) else {}
     surrounded = (
         interpretation.get("surroundedPalaces", {}) if isinstance(interpretation.get("surroundedPalaces"), dict) else {}
     )
     fortune_links = interpretation.get("fortuneLinks", [])
+    pattern_by_name = (
+        {item.get("pattern"): item for item in patterns if isinstance(item, dict)} if isinstance(patterns, list) else {}
+    )
 
     applied = [
         build_rule_application(
@@ -418,6 +423,44 @@ def _build_ziwei_rule_depth(data: dict[str, Any]) -> dict[str, Any]:
             notes=["候选格局必须列出 presentStars 和 missingStars。"],
         ),
         build_rule_application(
+            rules["ziwei.depth.pattern.sha_po_lang"],
+            status="applied" if pattern_by_name.get("杀破狼", {}).get("matched") else "candidate",
+            confidence=0.72 if pattern_by_name.get("杀破狼", {}).get("matched") else 0.42,
+            evidence=pattern_by_name.get("杀破狼", {}),
+            notes=["杀破狼只登记主星集合命中，完整格局仍需宫位和煞忌条件。"],
+        ),
+        build_rule_application(
+            rules["ziwei.depth.pattern.ji_yue_tong_liang"],
+            status="applied" if pattern_by_name.get("机月同梁", {}).get("matched") else "candidate",
+            confidence=0.7 if pattern_by_name.get("机月同梁", {}).get("matched") else 0.42,
+            evidence=pattern_by_name.get("机月同梁", {}),
+            notes=["机月同梁只登记组合候选，后续继续补宫位和四化条件。"],
+        ),
+        build_rule_application(
+            rules["ziwei.depth.star.encyclopedia_condition"],
+            status="applied" if encyclopedia.get("entries") else "partial",
+            confidence=0.69 if encyclopedia.get("entries") else 0.45,
+            evidence={
+                "entryCount": len(encyclopedia.get("entries", []))
+                if isinstance(encyclopedia.get("entries"), list)
+                else 0,
+                "sampleEntries": encyclopedia.get("entries", [])[:5]
+                if isinstance(encyclopedia.get("entries"), list)
+                else [],
+            },
+            notes=["星曜百科只登记条件化解释，不直接生成完整断语。"],
+        ),
+        build_rule_application(
+            rules["ziwei.depth.mutagen.opposition_guard"],
+            status="applied" if mutagen.get("placements") else "partial",
+            confidence=0.67 if mutagen.get("placements") else 0.42,
+            evidence={
+                "placements": mutagen.get("placements", []),
+                "guard": "冲照会照先按落宫和对宫登记，完整飞星派另行配置。",
+            },
+            notes=["四化冲照会照不得覆盖原始四化事实。"],
+        ),
+        build_rule_application(
             rules["ziwei.depth.palace.topic_matrix"],
             status="applied" if isinstance(topics, list) and len(topics) == 12 else "partial",
             confidence=0.68 if isinstance(topics, list) and len(topics) == 12 else 0.45,
@@ -430,6 +473,16 @@ def _build_ziwei_rule_depth(data: dict[str, Any]) -> dict[str, Any]:
             notes=["专题解释必须回到宫位、星曜、四化和限运证据。"],
         ),
         build_rule_application(
+            rules["ziwei.depth.palace.topic_risk_boundary"],
+            status="applied" if isinstance(topics, list) and topics else "partial",
+            confidence=0.68 if isinstance(topics, list) and topics else 0.45,
+            evidence={
+                "topicCount": len(topics) if isinstance(topics, list) else 0,
+                "riskBoundary": "健康、财富、婚恋等主题不得替代专业建议。",
+            },
+            notes=["专题输出统一受风险边界约束。"],
+        ),
+        build_rule_application(
             rules["ziwei.depth.fortune.linkage_chain"],
             status="applied" if isinstance(fortune_links, list) and fortune_links else "partial",
             confidence=0.66 if isinstance(fortune_links, list) and len(fortune_links) >= 2 else 0.45,
@@ -439,6 +492,41 @@ def _build_ziwei_rule_depth(data: dict[str, Any]) -> dict[str, Any]:
             },
             notes=["本命为体、运限为用；运限不得覆盖本命盘面事实。"],
         ),
+        build_rule_application(
+            rules["ziwei.depth.fortune.decadal_yearly_bridge"],
+            status="applied" if isinstance(fortune_links, list) and len(fortune_links) >= 2 else "partial",
+            confidence=0.64 if isinstance(fortune_links, list) and len(fortune_links) >= 2 else 0.4,
+            evidence={
+                "fortuneLinks": fortune_links,
+                "bridge": "大限定阶段，流年触发主题，流月/流日/流时只作细化。",
+            },
+            notes=["动态层级由粗到细，不反向覆盖本命。"],
+        ),
+    ]
+    conflict_matrix = [
+        {
+            "topic": "四化作用域",
+            "rules": [
+                "ziwei.depth.mutagen.scope_chain",
+                "ziwei.depth.mutagen.opposition_guard",
+                "ziwei.depth.fortune.linkage_chain",
+            ],
+            "policy": "本命、大限、流年、流月、流日、流时分层显示，不混读。",
+        },
+        {
+            "topic": "格局候选",
+            "rules": [
+                "ziwei.depth.pattern.condition_matrix",
+                "ziwei.depth.pattern.sha_po_lang",
+                "ziwei.depth.pattern.ji_yue_tong_liang",
+            ],
+            "policy": "不满足条件的格局保留 missingStars，不写成成立。",
+        },
+        {
+            "topic": "专题风险边界",
+            "rules": ["ziwei.depth.palace.topic_matrix", "ziwei.depth.palace.topic_risk_boundary"],
+            "policy": "专题解释回到宫位、星曜、四化和限运证据，不替代专业建议。",
+        },
     ]
     return {
         "schemaVersion": 1,
@@ -446,18 +534,8 @@ def _build_ziwei_rule_depth(data: dict[str, Any]) -> dict[str, Any]:
         "system": "ziwei",
         "boundary": "紫微规则深度层只组织 iztro 原生命盘和项目解释层证据，不自研星曜排布底层算法。",
         "appliedRules": applied,
-        "conflictMatrix": [
-            {
-                "topic": "四化作用域",
-                "rules": ["ziwei.depth.mutagen.scope_chain", "ziwei.depth.fortune.linkage_chain"],
-                "policy": "本命、大限、流年、流月、流日、流时分层显示，不混读。",
-            },
-            {
-                "topic": "格局候选",
-                "rules": ["ziwei.depth.pattern.condition_matrix"],
-                "policy": "不满足条件的格局保留 missingStars，不写成成立。",
-            },
-        ],
+        "conflictMatrix": conflict_matrix,
+        "conflictResolution": build_conflict_resolution(applied, conflict_matrix),
         "sourceRuleIds": collect_source_rule_ids(applied),
     }
 

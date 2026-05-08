@@ -13,6 +13,7 @@ from fate_core.providers import (
     build_pure_analysis_runtime,
 )
 from fate_core.usecases.rule_depth import (
+    build_conflict_resolution,
     build_rule_application,
     collect_source_rule_ids,
     registry_version,
@@ -536,8 +537,10 @@ def _build_bazi_rule_depth(raw: dict[str, Any]) -> dict[str, Any]:
     renyuan = benchmark.get("renYuanSiling", {}) if isinstance(benchmark.get("renYuanSiling"), dict) else {}
     pattern = benchmark.get("patternRegistry", {}) if isinstance(benchmark.get("patternRegistry"), dict) else {}
     yongshen = benchmark.get("yongShenStrategies", [])
+    ten_god = benchmark.get("tenGodStructure", {}) if isinstance(benchmark.get("tenGodStructure"), dict) else {}
     relation = benchmark.get("ganzhiPriority", [])
     fortune = benchmark.get("fortuneTriggers", [])
+    monthly = raw.get("monthlyFortune", [])
     spirits = raw.get("spiritsFull", {})
     bone = raw.get("boneWeight", {})
 
@@ -569,6 +572,27 @@ def _build_bazi_rule_depth(raw: dict[str, Any]) -> dict[str, Any]:
             notes=["候选格局必须结合成败条件继续审查。"],
         ),
         build_rule_application(
+            rules["bazi.depth.pattern.regular_vs_special"],
+            status="applied" if pattern.get("main") else "partial",
+            confidence=0.8 if pattern.get("main") else 0.48,
+            evidence={
+                "mainPattern": pattern.get("main"),
+                "patternStatus": pattern.get("status"),
+                "advancedPatternBoundary": pattern.get("boundary"),
+            },
+            notes=["正格、变格、从格、化气先走候选和边界登记。"],
+        ),
+        build_rule_application(
+            rules["bazi.depth.pattern.follow_transform_guard"],
+            status="guarded",
+            confidence=0.7,
+            evidence={
+                "mainPattern": pattern.get("main"),
+                "guard": "从格、化气、专旺未具备完整成败条件时不得强断。",
+            },
+            notes=["高级格局必须等待专门 golden 扩充后提升置信度。"],
+        ),
+        build_rule_application(
             rules["bazi.depth.yongshen.strategy_matrix"],
             status="applied" if isinstance(yongshen, list) and yongshen else "partial",
             confidence=0.84 if isinstance(yongshen, list) and len(yongshen) >= 4 else 0.6,
@@ -579,6 +603,44 @@ def _build_bazi_rule_depth(raw: dict[str, Any]) -> dict[str, Any]:
                 "fiveElementScore": strength.get("fiveElementScore", {}),
             },
             notes=["调候、扶抑、通关、病药并列保留，不互相覆盖。"],
+        ),
+        build_rule_application(
+            rules["bazi.depth.yongshen.tiaohou_priority"],
+            status="applied" if raw.get("climateScores") else "partial",
+            confidence=0.79 if raw.get("climateScores") else 0.52,
+            evidence={
+                "climateScores": raw.get("climateScores", {}),
+                "tiaohouRaw": raw.get("yongShen", {}).get("tiaohouRaw")
+                if isinstance(raw.get("yongShen"), dict)
+                else "",
+                "strategyNames": [item.get("strategy") for item in yongshen if isinstance(item, dict)]
+                if isinstance(yongshen, list)
+                else [],
+            },
+            notes=["寒暖燥湿优先作为调候证据，不直接覆盖扶抑策略。"],
+        ),
+        build_rule_application(
+            rules["bazi.depth.tengod.structure_profile"],
+            status="applied" if ten_god.get("counts") else "partial",
+            confidence=0.76 if ten_god.get("counts") else 0.5,
+            evidence={
+                "counts": ten_god.get("counts", {}),
+                "basis": ten_god.get("basis", ""),
+            },
+            notes=["十神组合以透干、藏干和位置为后续深化方向。"],
+        ),
+        build_rule_application(
+            rules["bazi.depth.climate.seasonal_adjustment"],
+            status="applied" if raw.get("climateScores") and renyuan else "partial",
+            confidence=0.73 if raw.get("climateScores") and renyuan else 0.5,
+            evidence={
+                "monthCommand": renyuan.get("monthCommand"),
+                "climateScores": raw.get("climateScores", {}),
+                "currentSiling": renyuan.get("siling", {}).get("current")
+                if isinstance(renyuan.get("siling"), dict)
+                else "",
+            },
+            notes=["季节寒暖燥湿只作为调候依据，不替代格局判定。"],
         ),
         build_rule_application(
             rules["bazi.depth.relation.collision_priority"],
@@ -613,6 +675,16 @@ def _build_bazi_rule_depth(raw: dict[str, Any]) -> dict[str, Any]:
             notes=["动态层只说明触发链，不覆盖原局结构。"],
         ),
         build_rule_application(
+            rules["bazi.depth.fortune.month_trigger"],
+            status="applied" if isinstance(monthly, list) and monthly else "partial",
+            confidence=0.68 if isinstance(monthly, list) and monthly else 0.42,
+            evidence={
+                "monthlyFortuneCount": len(monthly) if isinstance(monthly, list) else 0,
+                "sampleMonths": monthly[:3] if isinstance(monthly, list) else [],
+            },
+            notes=["流月只作短周期触发证据，必须受原局和大运流年约束。"],
+        ),
+        build_rule_application(
             rules["bazi.depth.auxiliary.boundary_guard"],
             status="applied" if spirits or bone else "partial",
             confidence=0.8 if spirits or bone else 0.5,
@@ -624,24 +696,35 @@ def _build_bazi_rule_depth(raw: dict[str, Any]) -> dict[str, Any]:
             notes=["辅助体系保留展示边界，防止污染综合八字核心判断。"],
         ),
     ]
+    conflict_matrix = [
+        {
+            "topic": "用神策略冲突",
+            "rules": ["bazi.depth.yongshen.strategy_matrix", "bazi.depth.yongshen.tiaohou_priority"],
+            "policy": "调候、扶抑、通关、病药并列，按证据完整度和风险边界解释。",
+        },
+        {
+            "topic": "格局候选冲突",
+            "rules": [
+                "bazi.depth.pattern.establishment",
+                "bazi.depth.pattern.regular_vs_special",
+                "bazi.depth.pattern.follow_transform_guard",
+            ],
+            "policy": "普通格局、正格、特殊格局按成败条件分层，不把候选写成定格。",
+        },
+        {
+            "topic": "辅助体系边界",
+            "rules": ["bazi.depth.auxiliary.boundary_guard"],
+            "policy": "神煞和称骨只可辅助，不参与核心喜忌和格局裁决。",
+        },
+    ]
     return {
         "schemaVersion": 1,
         "registryVersion": registry_version(),
         "system": "bazi",
         "boundary": "规则深度层只组织可追溯证据和冲突策略；默认报告仍保持综合八字结构边界。",
         "appliedRules": applied,
-        "conflictMatrix": [
-            {
-                "topic": "用神策略冲突",
-                "rules": ["bazi.depth.yongshen.strategy_matrix", "bazi.depth.strength.month_root_transparency"],
-                "policy": "调候、扶抑、通关、病药并列，按证据完整度和风险边界解释。",
-            },
-            {
-                "topic": "辅助体系边界",
-                "rules": ["bazi.depth.auxiliary.boundary_guard"],
-                "policy": "神煞和称骨只可辅助，不参与核心喜忌和格局裁决。",
-            },
-        ],
+        "conflictMatrix": conflict_matrix,
+        "conflictResolution": build_conflict_resolution(applied, conflict_matrix),
         "sourceRuleIds": collect_source_rule_ids(applied),
     }
 
@@ -662,6 +745,9 @@ def _append_bazi_rule_depth_evidence(raw: dict[str, Any]) -> None:
             "conflictCount": len(rule_depth.get("conflictMatrix", []))
             if isinstance(rule_depth.get("conflictMatrix"), list)
             else 0,
+            "primaryRuleIds": rule_depth.get("conflictResolution", {}).get("primaryRuleIds", [])
+            if isinstance(rule_depth.get("conflictResolution"), dict)
+            else [],
         },
         basis=[
             "baziRuleDepth.appliedRules",

@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "source": "synthetic_anonymous_fixture",
+  "description": "紫微规则深度匿名 golden；锁定规则应用、冲突裁决与核心命盘字段，不锁定完整断语。",
+  "cases": [
+    {
+      "id": "beijing_1990_all_patterns",
+      "input": {
+        "birthDateTime": "1990-01-01 08:00:00",
+        "gender": "男",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京",
+        "name": "测试样本"
+      },
+      "expected": {
+        "lifePalace": {"name": "财帛", "earthlyBranch": "巳", "majorStars": ["太阴"]},
+        "bodyPalace": {"name": "财帛", "earthlyBranch": "巳", "majorStars": ["太阴"]},
+        "appliedRuleCountMin": 12,
+        "primaryRuleIds": [
+          "ziwei.depth.star.brightness_weight",
+          "ziwei.depth.palace.triad_focus",
+          "ziwei.depth.pattern.condition_matrix"
+        ],
+        "requiredRuleIds": [
+          "ziwei.depth.pattern.sha_po_lang",
+          "ziwei.depth.pattern.ji_yue_tong_liang",
+          "ziwei.depth.star.encyclopedia_condition",
+          "ziwei.depth.mutagen.opposition_guard",
+          "ziwei.depth.fortune.decadal_yearly_bridge"
+        ]
+      }
+    },
+    {
+      "id": "summer_1988_female",
+      "input": {
+        "birthDateTime": "1988-06-15 12:30:00",
+        "gender": "女",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京",
+        "name": "测试样本"
+      },
+      "expected": {
+        "lifePalace": {"name": "迁移", "earthlyBranch": "午", "majorStars": ["七杀"]},
+        "bodyPalace": {"name": "命宫", "earthlyBranch": "子", "majorStars": ["武曲", "天府"]},
+        "appliedRuleCountMin": 12,
+        "primaryRuleIds": [
+          "ziwei.depth.star.brightness_weight",
+          "ziwei.depth.palace.triad_focus",
+          "ziwei.depth.pattern.condition_matrix"
+        ],
+        "requiredRuleIds": [
+          "ziwei.depth.palace.topic_risk_boundary",
+          "ziwei.depth.fortune.linkage_chain",
+          "ziwei.depth.fortune.decadal_yearly_bridge"
+        ]
+      }
+    },
+    {
+      "id": "lichun_2024_male",
+      "input": {
+        "birthDateTime": "2024-02-04 16:56:00",
+        "gender": "男",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京",
+        "name": "测试样本"
+      },
+      "expected": {
+        "lifePalace": {"name": "迁移", "earthlyBranch": "亥", "majorStars": ["太阴"]},
+        "bodyPalace": {"name": "官禄", "earthlyBranch": "酉", "majorStars": []},
+        "appliedRuleCountMin": 12,
+        "primaryRuleIds": [
+          "ziwei.depth.star.brightness_weight",
+          "ziwei.depth.palace.triad_focus",
+          "ziwei.depth.pattern.condition_matrix"
+        ],
+        "requiredRuleIds": [
+          "ziwei.depth.mutagen.scope_chain",
+          "ziwei.depth.mutagen.opposition_guard",
+          "ziwei.depth.palace.topic_matrix"
+        ]
+      }
+    }
+  ]
+}

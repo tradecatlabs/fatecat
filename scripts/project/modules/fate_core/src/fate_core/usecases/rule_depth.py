@@ -71,3 +71,45 @@ def collect_source_rule_ids(applied_rules: list[dict[str, Any]]) -> list[str]:
                 ids.append(rule_id)
                 seen.add(rule_id)
     return ids
+
+
+def build_conflict_resolution(
+    applied_rules: list[dict[str, Any]],
+    conflict_matrix: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """按层级、权重和置信度生成统一冲突裁决摘要。"""
+    layer_rank = {"core": 4, "dynamic": 3, "topic": 2, "boundary": 1}
+    ranked = sorted(
+        applied_rules,
+        key=lambda item: (
+            layer_rank.get(str(item.get("layer", "")), 0),
+            float(item.get("confidence", 0.0)),
+            float(item.get("weight", 0.0)),
+        ),
+        reverse=True,
+    )
+    primary = [item.get("ruleId", "") for item in ranked[:3] if item.get("ruleId")]
+    auxiliary = [item.get("ruleId", "") for item in ranked[3:] if item.get("ruleId")]
+    indexed = {item.get("ruleId"): item for item in applied_rules}
+    conflicts = []
+    for conflict in conflict_matrix:
+        rule_ids = [rule_id for rule_id in conflict.get("rules", []) if rule_id in indexed]
+        if not rule_ids:
+            continue
+        conflicts.append(
+            {
+                "topic": conflict.get("topic", ""),
+                "rules": rule_ids,
+                "policy": conflict.get("policy", ""),
+                "primaryRule": next((rule_id for rule_id in primary if rule_id in rule_ids), rule_ids[0]),
+                "status": "resolved_by_policy",
+            }
+        )
+    return {
+        "schemaVersion": 1,
+        "method": "layer_rank_then_confidence_then_weight",
+        "primaryRuleIds": primary,
+        "auxiliaryRuleIds": auxiliary,
+        "conflicts": conflicts,
+        "riskBoundary": "冲突裁决只决定解释优先级，不输出确定未来或替代专业建议。",
+    }

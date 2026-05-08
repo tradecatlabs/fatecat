@@ -1075,6 +1075,207 @@
       "doesNotApplyWhen": [
         "未计算运限"
       ]
+    },
+    {
+      "id": "bazi.depth.pattern.regular_vs_special",
+      "system": "bazi",
+      "topic": "格局正变",
+      "summary": "正格、变格、从格、化气和专旺必须按成败条件分层，不互相覆盖。",
+      "sources": [
+        "项目规则深度 registry",
+        "bazi.pattern_by_month_command",
+        "bazi.pattern_root_transparency"
+      ],
+      "appliesWhen": [
+        "月令格局已识别",
+        "高级格局条件未完全自证时保持候选"
+      ],
+      "doesNotApplyWhen": [
+        "高级格局未具备 golden 时不得输出强断。"
+      ]
+    },
+    {
+      "id": "bazi.depth.pattern.follow_transform_guard",
+      "system": "bazi",
+      "topic": "从格化气保护",
+      "summary": "缺少完整成败条件时只登记候选和缺口，不写成已成立。",
+      "sources": [
+        "项目规则深度 registry",
+        "bazi.pattern_by_month_command",
+        "bazi.pattern_root_transparency"
+      ],
+      "appliesWhen": [
+        "出现从格、化气、专旺等高级格局候选"
+      ],
+      "doesNotApplyWhen": [
+        "高级格局需要更多匿名命例 golden 后再提升置信度。"
+      ]
+    },
+    {
+      "id": "bazi.depth.yongshen.tiaohou_priority",
+      "system": "bazi",
+      "topic": "调候优先级",
+      "summary": "调候优先说明季节气候，不直接覆盖扶抑、通关和格局用神。",
+      "sources": [
+        "项目规则深度 registry",
+        "bazi.regulating_climate",
+        "bazi.yongshen_strategy"
+      ],
+      "appliesWhen": [
+        "寒暖燥湿可计算",
+        "调候原始依据存在"
+      ],
+      "doesNotApplyWhen": [
+        "调候只作传统规则解释，不等于现实建议。"
+      ]
+    },
+    {
+      "id": "bazi.depth.tengod.structure_profile",
+      "system": "bazi",
+      "topic": "十神组合",
+      "summary": "十神数量只作摘要，解释必须回到位置、透藏和组合关系。",
+      "sources": [
+        "项目规则深度 registry",
+        "bazi.ten_god_structure"
+      ],
+      "appliesWhen": [
+        "透干、藏干十神可统计"
+      ],
+      "doesNotApplyWhen": [
+        "不得用单一十神标签输出确定人生断语。"
+      ]
+    },
+    {
+      "id": "bazi.depth.climate.seasonal_adjustment",
+      "system": "bazi",
+      "topic": "寒暖燥湿",
+      "summary": "寒暖燥湿影响调候权重，但不单独决定格局。",
+      "sources": [
+        "项目规则深度 registry",
+        "bazi.regulating_climate",
+        "bazi.renyuan_siling_weight"
+      ],
+      "appliesWhen": [
+        "月令、人元司令和温湿度字段齐备"
+      ],
+      "doesNotApplyWhen": [
+        "五行脏腑和健康类解释必须另加强免责声明。"
+      ]
+    },
+    {
+      "id": "bazi.depth.fortune.month_trigger",
+      "system": "bazi",
+      "topic": "流月触发",
+      "summary": "流月只细化大运/流年触发，不反向覆盖原局。",
+      "sources": [
+        "项目规则深度 registry",
+        "bazi.fortune_trigger_boundary"
+      ],
+      "appliesWhen": [
+        "流月字段可用"
+      ],
+      "doesNotApplyWhen": [
+        "短周期趋势不得包装成确定事件。"
+      ]
+    },
+    {
+      "id": "ziwei.depth.pattern.sha_po_lang",
+      "system": "ziwei",
+      "topic": "杀破狼候选",
+      "summary": "只登记主星集合命中，完整格局需宫位、四化和煞忌条件。",
+      "sources": [
+        "项目规则深度 registry",
+        "ziwei.pattern_match_seed"
+      ],
+      "appliesWhen": [
+        "七杀、破军、贪狼主星集合可验证"
+      ],
+      "doesNotApplyWhen": [
+        "不得把组合候选写成确定人生事件。"
+      ]
+    },
+    {
+      "id": "ziwei.depth.pattern.ji_yue_tong_liang",
+      "system": "ziwei",
+      "topic": "机月同梁候选",
+      "summary": "只登记组合候选，完整格局需宫位、亮度和四化条件。",
+      "sources": [
+        "项目规则深度 registry",
+        "ziwei.pattern_match_seed"
+      ],
+      "appliesWhen": [
+        "天机、太阴、天梁主星集合可验证"
+      ],
+      "doesNotApplyWhen": [
+        "不得脱离宫位输出强断。"
+      ]
+    },
+    {
+      "id": "ziwei.depth.star.encyclopedia_condition",
+      "system": "ziwei",
+      "topic": "星曜百科条件",
+      "summary": "百科解释必须条件化，不输出脱盘断语。",
+      "sources": [
+        "项目规则深度 registry",
+        "ziwei.star_encyclopedia_seed",
+        "ziwei.brightness_state"
+      ],
+      "appliesWhen": [
+        "星曜名称、分类、样本宫位、亮度和四化条件齐备"
+      ],
+      "doesNotApplyWhen": [
+        "星曜解释只作传统文化参考。"
+      ]
+    },
+    {
+      "id": "ziwei.depth.mutagen.opposition_guard",
+      "system": "ziwei",
+      "topic": "四化冲照保护",
+      "summary": "冲照会照只按落宫/对宫登记；完整飞星派需要独立配置。",
+      "sources": [
+        "项目规则深度 registry",
+        "ziwei.mutagen_flow",
+        "ziwei.mutagen_opposition"
+      ],
+      "appliesWhen": [
+        "四化落宫和对宫可确定"
+      ],
+      "doesNotApplyWhen": [
+        "四化不得覆盖原始盘面事实。"
+      ]
+    },
+    {
+      "id": "ziwei.depth.palace.topic_risk_boundary",
+      "system": "ziwei",
+      "topic": "十二宫专题风险",
+      "summary": "健康、财富、婚恋等专题不得替代医疗、金融、法律或心理建议。",
+      "sources": [
+        "项目规则深度 registry",
+        "ziwei.palace_topic"
+      ],
+      "appliesWhen": [
+        "十二宫专题输出存在"
+      ],
+      "doesNotApplyWhen": [
+        "禁止恐吓式和确定式断语。"
+      ]
+    },
+    {
+      "id": "ziwei.depth.fortune.decadal_yearly_bridge",
+      "system": "ziwei",
+      "topic": "大限流年桥接",
+      "summary": "大限定阶段，流年触发主题，流月/流日/流时只作细化。",
+      "sources": [
+        "项目规则深度 registry",
+        "ziwei.fortune_linkage",
+        "ziwei.horoscope_cycles"
+      ],
+      "appliesWhen": [
+        "本命和至少一层运限可对照"
+      ],
+      "doesNotApplyWhen": [
+        "动态运限不保证事件结果。"
+      ]
     }
   ]
 }

@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "source": "synthetic_anonymous_fixture",
+  "description": "八字规则深度匿名 golden；锁定规则应用、冲突裁决与核心盘面边界，不锁定完整断语。",
+  "cases": [
+    {
+      "id": "spring_1995_weak",
+      "input": {
+        "birthDateTime": "1995-03-21 05:20:00",
+        "gender": "female",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京"
+      },
+      "expected": {
+        "fourPillars": {"year": "乙亥", "month": "己卯", "day": "辛亥", "hour": "庚寅"},
+        "dayMasterStrength": "身弱",
+        "gejuMain": "普通格局",
+        "appliedRuleCountMin": 12,
+        "primaryRuleIds": [
+          "bazi.depth.strength.month_root_transparency",
+          "bazi.depth.yongshen.strategy_matrix",
+          "bazi.depth.pattern.establishment"
+        ],
+        "requiredRuleIds": [
+          "bazi.depth.pattern.regular_vs_special",
+          "bazi.depth.yongshen.tiaohou_priority",
+          "bazi.depth.tengod.structure_profile",
+          "bazi.depth.climate.seasonal_adjustment",
+          "bazi.depth.fortune.month_trigger"
+        ]
+      }
+    },
+    {
+      "id": "autumn_2000_strong_yangren",
+      "input": {
+        "birthDateTime": "2000-09-09 23:30:00",
+        "gender": "male",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京"
+      },
+      "expected": {
+        "fourPillars": {"year": "庚辰", "month": "乙酉", "day": "庚午", "hour": "戊子"},
+        "dayMasterStrength": "身强",
+        "gejuMain": "羊刃格",
+        "appliedRuleCountMin": 12,
+        "primaryRuleIds": [
+          "bazi.depth.strength.month_root_transparency",
+          "bazi.depth.yongshen.strategy_matrix",
+          "bazi.depth.pattern.establishment"
+        ],
+        "requiredRuleIds": [
+          "bazi.depth.pattern.follow_transform_guard",
+          "bazi.depth.relation.collision_priority",
+          "bazi.depth.fortune.trigger_chain",
+          "bazi.depth.auxiliary.boundary_guard"
+        ]
+      }
+    },
+    {
+      "id": "lichun_2024_pianyin",
+      "input": {
+        "birthDateTime": "2024-02-04 16:56:00",
+        "gender": "male",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京"
+      },
+      "expected": {
+        "fourPillars": {"year": "甲辰", "month": "丙寅", "day": "戊戌", "hour": "庚申"},
+        "dayMasterStrength": "中和",
+        "gejuMain": "偏印格",
+        "appliedRuleCountMin": 12,
+        "primaryRuleIds": [
+          "bazi.depth.strength.month_root_transparency",
+          "bazi.depth.yongshen.strategy_matrix",
+          "bazi.depth.pattern.establishment"
+        ],
+        "requiredRuleIds": [
+          "bazi.depth.pattern.regular_vs_special",
+          "bazi.depth.yongshen.tiaohou_priority",
+          "bazi.depth.climate.seasonal_adjustment",
+          "bazi.depth.fortune.month_trigger"
+        ]
+      }
+    }
+  ]
+}
