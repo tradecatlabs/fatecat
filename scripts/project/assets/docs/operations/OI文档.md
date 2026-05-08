@@ -7,7 +7,7 @@
 FateCat 八字排盘系统 API / Bot 接口规范，基于当前 skill 化后的标准报告契约与 `fate_core` / Telegram 交付层实现。
 
 ### 🎯 当前状态
-- **标准报告**: 默认输出免责声明、赞助支持、标题、第一卷先天命格、第二卷后天运路与第三卷民俗建议，第三卷包含袁天罡称骨。紫微斗数通过 `report_system` / Web 控件 / API `options.reportSystem` / Bot 确认页按钮独立输出，不与综合八字混排；黄历/择日、六爻、梅花、奇门、大六壬、风水九星、姓名合婚等登记为独立待实现体系。
+- **标准报告**: 默认输出免责声明、赞助支持、标题、第一卷先天命格、第二卷后天运路与第三卷民俗建议，第三卷包含袁天罡称骨。紫微斗数通过 `report_system` / Web 控件 / API `options.reportSystem` / Bot 确认页按钮独立输出，不与综合八字混排；黄历/择日已作为 `almanac` 独立 capability 提供 CLI/API 结构化输出，六爻、梅花、奇门、大六壬、风水九星、姓名合婚等仍登记为独立待实现体系。
 - **前端地区展示**: 非北京类真实出生地区只参与经纬度解析和后端计算，Web/Bot/Markdown 展示层统一隐藏。
 - **未来功能**: 退出标准报告的扩展能力统一登记在 `assets/fate/future_features.json`，后续必须按独立输入契约、输出模板与测试重新进入生产。
 - **结构化输出**: API / pure-analysis 优先依赖字段 profile 和结构化 JSON，不要求 TXT 报告承载全部历史字段。
@@ -244,18 +244,18 @@ FateCat 八字排盘系统 API / Bot 接口规范，基于当前 skill 化后的
 | jieqiDetail | ✅ | 节气详情 | 已接入标准输出 |
 | siling | ✅ | 人元司令 | 已接入标准输出 |
 | jiaoYun | ✅ | 交运时间 | 已接入结构化输出 |
-| huangLi | 否 | 黄历信息 | 已退役为 future feature |
+| huangLi | 否 | 黄历信息 | 已退役出八字标准报告；独立 `almanac` capability 提供择日输出 |
 
 ---
 
 ## 📊 当前实现状态
 
 ### ✅ 标准报告生产字段
-当前默认 `bazi` 综合八字报告覆盖基础资料、四柱、五行、日主、格局用神、节气司令、干支关系、八字岁运趋势与袁天罡称骨。紫微斗数通过 `report_system=ziwei` 独立输出；其他体系通过 `GET /api/v1/report/systems` 查询状态，未实现前不得混入综合八字。
+当前默认 `bazi` 综合八字报告覆盖基础资料、四柱、五行、日主、格局用神、节气司令、干支关系、八字岁运趋势与袁天罡称骨。紫微斗数通过 `report_system=ziwei` 独立输出；黄历择日通过 `/api/v1/capabilities/almanac` 独立执行；其他体系通过 `GET /api/v1/report/systems` 或 `GET /api/v1/capabilities` 查询状态，未实现前不得混入综合八字。
 
 ### 🟡 可优化
 - **五行力量评分**: 当前为简化算法，可提取 bazi-1-master 的精确量化
-- **扩展功能**: 健康、黄历、建除十二神、占卜、风水、天文、历法、择日、易经、姓名合婚与系统附录必须按 `assets/fate/future_features.json` 重新设计后再进入生产。
+- **扩展功能**: 健康、建除十二神细分、占卜、风水、天文、历法、易经、姓名合婚与系统附录必须按 `assets/fate/future_features.json` 或 capability 协议重新设计后再进入生产；黄历/择日当前只有 `almanac` 基础结构化能力，不代表完整择日学派全部生产化。
 
 ---
 

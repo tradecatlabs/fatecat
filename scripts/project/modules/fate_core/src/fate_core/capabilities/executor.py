@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from fate_core.capabilities.contracts import CapabilityInput, CapabilityResult
+from fate_core.capabilities.contracts import Capability, CapabilityInput, CapabilityResult
 from fate_core.capabilities.registry import get_capability
-from fate_core.usecases import calculate_pure_analysis
+from fate_core.usecases import calculate_almanac, calculate_pure_analysis
+from fate_core.usecases.calculate_almanac import build_almanac_input_from_payload
 from fate_core.usecases.calculate_pure_analysis import build_pure_analysis_input_from_payload
 
 
@@ -27,6 +28,17 @@ class CapabilityExecutor:
                 evidence=evidence,
                 risk=self._risk_payload(capability),
             )
+        if capability.capability_id == "almanac":
+            data = calculate_almanac(build_almanac_input_from_payload(request.payload))
+            evidence = data.get("analysisEvidence", {}) if isinstance(data.get("analysisEvidence"), dict) else {}
+            return CapabilityResult(
+                capability_id=capability.capability_id,
+                status=capability.status,
+                report_profile=capability.report_profile,
+                data=data,
+                evidence=evidence,
+                risk=self._risk_payload(capability),
+            )
         raise ValueError(f"capability 缺少生产 provider: {capability.capability_id}")
 
     @staticmethod
@@ -36,7 +48,7 @@ class CapabilityExecutor:
             raise ValueError(f"{capability_id} 缺少必填字段: {', '.join(missing)}")
 
     @staticmethod
-    def _risk_payload(capability) -> dict[str, Any]:
+    def _risk_payload(capability: Capability) -> dict[str, Any]:
         return {
             "riskLevel": capability.risk_level,
             "disclaimerRequired": capability.disclaimer_required,

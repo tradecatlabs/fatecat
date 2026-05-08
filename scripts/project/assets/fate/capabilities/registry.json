@@ -33,13 +33,13 @@
       "capabilityId": "almanac",
       "name": "黄历择日",
       "tradition": "chinese",
-      "status": "planned",
+      "status": "production",
       "defaultVisibility": "standalone",
-      "description": "黄历、宜忌、择日与事件类型推荐；不得混入默认综合八字报告。",
+      "description": "黄历、宜忌、冲煞、吉神凶煞与事件类型择日推荐；不得混入默认综合八字报告。",
       "inputRequired": ["dateRange", "eventType", "place"],
       "inputOptional": ["birthDateTime", "gender"],
       "engine": {
-        "provider": "planned.almanac",
+        "provider": "fate_core.usecases.calculate_almanac",
         "deterministic": true
       },
       "report": {

@@ -83,6 +83,24 @@
       "sources": ["项目权重策略", "袁天罡称骨民俗表"],
       "appliesWhen": ["出生年月日时齐备"],
       "doesNotApplyWhen": ["需要计算核心喜忌、格局或旺衰"]
+    },
+    {
+      "id": "almanac.day_yi_ji",
+      "system": "almanac",
+      "topic": "黄历宜忌",
+      "summary": "黄历择日以每日宜忌为基础证据，命中事件关键词时只作为民俗参考，不保证事件结果。",
+      "sources": ["lunar-python 黄历数据", "项目择日能力协议"],
+      "appliesWhen": ["输入日期范围、事件类型和地点齐备", "lunar-python 可返回当日宜忌"],
+      "doesNotApplyWhen": ["需要精细时辰择时", "需要替代法律金融医疗判断"]
+    },
+    {
+      "id": "almanac.event_alias_mapping",
+      "system": "almanac",
+      "topic": "事件关键词映射",
+      "summary": "用户事件类型先映射到黄历常用术语，再与每日宜忌匹配；未命中时输出中性而非强断。",
+      "sources": ["项目事件别名表", "项目择日能力协议"],
+      "appliesWhen": ["事件类型可映射为黄历术语或可直接匹配宜忌词"],
+      "doesNotApplyWhen": ["事件类型为空", "事件类型无法解释且需要人工语义判断"]
     }
   ]
 }

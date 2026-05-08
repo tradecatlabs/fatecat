@@ -212,7 +212,7 @@ http://127.0.0.1:8001/web
 
 ## 标准 Markdown 报告结构
 
-默认 Markdown 输出综合八字体系，包含八字主线和袁天罡称骨民俗辅助。紫微斗数作为独立体系保留，必须通过 Web HTML 的“输出体系”控件、Telegram 确认页按钮，或 API `options.reportSystem` 单独选择，不再和综合八字一起输出。黄历/择日、六爻、梅花、奇门、大六壬、风水九星、姓名合婚等已经进入预测体系注册表，但状态仍是未来功能；未实现前只展示为独立待实现体系，不允许混入综合八字默认报告。
+默认 Markdown 输出综合八字体系，包含八字主线和袁天罡称骨民俗辅助。紫微斗数作为独立体系保留，必须通过 Web HTML 的“输出体系”控件、Telegram 确认页按钮，或 API `options.reportSystem` 单独选择，不再和综合八字一起输出。黄历/择日已作为 `almanac` 生产 capability 独立提供 CLI/API 调用，但不进入默认 Markdown 报告；六爻、梅花、奇门、大六壬、风水九星、姓名合婚等仍是未来 capability，不允许混入综合八字默认报告。
 
 综合八字 JSON 结果包含默认隐藏的 `analysisEvidence`，用于审计日主、五行喜忌、格局、干支关系、神煞和袁天罡称骨的依据、来源、规则 ID 与权重。该字段不渲染到默认 Markdown 正文，避免用户报告变成技术附录。
 
@@ -222,7 +222,7 @@ http://127.0.0.1:8001/web
 |----|----------|------|----------------|
 | `bazi` | 综合八字 | 当前可用 | 否；默认输出八字主线与袁天罡称骨 |
 | `ziwei` | 紫微斗数 | 当前可用 | 否；独立输出紫微斗数、紫微基础、紫微运限四化 |
-| `huangli` | 黄历/择日 | 未来功能 | 否；包含建除十二神与择日推荐，需独立契约 |
+| `almanac` | 黄历/择日 | 独立 capability 可用 | 否；通过 `fatecat capability almanac` 或 `/api/v1/capabilities/almanac` 调用，不属于 Markdown 报告体系 |
 | `liuyao` | 六爻占卜 | 未来功能 | 否；事件型起卦 |
 | `meihua` | 梅花易数 | 未来功能 | 否；时间/数字/象意起卦 |
 | `qimen` | 奇门遁甲 | 未来功能 | 否；独立排盘 |
@@ -241,6 +241,13 @@ POST /api/v1/report/markdown
 
 ```text
 GET /api/v1/report/systems
+```
+
+结构化 capability 入口：
+
+```text
+GET /api/v1/capabilities
+POST /api/v1/capabilities/almanac
 ```
 
 默认 `bazi` 输出块顺序固定如下：

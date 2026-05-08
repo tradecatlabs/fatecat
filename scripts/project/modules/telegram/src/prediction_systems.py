@@ -24,7 +24,9 @@ class PredictionSystem:
 PREDICTION_SYSTEMS: tuple[PredictionSystem, ...] = (
     PredictionSystem("bazi", "综合八字", "enabled", "当前可用", "默认报告体系，八字主线与袁天罡称骨。"),
     PredictionSystem("ziwei", "紫微斗数", "enabled", "当前可用", "紫微斗数独立报告，不混入综合八字。"),
-    PredictionSystem("huangli", "黄历/择日", "planned", "未来功能", "黄历、建除十二神、择日推荐的独立体系。"),
+    PredictionSystem(
+        "huangli", "黄历/择日", "planned", "未来功能", "Markdown 报告体系待实现；结构化 almanac capability 已可用。"
+    ),
     PredictionSystem("liuyao", "六爻占卜", "planned", "未来功能", "事件型起卦体系，需独立问题与起卦时间。"),
     PredictionSystem("meihua", "梅花易数", "planned", "未来功能", "时间、数字或象意起卦体系。"),
     PredictionSystem("qimen", "奇门遁甲", "planned", "未来功能", "奇门排盘独立体系。"),

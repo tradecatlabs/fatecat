@@ -13,6 +13,7 @@ from .legacy_bazi import (
     calculate_pure_analysis_raw,
     now_cn,
 )
+from .lunar_calendar import Solar, build_lunar_day
 
 __all__ = [
     "BaziCalculator",
@@ -20,7 +21,9 @@ __all__ = [
     "LegacyBaziInput",
     "LunarUtil",
     "PURE_ANALYSIS_HIDE",
+    "Solar",
     "STEM_ELEM",
+    "build_lunar_day",
     "calc_bone_weight",
     "calc_ming_gua",
     "calculate_legacy_bazi",

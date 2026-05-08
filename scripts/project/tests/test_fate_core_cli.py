@@ -138,6 +138,7 @@ def test_main_capabilities_lists_registry(capsys):
     assert "bazi" in capability_ids
     assert "liuyao" in capability_ids
     assert next(item for item in result["capabilities"] if item["capabilityId"] == "bazi")["status"] == "production"
+    assert next(item for item in result["capabilities"] if item["capabilityId"] == "almanac")["status"] == "production"
 
 
 def test_main_capability_rejects_planned_system(capsys):
@@ -208,3 +209,31 @@ def test_main_capability_executes_bazi_via_executor(monkeypatch, capsys):
     assert result["capabilityId"] == "bazi"
     assert result["reportProfile"] == "bazi"
     assert result["data"] == {"ok": True}
+
+
+def test_main_capability_executes_almanac(capsys):
+    exit_code = main(
+        [
+            "capability",
+            "almanac",
+            "--input-json",
+            json.dumps(
+                {
+                    "dateRange": {"start": "2026-05-08", "end": "2026-05-08"},
+                    "eventType": "出行",
+                    "place": "北京",
+                },
+                ensure_ascii=False,
+            ),
+        ]
+    )
+
+    captured = capsys.readouterr()
+    result = json.loads(captured.out)
+
+    assert exit_code == 0
+    assert result["success"] is True
+    assert result["capabilityId"] == "almanac"
+    assert result["reportProfile"] == "almanac"
+    assert result["data"]["dateRange"]["days"] == 1
+    assert result["evidence"]["source"] == "lunar-python"

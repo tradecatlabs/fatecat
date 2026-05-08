@@ -219,6 +219,36 @@ def test_report_systems_api_lists_enabled_and_planned_systems():
     assert systems["fengshui"]["group"] == "未来功能"
 
 
+def test_capabilities_api_lists_almanac_as_standalone_production():
+    response = TestClient(app).get("/api/v1/capabilities")
+
+    assert response.status_code == 200
+    body = response.json()
+    capabilities = {item["capabilityId"]: item for item in body["data"]["capabilities"]}
+    assert capabilities["bazi"]["defaultVisibility"] == "default"
+    assert capabilities["almanac"]["status"] == "production"
+    assert capabilities["almanac"]["defaultVisibility"] == "standalone"
+
+
+def test_capability_api_executes_almanac_without_enabling_markdown_system():
+    response = TestClient(app).post(
+        "/api/v1/capabilities/almanac",
+        json={
+            "dateRange": {"start": "2026-05-08", "end": "2026-05-08"},
+            "eventType": "出行",
+            "place": "北京",
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+    assert body["capabilityId"] == "almanac"
+    assert body["reportProfile"] == "almanac"
+    assert body["data"]["dateRange"]["days"] == 1
+    assert body["evidence"]["source"] == "lunar-python"
+
+
 def test_markdown_report_hides_non_beijing_birth_place():
     payload = _payload()
     payload["birthPlace"] = {

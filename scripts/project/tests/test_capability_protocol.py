@@ -21,8 +21,10 @@ def test_capability_registry_keeps_bazi_as_only_default_production_entry():
 
     assert by_id["bazi"].status == "production"
     assert by_id["bazi"].default_visibility == "default"
+    assert by_id["almanac"].status == "production"
+    assert by_id["almanac"].default_visibility == "standalone"
     assert [item.capability_id for item in capabilities if item.default_visibility == "default"] == ["bazi"]
-    for capability_id in ["almanac", "liuyao", "meihua", "qimen", "daliuren", "fengshui_nine_stars", "name_marriage"]:
+    for capability_id in ["liuyao", "meihua", "qimen", "daliuren", "fengshui_nine_stars", "name_marriage"]:
         assert by_id[capability_id].status == "planned"
         assert by_id[capability_id].default_visibility == "standalone"
 
@@ -65,6 +67,47 @@ def test_planned_capability_cannot_execute_as_production():
                 },
             )
         )
+
+
+def test_almanac_capability_executes_as_standalone_production():
+    result = CapabilityExecutor().execute(
+        CapabilityInput(
+            capability_id="almanac",
+            payload={
+                "dateRange": {"start": "2026-05-08", "end": "2026-05-10"},
+                "eventType": "出行",
+                "place": "北京",
+            },
+        )
+    )
+
+    assert result.capability_id == "almanac"
+    assert result.status == "production"
+    assert result.report_profile == "almanac"
+    assert result.data["capabilityId"] == "almanac"
+    assert result.data["dateRange"]["days"] == 3
+    assert result.data["eventTerms"] == ["出行"]
+    assert result.data["place"] == "北京"
+    assert result.evidence["source"] == "lunar-python"
+    assert set(result.evidence["items"]) == {"2026-05-08", "2026-05-09", "2026-05-10"}
+    assert result.risk["disclaimerRequired"] is True
+    assert get_capability("almanac").default_visibility == "standalone"
+
+
+def test_almanac_capability_hides_non_beijing_place():
+    result = CapabilityExecutor().execute(
+        CapabilityInput(
+            capability_id="almanac",
+            payload={
+                "dateRange": {"start": "2026-05-08", "end": "2026-05-08"},
+                "eventType": "出行",
+                "place": "上海市",
+            },
+        )
+    )
+
+    assert result.data["place"] == "已填写（非北京地区已隐藏）"
+    assert "上海" not in json.dumps(result.data, ensure_ascii=False)
 
 
 def test_bazi_capability_delegates_to_pure_analysis(monkeypatch):

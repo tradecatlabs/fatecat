@@ -4,6 +4,7 @@ import secrets
 import sys
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 from zoneinfo import ZoneInfo
 
 from _paths import FATE_CORE_SRC_DIR, get_env_file
@@ -29,6 +30,7 @@ API_TOKEN = os.getenv("FATE_API_TOKEN", "").strip()
 
 import db_v2 as db  # noqa: E402
 from bazi_calculator import BaziCalculator  # noqa: E402
+from fate_core.capabilities import CapabilityExecutor, CapabilityInput, list_capabilities  # noqa: E402
 from fate_core.usecases import PureAnalysisInput, calculate_pure_analysis  # noqa: E402
 from liuyao_factors import generate_factor  # noqa: E402
 from models import (  # noqa: E402
@@ -211,6 +213,45 @@ def web_report(
 def list_report_systems():
     """列出当前可用和未来规划的独立输出体系。"""
     return attach_branding({"success": True, "data": {"systems": prediction_systems_payload()}})
+
+
+@app.get("/api/v1/capabilities")
+def list_prediction_capabilities():
+    """列出统一预测 capability 注册表。"""
+    capabilities = [
+        {
+            "capabilityId": item.capability_id,
+            "name": item.name,
+            "tradition": item.tradition,
+            "status": item.status,
+            "defaultVisibility": item.default_visibility,
+            "reportProfile": item.report_profile,
+            "riskLevel": item.risk_level,
+        }
+        for item in list_capabilities()
+    ]
+    return attach_branding({"success": True, "data": {"capabilities": capabilities}})
+
+
+@app.post("/api/v1/capabilities/{capability_id}")
+def execute_prediction_capability(capability_id: str, payload: dict[str, Any]):
+    """执行已生产化的独立 capability。"""
+    try:
+        result = CapabilityExecutor().execute(CapabilityInput(capability_id=capability_id, payload=payload))
+        return attach_branding(
+            {
+                "success": True,
+                "capabilityId": result.capability_id,
+                "status": result.status,
+                "reportProfile": result.report_profile,
+                "data": result.data,
+                "evidence": result.evidence,
+                "risk": result.risk,
+                "meta": {"calculatedAt": now_cn().isoformat()},
+            }
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 def _parse_bazi_request(req: BaziRequest) -> tuple[datetime, float, float]:

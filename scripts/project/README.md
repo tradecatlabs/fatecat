@@ -96,7 +96,7 @@ FateCat 的定位不是重写所有底层历法与命理算法，而是把已经
 ## 核心亮点
 
 - **纯命理分析内核**：`modules/fate_core/` 负责纯分析能力，输出字段由 `assets/fate/` 真相源约束，避免不同入口结果漂移。
-- **统一命令行入口**：安装后统一使用 `.venv/bin/fatecat`，支持 `pure-analysis`、`health`、`serve`，适合脚本和批处理。
+- **统一命令行入口**：安装后统一使用 `.venv/bin/fatecat`，支持 `pure-analysis`、`capabilities`、`capability`、`health`、`serve`，适合脚本和批处理。
 - **交付层独立**：`modules/telegram/` 负责 Telegram Bot、FastAPI 与报告生成，不污染纯分析内核。
 - **Agent 友好**：内置 `general`、`openclaw`、`harness` 三种非交互自举 profile，适合 OpenClaw / Harness / 自动化系统。
 - **输出带来源与免责声明**：CLI、API、Telegram 报告统一携带 `branding` / `disclaimer`，保证来源信息和风险提醒不丢失。
@@ -515,7 +515,7 @@ CLI 的两个关键约定：
 - 必需项：`FATE_BOT_TOKEN`
 - 可选项：`FATE_ADMIN_USER_IDS`、`FATE_BOT_PROXY_URL`
 - 日志目录：`modules/telegram/output/logs/`
-- 确认页可切换已实现报告体系：综合八字、紫微斗数；袁天罡称骨随综合八字输出。黄历/择日、六爻、梅花、奇门、大六壬、风水九星、姓名合婚等已进入预测体系注册表，但未实现前只作为独立待实现体系，不混入综合八字。
+- 确认页可切换已实现 Markdown 报告体系：综合八字、紫微斗数；袁天罡称骨随综合八字输出。黄历/择日已作为 `almanac` 独立 capability 提供 CLI/API 调用，但不进入默认 Markdown；六爻、梅花、奇门、大六壬、风水九星、姓名合婚等仍为独立待实现 capability，不混入综合八字。
 - 用户可见报告不会回显非北京类真实出生地区；非北京地区只用于后端经纬度解析和计算。
 
 常见命令：
@@ -538,6 +538,8 @@ tail -f modules/telegram/output/logs/bot.log
 | `POST` | `/api/v1/bazi/calculate` | 传统八字排盘响应（兼容 legacy 输出） |
 | `POST` | `/api/v1/report/markdown` | 按 `options.reportSystem` 生成指定体系 Markdown |
 | `GET` | `/api/v1/report/systems` | 查看已实现与未来规划的独立输出体系 |
+| `GET` | `/api/v1/capabilities` | 查看统一预测 capability 注册表 |
+| `POST` | `/api/v1/capabilities/{capability_id}` | 执行已生产化 capability，例如 `almanac` 黄历择日 |
 | `POST` | `/api/v1/liuyao/factor` | 六爻量化因子统一输出 |
 
 启动命令：
