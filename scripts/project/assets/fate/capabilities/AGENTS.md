@@ -23,7 +23,8 @@ capabilities/
     ├── liuyao.json
     ├── meihua.json
     ├── name_marriage.json
-    └── qimen.json
+    ├── qimen.json
+    └── ziwei.json
 ```
 
 ## 职责边界

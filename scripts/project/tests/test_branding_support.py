@@ -200,7 +200,10 @@ def test_full_report_other_systems_are_independent_outputs():
     ziwei_text = generate_full_report(result, hide=build_report_hide("ziwei"), report_system="ziwei")
     assert "# 紫微斗数报告：测试样本" in ziwei_text
     assert "## 紫微斗数" in ziwei_text
+    assert "### 入盘依据" in ziwei_text
+    assert "### 命宫与身宫" in ziwei_text
     assert "## 紫微运限四化（大限/流年/流月/流日/流时）" in ziwei_text
+    assert "## 紫微基础" not in ziwei_text
     assert "## 八字排盘详情" not in ziwei_text
     assert "## 袁天罡称骨" not in ziwei_text
 

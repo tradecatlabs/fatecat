@@ -128,7 +128,10 @@ def test_web_page_can_select_ziwei_report_without_bazi_blocks():
     assert "当前输出体系：紫微斗数" in text
     assert "# 紫微斗数报告：测试样本" in text
     assert "## 紫微斗数" in text
+    assert "### 入盘依据" in text
+    assert "### 命宫与身宫" in text
     assert "## 紫微运限四化（大限/流年/流月/流日/流时）" in text
+    assert "## 紫微基础" not in text
     assert "## 八字排盘详情" not in text
     assert "## 袁天罡称骨" not in text
     assert '"reportSystem": "ziwei"' in text

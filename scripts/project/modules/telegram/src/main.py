@@ -308,6 +308,26 @@ def _calculate_bazi_raw(req: BaziRequest, *, report_system: str = "bazi") -> tup
     return result, calculator, birth_dt
 
 
+def _calculate_ziwei_capability(req: BaziRequest) -> dict[str, Any]:
+    """使用统一 capability 执行紫微，不再从八字扩展链拼装 Markdown 数据。"""
+    birth_dt, longitude, latitude = _parse_bazi_request(req)
+    result = CapabilityExecutor().execute(
+        CapabilityInput(
+            capability_id="ziwei",
+            payload={
+                "birthDateTime": birth_dt.strftime("%Y-%m-%d %H:%M:%S"),
+                "gender": req.gender,
+                "longitude": longitude,
+                "latitude": latitude,
+                "birthPlace": req.birthPlace.name,
+                "name": req.name,
+                "useTrueSolarTime": req.options.useTrueSolarTime,
+            },
+        )
+    )
+    return result.data
+
+
 @app.post("/api/v1/bazi/simple")
 def calculate_bazi_simple(req: BaziRequest):
     """简化八字计算 - 直接返回原始结果"""
@@ -421,7 +441,10 @@ def generate_markdown_report(req: BaziRequest):
     """生成指定体系的 Markdown 报告。"""
     try:
         report_system = normalize_report_system(req.options.reportSystem)
-        result, _calculator, _birth_dt = _calculate_bazi_raw(req, report_system=report_system)
+        if report_system == "ziwei":
+            result = _calculate_ziwei_capability(req)
+        else:
+            result, _calculator, _birth_dt = _calculate_bazi_raw(req, report_system=report_system)
         report_hide = build_report_hide(report_system)
         markdown = generate_full_report(result, hide=report_hide, report_system=report_system)
         return attach_branding(

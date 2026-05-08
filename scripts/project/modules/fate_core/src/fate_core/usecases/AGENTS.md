@@ -21,7 +21,7 @@ usecases/
 - `calculate_pure_analysis.py`：综合八字默认生产报告的数据用例。
 - `calculate_almanac.py`：黄历择日独立 capability 的数据用例，只输出结构化择日结果和证据。
 - `calculate_meihua.py`：梅花易数独立 capability 的数据用例，只输出起卦盘面、体用和证据边界。
-- `calculate_ziwei.py`：紫微斗数独立 capability 的数据用例，复用遗留 `BaziCalculator` 扩展链路中的 fortel/iztro 输出。
+- `calculate_ziwei.py`：紫微斗数独立 capability 的数据用例，复用 `ziwei_iztro` 适配器直接取得 iztro 命盘与运限输出。
 - `__init__.py`：统一导出稳定用例入口，供 CLI、API 与 capability executor 调用。
 
 ## 依赖方向

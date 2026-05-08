@@ -3,6 +3,6 @@
   "capabilityId": "ziwei",
   "title": "紫微斗数报告",
   "visibility": "standalone",
-  "sections": ["ziweiChart", "ziweiBasic", "ziweiHoroscope", "evidence"],
+  "sections": ["inputTrace", "ziweiChart", "palaceAnalysis", "starPositions", "ziweiHoroscope", "evidence"],
   "markdownDefault": false
 }

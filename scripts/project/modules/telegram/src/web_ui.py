@@ -15,6 +15,7 @@ from typing import Any
 
 from bazi_calculator import BaziCalculator
 from fastapi.responses import HTMLResponse
+from fate_core.capabilities import CapabilityExecutor, CapabilityInput
 from location import get as get_location
 from prediction_systems import PREDICTION_SYSTEMS, report_system_allowed_text
 from report_generator import REPORT_SYSTEM_LABELS, build_report_hide, generate_full_report, public_birth_place
@@ -126,17 +127,37 @@ def _build_report(form: WebReportForm) -> WebReportResult:
         raise
     display_birth_place = public_birth_place(form.birth_place)
 
-    calculator = BaziCalculator(
-        birth_dt,
-        gender,
-        longitude,
-        latitude=latitude,
-        name=form.name or None,
-        birth_place=display_birth_place,
-        use_true_solar_time=True,
-    )
     report_hide = build_report_hide(report_system)
-    calc_result = calculator.calculate(hide=report_hide)
+    if report_system == "ziwei":
+        calc_result = (
+            CapabilityExecutor()
+            .execute(
+                CapabilityInput(
+                    capability_id="ziwei",
+                    payload={
+                        "birthDateTime": birth_dt.strftime("%Y-%m-%d %H:%M:%S"),
+                        "gender": gender,
+                        "longitude": longitude,
+                        "latitude": latitude,
+                        "birthPlace": form.birth_place,
+                        "name": form.name,
+                        "useTrueSolarTime": True,
+                    },
+                )
+            )
+            .data
+        )
+    else:
+        calculator = BaziCalculator(
+            birth_dt,
+            gender,
+            longitude,
+            latitude=latitude,
+            name=form.name or None,
+            birth_place=display_birth_place,
+            use_true_solar_time=True,
+        )
+        calc_result = calculator.calculate(hide=report_hide)
     markdown = generate_full_report(calc_result, hide=report_hide, report_system=report_system)
     payload = {
         "birthDate": form.birth_date,

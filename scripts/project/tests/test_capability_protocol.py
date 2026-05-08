@@ -172,6 +172,59 @@ def test_ziwei_capability_delegates_to_ziwei_usecase(monkeypatch):
     assert result.evidence == expected_data["analysisEvidence"]
 
 
+def test_ziwei_capability_preserves_complete_iztro_palace_schema():
+    result = CapabilityExecutor().execute(
+        CapabilityInput(
+            capability_id="ziwei",
+            payload={
+                "birthDateTime": "1990-01-01 08:00:00",
+                "gender": "男",
+                "longitude": 116.4074,
+                "latitude": 39.9042,
+                "birthPlace": "北京",
+                "name": "测试样本",
+            },
+        )
+    )
+
+    data = result.data
+    assert data["capabilityId"] == "ziwei"
+    assert data["meta"]["legacyZiweiBasic"] == "disabled"
+    assert "ziweiBasic" not in data
+    assert data["inputTrace"]["originalTime"] == "1990-01-01 08:00:00"
+    assert data["inputTrace"]["trueSolarTime"]
+    assert data["inputTrace"]["fixLeap"] is True
+    assert data["fiveElementsClass"]
+    assert data["starInfluence"] == data["fiveElementsClass"]
+
+    palaces = data["palaceAnalysis"]
+    assert len(palaces) == 12
+    for palace in palaces:
+        for field in [
+            "index",
+            "name",
+            "heavenlyStem",
+            "earthlyBranch",
+            "isBodyPalace",
+            "isOriginalPalace",
+            "changsheng12",
+            "boshi12",
+            "jiangqian12",
+            "suiqian12",
+            "decadal",
+            "ages",
+        ]:
+            assert field in palace
+        assert isinstance(palace["majorStars"], list)
+        assert isinstance(palace["minorStars"], list)
+        assert isinstance(palace["adjectiveStars"], list)
+
+    assert len(data["starPositions"]) == 12
+    assert result.evidence["coverage"]["palaceCount"] == 12
+    assert "ziwei.palace_metadata" in result.evidence["items"]["ziweiChart"]["ruleIds"]
+    assert "ziwei.time_index" in result.evidence["items"]["timePipeline"]["ruleIds"]
+
+
 def test_bazi_capability_delegates_to_pure_analysis(monkeypatch):
     expected_data = {"analysisEvidence": {"items": {"dayMaster": {"ruleIds": ["bazi.month_command_priority"]}}}}
 

@@ -299,6 +299,7 @@ class BaziCalculator:
         self.gender = gender
         self.longitude = longitude
         self.latitude = latitude
+        self.use_true_solar_time = use_true_solar_time
         self.name = name or "命主"
         self.birth_place = birth_place or "未知"
         self.solar = self.lunar = self.ec = None
@@ -591,14 +592,20 @@ class BaziCalculator:
                 for p in palaces or []:
                     majors = [s.get("name", "") for s in p.get("majorStars", []) if s]
                     minors = [s.get("name", "") for s in p.get("minorStars", []) if s]
-                    if majors or minors:
-                        positions.append(
-                            {
-                                "palace": p.get("name", ""),
-                                "majorStars": majors,
-                                "minorStars": minors,
-                            }
-                        )
+                    adjs = [s.get("name", "") for s in p.get("adjectiveStars", []) if s]
+                    positions.append(
+                        {
+                            "index": p.get("index"),
+                            "palace": p.get("name", ""),
+                            "heavenlyStem": p.get("heavenlyStem", ""),
+                            "earthlyBranch": p.get("earthlyBranch", ""),
+                            "isBodyPalace": bool(p.get("isBodyPalace")),
+                            "isOriginalPalace": bool(p.get("isOriginalPalace")),
+                            "majorStars": majors,
+                            "minorStars": minors,
+                            "adjectiveStars": adjs,
+                        }
+                    )
                 return positions
 
             starPositions = _build_star_positions(palaceAnalysis)
@@ -798,6 +805,17 @@ class BaziCalculator:
                 "longitude": self.longitude,
                 "latitude": self.latitude,
                 "options": {"useTrueSolarTime": True, "calendarType": "solar"},
+            },
+            "inputTrace": {
+                "originalTime": self.birth_dt.strftime("%Y-%m-%d %H:%M:%S"),
+                "trueSolarTime": self.true_solar_time.strftime("%Y-%m-%d %H:%M:%S"),
+                "useTrueSolarTime": self.use_true_solar_time,
+                "longitude": self.longitude,
+                "latitude": self.latitude,
+                "timeZhi": self.zi_time_analysis.get("timeZhi", ""),
+                "ziTimeAnalysis": self.zi_time_analysis,
+                "trueSolarDetail": complete_true_solar_time,
+                "fixLeap": True,
             },
             # 计算信息
             "meta": {

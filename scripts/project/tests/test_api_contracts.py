@@ -185,6 +185,9 @@ def test_markdown_report_api_selects_ziwei_without_bazi_blocks():
     assert body["data"]["reportSystem"] == "ziwei"
     assert "# 紫微斗数报告：测试样本" in markdown
     assert "## 紫微斗数" in markdown
+    assert "### 入盘依据" in markdown
+    assert "### 命宫与身宫" in markdown
+    assert "## 紫微基础" not in markdown
     assert "## 八字排盘详情" not in markdown
 
 

@@ -193,13 +193,49 @@
       "doesNotApplyWhen": ["缺少出生时间或性别", "iztro 运行失败"]
     },
     {
+      "id": "ziwei.time_index",
+      "system": "ziwei",
+      "topic": "紫微入盘时间",
+      "summary": "紫微入盘必须保留原始出生时间、真太阳时修正结果、时辰索引与闰月口径，避免时间边界不透明。",
+      "sources": ["BaziCalculator 真太阳时管线", "iztro bySolar 输入契约", "项目 capability 协议"],
+      "appliesWhen": ["出生时间、经纬度和性别齐备", "启用或显式关闭真太阳时选项"],
+      "doesNotApplyWhen": ["缺少出生时间或经纬度"]
+    },
+    {
+      "id": "ziwei.palace_metadata",
+      "system": "ziwei",
+      "topic": "十二宫元数据",
+      "summary": "十二宫输出必须保留宫序、宫干支、命宫/身宫标记、长生十二神、博士十二神、将前和岁前等 iztro 原生字段。",
+      "sources": ["iztro palaces", "MingLi-Bench fortune API 样本", "项目 capability 协议"],
+      "appliesWhen": ["iztro 返回完整 palaces 数组"],
+      "doesNotApplyWhen": ["只做极简星曜清单展示"]
+    },
+    {
+      "id": "ziwei.decadal_ranges",
+      "system": "ziwei",
+      "topic": "大限年龄段",
+      "summary": "大限年龄范围和宫位干支来自 iztro decadal 字段，作为紫微动态运限定位的基础，不由项目层自写推断。",
+      "sources": ["iztro decadal", "项目 capability 协议"],
+      "appliesWhen": ["palaces 中存在 decadal 字段"],
+      "doesNotApplyWhen": ["只输出本命静态星曜"]
+    },
+    {
+      "id": "ziwei.mutagen_scope",
+      "system": "ziwei",
+      "topic": "四化作用域",
+      "summary": "生年、大限、流年、流月、流日、流时四化必须标明作用域，避免不同时间层级混读。",
+      "sources": ["iztro horoscope", "项目 capability 协议"],
+      "appliesWhen": ["iztro horoscope 返回 mutagen 与 stars 字段"],
+      "doesNotApplyWhen": ["未计算运限 horoscope"]
+    },
+    {
       "id": "ziwei.basic_palaces",
       "system": "ziwei",
       "topic": "紫微基础",
-      "summary": "紫微基础命宫与十二宫信息来自项目遗留 ZiweiCalculator，用于辅助呈现，不替代 iztro 原生命盘。",
+      "summary": "项目遗留 ZiweiCalculator 仅保留为历史兼容说明，不进入生产紫微默认报告；生产口径以 iztro 原生命盘为准。",
       "sources": ["modules/telegram/src/ziwei.py", "项目 capability 协议"],
       "appliesWhen": ["四柱和出生信息齐备"],
-      "doesNotApplyWhen": ["需要完整飞星派推断或跨派别解释"]
+      "doesNotApplyWhen": ["生产紫微 Markdown 报告", "需要完整飞星派推断或跨派别解释"]
     },
     {
       "id": "ziwei.horoscope_cycles",

@@ -14,6 +14,7 @@ from .legacy_bazi import (
     now_cn,
 )
 from .lunar_calendar import Solar, build_lunar_datetime, build_lunar_day
+from .ziwei_iztro import ZiweiIztroInput, calculate_ziwei_iztro
 
 __all__ = [
     "BaziCalculator",
@@ -29,5 +30,7 @@ __all__ = [
     "calc_ming_gua",
     "calculate_legacy_bazi",
     "calculate_pure_analysis_raw",
+    "calculate_ziwei_iztro",
     "now_cn",
+    "ZiweiIztroInput",
 ]

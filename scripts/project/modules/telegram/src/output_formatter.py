@@ -32,7 +32,7 @@ FIELD_CATEGORIES = {
     "ziwei": {
         "name": "紫微斗数",
         "desc": "紫微排盘",
-        "fields": ["ziweiChart", "starPositions", "palaceAnalysis", "starInfluence", "ziweiBasic"],
+        "fields": ["inputTrace", "ziweiChart", "starPositions", "palaceAnalysis", "fiveElementsClass", "starInfluence"],
     },
     "divination_liuyao": {"name": "六爻占卜", "desc": "六爻起卦(当前时间)", "fields": ["liuyaoHexagram"]},
     "divination_meihua": {

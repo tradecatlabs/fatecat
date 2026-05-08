@@ -1348,7 +1348,6 @@ def generate_ziwei_report(result: dict[str, Any]) -> str:
         f"# 紫微斗数报告：{name}",
         "",
         generate_ziwei_section(result),
-        generate_ziwei_basic_section(result),
         generate_ziwei_horoscope_section(result),
     ]
     return _wrap_report(parts)
@@ -1542,8 +1541,55 @@ def generate_jieqi_section(result: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _format_ziwei_star(star: object) -> str:
+    if not isinstance(star, dict):
+        return str(star)
+    name = str(star.get("name", "")).strip()
+    meta = "/".join(
+        [
+            str(x).strip()
+            for x in [star.get("brightness", ""), star.get("mutagen", ""), star.get("scope", "")]
+            if str(x).strip()
+        ]
+    )
+    return f"{name}（{meta}）" if name and meta else name
+
+
+def _format_ziwei_stars(stars: object) -> str:
+    if not isinstance(stars, list):
+        return ""
+    values = [_format_ziwei_star(s) for s in stars if s]
+    return "、".join([x for x in values if x])
+
+
+def _format_ziwei_decadal(value: object) -> str:
+    if not isinstance(value, dict):
+        return ""
+    rng = value.get("range")
+    if isinstance(rng, list) and len(rng) == 2:
+        age_text = f"{rng[0]}-{rng[1]}岁"
+    else:
+        age_text = ""
+    gz = f"{value.get('heavenlyStem', '')}{value.get('earthlyBranch', '')}"
+    return " ".join([x for x in [age_text, gz] if x])
+
+
+def _format_ziwei_age_list(value: object) -> str:
+    if not isinstance(value, list):
+        return ""
+    return "、".join([str(x) for x in value if str(x).strip()])
+
+
+def _ziwei_focus_palaces(palaces: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    focus: list[dict[str, Any]] = []
+    for palace in palaces:
+        if palace.get("isOriginalPalace") or palace.get("isBodyPalace"):
+            focus.append(palace)
+    return focus
+
+
 def generate_ziwei_section(result: dict[str, Any]) -> str:
-    """生成紫微斗数部分"""
+    """生成紫微斗数部分。"""
     lines = []
     zw = result.get("ziweiChart", {})
     pa = result.get("palaceAnalysis", [])
@@ -1551,37 +1597,113 @@ def generate_ziwei_section(result: dict[str, Any]) -> str:
     if zw and zw.get("source"):
         lines.append("## 紫微斗数")
         lines.append("")
-        lines.append(f"* 命局：{result.get('starInfluence', '')}")
-        lines.append("* 星曜展示口径：星名（亮度/四化），缺失则留空")
+        chart_rows = []
+        for label, key in [
+            ("命局", "fiveElementsClass"),
+            ("命主", "soul"),
+            ("身主", "body"),
+            ("命宫地支", "earthlyBranchOfSoulPalace"),
+            ("身宫地支", "earthlyBranchOfBodyPalace"),
+            ("农历", "lunarDate"),
+            ("时辰", "time"),
+            ("时段", "timeRange"),
+        ]:
+            value = zw.get(key)
+            if value not in (None, ""):
+                chart_rows.append([label, value])
+        if chart_rows:
+            lines.extend(_render_table(["项目", "内容"], chart_rows))
 
-        if pa:
+        trace = result.get("inputTrace", {})
+        if isinstance(trace, dict) and trace:
+            trace_rows = []
+            for label, key in [
+                ("原始时间", "originalTime"),
+                ("入盘时间", "trueSolarTime"),
+                ("真太阳时", "useTrueSolarTime"),
+                ("时支", "timeZhi"),
+                ("运限日期", "asOf"),
+                ("闰月口径", "fixLeap"),
+            ]:
+                value = trace.get(key)
+                if value not in (None, ""):
+                    trace_rows.append([label, value])
+            if trace_rows:
+                lines.append("### 入盘依据")
+                lines.append("")
+                lines.extend(_render_table(["项目", "内容"], trace_rows))
+
+        palaces = [p for p in pa if isinstance(p, dict)] if isinstance(pa, list) else []
+        focus = _ziwei_focus_palaces(palaces)
+        if focus:
+            lines.append("### 命宫与身宫")
+            lines.append("")
+            focus_rows = []
+            for p in focus:
+                tags = []
+                if p.get("isOriginalPalace"):
+                    tags.append("命宫")
+                if p.get("isBodyPalace"):
+                    tags.append("身宫")
+                focus_rows.append(
+                    [
+                        "、".join(tags),
+                        p.get("name", ""),
+                        f"{p.get('heavenlyStem', '')}{p.get('earthlyBranch', '')}",
+                        _format_ziwei_decadal(p.get("decadal")),
+                        _format_ziwei_stars(p.get("majorStars")),
+                    ]
+                )
+            lines.extend(_render_table(["标记", "宫位", "宫干支", "大限", "主星"], focus_rows))
+
+        if palaces:
             lines.append("")
             lines.append("### 十二宫")
             lines.append("")
-            for p in pa:
-                name = p.get("name", "")
-                display_name = name if name.endswith("宫") else f"{name}宫"
-
-                def _fmt_star(s: object) -> str:
-                    if not isinstance(s, dict):
-                        return str(s)
-                    n = s.get("name", "")
-                    br = s.get("brightness", "")
-                    mu = s.get("mutagen", "")
-                    meta = "/".join([x for x in [br, mu] if x])
-                    return f"{n}（{meta}）" if meta else n
-
-                majors = [_fmt_star(s) for s in (p.get("majorStars", []) or []) if s]
-                minors = [_fmt_star(s) for s in (p.get("minorStars", []) or []) if s]
-                adjs = [_fmt_star(s) for s in (p.get("adjectiveStars", []) or []) if s]
-                stars = majors + minors + adjs
-                if not stars:
-                    lines.append(f"* {display_name}：-")
-                    continue
-                lines.append(f"* {display_name}：")
-                for s in stars:
-                    if s:
-                        lines.append(f"  - {s}")
+            rows = []
+            for p in palaces:
+                tags = []
+                if p.get("isOriginalPalace"):
+                    tags.append("命")
+                if p.get("isBodyPalace"):
+                    tags.append("身")
+                rows.append(
+                    [
+                        p.get("name", ""),
+                        p.get("index", ""),
+                        f"{p.get('heavenlyStem', '')}{p.get('earthlyBranch', '')}",
+                        "、".join(tags),
+                        _format_ziwei_decadal(p.get("decadal")),
+                        _format_ziwei_age_list(p.get("ages")),
+                        p.get("changsheng12", ""),
+                        p.get("boshi12", ""),
+                        p.get("jiangqian12", ""),
+                        p.get("suiqian12", ""),
+                        _format_ziwei_stars(p.get("majorStars")),
+                        _format_ziwei_stars(p.get("minorStars")),
+                        _format_ziwei_stars(p.get("adjectiveStars")),
+                    ]
+                )
+            lines.extend(
+                _render_table(
+                    [
+                        "宫位",
+                        "序",
+                        "干支",
+                        "标记",
+                        "大限",
+                        "小限年龄",
+                        "长生",
+                        "博士",
+                        "将前",
+                        "岁前",
+                        "主星",
+                        "辅星",
+                        "杂曜",
+                    ],
+                    rows,
+                )
+            )
         lines.append("")
 
     return "\n".join(lines)

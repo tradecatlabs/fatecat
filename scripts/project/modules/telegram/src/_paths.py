@@ -4,6 +4,7 @@ FateCat 路径管理模块
 """
 
 from pathlib import Path
+from typing import Any
 
 # ==================== 仓库与模块根路径 ====================
 MODULE_ROOT = Path(__file__).resolve().parent.parent
@@ -80,9 +81,9 @@ def get_env_file() -> Path:
     return ENV_FILE
 
 
-def check_dependencies() -> dict:
+def check_dependencies() -> dict[str, Any]:
     """检查必需依赖与可选依赖。"""
-    results = {"ok": True, "errors": [], "warnings": []}
+    results: dict[str, Any] = {"ok": True, "errors": [], "warnings": []}
 
     required = [
         (ENV_FILE, "配置文件"),

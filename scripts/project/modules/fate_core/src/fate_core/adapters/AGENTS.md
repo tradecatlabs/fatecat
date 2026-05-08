@@ -11,13 +11,15 @@ adapters/
 ├── AGENTS.md
 ├── __init__.py
 ├── legacy_bazi.py
-└── lunar_calendar.py
+├── lunar_calendar.py
+└── ziwei_iztro.py
 ```
 
 ## 职责边界
 
 - `legacy_bazi.py`：封装遗留 `BaziCalculator`，为综合八字纯分析保留稳定入口。
 - `lunar_calendar.py`：封装 `lunar-python` 公历日/时转农历黄历入口，供黄历择日等独立 capability 复用。
+- `ziwei_iztro.py`：封装紫微斗数 iztro 入口；只借用遗留真太阳时管线，不调用八字扩展链生成紫微结果。
 - `__init__.py`：对外暴露经过适配的稳定符号，避免上层散落 vendor 路径处理。
 
 ## 依赖方向

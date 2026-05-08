@@ -17,7 +17,7 @@ import subprocess
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from _paths import IZTRO_DIR
 
@@ -49,7 +49,7 @@ def _load_package_json(repo_dir: Path) -> dict:
     if not package_json.exists():
         raise RuntimeError(f"缺少 package.json: {package_json}")
     try:
-        return json.loads(package_json.read_text(encoding="utf-8"))
+        return cast(dict[str, Any], json.loads(package_json.read_text(encoding="utf-8")))
     except json.JSONDecodeError as exc:
         raise RuntimeError(f"package.json 解析失败: {package_json}: {exc}") from exc
 
@@ -147,6 +147,7 @@ class FortelZiweiCalculator:
             "professionalZiwei": result,
             "stars": result.get("stars", {}),
             "palaces": result.get("palaces", {}),
+            "fiveElementsClass": result.get("fiveElementsClass", ""),
             "influence": result.get("fiveElementsClass", {}),
             "horoscope": result.get("horoscope", {}),
         }
@@ -165,6 +166,40 @@ class FortelZiweiCalculator:
 
         js_script = f"""
         const {{ astro }} = require({json.dumps(str(entry_path))});
+        const normalizeStar = (s) => s ? ({{
+            name: s.name || "",
+            type: s.type || "",
+            scope: s.scope || "",
+            brightness: s.brightness || "",
+            mutagen: s.mutagen || ""
+        }}) : {{}};
+        const normalizeStars = (stars) => Array.isArray(stars) ? stars.map(normalizeStar) : [];
+        const normalizePalace = (p) => p ? ({{
+            index: p.index,
+            name: p.name || "",
+            heavenlyStem: p.heavenlyStem || "",
+            earthlyBranch: p.earthlyBranch || "",
+            isBodyPalace: Boolean(p.isBodyPalace),
+            isOriginalPalace: Boolean(p.isOriginalPalace),
+            majorStars: normalizeStars(p.majorStars),
+            minorStars: normalizeStars(p.minorStars),
+            adjectiveStars: normalizeStars(p.adjectiveStars),
+            changsheng12: p.changsheng12 || "",
+            boshi12: p.boshi12 || "",
+            jiangqian12: p.jiangqian12 || "",
+            suiqian12: p.suiqian12 || "",
+            decadal: p.decadal || null,
+            ages: Array.isArray(p.ages) ? p.ages : [],
+            decadal_now: p.decadal_now || null,
+            year_now: p.year_now || null
+        }}) : {{}};
+        const normalizeHoroscopeScope = (scope) => scope ? ({{
+            heavenlyStem: scope.heavenlyStem || "",
+            earthlyBranch: scope.earthlyBranch || "",
+            palaceNames: Array.isArray(scope.palaceNames) ? scope.palaceNames : [],
+            mutagen: Array.isArray(scope.mutagen) ? scope.mutagen : [],
+            stars: Array.isArray(scope.stars) ? scope.stars.map(block => normalizeStars(block)) : []
+        }}) : {{}};
         try {{
             const result = astro.bySolar(
                 '{self.birth_dt.year}-{self.birth_dt.month:02d}-{self.birth_dt.day:02d}',
@@ -179,21 +214,29 @@ class FortelZiweiCalculator:
                 solarDate: hz.solarDate,
                 lunarDate: hz.lunarDate,
                 age: hz.age,
-                decadal: hz.decadal,
-                yearly: hz.yearly,
-                monthly: hz.monthly,
-                daily: hz.daily,
-                hourly: hz.hourly,
+                decadal: normalizeHoroscopeScope(hz.decadal),
+                yearly: normalizeHoroscopeScope(hz.yearly),
+                monthly: normalizeHoroscopeScope(hz.monthly),
+                daily: normalizeHoroscopeScope(hz.daily),
+                hourly: normalizeHoroscopeScope(hz.hourly),
             }};
             console.log(JSON.stringify({{
                 source: "iztro原生算法",
                 algorithm: "紫微斗数",
                 solarDate: result.solarDate,
                 lunarDate: result.lunarDate,
+                rawDates: result.rawDates || null,
+                zodiac: result.zodiac || "",
+                sign: result.sign || "",
+                gender: result.gender || "",
+                time: result.time || "",
+                timeRange: result.timeRange || "",
                 fiveElementsClass: result.fiveElementsClass,
                 soul: result.soul,
                 body: result.body,
-                palaces: result.palaces ? result.palaces.map(p => ({{name: p.name, heavenlyStem: p.heavenlyStem, earthlyBranch: p.earthlyBranch, majorStars: p.majorStars, minorStars: p.minorStars, adjectiveStars: p.adjectiveStars}})) : [],
+                earthlyBranchOfSoulPalace: result.earthlyBranchOfSoulPalace || "",
+                earthlyBranchOfBodyPalace: result.earthlyBranchOfBodyPalace || "",
+                palaces: result.palaces ? result.palaces.map(normalizePalace) : [],
                 horoscope: hzOut,
                 status: "success"
             }}));
@@ -224,7 +267,7 @@ class FortelZiweiCalculator:
 
             try:
                 data = json.loads(result.stdout)
-                return translate_value(data)
+                return cast(dict[str, Any], translate_value(data))
             except json.JSONDecodeError as e:
                 raise RuntimeError(f"iztro输出解析失败: {e}") from e
         finally:
