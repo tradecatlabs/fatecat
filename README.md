@@ -11,6 +11,11 @@
 **外部成熟算法 × 纯命理分析内核 × CLI / Web / Telegram / FastAPI / Agent 统一交付层**
 
 <p>
+  <a href="https://tradecatlabs-fatecat.hf.space/web"><strong>立即免费使用 FateCat Web 工作台</strong></a>
+</p>
+
+<p>
+  <a href="https://tradecatlabs-fatecat.hf.space/web"><img src="https://img.shields.io/badge/Hugging%20Face-Web%20Demo-FFD21E?style=for-the-badge&logo=huggingface&logoColor=111827" alt="FateCat Hugging Face Web Demo"></a>
   <a href="https://github.com/tradecatlabs/fatecat"><img src="https://img.shields.io/github/stars/tradecatlabs/fatecat?style=for-the-badge&label=Stars" alt="GitHub Stars"></a>
   <a href="https://github.com/tradecatlabs/fatecat"><img src="https://img.shields.io/github/languages/top/tradecatlabs/fatecat?style=for-the-badge&label=Top%20Language" alt="Top Language"></a>
   <a href="https://github.com/tradecatlabs/fatecat"><img src="https://img.shields.io/github/languages/code-size/tradecatlabs/fatecat?style=for-the-badge&label=Code%20Size" alt="Code Size"></a>
