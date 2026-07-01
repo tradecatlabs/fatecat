@@ -456,6 +456,44 @@ def _serialize_report_job_result(result: Any) -> dict[str, Any] | None:
     return None
 
 
+def _capability_item_payload(item: Any, markdown_enabled_ids: set[str]) -> dict[str, Any]:
+    markdown_report_enabled = item.capability_id in markdown_enabled_ids
+    return {
+        "capabilityId": item.capability_id,
+        "name": item.name,
+        "tradition": item.tradition,
+        "status": item.status,
+        "defaultVisibility": item.default_visibility,
+        "maturity": {
+            "level": item.maturity_level,
+            "status": item.maturity_status,
+            "summary": item.maturity_summary,
+        },
+        "engine": {
+            "provider": item.provider,
+            "engineVersion": item.engine_version,
+            "deterministic": item.deterministic,
+        },
+        "reportProfile": item.report_profile,
+        "markdownDefault": item.markdown_default,
+        "capabilityApiEnabled": item.status == "production",
+        "markdownReportEnabled": markdown_report_enabled,
+        "surfaces": {
+            "capabilityApi": item.status == "production",
+            "markdownReport": markdown_report_enabled,
+            "webForm": markdown_report_enabled,
+        },
+        "evidencePolicy": item.evidence_policy,
+        "testGate": item.test_gate,
+        "riskLevel": item.risk_level,
+    }
+
+
+def _capabilities_payload() -> dict[str, Any]:
+    markdown_enabled_ids = set(enabled_report_system_ids())
+    return {"capabilities": [_capability_item_payload(item, markdown_enabled_ids) for item in list_capabilities()]}
+
+
 def _submit_report_job(
     *,
     kind: str,
@@ -858,29 +896,14 @@ def list_report_systems():
 
 @app.get("/api/v1/capabilities")
 def list_prediction_capabilities():
-    """列出统一预测 capability 注册表。"""
-    markdown_enabled_ids = set(enabled_report_system_ids())
-    capabilities = [
-        {
-            "capabilityId": item.capability_id,
-            "name": item.name,
-            "tradition": item.tradition,
-            "status": item.status,
-            "defaultVisibility": item.default_visibility,
-            "reportProfile": item.report_profile,
-            "markdownDefault": item.markdown_default,
-            "capabilityApiEnabled": item.status == "production",
-            "markdownReportEnabled": item.capability_id in markdown_enabled_ids,
-            "surfaces": {
-                "capabilityApi": item.status == "production",
-                "markdownReport": item.capability_id in markdown_enabled_ids,
-                "webForm": item.capability_id in markdown_enabled_ids,
-            },
-            "riskLevel": item.risk_level,
-        }
-        for item in list_capabilities()
-    ]
-    return attach_branding({"success": True, "data": {"capabilities": capabilities}})
+    """列出统一测算 capability 注册表。"""
+    return attach_branding({"success": True, "data": _capabilities_payload()})
+
+
+@app.get("/capabilities")
+def list_measurement_capabilities():
+    """基础设施口径 capability 注册表别名。"""
+    return list_prediction_capabilities()
 
 
 @app.post("/api/v1/capabilities/{capability_id}")
@@ -899,11 +922,64 @@ def execute_prediction_capability(capability_id: str, payload: dict[str, Any]):
                 "data": result.data,
                 "evidence": result.evidence,
                 "risk": result.risk,
+                "metadata": result.metadata,
                 "meta": {"calculatedAt": now_cn().isoformat()},
             }
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@app.post("/capabilities/{capability_id}/calculate")
+def calculate_measurement_capability(capability_id: str, payload: dict[str, Any]):
+    """基础设施口径 capability 执行别名。"""
+    return execute_prediction_capability(capability_id, payload)
+
+
+@app.get("/reports")
+def list_report_infrastructure():
+    """列出报告交付入口和可见 profile。"""
+    return attach_branding(
+        {
+            "success": True,
+            "data": {
+                "profiles": prediction_systems_payload(),
+                "jobEndpoint": "/api/v1/report/jobs",
+                "markdownEndpoint": "/api/v1/report/markdown",
+                "webJobEndpoint": "/api/v1/report/jobs/web",
+                "statusEndpoint": "/api/v1/report/jobs/{job_id}",
+            },
+        }
+    )
+
+
+@app.get("/metadata")
+def service_metadata():
+    """测算基础设施元信息。"""
+    return attach_branding(
+        {
+            "success": True,
+            "data": {
+                "service": "FateCat",
+                "positioning": "面向 Agent 与应用开发者的测算基础设施",
+                "capabilityProtocol": {
+                    "schemaVersion": 1,
+                    "defaultCapability": "bazi",
+                    "registryEndpoint": "/capabilities",
+                    "calculateEndpoint": "/capabilities/{capability_id}/calculate",
+                },
+                "surfaces": ["CLI", "Web", "FastAPI", "Telegram", "Agent Skill"],
+                "quality": {
+                    "health": "/health",
+                    "readiness": "/ready",
+                    "metrics": "/metrics",
+                    "rateLimitPerMinute": RATE_LIMIT_PER_MINUTE,
+                    "maxInflightCalculations": MAX_INFLIGHT_CALCULATIONS,
+                    "reportJobQueueSize": REPORT_JOB_QUEUE_SIZE,
+                },
+            },
+        }
+    )
 
 
 def _validate_supported_bazi_options(req: BaziRequest) -> None:

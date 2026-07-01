@@ -2,7 +2,7 @@
 - Task ID: `0007`
 - Slug: `measurement-infrastructure-foundation`
 - Objective: `把 FateCat 从命理工具集合升级为面向 Agent 与应用开发者的测算基础设施基线：统一能力协议、可复现计算核心、证据化解释层、多端交付接口、能力成熟度和生产门禁。`
-- Status: `In Progress`
+- Status: `Done`
 
 ## In Scope
 - 提交当前“测算基础设施”定位基线。
@@ -46,11 +46,11 @@
 ## Task Package Overview
 | Task | Status | Evidence |
 | --- | --- | --- |
-| TP-01 | In Progress | 当前定位文案已更新，路线图和治理规则本轮补齐。 |
-| TP-02 | Pending | 待 registry/schema/tests 实现。 |
-| TP-03 | Pending | 待 executor provider map 实现。 |
-| TP-04 | Pending | 待 bazi/ziwei 样板字段断言。 |
-| TP-05 | Pending | 待 API alias、metadata 和验证。 |
+| TP-01 | Done | `ee36710` 已提交定位基线；路线图和治理规则补齐。 |
+| TP-02 | Done | registry/schema/tests 已支持 maturity、engineVersion、evidencePolicy、testGate。 |
+| TP-03 | Done | executor 已按 `engine.provider` 路由，planned 能力继续拒绝执行。 |
+| TP-04 | Done | bazi/ziwei 已作为 L4 样板暴露成熟度、engine 和门禁字段。 |
+| TP-05 | Done | 已补 `/capabilities`、`/capabilities/{id}/calculate`、`/reports`、`/metadata`，quick CI 通过。 |
 
 ## Reading Order
 1. README.md

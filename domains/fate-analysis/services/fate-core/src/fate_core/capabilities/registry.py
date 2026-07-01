@@ -13,6 +13,7 @@ from fate_core.support.paths import FATE_CAPABILITY_DIR
 VALID_STATUSES = {"planned", "experimental", "production"}
 VALID_VISIBILITIES = {"default", "optional", "standalone", "hidden"}
 VALID_RISK_LEVELS = {"folk_reference", "entertainment", "requires_disclaimer"}
+VALID_MATURITY_LEVELS = {"L0", "L1", "L2", "L3", "L4"}
 
 
 def _as_tuple(value: Any, field: str, capability_id: str) -> tuple[str, ...]:
@@ -47,10 +48,40 @@ def _parse_capability(raw: dict[str, Any]) -> Capability:
     engine = raw.get("engine")
     if not isinstance(engine, dict):
         raise ValueError(f"{capability_id}.engine 必须是对象")
+    provider = str(engine.get("provider", "")).strip()
+    if not provider:
+        raise ValueError(f"{capability_id}.engine.provider 不能为空")
+    engine_version = str(engine.get("engineVersion", "")).strip()
+    if not engine_version:
+        raise ValueError(f"{capability_id}.engine.engineVersion 不能为空")
 
     evidence = raw.get("evidence")
     if not isinstance(evidence, dict):
         raise ValueError(f"{capability_id}.evidence 必须是对象")
+
+    evidence_policy = raw.get("evidencePolicy")
+    if not isinstance(evidence_policy, dict):
+        raise ValueError(f"{capability_id}.evidencePolicy 必须是对象")
+
+    test_gate = raw.get("testGate")
+    if not isinstance(test_gate, dict):
+        raise ValueError(f"{capability_id}.testGate 必须是对象")
+    commands = test_gate.get("commands")
+    if not isinstance(commands, list):
+        raise ValueError(f"{capability_id}.testGate.commands 必须是数组")
+
+    maturity = raw.get("maturity")
+    if not isinstance(maturity, dict):
+        raise ValueError(f"{capability_id}.maturity 必须是对象")
+    maturity_level = str(maturity.get("level", "")).strip()
+    if maturity_level not in VALID_MATURITY_LEVELS:
+        raise ValueError(f"{capability_id}.maturity.level 非法: {maturity_level}")
+    maturity_status = str(maturity.get("status", "")).strip()
+    if not maturity_status:
+        raise ValueError(f"{capability_id}.maturity.status 不能为空")
+    maturity_summary = str(maturity.get("summary", "")).strip()
+    if not maturity_summary:
+        raise ValueError(f"{capability_id}.maturity.summary 不能为空")
 
     report = raw.get("report")
     if not isinstance(report, dict):
@@ -62,12 +93,19 @@ def _parse_capability(raw: dict[str, Any]) -> Capability:
         tradition=str(raw.get("tradition", "")).strip(),
         status=status,  # type: ignore[arg-type]
         default_visibility=visibility,  # type: ignore[arg-type]
+        maturity_level=maturity_level,  # type: ignore[arg-type]
+        maturity_status=maturity_status,
+        maturity_summary=maturity_summary,
         input_required=_as_tuple(raw.get("inputRequired", []), "inputRequired", capability_id),
         input_optional=_as_tuple(raw.get("inputOptional", []), "inputOptional", capability_id),
-        provider=str(engine.get("provider", "")).strip(),
+        provider=provider,
+        engine_version=engine_version,
+        deterministic=bool(engine.get("deterministic", True)),
         report_profile=str(report.get("profile", "")).strip(),
         markdown_default=bool(report.get("markdownDefault", False)),
         evidence_required=bool(evidence.get("required", True)),
+        evidence_policy=evidence_policy,
+        test_gate=test_gate,
         risk_level=risk_level,  # type: ignore[arg-type]
         disclaimer_required=bool(risk_policy.get("disclaimerRequired", True)),
         forbidden_claims=_as_tuple(risk_policy.get("forbiddenClaims", []), "riskPolicy.forbiddenClaims", capability_id),

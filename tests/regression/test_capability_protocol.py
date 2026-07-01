@@ -23,16 +23,28 @@ def test_capability_registry_keeps_bazi_as_only_default_production_entry():
 
     assert by_id["bazi"].status == "production"
     assert by_id["bazi"].default_visibility == "default"
+    assert by_id["bazi"].maturity_level == "L4"
+    assert by_id["bazi"].engine_version == "fate-core-bazi-v1"
+    assert by_id["bazi"].deterministic is True
+    assert by_id["bazi"].evidence_policy["ruleIdRequired"] is True
+    assert by_id["bazi"].test_gate["status"] == "passing"
     assert by_id["almanac"].status == "production"
     assert by_id["almanac"].default_visibility == "standalone"
+    assert by_id["almanac"].maturity_level == "L3"
     assert by_id["ziwei"].status == "production"
     assert by_id["ziwei"].default_visibility == "standalone"
+    assert by_id["ziwei"].maturity_level == "L4"
+    assert by_id["ziwei"].engine_version == "fate-core-ziwei-v1"
     assert by_id["meihua"].status == "production"
     assert by_id["meihua"].default_visibility == "standalone"
+    assert by_id["meihua"].maturity_level == "L3"
     assert [item.capability_id for item in capabilities if item.default_visibility == "default"] == ["bazi"]
     for capability_id in ["liuyao", "qimen", "daliuren", "fengshui_nine_stars", "name_marriage"]:
         assert by_id[capability_id].status == "planned"
         assert by_id[capability_id].default_visibility == "standalone"
+        assert by_id[capability_id].maturity_level == "L0"
+        assert by_id[capability_id].engine_version == "planned-v0"
+        assert by_id[capability_id].test_gate["status"] == "blocked"
 
 
 def test_capability_profiles_match_registry_and_do_not_pollute_default_markdown():
@@ -57,7 +69,12 @@ def test_capability_schemas_define_required_protocol_boundaries():
     schema = _load_json(CAPABILITY_DIR / "schemas" / "capability.schema.json")
 
     assert "capabilityId" in schema["requiredCapabilityFields"]
+    assert "maturity" in schema["requiredCapabilityFields"]
+    assert "evidencePolicy" in schema["requiredCapabilityFields"]
+    assert "testGate" in schema["requiredCapabilityFields"]
     assert schema["allowedStatus"] == ["planned", "experimental", "production"]
+    assert schema["allowedMaturityLevel"] == ["L0", "L1", "L2", "L3", "L4"]
+    assert "engineVersion" in schema["requiredEngineFields"]
     assert "defaultVisibility=default 必须且只能用于 bazi" in schema["invariants"]
 
 
@@ -104,6 +121,11 @@ def test_almanac_capability_executes_as_standalone_production():
     assert "almanac.zhi_xing_auxiliary" in result.evidence["items"]["2026-05-08"]["ruleIds"]
     assert set(result.evidence["items"]) == {"2026-05-08", "2026-05-09", "2026-05-10"}
     assert result.risk["disclaimerRequired"] is True
+    assert result.metadata["maturity"]["level"] == "L3"
+    assert result.metadata["engine"]["provider"] == "fate_core.usecases.calculate_almanac"
+    assert result.metadata["engine"]["engineVersion"] == "fate-core-almanac-v1"
+    assert result.metadata["evidencePolicy"]["ruleIdRequired"] is True
+    assert result.metadata["testGate"]["status"] == "passing"
     assert get_capability("almanac").default_visibility == "standalone"
 
 
@@ -172,6 +194,9 @@ def test_ziwei_capability_delegates_to_ziwei_usecase(monkeypatch):
     assert result.report_profile == "ziwei"
     assert result.data == expected_data
     assert result.evidence == expected_data["analysisEvidence"]
+    assert result.metadata["maturity"]["level"] == "L4"
+    assert result.metadata["engine"]["provider"] == "fate_core.usecases.calculate_ziwei"
+    assert result.metadata["testGate"]["status"] == "passing"
 
 
 def test_ziwei_capability_preserves_complete_iztro_palace_schema():
@@ -258,4 +283,7 @@ def test_bazi_capability_delegates_to_pure_analysis(monkeypatch):
     assert result.report_profile == get_capability("bazi").report_profile
     assert result.data == expected_data
     assert result.evidence == expected_data["analysisEvidence"]
+    assert result.metadata["maturity"]["level"] == "L4"
+    assert result.metadata["engine"]["provider"] == "fate_core.usecases.calculate_pure_analysis"
+    assert result.metadata["testGate"]["status"] == "passing"
     assert result.risk["disclaimerRequired"] is True

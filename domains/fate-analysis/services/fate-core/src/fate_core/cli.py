@@ -212,7 +212,19 @@ def _run_capabilities(args: argparse.Namespace) -> int:
             "tradition": item.tradition,
             "status": item.status,
             "defaultVisibility": item.default_visibility,
+            "maturity": {
+                "level": item.maturity_level,
+                "status": item.maturity_status,
+                "summary": item.maturity_summary,
+            },
+            "engine": {
+                "provider": item.provider,
+                "engineVersion": item.engine_version,
+                "deterministic": item.deterministic,
+            },
             "reportProfile": item.report_profile,
+            "evidencePolicy": item.evidence_policy,
+            "testGate": item.test_gate,
             "riskLevel": item.risk_level,
         }
         for item in list_capabilities()
@@ -234,6 +246,7 @@ def _run_capability_execute(args: argparse.Namespace) -> int:
                 "data": result.data,
                 "evidence": result.evidence,
                 "risk": result.risk,
+                "metadata": result.metadata,
             }
         ),
         pretty=args.pretty,

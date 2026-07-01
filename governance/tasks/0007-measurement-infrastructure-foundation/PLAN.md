@@ -31,9 +31,7 @@
 - 若 quick CI 失败，先修复失败再继续提交。
 
 # Next Executable Leaves
-- TP-01.02
-- TP-01.03
-- TP-02.01
+- 无
 
 # Dependency Graph
 - TP-01 -> TP-02 -> TP-03 -> TP-04 -> TP-05

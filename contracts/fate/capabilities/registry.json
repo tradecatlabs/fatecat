@@ -8,11 +8,17 @@
       "tradition": "chinese",
       "status": "production",
       "defaultVisibility": "default",
+      "maturity": {
+        "level": "L4",
+        "status": "production",
+        "summary": "默认综合八字报告；Web/API/Bot/Skill 同源输出，可审计交付。"
+      },
       "description": "当前生产默认能力：综合八字主线、动态运势、辅助解释与称骨民俗附录。",
       "inputRequired": ["birthDateTime", "gender", "longitude", "latitude"],
       "inputOptional": ["name", "birthPlace", "useTrueSolarTime"],
       "engine": {
         "provider": "fate_core.usecases.calculate_pure_analysis",
+        "engineVersion": "fate-core-bazi-v1",
         "deterministic": true
       },
       "report": {
@@ -22,6 +28,21 @@
       "evidence": {
         "required": true,
         "fields": ["source", "basis", "ruleIds", "weight", "risk"]
+      },
+      "evidencePolicy": {
+        "ruleIdRequired": true,
+        "sourceRequired": true,
+        "calculationTraceRequired": true,
+        "noScientificCertainty": true
+      },
+      "testGate": {
+        "status": "passing",
+        "commands": [
+          "tests/regression/test_capability_protocol.py",
+          "tests/regression/test_api_contracts.py",
+          "tests/regression/test_solar_terms_golden.py"
+        ],
+        "releaseRequired": true
       },
       "riskPolicy": {
         "riskLevel": "folk_reference",
@@ -35,11 +56,17 @@
       "tradition": "chinese",
       "status": "production",
       "defaultVisibility": "standalone",
+      "maturity": {
+        "level": "L3",
+        "status": "validated",
+        "summary": "独立黄历择日 capability；已接入 API，规则深度仍需继续扩展。"
+      },
       "description": "黄历、宜忌、冲煞、吉神凶煞与事件类型择日推荐；不得混入默认综合八字报告。",
       "inputRequired": ["dateRange", "eventType", "place"],
       "inputOptional": ["birthDateTime", "gender"],
       "engine": {
         "provider": "fate_core.usecases.calculate_almanac",
+        "engineVersion": "fate-core-almanac-v1",
         "deterministic": true
       },
       "report": {
@@ -49,6 +76,17 @@
       "evidence": {
         "required": true,
         "fields": ["calendarDate", "ruleIds", "avoidReason", "recommendReason"]
+      },
+      "evidencePolicy": {
+        "ruleIdRequired": true,
+        "sourceRequired": true,
+        "calculationTraceRequired": false,
+        "noScientificCertainty": true
+      },
+      "testGate": {
+        "status": "passing",
+        "commands": ["tests/regression/test_capability_protocol.py", "tests/regression/test_api_contracts.py"],
+        "releaseRequired": true
       },
       "riskPolicy": {
         "riskLevel": "folk_reference",
@@ -62,11 +100,17 @@
       "tradition": "chinese",
       "status": "production",
       "defaultVisibility": "standalone",
+      "maturity": {
+        "level": "L4",
+        "status": "production",
+        "summary": "紫微斗数独立生产样板；继续补星曜、宫位、四化、运限和 golden 深度。"
+      },
       "description": "紫微斗数命盘、十二宫、命身宫、三方四正、四化落宫与运限四化；不得混入默认综合八字报告。",
       "inputRequired": ["birthDateTime", "gender", "longitude", "latitude"],
       "inputOptional": ["name", "birthPlace", "useTrueSolarTime"],
       "engine": {
         "provider": "fate_core.usecases.calculate_ziwei",
+        "engineVersion": "fate-core-ziwei-v1",
         "deterministic": true
       },
       "report": {
@@ -76,6 +120,17 @@
       "evidence": {
         "required": true,
         "fields": ["source", "basis", "ruleIds", "risk"]
+      },
+      "evidencePolicy": {
+        "ruleIdRequired": true,
+        "sourceRequired": true,
+        "calculationTraceRequired": true,
+        "noScientificCertainty": true
+      },
+      "testGate": {
+        "status": "passing",
+        "commands": ["tests/regression/test_capability_protocol.py", "tests/regression/test_api_contracts.py"],
+        "releaseRequired": true
       },
       "riskPolicy": {
         "riskLevel": "folk_reference",
@@ -89,11 +144,17 @@
       "tradition": "chinese",
       "status": "planned",
       "defaultVisibility": "standalone",
+      "maturity": {
+        "level": "L0",
+        "status": "registered",
+        "summary": "只登记协议，不允许生产执行。"
+      },
       "description": "针对具体问题的六爻占事能力。",
       "inputRequired": ["question", "castMethod", "castTime"],
       "inputOptional": ["coins", "numbers", "place"],
       "engine": {
         "provider": "planned.liuyao",
+        "engineVersion": "planned-v0",
         "deterministic": true
       },
       "report": {
@@ -103,6 +164,17 @@
       "evidence": {
         "required": true,
         "fields": ["hexagram", "changingLines", "sixRelatives", "sixSpirits", "ruleIds"]
+      },
+      "evidencePolicy": {
+        "ruleIdRequired": true,
+        "sourceRequired": true,
+        "calculationTraceRequired": true,
+        "noScientificCertainty": true
+      },
+      "testGate": {
+        "status": "blocked",
+        "commands": [],
+        "releaseRequired": true
       },
       "riskPolicy": {
         "riskLevel": "entertainment",
@@ -116,11 +188,17 @@
       "tradition": "chinese",
       "status": "production",
       "defaultVisibility": "standalone",
+      "maturity": {
+        "level": "L3",
+        "status": "validated",
+        "summary": "独立梅花易数 capability；已接入 API，只输出盘面、体用和证据。"
+      },
       "description": "时间或数字起卦的轻量问事能力；只输出盘面、体用和证据，不输出确定性断语。",
       "inputRequired": ["question", "castMethod"],
       "inputOptional": ["castValue", "castTime", "place"],
       "engine": {
         "provider": "fate_core.usecases.calculate_meihua",
+        "engineVersion": "fate-core-meihua-v1",
         "deterministic": true
       },
       "report": {
@@ -130,6 +208,17 @@
       "evidence": {
         "required": true,
         "fields": ["bodyUse", "hexagram", "mutualHexagram", "changedHexagram", "ruleIds"]
+      },
+      "evidencePolicy": {
+        "ruleIdRequired": true,
+        "sourceRequired": true,
+        "calculationTraceRequired": false,
+        "noScientificCertainty": true
+      },
+      "testGate": {
+        "status": "passing",
+        "commands": ["tests/regression/test_capability_protocol.py", "tests/regression/test_api_contracts.py"],
+        "releaseRequired": true
       },
       "riskPolicy": {
         "riskLevel": "entertainment",
@@ -143,11 +232,17 @@
       "tradition": "chinese",
       "status": "planned",
       "defaultVisibility": "standalone",
+      "maturity": {
+        "level": "L0",
+        "status": "registered",
+        "summary": "只登记协议，不允许生产执行。"
+      },
       "description": "奇门问事与择时能力。",
       "inputRequired": ["question", "castTime", "place"],
       "inputOptional": ["method"],
       "engine": {
         "provider": "planned.qimen",
+        "engineVersion": "planned-v0",
         "deterministic": true
       },
       "report": {
@@ -157,6 +252,17 @@
       "evidence": {
         "required": true,
         "fields": ["doors", "stars", "gods", "stems", "palaces", "ruleIds"]
+      },
+      "evidencePolicy": {
+        "ruleIdRequired": true,
+        "sourceRequired": true,
+        "calculationTraceRequired": true,
+        "noScientificCertainty": true
+      },
+      "testGate": {
+        "status": "blocked",
+        "commands": [],
+        "releaseRequired": true
       },
       "riskPolicy": {
         "riskLevel": "entertainment",
@@ -170,11 +276,17 @@
       "tradition": "chinese",
       "status": "planned",
       "defaultVisibility": "standalone",
+      "maturity": {
+        "level": "L0",
+        "status": "registered",
+        "summary": "只登记协议，不允许生产执行。"
+      },
       "description": "四课三传、天将、月将等大六壬占事能力。",
       "inputRequired": ["question", "castTime", "place"],
       "inputOptional": ["method"],
       "engine": {
         "provider": "planned.daliuren",
+        "engineVersion": "planned-v0",
         "deterministic": true
       },
       "report": {
@@ -184,6 +296,17 @@
       "evidence": {
         "required": true,
         "fields": ["fourLessons", "threeTransmissions", "heavenlyGenerals", "ruleIds"]
+      },
+      "evidencePolicy": {
+        "ruleIdRequired": true,
+        "sourceRequired": true,
+        "calculationTraceRequired": true,
+        "noScientificCertainty": true
+      },
+      "testGate": {
+        "status": "blocked",
+        "commands": [],
+        "releaseRequired": true
       },
       "riskPolicy": {
         "riskLevel": "entertainment",
@@ -197,11 +320,17 @@
       "tradition": "chinese",
       "status": "planned",
       "defaultVisibility": "standalone",
+      "maturity": {
+        "level": "L0",
+        "status": "registered",
+        "summary": "只登记协议，不允许生产执行。"
+      },
       "description": "三元九运、流年飞星与空间建议能力。",
       "inputRequired": ["place", "direction", "targetYear"],
       "inputOptional": ["floorPlan", "birthDateTime"],
       "engine": {
         "provider": "planned.fengshui_nine_stars",
+        "engineVersion": "planned-v0",
         "deterministic": true
       },
       "report": {
@@ -211,6 +340,17 @@
       "evidence": {
         "required": true,
         "fields": ["period", "annualStars", "palaces", "ruleIds"]
+      },
+      "evidencePolicy": {
+        "ruleIdRequired": true,
+        "sourceRequired": true,
+        "calculationTraceRequired": true,
+        "noScientificCertainty": true
+      },
+      "testGate": {
+        "status": "blocked",
+        "commands": [],
+        "releaseRequired": true
       },
       "riskPolicy": {
         "riskLevel": "folk_reference",
@@ -224,11 +364,17 @@
       "tradition": "chinese",
       "status": "planned",
       "defaultVisibility": "standalone",
+      "maturity": {
+        "level": "L0",
+        "status": "registered",
+        "summary": "只登记协议，不允许生产执行。"
+      },
       "description": "姓名、八字合参、关系匹配与合婚建议能力。",
       "inputRequired": ["personA", "personB"],
       "inputOptional": ["relationshipGoal", "calendarPreference"],
       "engine": {
         "provider": "planned.name_marriage",
+        "engineVersion": "planned-v0",
         "deterministic": true
       },
       "report": {
@@ -238,6 +384,17 @@
       "evidence": {
         "required": true,
         "fields": ["personA", "personB", "compatibilityFactors", "ruleIds"]
+      },
+      "evidencePolicy": {
+        "ruleIdRequired": true,
+        "sourceRequired": true,
+        "calculationTraceRequired": true,
+        "noScientificCertainty": true
+      },
+      "testGate": {
+        "status": "blocked",
+        "commands": [],
+        "releaseRequired": true
       },
       "riskPolicy": {
         "riskLevel": "folk_reference",

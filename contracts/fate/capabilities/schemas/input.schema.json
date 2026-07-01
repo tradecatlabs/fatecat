@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "description": "统一测算能力输入契约说明。具体字段以 registry.json 的 inputRequired / inputOptional 为准。",
+  "description": "统一测算能力输入契约说明。具体字段以 registry.json 的 inputRequired / inputOptional 为准；能力成熟度、provider 和 testGate 以 registry.json 为准。",
   "governance": {
     "existence": "统一输入契约用于 capability registry、Web/API 表单和测试共享字段语义。",
     "owner": "tradecatlabs/fate-core",

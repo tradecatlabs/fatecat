@@ -785,8 +785,14 @@ def test_capabilities_api_lists_almanac_as_standalone_production():
     body = response.json()
     capabilities = {item["capabilityId"]: item for item in body["data"]["capabilities"]}
     assert capabilities["bazi"]["defaultVisibility"] == "default"
+    assert capabilities["bazi"]["maturity"]["level"] == "L4"
+    assert capabilities["bazi"]["engine"]["provider"] == "fate_core.usecases.calculate_pure_analysis"
+    assert capabilities["bazi"]["engine"]["engineVersion"] == "fate-core-bazi-v1"
+    assert capabilities["bazi"]["evidencePolicy"]["ruleIdRequired"] is True
+    assert capabilities["bazi"]["testGate"]["status"] == "passing"
     assert capabilities["almanac"]["status"] == "production"
     assert capabilities["almanac"]["defaultVisibility"] == "standalone"
+    assert capabilities["almanac"]["maturity"]["level"] == "L3"
     assert capabilities["almanac"]["capabilityApiEnabled"] is True
     assert capabilities["almanac"]["markdownReportEnabled"] is False
     assert capabilities["almanac"]["surfaces"] == {
@@ -796,12 +802,27 @@ def test_capabilities_api_lists_almanac_as_standalone_production():
     }
     assert capabilities["ziwei"]["status"] == "production"
     assert capabilities["ziwei"]["defaultVisibility"] == "standalone"
+    assert capabilities["ziwei"]["maturity"]["level"] == "L4"
+    assert capabilities["ziwei"]["engine"]["engineVersion"] == "fate-core-ziwei-v1"
     assert capabilities["ziwei"]["capabilityApiEnabled"] is True
     assert capabilities["ziwei"]["markdownReportEnabled"] is True
     assert capabilities["meihua"]["status"] == "production"
     assert capabilities["meihua"]["defaultVisibility"] == "standalone"
+    assert capabilities["meihua"]["maturity"]["level"] == "L3"
     assert capabilities["meihua"]["capabilityApiEnabled"] is True
     assert capabilities["meihua"]["markdownReportEnabled"] is False
+    assert capabilities["liuyao"]["maturity"]["level"] == "L0"
+    assert capabilities["liuyao"]["testGate"]["status"] == "blocked"
+
+
+def test_measurement_infrastructure_capabilities_alias_matches_v1_contract():
+    client = TestClient(app)
+    canonical = client.get("/api/v1/capabilities")
+    alias = client.get("/capabilities")
+
+    assert canonical.status_code == 200
+    assert alias.status_code == 200
+    assert alias.json()["data"]["capabilities"] == canonical.json()["data"]["capabilities"]
 
 
 def test_capability_api_executes_almanac_without_enabling_markdown_system():
@@ -824,6 +845,26 @@ def test_capability_api_executes_almanac_without_enabling_markdown_system():
     assert len(body["data"]["days"][0]["timeSlots"]) == 12
     assert body["data"]["days"][0]["scoreBreakdown"]
     assert body["evidence"]["source"] == "lunar-python"
+    assert body["metadata"]["maturity"]["level"] == "L3"
+    assert body["metadata"]["engine"]["engineVersion"] == "fate-core-almanac-v1"
+
+
+def test_measurement_capability_calculate_alias_executes_same_executor():
+    response = TestClient(app).post(
+        "/capabilities/meihua/calculate",
+        json={
+            "question": "测试问题能否推进",
+            "castMethod": "number",
+            "castValue": "3,8,6",
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+    assert body["capabilityId"] == "meihua"
+    assert body["data"]["hexagrams"]["movingLine"] == 5
+    assert body["metadata"]["maturity"]["level"] == "L3"
 
 
 def test_capability_api_executes_meihua_without_enabling_markdown_system():
@@ -843,6 +884,27 @@ def test_capability_api_executes_meihua_without_enabling_markdown_system():
     assert body["reportProfile"] == "meihua"
     assert body["data"]["hexagrams"]["movingLine"] == 5
     assert body["evidence"]["items"]["cast"]["ruleIds"] == ["meihua.number_cast"]
+    assert body["metadata"]["engine"]["provider"] == "fate_core.usecases.calculate_meihua"
+
+
+def test_measurement_infrastructure_metadata_and_reports_are_available():
+    client = TestClient(app)
+    metadata_response = client.get("/metadata")
+    reports_response = client.get("/reports")
+
+    assert metadata_response.status_code == 200
+    metadata = metadata_response.json()["data"]
+    assert metadata["service"] == "FateCat"
+    assert metadata["positioning"] == "面向 Agent 与应用开发者的测算基础设施"
+    assert metadata["capabilityProtocol"]["registryEndpoint"] == "/capabilities"
+    assert metadata["quality"]["health"] == "/health"
+    assert metadata["quality"]["metrics"] == "/metrics"
+
+    assert reports_response.status_code == 200
+    reports = reports_response.json()["data"]
+    assert reports["jobEndpoint"] == "/api/v1/report/jobs"
+    assert reports["markdownEndpoint"] == "/api/v1/report/markdown"
+    assert {item["id"] for item in reports["profiles"]} >= {"bazi", "ziwei", "meihua"}
 
 
 def test_markdown_report_displays_submitted_birth_place():

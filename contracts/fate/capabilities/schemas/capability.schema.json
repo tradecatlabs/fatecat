@@ -7,20 +7,33 @@
     "tradition",
     "status",
     "defaultVisibility",
+    "maturity",
     "inputRequired",
     "inputOptional",
     "engine",
     "report",
     "evidence",
+    "evidencePolicy",
+    "testGate",
     "riskPolicy"
   ],
   "allowedStatus": ["planned", "experimental", "production"],
   "allowedVisibility": ["default", "optional", "standalone", "hidden"],
+  "allowedMaturityLevel": ["L0", "L1", "L2", "L3", "L4"],
   "allowedRiskLevel": ["folk_reference", "entertainment", "requires_disclaimer"],
+  "requiredEngineFields": ["provider", "engineVersion", "deterministic"],
+  "requiredMaturityFields": ["level", "status", "summary"],
+  "requiredEvidencePolicyFields": [
+    "ruleIdRequired",
+    "sourceRequired",
+    "calculationTraceRequired",
+    "noScientificCertainty"
+  ],
+  "requiredTestGateFields": ["status", "commands", "releaseRequired"],
   "invariants": [
     "defaultVisibility=default 必须且只能用于 bazi",
     "planned / experimental 能力不得由 executor 生产执行",
-    "所有能力必须声明 evidence 与 riskPolicy",
+    "所有能力必须声明 maturity、engineVersion、evidence、evidencePolicy、testGate 与 riskPolicy",
     "新增能力不得混入综合八字默认 Markdown"
   ]
 }

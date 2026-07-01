@@ -9,23 +9,31 @@ from typing import Any, Literal
 CapabilityStatus = Literal["planned", "experimental", "production"]
 Visibility = Literal["default", "optional", "standalone", "hidden"]
 RiskLevel = Literal["folk_reference", "entertainment", "requires_disclaimer"]
+MaturityLevel = Literal["L0", "L1", "L2", "L3", "L4"]
 
 
 @dataclass(frozen=True)
 class Capability:
-    """预测能力注册项。"""
+    """测算能力注册项。"""
 
     capability_id: str
     name: str
     tradition: str
     status: CapabilityStatus
     default_visibility: Visibility
+    maturity_level: MaturityLevel
+    maturity_status: str
+    maturity_summary: str
     input_required: tuple[str, ...]
     input_optional: tuple[str, ...]
     provider: str
+    engine_version: str
+    deterministic: bool
     report_profile: str
     markdown_default: bool
     evidence_required: bool
+    evidence_policy: dict[str, Any]
+    test_gate: dict[str, Any]
     risk_level: RiskLevel
     disclaimer_required: bool
     forbidden_claims: tuple[str, ...]
@@ -50,3 +58,4 @@ class CapabilityResult:
     data: dict[str, Any]
     evidence: dict[str, Any]
     risk: dict[str, Any]
+    metadata: dict[str, Any]

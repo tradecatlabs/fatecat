@@ -1,21 +1,21 @@
 # Acceptance Checklist
 
 # Global Standards
-- [ ] 定位文档一致
-- [ ] 协议字段一致
-- [ ] executor 单一
-- [ ] planned 能力拒绝执行
-- [ ] bazi 唯一 default
-- [ ] API 兼容旧入口
-- [ ] quick CI 通过
-- [ ] governance strict 通过
+- [x] 定位文档一致
+- [x] 协议字段一致
+- [x] executor 单一
+- [x] planned 能力拒绝执行
+- [x] bazi 唯一 default
+- [x] API 兼容旧入口
+- [x] quick CI 通过
+- [x] governance strict 通过
 
 # Task Package Checklists
-- [ ] TP-01 定位基线提交完成
-- [ ] TP-02 registry/schema/testGate 完成
-- [ ] TP-03 executor provider map 完成
-- [ ] TP-04 bazi/ziwei 样板完成
-- [ ] TP-05 API alias/metadata 完成
+- [x] TP-01 定位基线提交完成
+- [x] TP-02 registry/schema/testGate 完成
+- [x] TP-03 executor provider map 完成
+- [x] TP-04 bazi/ziwei 样板完成
+- [x] TP-05 API alias/metadata 完成
 
 ## TP-01.01 定位口径提交
 
@@ -23,7 +23,7 @@ Verify: `git log -1 --oneline`
 
 Gate: 定位基线有独立提交。
 
-- [ ] 提交定位基线。
+- [x] 提交定位基线。
 
 ## TP-01.02 路线图文档
 
@@ -47,7 +47,7 @@ Verify: `.venv/bin/python -m pytest -q tests/regression/test_capability_protocol
 
 Gate: registry 新字段可读。
 
-- [ ] 增加 maturity、engineVersion、evidencePolicy、testGate。
+- [x] 增加 maturity、engineVersion、evidencePolicy、testGate。
 
 ## TP-02.02 schema 与协议测试
 
@@ -55,7 +55,7 @@ Verify: `.venv/bin/python -m pytest -q tests/regression/test_capability_protocol
 
 Gate: schema 和测试同步。
 
-- [ ] 更新 schema 和测试。
+- [x] 更新 schema 和测试。
 
 ## TP-03.01 executor provider registry
 
@@ -63,7 +63,7 @@ Verify: `.venv/bin/python -m pytest -q tests/regression/test_capability_protocol
 
 Gate: executor 复用 provider map。
 
-- [ ] 收敛 executor 分支。
+- [x] 收敛 executor 分支。
 
 ## TP-03.02 planned 能力拒绝执行
 
@@ -71,7 +71,7 @@ Verify: `.venv/bin/python -m pytest -q tests/regression/test_capability_protocol
 
 Gate: planned 能力不可执行。
 
-- [ ] 保持拒绝策略。
+- [x] 保持拒绝策略。
 
 ## TP-04.01 bazi/ziwei 样板字段
 
@@ -79,7 +79,7 @@ Verify: `.venv/bin/python -m pytest -q tests/regression/test_capability_protocol
 
 Gate: bazi/ziwei 成为 production 样板。
 
-- [ ] 补样板字段。
+- [x] 补样板字段。
 
 ## TP-04.02 API 暴露成熟度
 
@@ -87,7 +87,7 @@ Verify: `.venv/bin/python -m pytest -q tests/regression/test_api_contracts.py`
 
 Gate: API 返回成熟度和门禁。
 
-- [ ] 补 API 返回字段。
+- [x] 补 API 返回字段。
 
 ## TP-05.01 基础设施 API 别名
 
@@ -95,7 +95,7 @@ Verify: `.venv/bin/python -m pytest -q tests/regression/test_api_contracts.py`
 
 Gate: 新别名可用。
 
-- [ ] 补兼容入口。
+- [x] 补兼容入口。
 
 ## TP-05.02 API contract tests
 
@@ -103,7 +103,7 @@ Verify: `.venv/bin/python -m pytest -q tests/regression/test_api_contracts.py`
 
 Gate: 新旧入口均有回归。
 
-- [ ] 补测试。
+- [x] 补测试。
 
 ## TP-05.03 总验证
 
@@ -111,4 +111,4 @@ Verify: `bash scripts/local-ci.sh --profile quick && git diff --check`
 
 Gate: 本地门禁通过。
 
-- [ ] 跑完整 quick 验证。
+- [x] 跑完整 quick 验证。
