@@ -14,6 +14,13 @@ VALID_STATUSES = {"planned", "experimental", "production"}
 VALID_VISIBILITIES = {"default", "optional", "standalone", "hidden"}
 VALID_RISK_LEVELS = {"folk_reference", "entertainment", "requires_disclaimer"}
 VALID_MATURITY_LEVELS = {"L0", "L1", "L2", "L3", "L4"}
+REQUIRED_EVIDENCE_POLICY_FIELDS = (
+    "ruleIdRequired",
+    "sourceRequired",
+    "calculationTraceRequired",
+    "noScientificCertainty",
+)
+PRODUCTION_MATURITY_LEVELS = {"L3", "L4"}
 
 
 def _as_tuple(value: Any, field: str, capability_id: str) -> tuple[str, ...]:
@@ -69,6 +76,11 @@ def _parse_capability(raw: dict[str, Any]) -> Capability:
     commands = test_gate.get("commands")
     if not isinstance(commands, list):
         raise ValueError(f"{capability_id}.testGate.commands 必须是数组")
+    test_gate_status = str(test_gate.get("status", "")).strip()
+    if not test_gate_status:
+        raise ValueError(f"{capability_id}.testGate.status 不能为空")
+    if not isinstance(test_gate.get("releaseRequired"), bool):
+        raise ValueError(f"{capability_id}.testGate.releaseRequired 必须是布尔值")
 
     maturity = raw.get("maturity")
     if not isinstance(maturity, dict):
@@ -113,6 +125,51 @@ def _parse_capability(raw: dict[str, Any]) -> Capability:
     )
 
 
+def _validate_capability_admission(capability: Capability) -> None:
+    """校验 capability 是否符合基础设施准入规则。"""
+    capability_id = capability.capability_id
+    test_gate_status = str(capability.test_gate.get("status", "")).strip()
+    commands = capability.test_gate.get("commands")
+    if not isinstance(commands, list):
+        raise ValueError(f"{capability_id}.testGate.commands 必须是数组")
+
+    for field in REQUIRED_EVIDENCE_POLICY_FIELDS:
+        if field not in capability.evidence_policy:
+            raise ValueError(f"{capability_id}.evidencePolicy 缺少 {field}")
+        if not isinstance(capability.evidence_policy[field], bool):
+            raise ValueError(f"{capability_id}.evidencePolicy.{field} 必须是布尔值")
+
+    if capability.markdown_default and capability.capability_id != "bazi":
+        raise ValueError("markdownDefault=true 必须且只能用于 bazi")
+    if capability.markdown_default and capability.default_visibility != "default":
+        raise ValueError(f"{capability_id}.markdownDefault=true 时 defaultVisibility 必须是 default")
+
+    if capability.status == "production":
+        if capability.maturity_level not in PRODUCTION_MATURITY_LEVELS:
+            raise ValueError(f"{capability_id}.production 能力成熟度必须至少为 L3")
+        if test_gate_status != "passing":
+            raise ValueError(f"{capability_id}.production 能力必须声明 testGate.status=passing")
+        if not commands:
+            raise ValueError(f"{capability_id}.production 能力必须声明至少一个 testGate.commands")
+        if capability.provider.startswith("planned."):
+            raise ValueError(f"{capability_id}.production 能力不能使用 planned.* provider")
+        if capability.engine_version == "planned-v0":
+            raise ValueError(f"{capability_id}.production 能力不能使用 planned-v0 engineVersion")
+        return
+
+    if capability.status == "planned":
+        if capability.maturity_level != "L0":
+            raise ValueError(f"{capability_id}.planned 能力成熟度必须是 L0")
+        if test_gate_status != "blocked":
+            raise ValueError(f"{capability_id}.planned 能力必须声明 testGate.status=blocked")
+        if commands:
+            raise ValueError(f"{capability_id}.planned 能力不得声明生产 testGate.commands")
+        if not capability.provider.startswith("planned."):
+            raise ValueError(f"{capability_id}.planned 能力必须使用 planned.* provider")
+        if capability.engine_version != "planned-v0":
+            raise ValueError(f"{capability_id}.planned 能力必须使用 planned-v0 engineVersion")
+
+
 @cache
 def load_capability_registry() -> dict[str, Capability]:
     """加载并校验能力注册表。"""
@@ -132,6 +189,7 @@ def load_capability_registry() -> dict[str, Capability]:
         capability = _parse_capability(raw)
         if capability.capability_id in registry:
             raise ValueError(f"重复 capabilityId: {capability.capability_id}")
+        _validate_capability_admission(capability)
         registry[capability.capability_id] = capability
 
     default_capabilities = [

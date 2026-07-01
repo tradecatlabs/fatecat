@@ -33,7 +33,10 @@
   "invariants": [
     "defaultVisibility=default 必须且只能用于 bazi",
     "planned / experimental 能力不得由 executor 生产执行",
+    "production 能力必须 testGate.status=passing 且 testGate.commands 至少包含一个本地回归入口",
+    "production 能力不得使用 planned.* provider 或 planned-v0 engineVersion",
+    "planned 能力必须 maturity.level=L0、testGate.status=blocked、provider=planned.*、engineVersion=planned-v0",
     "所有能力必须声明 maturity、engineVersion、evidence、evidencePolicy、testGate 与 riskPolicy",
-    "新增能力不得混入综合八字默认 Markdown"
+    "markdownDefault=true 必须且只能用于 bazi，新增能力不得混入综合八字默认 Markdown"
   ]
 }

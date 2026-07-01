@@ -897,14 +897,30 @@ def test_measurement_infrastructure_metadata_and_reports_are_available():
     assert metadata["service"] == "FateCat"
     assert metadata["positioning"] == "面向 Agent 与应用开发者的测算基础设施"
     assert metadata["capabilityProtocol"]["registryEndpoint"] == "/capabilities"
+    assert metadata["developer"]["openapi"] == "/openapi.json"
+    assert metadata["developer"]["capabilityCalculate"] == "/capabilities/{capability_id}/calculate"
+    assert metadata["developer"]["apiGuide"] == "docs/reference-materials/operations/测算基础设施 API 接入.md"
     assert metadata["quality"]["health"] == "/health"
     assert metadata["quality"]["metrics"] == "/metrics"
+    assert metadata["privacy"]["birthPlaceDisplayPolicy"] == "公开 Web 示例和用户界面不得展示北京以外的真实地区名称。"
+    assert metadata["productionGate"]["externalConnectivity"] == "外部连通验证待执行"
 
     assert reports_response.status_code == 200
     reports = reports_response.json()["data"]
     assert reports["jobEndpoint"] == "/api/v1/report/jobs"
     assert reports["markdownEndpoint"] == "/api/v1/report/markdown"
     assert {item["id"] for item in reports["profiles"]} >= {"bazi", "ziwei", "meihua"}
+
+
+def test_measurement_infrastructure_openapi_exposes_developer_entrypoints():
+    response = TestClient(app).get("/openapi.json")
+
+    assert response.status_code == 200
+    paths = response.json()["paths"]
+    assert "/metadata" in paths
+    assert "/capabilities" in paths
+    assert "/capabilities/{capability_id}/calculate" in paths
+    assert "/reports" in paths
 
 
 def test_markdown_report_displays_submitted_birth_place():

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
 
 import fate_core.capabilities.executor as capability_executor
+import fate_core.capabilities.registry as capability_registry
 from fate_core.capabilities import CapabilityExecutor, CapabilityInput, get_capability, list_capabilities
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -76,6 +78,57 @@ def test_capability_schemas_define_required_protocol_boundaries():
     assert schema["allowedMaturityLevel"] == ["L0", "L1", "L2", "L3", "L4"]
     assert "engineVersion" in schema["requiredEngineFields"]
     assert "defaultVisibility=default 必须且只能用于 bazi" in schema["invariants"]
+    assert (
+        "production 能力必须 testGate.status=passing 且 testGate.commands 至少包含一个本地回归入口"
+        in schema["invariants"]
+    )
+    assert (
+        "planned 能力必须 maturity.level=L0、testGate.status=blocked、provider=planned.*、engineVersion=planned-v0"
+        in schema["invariants"]
+    )
+
+
+def test_capability_registry_enforces_infrastructure_admission_rules():
+    for item in list_capabilities():
+        assert item.test_gate["releaseRequired"] is True
+        assert set(item.evidence_policy) >= {
+            "ruleIdRequired",
+            "sourceRequired",
+            "calculationTraceRequired",
+            "noScientificCertainty",
+        }
+        assert isinstance(item.evidence_policy["ruleIdRequired"], bool)
+
+        if item.status == "production":
+            assert item.test_gate["status"] == "passing"
+            assert item.test_gate["commands"]
+            assert item.maturity_level in {"L3", "L4"}
+            assert not item.provider.startswith("planned.")
+            assert item.engine_version != "planned-v0"
+            continue
+
+        if item.status == "planned":
+            assert item.maturity_level == "L0"
+            assert item.test_gate["status"] == "blocked"
+            assert item.test_gate["commands"] == []
+            assert item.provider.startswith("planned.")
+            assert item.engine_version == "planned-v0"
+
+
+def test_capability_registry_rejects_production_capability_without_passing_gate():
+    bazi = get_capability("bazi")
+    broken = replace(bazi, test_gate={**bazi.test_gate, "status": "blocked"})
+
+    with pytest.raises(ValueError, match="testGate.status=passing"):
+        capability_registry._validate_capability_admission(broken)
+
+
+def test_capability_registry_rejects_planned_capability_with_real_provider():
+    liuyao = get_capability("liuyao")
+    broken = replace(liuyao, provider="fate_core.usecases.calculate_liuyao")
+
+    with pytest.raises(ValueError, match=r"planned\.\* provider"):
+        capability_registry._validate_capability_admission(broken)
 
 
 def test_planned_capability_cannot_execute_as_production():

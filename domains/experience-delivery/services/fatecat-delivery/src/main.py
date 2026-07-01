@@ -968,6 +968,15 @@ def service_metadata():
                     "registryEndpoint": "/capabilities",
                     "calculateEndpoint": "/capabilities/{capability_id}/calculate",
                 },
+                "developer": {
+                    "openapi": "/openapi.json",
+                    "interactiveDocs": "/docs",
+                    "redoc": "/redoc",
+                    "apiGuide": "docs/reference-materials/operations/测算基础设施 API 接入.md",
+                    "capabilityList": "/capabilities",
+                    "capabilityCalculate": "/capabilities/{capability_id}/calculate",
+                    "reports": "/reports",
+                },
                 "surfaces": ["CLI", "Web", "FastAPI", "Telegram", "Agent Skill"],
                 "quality": {
                     "health": "/health",
@@ -976,6 +985,18 @@ def service_metadata():
                     "rateLimitPerMinute": RATE_LIMIT_PER_MINUTE,
                     "maxInflightCalculations": MAX_INFLIGHT_CALCULATIONS,
                     "reportJobQueueSize": REPORT_JOB_QUEUE_SIZE,
+                },
+                "privacy": {
+                    "birthPlaceDisplayPolicy": "公开 Web 示例和用户界面不得展示北京以外的真实地区名称。",
+                    "recordsEnabled": _records_enabled(),
+                    "recordAccess": "记录接口需要 FATE_API_TOKEN、FATE_API_ADMIN_TOKEN 或 FATE_API_USER_TOKENS。",
+                    "sensitiveValuePolicy": "响应、文档和日志不得输出真实 token、secret、DSN 或私钥内容。",
+                },
+                "productionGate": {
+                    "localReadiness": "/ready",
+                    "metrics": "/metrics",
+                    "script": "scripts/production-readiness.sh --api-url <真实域名> --require-live-bot",
+                    "externalConnectivity": "外部连通验证待执行",
                 },
             },
         }
