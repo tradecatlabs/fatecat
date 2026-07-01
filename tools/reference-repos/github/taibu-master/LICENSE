@@ -1,0 +1,30 @@
+MingAI Repository License Boundary
+
+Copyright (c) 2026 hhszzzz
+
+Unless a subdirectory contains its own LICENSE file, the repository root
+application and service code is licensed under the GNU Affero General Public
+License, version 3 only (`AGPL-3.0-only`).
+
+This AGPL scope includes, for example:
+
+- `src/`
+- `supabase/`
+- `public/`
+- root-level `scripts/`
+- `Dockerfile`
+- `docker-compose*.yml`
+- other root-level application, deployment, and runtime files
+
+The following package directories are separately licensed under the MIT License:
+
+- `packages/core`
+- `packages/mcp`
+- `packages/mcp-server`
+
+See the `LICENSE` file inside each package directory for the package-specific
+terms that apply to that package.
+
+For the full GNU AGPL v3 text, see [LICENSE-AGPL-3.0.txt](LICENSE-AGPL-3.0.txt).
+
+SPDX-License-Identifier: AGPL-3.0-only

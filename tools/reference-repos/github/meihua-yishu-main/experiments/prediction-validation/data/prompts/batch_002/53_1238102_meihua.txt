@@ -1,0 +1,59 @@
+Use the Meihua Yishu (梅花易數) skill to divine this prediction market question.
+
+QUESTION TO DIVINE:
+==================
+Will Eli Lilly and Company (LLY) beat quarterly earnings?
+
+CONTEXT:
+========
+Description: As of market creation, Eli Lilly and Company is estimated to release earnings on February 4, 2026. The Street consensus estimate for Eli Lilly and Company’s non-GAAP EPS for the relevant quarter is $7.06 as of market creation. This market will resolve to "Yes" if Eli Lilly and Company reports non-GAAP EPS greater than $7.06 for the relevant quarter in its next quarterly earnings release. Otherwise, it will resolve to "No." The resolution source will be the non-GAAP EPS listed in the company’s of
+
+Current Market Data:
+- Current Probability: 64.0%
+- Trading Volume: $8,422
+- Days Until Resolution: 9
+- Expected Resolution: 2026-02-04T14:00:00+00:00
+
+Categories: General
+
+CASTING INPUTS (use any method):
+================================
+
+1. NUMBER-BASED (數字起卦):
+   - Upper trigram input: 21 → Trigram #5
+   - Lower trigram input: 9 → Trigram #1
+   - Moving line: 6
+
+2. TEXT-BASED (測字起卦):
+   - Word count: 9 → Upper trigram #1
+   - Character count: 49 → Lower trigram #1
+   - Moving line: 4
+
+3. DIRECTION-BASED (方位起卦):
+   - Category: other
+   - Direction: 東北
+   - Trigram: 艮 (#7)
+
+4. MEASUREMENT-BASED (尺寸起卦):
+   - Days until resolution: 9 → Upper #1
+   - Probability %: 64 → Lower #8
+   - Moving line: 1
+
+INSTRUCTIONS:
+=============
+1. Cast the hexagram using one or more methods above
+2. Identify: 本卦 (original), 變卦 (transformed), 互卦 (mutual)
+3. Determine 體卦 and 用卦
+4. Analyze 體用關係 (生, 剋, 比和)
+5. Consider 外應 if any context clues
+6. Provide final prediction
+
+YOUR PREDICTION (required format):
+==================================
+HEXAGRAM: [Hexagram number and Chinese name, e.g., "40 雷水解"]
+TRANSFORMED: [Transformed hexagram if applicable]
+CASTING_METHOD: [Which method(s) used]
+TI_YONG: [Brief 體用 analysis]
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences with Meihua interpretation]

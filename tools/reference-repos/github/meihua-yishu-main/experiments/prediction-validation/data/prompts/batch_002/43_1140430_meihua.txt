@@ -1,0 +1,65 @@
+Use the Meihua Yishu (梅花易數) skill to divine this prediction market question.
+
+QUESTION TO DIVINE:
+==================
+Will the Denver Broncos be eliminated in the Super Bowl?
+
+CONTEXT:
+========
+Description: This market will resolve according to the stage of elimination for the Denver Broncos in the 2025–26 NFL Playoffs.
+
+The market will immediately resolve once the Denver Broncos’ stage of elimination can be confirmed.
+
+If the Denver Broncos’ stage of elimination has not been confirmed by February 22, 2026, 11:59 PM ET, this market will resolve to “Other.”
+
+The resolution source for this market will be official information from the NFL.
+
+Current Market Data:
+- Current Probability: 25.0%
+- Trading Volume: $9,667
+- Days Until Resolution: 28
+- Expected Resolution: 2026-02-22T23:55:00+00:00
+
+Categories: General
+
+CASTING INPUTS (use any method):
+================================
+
+1. NUMBER-BASED (數字起卦):
+   - Upper trigram input: 67 → Trigram #3
+   - Lower trigram input: 10 → Trigram #2
+   - Moving line: 5
+
+2. TEXT-BASED (測字起卦):
+   - Word count: 10 → Upper trigram #2
+   - Character count: 47 → Lower trigram #7
+   - Moving line: 3
+
+3. DIRECTION-BASED (方位起卦):
+   - Category: other
+   - Direction: 東北
+   - Trigram: 艮 (#7)
+
+4. MEASUREMENT-BASED (尺寸起卦):
+   - Days until resolution: 28 → Upper #4
+   - Probability %: 25 → Lower #1
+   - Moving line: 5
+
+INSTRUCTIONS:
+=============
+1. Cast the hexagram using one or more methods above
+2. Identify: 本卦 (original), 變卦 (transformed), 互卦 (mutual)
+3. Determine 體卦 and 用卦
+4. Analyze 體用關係 (生, 剋, 比和)
+5. Consider 外應 if any context clues
+6. Provide final prediction
+
+YOUR PREDICTION (required format):
+==================================
+HEXAGRAM: [Hexagram number and Chinese name, e.g., "40 雷水解"]
+TRANSFORMED: [Transformed hexagram if applicable]
+CASTING_METHOD: [Which method(s) used]
+TI_YONG: [Brief 體用 analysis]
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences with Meihua interpretation]

@@ -14,7 +14,7 @@ FateCat 遗留八字排盘装配器 - 复用外部成熟库并输出标准报告
 ├── tools/reference-repos/github/holiday-and-chinese-almanac-calendar-main # 节假日历法
 └── tools/reference-repos/github/chinese-calendar-master # 中国历法
 
-本地模块调用 (相对路径从src目录):
+本地模块调用 (fate_core.adapters.legacy_integrations):
 ├── sxwnl_integration.py          -> sxwnl-master
 ├── fortel_ziwei_integration.py   -> fortel-ziweidoushu-main, iztro-main
 ├── mikaboshi_fengshui_integration.py -> mikaboshi-main
@@ -35,7 +35,6 @@ FateCat 遗留八字排盘装配器 - 复用外部成熟库并输出标准报告
 """
 
 import ast
-import importlib
 import os
 import re
 import subprocess
@@ -53,7 +52,7 @@ from fate_core.kernel.solar_time import (
     calculate_true_solar_time,
     calculate_true_solar_time_detail,
 )
-from fate_core.support.paths import FATE_VENDOR_ROOT, TELEGRAM_SRC_DIR
+from fate_core.support.paths import FATE_VENDOR_ROOT
 from fate_core.support.timezone import ensure_cn, fmt_cn, now_cn
 
 # 外部库路径统一由 fate-core 支撑层提供。delivery 只保留兼容导出入口。
@@ -61,7 +60,6 @@ EXTERNAL_LIBS_DIR = FATE_VENDOR_ROOT / "github"
 LUNAR_PYTHON_DIR = EXTERNAL_LIBS_DIR / "lunar-python-master"
 BAZI_1_DIR = EXTERNAL_LIBS_DIR / "bazi-1-master"
 DANTALION_DIR = EXTERNAL_LIBS_DIR / "dantalion-master"
-SRC_DIR = TELEGRAM_SRC_DIR
 
 sys.path.insert(0, str(BAZI_1_DIR))
 
@@ -549,8 +547,8 @@ class BaziCalculator:
 
         if not hide.get("extensions", False):
             # === 专业扩展功能 - 强制原生算法，失败即终止 ===
-            from fortel_ziwei_integration import FortelZiweiCalculator
-            from sxwnl_integration import SXWNLCalculator
+            from fate_core.adapters.legacy_integrations.fortel_ziwei_integration import FortelZiweiCalculator
+            from fate_core.adapters.legacy_integrations.sxwnl_integration import SXWNLCalculator
 
             def _run_with_perf(fn, name):
                 t0 = time.monotonic()
@@ -577,7 +575,9 @@ class BaziCalculator:
 
             fengshui_result = {}
             if not hide.get("fengshui", False):
-                from mikaboshi_fengshui_integration import MikaboshiFengshuiCalculator
+                from fate_core.adapters.legacy_integrations.mikaboshi_fengshui_integration import (
+                    MikaboshiFengshuiCalculator,
+                )
 
                 fengshui_result = _run_with_perf(
                     lambda: MikaboshiFengshuiCalculator(
@@ -588,7 +588,7 @@ class BaziCalculator:
 
             astro_result = {}
             if not hide.get("astro", False):
-                from astro_integration import AstroCalculator
+                from fate_core.adapters.legacy_integrations.astro_integration import AstroCalculator
 
                 astro_result = _run_with_perf(
                     lambda: AstroCalculator(
@@ -647,7 +647,7 @@ class BaziCalculator:
                     raise RuntimeError(
                         "dantalion-core 未构建（缺少 dist/index.js），请先在 dantalion-master 目录执行构建再重试"
                     )
-                from dantalion_integration import DantalionCalculator
+                from fate_core.adapters.legacy_integrations.dantalion_integration import DantalionCalculator
 
                 dantalion = DantalionCalculator(self.calc_dt, self.gender)
                 dantalion_result = dantalion.calculate_modern_bazi()
@@ -655,7 +655,7 @@ class BaziCalculator:
                 typeScriptModel = dantalion_result.get("typescript", {})
                 apiInterface = dantalion_result.get("api", {})
 
-                from system_optimization import SystemOptimization
+                from fate_core.adapters.legacy_integrations.system_optimization import SystemOptimization
 
                 sys_opt = SystemOptimization()
                 performance = (
@@ -667,7 +667,9 @@ class BaziCalculator:
                 optimization = {"level": "native", "algorithm": "original"}
 
             if not hide.get("calendar", False):
-                from advanced_calendar_integration import AdvancedCalendarCalculator
+                from fate_core.adapters.legacy_integrations.advanced_calendar_integration import (
+                    AdvancedCalendarCalculator,
+                )
 
                 calendar_calc = AdvancedCalendarCalculator(calc_now)  # 当前日期的历法
                 calendar_result = calendar_calc.calculate_advanced_calendar()
@@ -675,7 +677,7 @@ class BaziCalculator:
                 holidays = calendar_result.get("advancedCalendar", {}).get("holidayCalendar", {})
                 festivals = calendar_result.get("advancedCalendar", {}).get("chineseCalendar", {})
 
-            from ziwei import ZiweiCalculator
+            from fate_core.adapters.legacy_integrations.ziwei import ZiweiCalculator
 
             ziwei_basic_calc = ZiweiCalculator({"fourPillars": four_pillars}, self.calc_dt, self.gender)
             ziwei_basic_result = ziwei_basic_calc.calculate()
@@ -692,27 +694,27 @@ class BaziCalculator:
         mysticalGates = {}
         liuyaoHexagram = {}
         if not hide.get("divination", False):
-            from meihua import MeiHuaCalculator
+            from fate_core.adapters.legacy_integrations.meihua import MeiHuaCalculator
 
             meihua_calc = MeiHuaCalculator({"fourPillars": four_pillars}, now)  # 当前时间起卦
             meihua_result = meihua_calc.calculate()
             meihuaYishu = meihua_result.get("meihua", {})
             numberDivination = meihua_result.get("meihua", {}).get("wuXingAnalysis", {})
 
-            from liuren import LiurenCalculator
+            from fate_core.adapters.legacy_integrations.liuren import LiurenCalculator
 
             liuren_calc = LiurenCalculator({"fourPillars": four_pillars})
             liuren_result = liuren_calc.calculate()
             liurenDivination = liuren_result.get("liuren", {})
 
-            from qimen import QimenCalculator
+            from fate_core.adapters.legacy_integrations.qimen import QimenCalculator
 
             qimen_calc = QimenCalculator({"fourPillars": four_pillars, "currentTime": now})  # 当前时间排盘
             qimen_result = qimen_calc.calculate()
             qimenDunjia = qimen_result.get("qimen", {})
             mysticalGates = qimen_result.get("qimen", {}).get("bamen", {})
 
-            from liuyao import LiuYaoCalculator
+            from fate_core.adapters.legacy_integrations.liuyao import LiuYaoCalculator
 
             liuyao_calc = LiuYaoCalculator(
                 "命理分析", {"fourPillars": four_pillars, "currentTime": now}
@@ -726,7 +728,7 @@ class BaziCalculator:
         yijingAnalysis = {}
         divination = {}
         if not hide.get("yijing", False):
-            from enhanced_yijing_integration import EnhancedYijingCalculator
+            from fate_core.adapters.legacy_integrations.enhanced_yijing_integration import EnhancedYijingCalculator
 
             yijing_calc = EnhancedYijingCalculator(now)  # 当前时间起卦
             yijing_result = yijing_calc.calculate_enhanced_yijing()
@@ -739,7 +741,7 @@ class BaziCalculator:
         if not hide.get("zeri", False):
             from datetime import timedelta
 
-            from zeri import ZeRiCalculator
+            from fate_core.adapters.legacy_integrations.zeri import ZeRiCalculator
 
             zeri_calc = ZeRiCalculator(now, now + timedelta(days=30), "通用")  # 从当前日期开始择日
             zeri_result = zeri_calc.calculate()
@@ -823,7 +825,7 @@ class BaziCalculator:
                 "birthPlace": self.birth_place,
                 "longitude": self.longitude,
                 "latitude": self.latitude,
-                "options": {"useTrueSolarTime": True, "calendarType": "solar"},
+                "options": {"useTrueSolarTime": self.use_true_solar_time, "calendarType": "solar"},
             },
             "inputTrace": {
                 "originalTime": self.birth_dt.strftime("%Y-%m-%d %H:%M:%S"),
@@ -983,92 +985,78 @@ class BaziCalculator:
         result = {}
 
         # Phase 1: 寿星万年历高精度历法
-        spec = importlib.util.spec_from_file_location("sxwnl_integration", str(SRC_DIR / "sxwnl_integration.py"))
-        sxwnl_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(sxwnl_module)
-        sxwnl_calc = sxwnl_module.SXWNLCalculator(self.calc_dt, self.longitude)
+        from fate_core.adapters.legacy_integrations.sxwnl_integration import SXWNLCalculator
+
+        sxwnl_calc = SXWNLCalculator(self.calc_dt, self.longitude)
         sxwnl_result = sxwnl_calc.get_complete_analysis()
         result.update(sxwnl_result)
 
         # Phase 2: 专业紫微斗数系统
-        spec = importlib.util.spec_from_file_location(
-            "fortel_ziwei_integration", str(SRC_DIR / "fortel_ziwei_integration.py")
-        )
-        fortel_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(fortel_module)
-        fortel_calc = fortel_module.FortelZiweiCalculator(self.calc_dt, self.gender, self.longitude)
+        from fate_core.adapters.legacy_integrations.fortel_ziwei_integration import FortelZiweiCalculator
+
+        fortel_calc = FortelZiweiCalculator(self.calc_dt, self.gender, self.longitude)
         fortel_result = fortel_calc.calculate_complete_ziwei_system()
         result.update(fortel_result)
 
         # Phase 3: 风水罗盘系统
-        spec = importlib.util.spec_from_file_location(
-            "mikaboshi_fengshui_integration", str(SRC_DIR / "mikaboshi_fengshui_integration.py")
+        from fate_core.adapters.legacy_integrations.mikaboshi_fengshui_integration import (
+            MikaboshiFengshuiCalculator,
         )
-        fengshui_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(fengshui_module)
+
         # 严格使用已解析的经纬度，不做“地点回退/猜测”
         latitude = getattr(self, "latitude", None)
         if latitude is None:
             raise RuntimeError("缺失纬度: 无法启动风水/占星模块")
-        fengshui_calc = fengshui_module.MikaboshiFengshuiCalculator(self.calc_dt, self.longitude, latitude)
+        fengshui_calc = MikaboshiFengshuiCalculator(self.calc_dt, self.longitude, latitude)
         fengshui_result = fengshui_calc.calculate_complete_fengshui_system()
         result.update(fengshui_result)
 
         # Phase 4: 天文占星计算
-        spec = importlib.util.spec_from_file_location("astro_integration", str(SRC_DIR / "astro_integration.py"))
-        astro_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(astro_module)
-        astro_calc = astro_module.AstroCalculator(self.calc_dt, self.longitude, latitude)
+        from fate_core.adapters.legacy_integrations.astro_integration import AstroCalculator
+
+        astro_calc = AstroCalculator(self.calc_dt, self.longitude, latitude)
         astro_result = astro_calc.get_complete_astro_analysis()
         result.update(astro_result)
 
         # Phase 5: 现代化八字重构
-        spec = importlib.util.spec_from_file_location(
-            "dantalion_integration", str(SRC_DIR / "dantalion_integration.py")
-        )
-        dantalion_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(dantalion_module)
-        dantalion_calc = dantalion_module.DantalionCalculator(self.calc_dt, self.gender)
+        from fate_core.adapters.legacy_integrations.dantalion_integration import DantalionCalculator
+
+        dantalion_calc = DantalionCalculator(self.calc_dt, self.gender)
         dantalion_result = dantalion_calc.get_complete_modern_analysis()
         result.update(dantalion_result)
 
         # bazi-1完整五行评分系统
-        spec = importlib.util.spec_from_file_location("bazi1_integration", str(SRC_DIR / "bazi1_integration.py"))
-        bazi1_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(bazi1_module)
-        bazi1_calc = bazi1_module.Bazi1Integration(result["fourPillars"])
+        from fate_core.adapters.legacy_integrations.bazi1_integration import Bazi1Integration
+
+        bazi1_calc = Bazi1Integration(result["fourPillars"])
         bazi1_result = bazi1_calc.get_complete_analysis()
         result.update(bazi1_result)
 
         # 完整真太阳时计算
-        spec = importlib.util.spec_from_file_location("true_solar_time", str(SRC_DIR / "true_solar_time.py"))
-        tst_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(tst_module)
-        tst_calc = tst_module.TrueSolarTimeCalculator(self.birth_dt, self.longitude)
+        from fate_core.adapters.legacy_integrations.true_solar_time import TrueSolarTimeCalculator
+
+        tst_calc = TrueSolarTimeCalculator(self.birth_dt, self.longitude)
         tst_result = tst_calc.calculate_true_solar_time()
         zi_result = tst_calc.calculate_early_late_zi_time()
         result["completeTrueSolarTime"] = tst_result
         result["ziTimeAnalysis"] = zi_result
 
         # 奇门遁甲
-        spec = importlib.util.spec_from_file_location("qimen", str(SRC_DIR / "qimen.py"))
-        qimen_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(qimen_module)
-        qimen_calc = qimen_module.QimenCalculator(result)
+        from fate_core.adapters.legacy_integrations.qimen import QimenCalculator
+
+        qimen_calc = QimenCalculator(result)
         result.update(qimen_calc.calculate())
 
         # 紫微斗数 (基础版，与专业版并存)
-        spec = importlib.util.spec_from_file_location("ziwei", str(SRC_DIR / "ziwei.py"))
-        ziwei_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(ziwei_module)
-        ziwei_calc = ziwei_module.ZiweiCalculator(result, self.calc_dt, self.gender)
+        from fate_core.adapters.legacy_integrations.ziwei import ZiweiCalculator
+
+        ziwei_calc = ZiweiCalculator(result, self.calc_dt, self.gender)
         result.update(ziwei_calc.calculate())
 
         # 大六壬
-        spec = importlib.util.spec_from_file_location("liuren", str(SRC_DIR / "liuren.py"))
-        liuren_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(liuren_module)
-        liuren_calc = liuren_module.LiurenCalculator(result)
+        from fate_core.adapters.legacy_integrations.liuren import LiurenCalculator
+
+        liuren_calc = LiurenCalculator(result)
         result.update(liuren_calc.calculate())
 
         return result

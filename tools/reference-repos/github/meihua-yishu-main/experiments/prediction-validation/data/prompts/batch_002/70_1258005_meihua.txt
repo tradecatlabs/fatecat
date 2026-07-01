@@ -1,0 +1,65 @@
+Use the Meihua Yishu (梅花易數) skill to divine this prediction market question.
+
+QUESTION TO DIVINE:
+==================
+Australian Open Women's: Elena Rybakina vs Elise Mertens
+
+CONTEXT:
+========
+Description: This market refers on the tennis match between Elena Rybakina and Elise Mertens in the Australian Open WTA, scheduled for January 25 at 7:00PM ET.
+
+This market will resolve to 'Rybakina' if Elena Rybakina advances against Elise Mertens.
+
+This market will resolve to 'Mertens' if Elise Mertens advances against Elena Rybakina.
+
+If the match is canceled (not played at all), ends in a tie, or is delayed beyond 7 days from the scheduled date without a winner determined, this market will resolve to 50-
+
+Current Market Data:
+- Current Probability: 85.0%
+- Trading Volume: $7,120
+- Days Until Resolution: 14
+- Expected Resolution: 2026-02-09T00:00:00+00:00
+
+Categories: General
+
+CASTING INPUTS (use any method):
+================================
+
+1. NUMBER-BASED (數字起卦):
+   - Upper trigram input: 20 → Trigram #4
+   - Lower trigram input: 8 → Trigram #8
+   - Moving line: 4
+
+2. TEXT-BASED (測字起卦):
+   - Word count: 8 → Upper trigram #8
+   - Character count: 49 → Lower trigram #1
+   - Moving line: 3
+
+3. DIRECTION-BASED (方位起卦):
+   - Category: other
+   - Direction: 東北
+   - Trigram: 艮 (#7)
+
+4. MEASUREMENT-BASED (尺寸起卦):
+   - Days until resolution: 14 → Upper #6
+   - Probability %: 85 → Lower #5
+   - Moving line: 3
+
+INSTRUCTIONS:
+=============
+1. Cast the hexagram using one or more methods above
+2. Identify: 本卦 (original), 變卦 (transformed), 互卦 (mutual)
+3. Determine 體卦 and 用卦
+4. Analyze 體用關係 (生, 剋, 比和)
+5. Consider 外應 if any context clues
+6. Provide final prediction
+
+YOUR PREDICTION (required format):
+==================================
+HEXAGRAM: [Hexagram number and Chinese name, e.g., "40 雷水解"]
+TRANSFORMED: [Transformed hexagram if applicable]
+CASTING_METHOD: [Which method(s) used]
+TI_YONG: [Brief 體用 analysis]
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences with Meihua interpretation]

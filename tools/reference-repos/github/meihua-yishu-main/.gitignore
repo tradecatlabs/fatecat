@@ -1,0 +1,31 @@
+# OS files
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.env
+.venv
+venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Personal divination records (local only)
+personal-readings/
+
+# Local Claude Code config + skill symlinks
+.claude/
+
+# Local backups
+_user_claude_backup/
+
+# Firebase debug logs
+firebase-debug.log
+*.log

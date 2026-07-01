@@ -3,7 +3,7 @@ id: GOV-INDEX
 type: index
 status: current
 owner: engineering
-last_reviewed: 2026-06-15
+last_reviewed: 2026-06-17
 ---
 
 # 治理包索引
@@ -22,7 +22,7 @@ last_reviewed: 2026-06-15
 - [OK] `standards/非功能性需求标准.md`
 - [OK] `standards/零美化语义界面标准.md`
 - [optional] `standards/优质代码定义.md`
-- [optional] `standards/性能效率优化标准.md`
+- [OK] `standards/性能效率优化标准.md`
 - [optional] `standards/可靠性标准.md`
 - [optional] `standards/架构设计原则.md`
 

@@ -1,0 +1,32 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will House and Senate pass funding bill by January 30, 2026?
+
+Description: This market will resolve to "Yes" if both the US House and Senate pass the same government funding bill between market creation and the listed date 11:59 PM ET. Otherwise, this market will resolve to "No".
+
+For this market to resolve to "Yes," the bill must actually pass both chambers of Congress (the US House and the US Senate). Passage of separate or different bills will not qualify; it must be the same piece of legislation.
+
+The primary resolution source for this market will be official infor
+
+Current Market Data:
+- Current Probability: 18.0%
+- Trading Volume: $9,896
+- Liquidity: $2416
+- Days Until Resolution: 4
+- Expected Resolution: 2026-01-30T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

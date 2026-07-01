@@ -1,0 +1,28 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will Eli Lilly and Company (LLY) beat quarterly earnings?
+
+Description: As of market creation, Eli Lilly and Company is estimated to release earnings on February 4, 2026. The Street consensus estimate for Eli Lilly and Company’s non-GAAP EPS for the relevant quarter is $7.06 as of market creation. This market will resolve to "Yes" if Eli Lilly and Company reports non-GAAP EPS greater than $7.06 for the relevant quarter in its next quarterly earnings release. Otherwise, it will resolve to "No." The resolution source will be the non-GAAP EPS listed in the company’s of
+
+Current Market Data:
+- Current Probability: 64.0%
+- Trading Volume: $8,422
+- Liquidity: $2882
+- Days Until Resolution: 9
+- Expected Resolution: 2026-02-04T14:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

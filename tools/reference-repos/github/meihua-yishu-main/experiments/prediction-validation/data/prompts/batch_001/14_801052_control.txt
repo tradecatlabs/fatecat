@@ -1,0 +1,32 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will xAI have the #2 AI model at the end of January 2026?
+
+Description: This market will resolve according to the company that owns the model with the second-highest arena score based on the Chatbot Arena LLM Leaderboard when the table under the "Leaderboard" tab is checked on January 31, 2026, 12:00 PM ET.
+
+Results from the "Arena Score" section on the Leaderboard tab of https://lmarena.ai/leaderboard/text set to default (style control on) will be used to resolve this market.
+
+If two models are tied for the second-highest arena score at this market's check time, re
+
+Current Market Data:
+- Current Probability: 79.0%
+- Trading Volume: $9,824
+- Liquidity: $907
+- Days Until Resolution: 12
+- Expected Resolution: 2026-01-31T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

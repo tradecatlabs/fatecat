@@ -1,3 +1,12 @@
+---
+id: ARCHIVE-ARCHIVE-TASKS-PROJECT-HISTORY-INDEX
+type: index
+status: archived
+owner: engineering
+created: 2026-06-17
+last_reviewed: 2026-06-17
+review_cycle: P365D
+---
 # Task Index
 
 | ID | Slug | Status | Priority | Objective | Link |

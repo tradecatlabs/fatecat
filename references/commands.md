@@ -196,8 +196,12 @@ bash scripts/production-readiness.sh --api-url https://your-domain.example --req
 ### Vendor 快照健康检查
 
 ```bash
+bash scripts/clean-runtime.sh
 bash scripts/vendor-health.sh
+python3 -m pytest -q tests/regression/test_fate_policy_assets.py
 ```
+
+说明：先清理本机运行态污染，再校验 `vendor_sources.json` 覆盖所有 `tools/reference-repos/github/*` 快照、hash、license 边界和生产准入。
 
 ### 源仓卫生检查
 

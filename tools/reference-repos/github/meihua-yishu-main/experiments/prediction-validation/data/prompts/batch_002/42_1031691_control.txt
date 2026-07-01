@@ -1,0 +1,32 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will Meta (META) close above $700 end of January?
+
+Description: This market will resolve to "Yes" if the official closing price for Meta Platforms, Inc. (META) on the final trading day of January 2026 is higher than the listed price. Otherwise, this market will resolve to "No".
+
+If the final trading day of the month is shortened (for example, due to a market-holiday schedule), the official closing price published for that shortened session will still be used for resolution.
+
+If no official closing price is published for that session (for example, due to a tr
+
+Current Market Data:
+- Current Probability: 31.0%
+- Trading Volume: $7,643
+- Liquidity: $1787
+- Days Until Resolution: 5
+- Expected Resolution: 2026-01-30T21:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

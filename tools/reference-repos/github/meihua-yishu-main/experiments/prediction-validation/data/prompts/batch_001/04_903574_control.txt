@@ -1,0 +1,30 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will Han Duck Soo be sentenced to 5–10 years in prison?
+
+Description: Former South Korean Prime Minister Han Duck-soo is scheduled to be sentenced on January 21, 2026 in his criminal case including charges of aiding an insurrection and perjury, among other charges, related to his involvement in Yoon Suk Yeol’s martial law declaration in 2024. You can read more about that here: https://www.reuters.com/world/asia-pacific/south-korea-special-prosecutor-seeks-15-year-jail-term-ex-pm-han-martial-law-2025-11-26/.
+
+This market will resolve according to the prison sentenc
+
+Current Market Data:
+- Current Probability: 29.0%
+- Trading Volume: $78,779
+- Liquidity: $2914
+- Days Until Resolution: 2
+- Expected Resolution: 2026-01-21T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

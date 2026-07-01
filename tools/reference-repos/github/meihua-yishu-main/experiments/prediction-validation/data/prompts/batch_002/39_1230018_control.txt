@@ -1,0 +1,34 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will Trump say "Monroe" during the State of the Union address?
+
+Description: Donald Trump is scheduled to deliver the 2026 State of the Union address on February 24. You can read more about that here: https://mikejohnson.house.gov/news/documentsingle.aspx?DocumentID=2812
+
+This market will resolve to "Yes" if Donald Trump says the listed term during his appearance at the specified event. Otherwise, the market will resolve to "No".
+
+Pluralization/possessive of the listed term will count toward the resolution of this market.
+
+Instances where the term is used in a compound w
+
+Current Market Data:
+- Current Probability: 72.0%
+- Trading Volume: $8,004
+- Liquidity: $201
+- Days Until Resolution: 29
+- Expected Resolution: 2026-02-24T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

@@ -1,0 +1,32 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will the U.S. collect less than $100b in revenue in 2025?
+
+Description: The U.S. government collected $82.2b in customs duties in FY 2025 (See: https://www.fiscal.treasury.gov/files/reports-statements/financial-report/2024/notes-to-the-financial-statements19.pdf).
+
+This market will resolve according to the value of customs duties collected in FY 2025 according to the Financial Report of the United States Government published by the Treasury Department for FY 2025 (See: https://www.fiscal.treasury.gov/reports-statements/financial-report/)
+
+If the Treasury Department 
+
+Current Market Data:
+- Current Probability: 73.8%
+- Trading Volume: $891,397
+- Liquidity: $12443
+- Days Until Resolution: 33
+- Expected Resolution: 2026-02-28T12:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

@@ -19,7 +19,7 @@ tools/
 
 ## 职责边界
 
-- `reference-repos/`：第三方开源仓与网页参考快照，配套 manifest 和 hash 门禁。
+- `reference-repos/`：第三方开源仓与网页参考快照，配套 manifest、hash、license 和运行态污染门禁。
 - 任何 vendor 迁移只能移动和登记，不得魔改外部源码。
 
 ## 依赖方向

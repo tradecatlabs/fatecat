@@ -1,0 +1,32 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will the chopsticks catch SpaceX Starship Flight Test 12 Superheavy booster?
+
+Description: This market will resolve to "Yes" if the booster for the twelfth Starship-SuperHeavy test is successfully caught by the chopsticks on the Orbital Launch Tower during its landing attempt. Otherwise, this market will resolve to "No".
+
+A successful catch is defined as the chopsticks capturing and supporting the booster without it falling to the ground or causing catastrophic damage during the landing process.
+
+This market pertains to the twelfth Starship launch. If the rocket lifts off the pad, it 
+
+Current Market Data:
+- Current Probability: 19.0%
+- Trading Volume: $9,892
+- Liquidity: $833
+- Days Until Resolution: 12
+- Expected Resolution: 2026-01-31T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

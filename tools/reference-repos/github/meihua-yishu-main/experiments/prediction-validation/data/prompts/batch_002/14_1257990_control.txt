@@ -1,0 +1,36 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Australian Open Women's: Xinyu Wang vs Amanda Anisimova
+
+Description: This market refers on the tennis match between Xinyu Wang and Amanda Anisimova in the Australian Open WTA, scheduled for January 25 at 7:00PM ET.
+
+This market will resolve to 'Wang' if Xinyu Wang advances against Amanda Anisimova.
+
+This market will resolve to 'Anisimova' if Amanda Anisimova advances against Xinyu Wang.
+
+If the match is canceled (not played at all), ends in a tie, or is delayed beyond 7 days from the scheduled date without a winner determined, this market will resolve to 50-50.
+
+
+
+Current Market Data:
+- Current Probability: 17.0%
+- Trading Volume: $9,256
+- Liquidity: $21188
+- Days Until Resolution: 14
+- Expected Resolution: 2026-02-09T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

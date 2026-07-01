@@ -1,0 +1,32 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will the Supreme Court rule on Trump's tarriff's by January 31?
+
+Description: This market will resolve to “Yes” if the United States Supreme Court issues an official ruling in the case Donald J. Trump, et al., v. V.O.S. Selections, Inc. by the listed date, 11:59 PM ET. Otherwise, this market will resolve to “No”.
+
+An official ruling on the case is defined as any decision on the merits of the case issued by the Supreme Court, including but not limited to a written opinion, summary disposition, or per curiam opinion.
+
+If the case is dismissed as improvidently granted, dismi
+
+Current Market Data:
+- Current Probability: 68.0%
+- Trading Volume: $91,705
+- Liquidity: $16251
+- Days Until Resolution: 12
+- Expected Resolution: 2026-01-31T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

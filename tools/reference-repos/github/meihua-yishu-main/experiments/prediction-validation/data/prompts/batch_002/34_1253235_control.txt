@@ -1,0 +1,32 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will any presidential candidate win outright in the first round of Costa Rica's presidential election?
+
+Description: The 2026 Costa Rican general election is scheduled for February 1, 2026. The President of Costa Rica is elected via a two-round system; a candidate must secure over 40% of the vote to win outright in the first round. If no candidate achieves this, the top two contenders advance to a runoff.
+
+This market will resolve to "Yes" if any candidate wins this election in the first round. Otherwise, this market will resolve to "No".
+
+If the result of the first round of this election isn't known by Decemb
+
+Current Market Data:
+- Current Probability: 77.0%
+- Trading Volume: $9,386
+- Liquidity: $7326
+- Days Until Resolution: 6
+- Expected Resolution: 2026-02-01T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

@@ -3,7 +3,7 @@ id: IDX-EXCEPTION-INDEX
 type: index
 status: current
 owner: engineering
-last_reviewed: 2026-06-15
+last_reviewed: 2026-06-17
 ---
 
 # EXCEPTION Index

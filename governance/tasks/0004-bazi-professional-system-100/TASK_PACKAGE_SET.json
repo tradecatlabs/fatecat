@@ -154,8 +154,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "Scorecard、Resource Map、Rule Source Gaps 已闭合。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "把当前完成度表转成不可混淆的工程验收标准、资源角色和禁止路径。"
       ],
@@ -275,8 +275,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "SCORECARD.md 已新增；rg 'current|target gate|verify|falsifier|owner|next threshold|基础排盘|样本外 benchmark' ... 通过。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "把 10 个维度的当前值、目标 gate、verify、falsifier、owner 和下一门槛写成任务真相源。"
       ],
@@ -398,8 +398,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "RESOURCE_MAP.md 已新增；rg 'usageRole|production_dependency|oracle_only|evaluation_only|reference_only|future_candidate' ... 通过。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "确认 lunar-python、sxtwl、bazica、sxwnl、paipan、MingLi-Bench、BaziQA、bazi-1 的 usageRole 和禁止用途。"
       ],
@@ -528,8 +528,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "RULE_SOURCE_GAPS.md 已新增；核心 gap id 检索通过。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "把缺规则、缺反例、缺专家样本、缺 license、缺 evaluator 的能力统一进入 gap ledger。"
       ],
@@ -660,8 +660,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "基础排盘与历法时间边界 gate 已闭合。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "补齐基础排盘和时间边界的 oracle、golden、依赖升级门禁和差异归因。"
       ],
@@ -783,8 +783,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "CALENDAR_BOUNDARY_MATRIX.md 已新增；calendar/oracle tests 10 passed in 160.10s。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "补节气秒级、立春年界、早晚子时、真太阳时、跨时区、DST、起运边界样本。"
       ],
@@ -909,8 +909,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "CALENDAR_PROVIDER_CONTRACT.md 已新增；依赖/Oracle 角色检索通过。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "明确 lunar-python 是 production provider，oracle 资源只在测试中使用，依赖升级必须跑指定门禁。"
       ],
@@ -1040,8 +1040,8 @@
       "debug_required": true,
       "status": "Done",
       "recent_evidence": "BASE_CHART_REGRESSION.md 已新增；base-chart/API tests 40 passed, 1 skipped in 33.65s。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "把四柱、五行、十神、藏干、起运、真太阳时基础字段纳入稳定回归。"
       ],
@@ -1173,8 +1173,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "证据化与高风险输出边界 gate 已闭合。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "让 API、Markdown 和 rule-depth 输出的每个专业结论都能追溯到规则、字段、权重和风险边界。"
       ],
@@ -1296,8 +1296,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "RULE_ID_COVERAGE_AUDIT.md 已新增；rule-depth/policy tests 44 passed in 61.80s。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "检查报告/API 中所有专业断语是否都有 sourceRuleId 或明确 unsupported/beta 边界。"
       ],
@@ -1422,8 +1422,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "REPORT_FIELD_CONTRACT.md 已新增；API/capability tests 41 passed in 5.64s。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "把 sourceRuleId、evidenceFields、score、weight、doesNotApplyWhen、riskBoundary 做成统一字段契约。"
       ],
@@ -1553,8 +1553,8 @@
       "debug_required": true,
       "status": "Done",
       "recent_evidence": "HIGH_RISK_OUTPUT_REGRESSION.md 已新增；policy/statement tests 19 passed in 55.70s。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "锁定健康、财运、灾劫、官非等专题不能输出现实处方、恐吓或保证式判断。"
       ],
@@ -1688,8 +1688,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "常规八字分析 evaluator gate 已闭合。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "把强弱、月令、十神、藏干、五行、常规格局和干支关系做成稳定 evaluator 与 golden。"
       ],
@@ -1812,8 +1812,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "STRENGTH_MONTH_EVALUATOR.md 已新增；rule-depth/golden tests 39 passed, 1 skipped in 88.40s。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "独立强弱评分、月令、人元司令、通根透干和旺衰证据，避免散落在大函数里。"
       ],
@@ -1939,8 +1939,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "TEN_GOD_STRUCTURE_EVALUATOR.md 已新增；rule-depth/API tests 61 passed in 65.23s。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "结构化透干、藏干、十神数量、十神组合和十神族群映射。"
       ],
@@ -2071,8 +2071,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "REGULAR_PATTERN_EVALUATOR.md 已新增；rule-depth/statement tests 35 passed in 117.98s。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "覆盖财官印食等常规格局候选、成立依据、破格条件和不确定原因。"
       ],
@@ -2203,8 +2203,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "高级格局 evaluator gate 已闭合。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "把从格、假从、化气、专旺、变格等高级格局从 beta 候选推进到 guarded/production 可审查状态。"
       ],
@@ -2326,8 +2326,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "ADVANCED_PATTERN_RULE_MATRIX.md 已新增；高级格局矩阵检索 PASS。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "为从格、假从、专旺、化气、变格建立 appliesWhen、doesNotApplyWhen、破格条件和 sourceRuleId。"
       ],
@@ -2452,8 +2452,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "ADVANCED_PATTERN_GOLDEN.md 已新增；rule-depth/golden tests 39 passed, 1 skipped in 89.54s。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "为每个高级格局补正例、反例、边界例和 failureExplanation。"
       ],
@@ -2583,8 +2583,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "ADVANCED_PATTERN_EVALUATOR.md 已新增；rule-depth/API tests 61 passed in 64.93s。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "实现或抽取高级格局 evaluator，输出候选、置信度、破格原因和风险边界。"
       ],
@@ -2715,8 +2715,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "合化成败 gate 已闭合。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "把干支合化从自然语言关系升级为有条件链、状态机和反例矩阵的 evaluator。"
       ],
@@ -2838,8 +2838,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "COMBINE_RELATION_CONDITION_CATALOG.md 已新增；合化条件目录检索 PASS。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "登记天干五合、地支六合、三合、三会、冲刑害破、争合、阻隔、冲破的条件字段。"
       ],
@@ -2967,8 +2967,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "COMBINE_TRANSFORM_STATE_EVALUATOR.md 已新增；rule-depth/API tests 61 passed in 64.93s。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "输出 structural_relation、transform_candidate、transform_success、transform_broken。"
       ],
@@ -3096,8 +3096,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "COMBINE_TRANSFORM_COUNTEREXAMPLE_MATRIX.md 已新增；golden/rule-depth tests 39 passed, 1 skipped in 89.35s。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "补月令、透干、通根、得令、帮扶、冲破、阻隔导致不成化的反例。"
       ],
@@ -3232,8 +3232,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "用神策略矩阵、决策 evaluator、冲突 golden 均已闭合。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "把调候、扶抑、通关、病药从并列描述升级为可冲突裁决的评分矩阵。"
       ],
@@ -3357,8 +3357,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "`YONGSHEN_STRATEGY_MATRIX.md` 已新增；rg gate PASS；rule-depth/API tests `61 passed in 64.97s`。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "定义调候、扶抑、通关、病药、格局用神的输入字段、评分、冲突和不适用条件。"
       ],
@@ -3488,8 +3488,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "`YONGSHEN_DECISION_EVALUATOR.md` 已新增；format gate PASS；rule-depth/API tests `61 passed in 75.53s`。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "输出 scoredStrategies、ranking、conflicts、selectedCandidates、riskBoundary。"
       ],
@@ -3619,8 +3619,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "`YONGSHEN_CONFLICT_GOLDEN.md` 已新增；format gate PASS；golden/rule-depth tests `39 passed, 1 skipped in 90.40s`。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "补寒暖燥湿、身强身弱、格局优先、通关病药冲突场景的 golden。"
       ],
@@ -3755,8 +3755,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "岁运触发、专题联合评分、专题风险边界均已闭合。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "把大运、流年、流月触发与婚姻、事业、财运、家庭、健康、学业等专题 profile 联动。"
       ],
@@ -3880,8 +3880,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "`FORTUNE_TRIGGER_MATRIX.md` 已新增；rg gate PASS；rule-depth/API tests `61 passed in 64.77s`。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "定义大运、流年、流月、伏吟反吟、天克地冲、刑冲合害与原局关系的 trigger chain。"
       ],
@@ -4011,8 +4011,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "`TOPIC_PROFILE_JOINT_SCORING.md` 已新增；format gate PASS；API/rule-depth tests `61 passed in 64.99s`。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "为婚姻、事业、财运、家庭、健康、学业、迁移建立 score、basis、scoreBasis、evidenceFields、lifecycle。"
       ],
@@ -4142,8 +4142,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "`TOPIC_RISK_BOUNDARY.md` 已新增；policy/statement tests `19 passed in 56.93s`；API/rule-depth tests `61 passed in 68.73s`。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "针对健康、财运、灾劫、官非等高风险专题补安全文案和 policy 测试。"
       ],
@@ -4275,8 +4275,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "Golden shard、MingLi full、BaziQA 审查、failure taxonomy 均已闭合。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "把规则样本、deep gate、MingLi/BaziQA 评测和失败归因做成可持续改进系统。"
       ],
@@ -4398,8 +4398,8 @@
       "debug_required": true,
       "status": "Done",
       "recent_evidence": "`GOLDEN_SHARD_DEEP_GATE.md` 已新增；shard 0/4 `10 passed in 629.63s`。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "把 quick 代表集、deep 300+ matrix、rule-depth、calendar boundary 和 topic fixtures 分层。"
       ],
@@ -4525,8 +4525,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "`MINGLI_FULL_EVALUATION_GATE.md` 已新增；full benchmark answered=160/160, correct=44, accuracy=27.50%, no answer leakage；回归 `12 passed, 1 skipped in 39.71s`。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "持续生成 160 题 predictions、report、byCategory 和 failure taxonomy，且无答案泄漏。"
       ],
@@ -4651,8 +4651,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "`BAZIQA_ADMISSION_REVIEW.md` 已新增；BaziQA 判定为 future_candidate/evaluation_only，不进入 runtime 或正式 gate。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "审查 BaziQA license、题型、输入输出契约和是否可作为 evaluation_only benchmark。"
       ],
@@ -4780,8 +4780,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "`MINGLI_FAILURE_TAXONOMY.md` 已新增；10 类 failure class 有 owner、缺口类型、回炉方向、禁止路径；无单题 ID 示例泄漏。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "把 MingLi/BaziQA 失败样本按 owner 能力面映射到婚姻、事业、家庭、健康、财运、学业等规则 backlog。"
       ],
@@ -4916,8 +4916,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "`FINAL_REVIEW.md` / `CLOSEOUT.md` 已新增；本地 quick/full gate PASS；Active BLOCK=0。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "把新增专业能力落到 fate-core 边界，delivery 只负责呈现，并用最终 review/ship gate 收口。"
       ],
@@ -5041,8 +5041,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "`EVALUATOR_SPLIT_FORTUNE.md` 已新增；fortune evaluator 单切片完成；目标回归 `70 passed, 1 skipped in 106.56s`。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "按 pattern、hehua、yongshen、fortune、topic 逐切片从大文件抽出纯 evaluator，保持 schema 行为不变。"
       ],
@@ -5172,8 +5172,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "`REPORT_MARKDOWN_BOUNDARY_FINAL.md` 已新增；Web 不再泄漏 lifecycle/lifecycleGate；验证 `46 passed in 70.22s`。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "保证 Web/API/Markdown 只消费结构化结果，不在 delivery 二次推断命理结论。"
       ],
@@ -5303,8 +5303,8 @@
       "debug_required": false,
       "status": "Done",
       "recent_evidence": "`FINAL_REVIEW.md` / `CLOSEOUT.md` 已新增；quick evidence `/tmp/fatecat-local-ci-20260616233736`，full evidence `/tmp/fatecat-local-ci-20260616233751`；Active BLOCK=0。",
-      "blocker": "无",
-      "unblock_needed": "无",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "运行 quick/full/deep/review，生成最终 PASS/WARN/BLOCK 结论。"
       ],

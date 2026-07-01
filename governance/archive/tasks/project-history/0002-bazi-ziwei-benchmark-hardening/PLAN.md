@@ -1,3 +1,12 @@
+---
+id: ARCHIVE-ARCHIVE-TASKS-PROJECT-HISTORY-0002-BAZI-ZIWEI-BENCHMARK-HARDENING-PLAN
+type: archive
+status: archived
+owner: engineering
+created: 2026-06-17
+last_reviewed: 2026-06-17
+review_cycle: P365D
+---
 # Planning Summary
 按两个主体系的成熟度缺口拆分：先做共同治理和标杆证据，再做八字准确性与规则库，再做紫微盘面完整性与解释库，最后做 Web 工作台、验收和出货。
 - 编译节点总数: 37

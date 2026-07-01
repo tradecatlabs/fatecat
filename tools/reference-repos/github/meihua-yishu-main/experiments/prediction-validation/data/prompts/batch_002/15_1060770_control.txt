@@ -1,0 +1,32 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will Elon Musk's net worth be at least $670b on January 31?
+
+Description: This market will resolve according to the value of Elon Musk's net worth on January 31, 2026.
+
+If the reported value falls exactly between two brackets, then this market will resolve to the higher range bracket.
+
+The resolution source for this market will be the Bloomberg Billionaires Index Elon Musk Profile (https://www.bloomberg.com/billionaires/profiles/elon-r-musk/?embedded-checkout=true), specifically the datapoint for January 31, 2026, once the data is finalized. If this resolution source 
+
+Current Market Data:
+- Current Probability: 81.8%
+- Trading Volume: $7,320
+- Liquidity: $792
+- Days Until Resolution: 5
+- Expected Resolution: 2026-01-31T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

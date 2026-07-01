@@ -1,3 +1,12 @@
+---
+id: ARCHIVE-ARCHIVE-TASKS-PROJECT-HISTORY-0001-COMPREHENSIVE-BAZI-STATEMENT-SERVICE-HARDENING-PLAN
+type: archive
+status: archived
+owner: engineering
+created: 2026-06-17
+last_reviewed: 2026-06-17
+review_cycle: P365D
+---
 # Planning Summary
 按生产服务地基优先级拆分：先锁节气/报告结构，再补 evidence 与边界治理，然后统一输入隐私和多端输出，最后补典籍引用、质量门禁与服务化文档。
 - 编译节点总数: 35

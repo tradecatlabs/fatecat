@@ -1,0 +1,46 @@
+[project]
+name = "horosa-skill"
+version = "0.14.1"
+description = "GitHub-first Horosa AI skill distribution with CLI, MCP, and local structured memory."
+readme = "README.md"
+license = "AGPL-3.0-only"
+requires-python = ">=3.12"
+dependencies = [
+  "cryptography>=45.0.0",
+  "httpx>=0.28.0",
+  "mcp[cli]>=1.17.0",
+  "pydantic>=2.8.0",
+  "python-docx>=1.1.2",
+  "reportlab>=4.2.0",
+  "tzdata>=2025.2",
+  "typer>=0.16.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.0",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3.0",
+]
+
+[project.scripts]
+horosa-skill = "horosa_skill.surfaces.cli:app"
+
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/horosa_skill"]
+include = [
+  "src/horosa_skill/knowledge/data/*.json",
+  "src/horosa_skill/benchmark/data/*.json",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+asyncio_default_fixture_loop_scope = "function"

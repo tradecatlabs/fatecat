@@ -1,0 +1,63 @@
+Use the Meihua Yishu (梅花易數) skill to divine this prediction market question.
+
+QUESTION TO DIVINE:
+==================
+Will Russia enter Zaliznychne by January 31?
+
+CONTEXT:
+========
+Description: This market will resolve to “Yes” if, according to the ISW map, Russia captures any territory of Zaliznychne, Zaporizhzhia Oblast, by January 31, 2026, at 11:59 PM ET.
+
+Territory will be considered captured if any part of Zaliznychne is shaded under a below specified layer on the ISW map (https://storymaps.arcgis.com/stories/36a7f6a6f5a9448496de641cf64bd375) by the resolution date. Otherwise, the market will resolve to “No”.
+
+For any change on the ISW map to qualify for this market’s resolution,
+
+Current Market Data:
+- Current Probability: 18.0%
+- Trading Volume: $96,768
+- Days Until Resolution: 12
+- Expected Resolution: 2026-01-31T00:00:00+00:00
+
+Categories: General
+
+CASTING INPUTS (use any method):
+================================
+
+1. NUMBER-BASED (數字起卦):
+   - Upper trigram input: 68 → Trigram #4
+   - Lower trigram input: 7 → Trigram #7
+   - Moving line: 3
+
+2. TEXT-BASED (測字起卦):
+   - Word count: 7 → Upper trigram #7
+   - Character count: 38 → Lower trigram #6
+   - Moving line: 3
+
+3. DIRECTION-BASED (方位起卦):
+   - Category: other
+   - Direction: 東北
+   - Trigram: 艮 (#7)
+
+4. MEASUREMENT-BASED (尺寸起卦):
+   - Days until resolution: 12 → Upper #4
+   - Probability %: 18 → Lower #2
+   - Moving line: 6
+
+INSTRUCTIONS:
+=============
+1. Cast the hexagram using one or more methods above
+2. Identify: 本卦 (original), 變卦 (transformed), 互卦 (mutual)
+3. Determine 體卦 and 用卦
+4. Analyze 體用關係 (生, 剋, 比和)
+5. Consider 外應 if any context clues
+6. Provide final prediction
+
+YOUR PREDICTION (required format):
+==================================
+HEXAGRAM: [Hexagram number and Chinese name, e.g., "40 雷水解"]
+TRANSFORMED: [Transformed hexagram if applicable]
+CASTING_METHOD: [Which method(s) used]
+TI_YONG: [Brief 體用 analysis]
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences with Meihua interpretation]

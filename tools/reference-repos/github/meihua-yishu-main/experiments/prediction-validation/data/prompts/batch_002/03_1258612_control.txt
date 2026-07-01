@@ -1,0 +1,33 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Pistons vs. Warriors
+
+Description: In the upcoming NBA game, scheduled for January 30 at 10:00PM ET:
+If the Pistons win, the market will resolve to "Pistons".
+If the Warriors win, the market will resolve to "Warriors".
+If the game is postponed, this market will remain open until the game has been completed.
+If the game is canceled entirely, with no make-up game, this market will resolve 50-50.
+The result will be determined based on the final score including any overtime periods.
+
+Current Market Data:
+- Current Probability: 65.0%
+- Trading Volume: $9,449
+- Liquidity: $1711
+- Days Until Resolution: 5
+- Expected Resolution: 2026-01-31T03:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

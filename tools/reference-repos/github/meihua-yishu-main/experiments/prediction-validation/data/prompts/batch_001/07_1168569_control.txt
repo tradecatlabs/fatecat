@@ -1,0 +1,34 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will GE Vernova say "Administration" during earnings call?
+
+Description: This market will resolve based on the next earnings announcement of GE Vernova currently scheduled to take place on January 28, 2026 at 11:59 PM EST.
+
+This market will resolve to "Yes" if the listed term is mentioned by anyone during this event. Otherwise, the market will resolve to "No".
+
+Any usage of the term, regardless of context, will count toward the resolution of this market.
+
+Pluralization/possessive of the term will count toward the resolution of this market; however, other forms will N
+
+Current Market Data:
+- Current Probability: 67.0%
+- Trading Volume: $7,916
+- Liquidity: $57
+- Days Until Resolution: 10
+- Expected Resolution: 2026-01-29T04:59:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

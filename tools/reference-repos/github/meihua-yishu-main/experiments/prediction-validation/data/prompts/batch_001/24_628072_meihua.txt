@@ -1,0 +1,63 @@
+Use the Meihua Yishu (梅花易數) skill to divine this prediction market question.
+
+QUESTION TO DIVINE:
+==================
+Will Leon Thomas win Best New Artist at the 68th Annual GRAMMY Awards?
+
+CONTEXT:
+========
+Description: The GRAMMY Awards are presented annually by the Recording Academy. For the 68th Annual GRAMMY Awards, nominations are scheduled for November 7, 2025, and the ceremony for February 1, 2026.
+
+This market will resolve according to the listed person who wins Best New Artist at the 68th Annual GRAMMY Awards.
+
+If, for any reason, no winner is declared by June 30, 2026, 11:59 PM ET, or in case of a tie for the winner, this market will resolve in favor of the listed person whose last name comes first in
+
+Current Market Data:
+- Current Probability: 17.0%
+- Trading Volume: $76,348
+- Days Until Resolution: 13
+- Expected Resolution: 2026-02-01T00:00:00+00:00
+
+Categories: General
+
+CASTING INPUTS (use any method):
+================================
+
+1. NUMBER-BASED (數字起卦):
+   - Upper trigram input: 48 → Trigram #8
+   - Lower trigram input: 13 → Trigram #5
+   - Moving line: 1
+
+2. TEXT-BASED (測字起卦):
+   - Word count: 13 → Upper trigram #5
+   - Character count: 58 → Lower trigram #2
+   - Moving line: 5
+
+3. DIRECTION-BASED (方位起卦):
+   - Category: other
+   - Direction: 東北
+   - Trigram: 艮 (#7)
+
+4. MEASUREMENT-BASED (尺寸起卦):
+   - Days until resolution: 13 → Upper #5
+   - Probability %: 17 → Lower #1
+   - Moving line: 6
+
+INSTRUCTIONS:
+=============
+1. Cast the hexagram using one or more methods above
+2. Identify: 本卦 (original), 變卦 (transformed), 互卦 (mutual)
+3. Determine 體卦 and 用卦
+4. Analyze 體用關係 (生, 剋, 比和)
+5. Consider 外應 if any context clues
+6. Provide final prediction
+
+YOUR PREDICTION (required format):
+==================================
+HEXAGRAM: [Hexagram number and Chinese name, e.g., "40 雷水解"]
+TRANSFORMED: [Transformed hexagram if applicable]
+CASTING_METHOD: [Which method(s) used]
+TI_YONG: [Brief 體用 analysis]
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences with Meihua interpretation]

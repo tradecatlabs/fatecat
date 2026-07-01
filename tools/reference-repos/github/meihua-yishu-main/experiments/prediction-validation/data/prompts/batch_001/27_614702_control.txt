@@ -1,0 +1,30 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will Chloé Zhao be nominated for Best Director at the 98th Academy Awards?
+
+Description: The Academy Awards are presented annually by the Academy of Motion Picture Arts and Sciences (AMPAS) to honor outstanding artistic and technical achievements in film. For the 98th Academy Awards in 2026, nominations are scheduled to be announced on January 22, followed by the ceremony on March 15, 2026.
+
+This market will resolve to "Yes" if the listed director is nominated for the 98th Academy Award for Best Director. If a director is not officially nominated for the Academy Award for Best Direc
+
+Current Market Data:
+- Current Probability: 83.0%
+- Trading Volume: $74,928
+- Liquidity: $3242
+- Days Until Resolution: 3
+- Expected Resolution: 2026-01-22T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

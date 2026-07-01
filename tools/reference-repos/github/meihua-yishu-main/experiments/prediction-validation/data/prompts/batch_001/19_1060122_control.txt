@@ -1,0 +1,32 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will Russia enter Zaliznychne by January 31?
+
+Description: This market will resolve to “Yes” if, according to the ISW map, Russia captures any territory of Zaliznychne, Zaporizhzhia Oblast, by January 31, 2026, at 11:59 PM ET.
+
+Territory will be considered captured if any part of Zaliznychne is shaded under a below specified layer on the ISW map (https://storymaps.arcgis.com/stories/36a7f6a6f5a9448496de641cf64bd375) by the resolution date. Otherwise, the market will resolve to “No”.
+
+For any change on the ISW map to qualify for this market’s resolution,
+
+Current Market Data:
+- Current Probability: 18.0%
+- Trading Volume: $96,768
+- Liquidity: $3613
+- Days Until Resolution: 12
+- Expected Resolution: 2026-01-31T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

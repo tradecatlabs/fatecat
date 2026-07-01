@@ -1,0 +1,402 @@
+from __future__ import annotations
+
+from copy import deepcopy
+from typing import Any
+
+AI_EXPORT_SETTINGS_KEY = "horosa.ai.export.settings.v1"
+AI_EXPORT_SETTINGS_VERSION = 6
+AI_EXPORT_SECTION_MIGRATION_VERSION = 6
+AI_EXPORT_SECTION_MIGRATION_KEYS = ["liureng", "qimen", "sanshiunited"]
+MODULE_SNAPSHOT_PREFIX = "horosa.ai.snapshot.module.v1."
+AI_EXPORT_PLANET_INFO_DEFAULT = {"showHouse": 1, "showRuler": 1}
+AI_EXPORT_ASTRO_MEANING_DEFAULT = {"enabled": 0}
+
+AI_EXPORT_PLANET_INFO_TECHNIQUES = {
+    "astrochart",
+    "indiachart",
+    "astrochart_like",
+    "relative",
+    "primarydirect",
+    "primarydirchart",
+    "zodialrelease",
+    "firdaria",
+    "profection",
+    "solararc",
+    "solarreturn",
+    "lunarreturn",
+    "givenyear",
+    "decennials",
+    "jieqi",
+    "jieqi_meta",
+    "jieqi_chunfen",
+    "jieqi_xiazhi",
+    "jieqi_qiufen",
+    "jieqi_dongzhi",
+    "sanshiunited",
+    "guolao",
+    "germany",
+}
+
+AI_EXPORT_ASTRO_MEANING_TECHNIQUES = {
+    *AI_EXPORT_PLANET_INFO_TECHNIQUES,
+    "otherbu",
+    "qimen",
+    "liureng",
+}
+
+AI_EXPORT_HOVER_MEANING_TECHNIQUES = {"qimen", "liureng", "sanshiunited"}
+
+JIEQI_SETTING_PRESETS = {
+    "jieqi_meta": ["节气盘参数"],
+    "jieqi_chunfen": ["春分星盘", "春分宿盘"],
+    "jieqi_xiazhi": ["夏至星盘", "夏至宿盘"],
+    "jieqi_qiufen": ["秋分星盘", "秋分宿盘"],
+    "jieqi_dongzhi": ["冬至星盘", "冬至宿盘"],
+}
+
+AI_EXPORT_TECHNIQUES = [
+    {"key": "astrochart", "label": "星盘"},
+    {"key": "indiachart", "label": "印度律盘"},
+    {"key": "astrochart_like", "label": "希腊/星体地图"},
+    {"key": "relative", "label": "关系盘"},
+    {"key": "primarydirect", "label": "推运盘-主/界限法"},
+    {"key": "primarydirchart", "label": "推运盘-主限法盘"},
+    {"key": "zodialrelease", "label": "推运盘-黄道星释"},
+    {"key": "firdaria", "label": "推运盘-法达星限"},
+    {"key": "profection", "label": "推运盘-小限法"},
+    {"key": "solararc", "label": "推运盘-太阳弧"},
+    {"key": "solarreturn", "label": "推运盘-太阳返照"},
+    {"key": "lunarreturn", "label": "推运盘-月亮返照"},
+    {"key": "givenyear", "label": "推运盘-流年法"},
+    {"key": "decennials", "label": "推运盘-十年大运"},
+    {"key": "bazi", "label": "八字"},
+    {"key": "ziwei", "label": "紫微斗数"},
+    {"key": "suzhan", "label": "宿占"},
+    {"key": "sixyao", "label": "易卦"},
+    {"key": "tongshefa", "label": "统摄法"},
+    {"key": "liureng", "label": "六壬"},
+    {"key": "jinkou", "label": "金口诀"},
+    {"key": "qimen", "label": "奇门遁甲"},
+    {"key": "sanshiunited", "label": "三式合一"},
+    {"key": "taiyi", "label": "太乙"},
+    {"key": "guolao", "label": "七政四余"},
+    {"key": "germany", "label": "量化盘"},
+    {"key": "agepoint", "label": "星运-年龄推进点"},
+    {"key": "distributions", "label": "星运-界推运"},
+    {"key": "jaynesprog", "label": "星运-赤纬推运"},
+    {"key": "vedicprog", "label": "星运-恒星推运"},
+    {"key": "planetaryarc", "label": "星运-行星弧"},
+    {"key": "planetaryages", "label": "星运-行星年龄"},
+    {"key": "balbillus", "label": "星运-Balbillus"},
+    {"key": "yearsystem129", "label": "星运-129年系统"},
+    {"key": "persiandirected", "label": "星运-波斯向运"},
+    {"key": "triplicityrulers", "label": "星运-三分主星"},
+    {"key": "keypoints", "label": "星运-数字相位"},
+    {"key": "lunationphase", "label": "星运-月相"},
+    {"key": "extrareturns", "label": "星运-多重回归"},
+    {"key": "horary", "label": "卜卦盘"},
+    {"key": "election", "label": "择日盘"},
+    {"key": "wangji", "label": "皇极经世"},
+    {"key": "wuzhao", "label": "五兆"},
+    {"key": "taixuan", "label": "太玄"},
+    {"key": "jingjue", "label": "京氏易"},
+    {"key": "shenyishu", "label": "神乙数"},
+    {"key": "shaozi", "label": "邵子神数"},
+    {"key": "tieban", "label": "铁板神数"},
+    {"key": "fendjing", "label": "分经神数"},
+    {"key": "beiji", "label": "北极神数"},
+    {"key": "nanji", "label": "南极神数"},
+    {"key": "chunzi", "label": "淳子神数"},
+    {"key": "xianqin", "label": "演禽"},
+    {"key": "cetian", "label": "策天飞星"},
+    {"key": "qizhengkin", "label": "七政四余·张果"},
+    {"key": "mundane", "label": "世俗盘"},
+    {"key": "jieqi", "label": "节气盘"},
+    {"key": "jieqi_meta", "label": "节气盘-通用参数"},
+    {"key": "jieqi_chunfen", "label": "节气盘-春分"},
+    {"key": "jieqi_xiazhi", "label": "节气盘-夏至"},
+    {"key": "jieqi_qiufen", "label": "节气盘-秋分"},
+    {"key": "jieqi_dongzhi", "label": "节气盘-冬至"},
+    {"key": "otherbu", "label": "西洋游戏"},
+    {"key": "fengshui", "label": "风水"},
+    {"key": "canping", "label": "邵子参评数"},
+    {"key": "heluo", "label": "河洛理数"},
+    {"key": "generic", "label": "其他页面"},
+]
+
+AI_EXPORT_PRESET_SECTIONS = {
+    "astrochart": ["起盘信息", "宫位宫头", "星与虚点", "信息", "相位", "行星", "月宿", "希腊点", "12分度", "主宰星链", "古典", "古典格局", "寿命格局", "可能性"],
+    "indiachart": ["起盘信息", "宫位宫头", "星与虚点", "信息", "相位", "行星", "月宿", "希腊点", "古典", "可能性"],
+    "astrochart_like": ["起盘信息", "宫位宫头", "星与虚点", "信息", "相位", "行星", "月宿", "希腊点", "古典", "古典格局", "可能性"],
+    "relative": ["关系起盘信息", "A对B相位", "B对A相位", "A对B中点相位", "B对A中点相位", "A对B映点", "A对B反映点", "B对A映点", "B对A反映点", "合成图盘", "影响图盘-星盘A", "影响图盘-星盘B"],
+    "primarydirect": ["出生时间", "本命盘星与虚点", "主/界限法设置", "主/界限法表格"],
+    "primarydirchart": ["出生时间", "本命盘星与虚点", "主限法盘设置", "主限法盘星体表格", "主限法盘相位", "主限法盘说明"],
+    "zodialrelease": ["起盘信息", "本命盘星与虚点", "基于X点推运"],
+    "firdaria": ["出生时间", "星盘信息", "法达星限表格"],
+    "profection": ["本命盘起盘信息", "本命盘星与虚点", "推运盘起盘信息", "推运盘星与虚点", "推运盘相位"],
+    "solararc": ["本命盘起盘信息", "本命盘星与虚点", "推运盘起盘信息", "推运盘星与虚点", "推运盘相位"],
+    "solarreturn": ["本命盘起盘信息", "本命盘星与虚点", "返照盘起盘信息", "返照盘星与虚点", "返照盘相位"],
+    "lunarreturn": ["本命盘起盘信息", "本命盘星与虚点", "返照盘起盘信息", "返照盘星与虚点", "返照盘相位"],
+    "givenyear": ["本命盘起盘信息", "本命盘星与虚点", "流年盘起盘信息", "流年盘星与虚点", "流年盘相位"],
+    "decennials": ["起盘信息", "星盘信息", "十年大运设置", "基于X起运"],
+    "bazi": ["起盘信息", "四柱与三元", "神煞（四柱与三元）", "大运", "流年行运概略"],
+    "ziwei": ["起盘信息", "宫位总览", "命中格局"],
+    "suzhan": ["起盘信息", "宿盘宫位与二十八宿星曜"],
+    "sixyao": ["起盘信息", "卦象", "六爻与动爻", "卦辞与断语"],
+    "tongshefa": ["本卦", "六爻", "潜藏", "亲和"],
+    "liureng": ["起盘信息", "十二盘式", "十二地盘/十二天盘/十二贵神对应", "四课", "三传", "行年", "旬日", "旺衰", "基础神煞", "干煞", "月煞", "支煞", "岁煞", "十二长生", "大格", "小局", "参考", "概览", "常用神煞", "毕法（已命中）", "占断向导"],
+    "jinkou": ["起盘信息", "金口诀速览", "金口诀四位", "金口诀三盘", "四位神煞", "用神强弱", "四位生克", "应期", "地支关系", "相关神煞", "分类用神·求财", "行年", "旬日", "旺衰", "基础神煞", "干煞", "月煞", "支煞", "岁煞", "十二长生"],
+    "taiyi": ["起盘信息", "太乙盘", "太乙诸神", "风游", "主客定算", "十二神", "八门与宿曜", "断法", "七大兵法", "博弈", "命法", "命宫行限", "十六宫标记"],
+    "qimen": ["起盘信息", "盘型", "盘面要素", "奇门演卦", "八宫详解", "九宫方盘", "六害总览", "化解方案", "八门化气大阵", "用神分论", "财富七要", "事业七要", "恋爱姻缘", "孤辰寡宿"],
+    "sanshiunited": ["起盘信息", "概览", "太乙", "太乙十六宫", "神煞", "大六壬", "六壬大格", "六壬小局", "六壬参考", "六壬概览", "八宫详解", "正北坎宫", "东北艮宫", "正东震宫", "东南巽宫", "正南离宫", "西南坤宫", "正西兑宫", "西北乾宫"],
+    "guolao": ["起盘信息", "七政四余宫位与二十八宿星曜", "神煞", "大限", "政余格局", "相位"],
+    "germany": ["起盘信息", "宫位宫头", "行星", "中点", "TNP星体", "中点相位", "90°中点盘", "行星图", "映点", "中点列表"],
+    "agepoint": ["年龄推进点（Age Point / Huber）"],
+    "distributions": ["界推运（分配法 / Distributions）"],
+    "jaynesprog": ["赤纬推运（Jayne Declination）"],
+    "vedicprog": ["恒星推运（Vedic Sidereal）"],
+    "planetaryarc": ["行星弧（Planetary Arc）"],
+    "planetaryages": ["行星年龄（Ages of Man）"],
+    "balbillus": ["Balbillus"],
+    "yearsystem129": ["129年系统表格"],
+    "persiandirected": ["波斯向运（Persian Directed）"],
+    "triplicityrulers": ["三分主星推运"],
+    "keypoints": ["数字相位推运"],
+    "lunationphase": ["月相推运"],
+    "extrareturns": ["多重回归"],
+    "horary": ["起卦信息", "根本性", "征象星指派", "完成分析", "月亮的故事", "相位全览", "裁决", "应期方位", "描述"],
+    "election": ["起盘信息", "总评", "红线", "分项", "用事专属", "应期", "建议"],
+    "wangji": ["起盘", "元会运世", "天道卦", "人事卦", "历史年表", "心易发微"],
+    "wuzhao": ["起盘", "揲筮", "兆", "木乡", "火乡", "土乡", "金乡", "水乡", "特殊标记"],
+    "taixuan": ["起盘", "玄首", "方州部家", "表"],
+    "jingjue": ["起课", "卦辞", "三分", "十六卦"],
+    "shenyishu": ["起盘", "干支与五行", "神卦", "五行法则", "兵占", "主客判断", "神煞", "长生", "吉凶"],
+    "shaozi": ["起盘", "四柱", "四位起数", "河洛纳音", "完整结构", "64钥匙", "元会运世", "条文"],
+    "tieban": ["起盘", "四柱", "算盘定部", "条文", "计算摘要", "命身刻分", "神数号码", "十二宫", "十二宫条文", "紫微安星", "条文库", "大运", "六亲佐证"],
+    "fendjing": ["起盘", "四柱", "两头钳", "命格", "判断", "六段断语"],
+    "beiji": ["起盘", "年时", "条文索引", "完整条文", "条文检索", "家亲", "财官性情", "大运"],
+    "nanji": ["起盘", "四柱", "宫部条文", "条文查询", "大运", "密码", "星图推演"],
+    "chunzi": ["起盘", "四柱", "代码来源", "结构解析", "候选条文", "代码查询", "批量代码查询", "关键词检索", "多标签检索", "宿名检索", "时辰检索"],
+    "xianqin": ["起盘", "三宫", "三星", "衍生星", "十二宫", "吞啖合战", "情性与格局", "二十八宿禽", "十二宫顺序", "三元起宿", "合宿表", "科名月宿", "四季得时", "情性赋全表", "二十八宿正像", "吞啖合战规则", "贵贱赋摘要"],
+    "cetian": ["起盘", "农历与命身", "四化", "飞星", "格局", "命宮", "兄弟宮", "夫妻宮", "子女宮", "財帛宮", "疾厄宮", "遷移宮", "交友宮", "官祿宮", "田宅宮", "福德宮", "父母宮", "星曜属性", "正曜副曜", "宫干四化表", "飞化规则", "古法格局规则", "三合组"],
+    "qizhengkin": ["起盘", "四柱", "星曜", "十二宫", "神煞", "年限", "流时", "择日", "今制宿度", "古制宿度", "张果断语", "命宫解读"],
+    "mundane": ["世俗入宫", "起盘信息", "宫位宫头", "星与虚点", "信息", "相位", "行星", "希腊点", "12分度", "主宰星链", "古典", "寿命格局", "可能性"],
+    "jieqi": ["节气盘参数", "春分星盘", "春分宿盘", "夏至星盘", "夏至宿盘", "秋分星盘", "秋分宿盘", "冬至星盘", "冬至宿盘"],
+    **JIEQI_SETTING_PRESETS,
+    "otherbu": ["起盘信息", "骰子结果", "骰子盘宫位与星体", "天象盘宫位与星体"],
+    "fengshui": ["起盘信息", "标记判定", "冲突清单", "建议汇总", "纳气建议"],
+    # 星阙 aiExport.js declares canping as ['起盘','本命','大运','流年'], but its module snapshot
+    # (CanPingMain.saveSnap → canpingLocal.buildSnapshotText with no liunianBranch) only ever emits
+    # 起盘/本命/大运·歲運 — 流年 is omitted (calculate()'s single-liunian path pairs the taisui with
+    # dayun[0], the inaccurate one). The accurate per-year 流年 lives in the `series` table, which the
+    # skill exposes under data.canping.series. So this preset reflects the sections the snapshot
+    # actually carries, keeping the export contract clean instead of永远-missing 流年.
+    "canping": ["起盘", "本命", "大运"],
+    # 河洛理数: matches 星阙 aiExport.js exactly. The snapshot emits 起命/先天·<卦>/后天·<卦>/命运篇/
+    # 大限·岁运; the dynamic 先天·…/后天·…/大限·岁运 labels legacy-map to 先天卦/后天卦/大限 below.
+    "heluo": ["起命", "先天卦", "后天卦", "命运篇", "大限"],
+    "generic": ["起盘信息"],
+}
+
+AI_EXPORT_FORBIDDEN_SECTIONS = {
+    "liureng": ["右侧栏目"],
+    "qimen": ["右侧栏目"],
+    "sanshiunited": ["右侧栏目"],
+}
+
+# Sections that a preset lists (mirrored verbatim from 星阙's aiExport.js) but that the HEADLESS snapshot
+# does not reliably emit — either 星阙-UI-only interactive panels (检索/查询 search boxes) or mode/data-
+# conditional sections. They are still valid export targets when present, but their ABSENCE must not mark
+# the export "dirty" (i.e. they are excluded from `missing_selected_sections`).
+AI_EXPORT_OPTIONAL_SECTIONS = {
+    # 月宿 (星阙 v2.6.4 西洋月宿)：仅恒星黄道(zodiacal=1)盘的 perchart 响应带 nakshatras，
+    # 回归黄道盘不产出 → 列为可选段，避免 tropical 盘误报 missing。
+    # 古典占星 (星阙 v2.6.7): [古典](逐曜状态/围攻/围绕) 仅本盘有 besiegement/古典字段时出;
+    # [古典格局] 仅 /astroextra/analysis 成功(astrochart/astrochart_like)时出 → 列可选段, 优雅降级不误报 missing。
+    "astrochart": ["月宿", "古典", "古典格局"],
+    "astrochart_like": ["月宿", "古典", "古典格局"],
+    "indiachart": ["月宿", "古典"],
+    "mundane": ["古典"],
+    # 六壬 Phase4 (星阙 v2.5.x)：毕法（已命中）只在 refContext 成功且有命中时出；占断向导只在指定占类
+    # (zhanCategory ≠ general) 时出 → 两者列为可选段，避免无命中/未指定占类时误报 missing。
+    "liureng": ["毕法（已命中）", "占断向导"],
+    # 紫微 P2 (星阙 v2.6.x)：命中格局随 jar 返回的 patterns；本盘未命中所收录格局时为空 → 可选段。
+    "ziwei": ["命中格局"],
+    # 择日: 用事专属 only when the topic rule-pack produced items; 应期 is never emitted by 星阙's builder.
+    "election": ["用事专属", "应期"],
+    # 七政四余: 政余格局 = Moira 格局 DSL（~280 行子系统），headless 版未移植 → 可选段（如实标出）。
+    "guolao": ["政余格局"],
+    # 多重回归: 单段技法；某体若无返照数据则该体行不出，三体皆空时整段不出 → 列为可选段，避免误报 missing。
+    "extrareturns": ["多重回归"],
+    # 八字: 大运段仅在 direction 计算成功(起运/性别齐备)时出 → 可选；多运限·指定时段是前端「指定时间窗」
+    # 功能，后端 /bazi 响应不带该数据、skill 无该输入入口 → 未接入，列可选段(如实标出，不伪造)。
+    "bazi": ["大运", "多运限·指定时段"],
+    # 太乙 (星阙 v2.6.x): kintaiyi 后端返回的 太乙解读段（起盘信息/太乙盘/十六宫标记为 builder 恒出，
+    # 进 preset）。其余按起局式/选项条件出（命法/博弈/某些式不出）→ 列为可选段，避免随式误报 missing。
+    "taiyi": ["太乙诸神", "风游", "主客定算", "八门与宿曜", "十二神", "断法", "七大兵法", "博弈", "命法", "命宫行限"],
+    # 神数 kinastro-* — UI search panels + mode/data-conditional sections.
+    "tieban": ["算盘定部", "计算摘要", "六亲佐证"],
+    "beiji": ["条文检索"],
+    "chunzi": ["代码查询", "批量代码查询", "关键词检索", "多标签检索"],
+    "qizhengkin": ["流时", "命宫解读"],
+}
+
+
+def normalize_planet_info_setting(raw: dict[str, Any] | None) -> dict[str, int]:
+    value = raw or {}
+    return {
+        "showHouse": 1 if value.get("showHouse") in {1, True} else 0,
+        "showRuler": 1 if value.get("showRuler") in {1, True} else 0,
+    }
+
+
+def normalize_astro_meaning_setting(raw: dict[str, Any] | None) -> dict[str, int]:
+    value = raw or {}
+    return {"enabled": 1 if value.get("enabled") in {1, True} else 0}
+
+
+def normalize_section_title(title: str | None) -> str:
+    text = f"{title or ''}".strip()
+    if not text:
+        return ""
+    if text.startswith("基于") and text.endswith("推运"):
+        return "基于X点推运"
+    if text.startswith("基于") and text.endswith("起运"):
+        return "基于X起运"
+    return text
+
+
+def map_legacy_section_title(key: str, title: str | None) -> str:
+    normalized = normalize_section_title(title)
+    if key == "tongshefa":
+        if normalized == "互潜":
+            return "潜藏"
+        if normalized == "错亲":
+            return "亲和"
+        if normalized == "统摄法起盘":
+            return "本卦"
+    elif key == "qimen":
+        if normalized == "八宫":
+            return "八宫详解"
+        if normalized == "演卦":
+            return "奇门演卦"
+        if normalized == "九宫":
+            return "九宫方盘"
+        if normalized in {"右侧栏目", "概览"}:
+            return "盘面要素"
+    elif key == "liureng":
+        if normalized.startswith("三传("):
+            return "三传"
+    elif key == "sanshiunited":
+        if normalized == "状态":
+            return "概览"
+        if normalized == "八宫":
+            return "八宫详解"
+        if normalized == "大格":
+            return "六壬大格"
+        if normalized == "小局":
+            return "六壬小局"
+        if normalized == "参考":
+            return "六壬参考"
+        if normalized == "六壬格局概览":
+            return "六壬概览"
+    elif key == "sixyao":
+        if normalized == "起卦方式":
+            return "卦象"
+        if normalized == "卦辞":
+            return "卦辞与断语"
+    elif key == "canping":
+        # 星阙 canpingLocal.buildSnapshotText emits the 歲運-suffixed label [大运·歲運]. Map it back to
+        # the canonical 大运 section name so the snapshot (kept byte-identical to 星阙) parses cleanly.
+        if normalized == "大运·歲運":
+            return "大运"
+    elif key == "heluo":
+        # 星阙 heluoLocal.buildSnapshotText emits dynamic section labels carrying the gua name —
+        # [先天·<卦> 元堂爻辞] / [后天·<卦> 元堂爻辞] / [大限·岁运]. Map them onto the declared aiExport
+        # sections 先天卦/后天卦/大限 (same prefix-mapping pattern 星阙 uses for liureng's 三传(…)).
+        if normalized.startswith("先天·"):
+            return "先天卦"
+        if normalized.startswith("后天·"):
+            return "后天卦"
+        if normalized == "大限·岁运":
+            return "大限"
+    return normalized
+
+
+def unique_list(items: list[str]) -> list[str]:
+    seen: set[str] = set()
+    output: list[str] = []
+    for item in items:
+        value = f"{item or ''}".strip()
+        if value and value not in seen:
+            seen.add(value)
+            output.append(value)
+    return output
+
+
+def get_meaning_setting_meta(key: str) -> dict[str, str]:
+    if key in AI_EXPORT_HOVER_MEANING_TECHNIQUES:
+        return {
+            "title": "悬浮注释（仅AI导出）：",
+            "checkbox": "在对应分段输出六壬/遁甲/占星悬浮注释",
+        }
+    if key in AI_EXPORT_ASTRO_MEANING_TECHNIQUES:
+        return {
+            "title": "占星注释（仅AI导出）：",
+            "checkbox": "在对应分段输出星/宫/座/相/希腊点释义",
+        }
+    return {"title": "", "checkbox": ""}
+
+
+def get_technique_info(key: str) -> dict[str, Any] | None:
+    base = next((item for item in AI_EXPORT_TECHNIQUES if item["key"] == key), None)
+    if base is None:
+        return None
+    meaning_meta = get_meaning_setting_meta(key)
+    supports_planet_info = key in AI_EXPORT_PLANET_INFO_TECHNIQUES
+    supports_astro_meaning = key in AI_EXPORT_ASTRO_MEANING_TECHNIQUES
+    supports_hover_meaning = key in AI_EXPORT_HOVER_MEANING_TECHNIQUES
+    return {
+        "key": base["key"],
+        "label": base["label"],
+        "preset_sections": deepcopy(AI_EXPORT_PRESET_SECTIONS.get(key, [])),
+        "forbidden_sections": deepcopy(AI_EXPORT_FORBIDDEN_SECTIONS.get(key, [])),
+        "optional_sections": deepcopy(AI_EXPORT_OPTIONAL_SECTIONS.get(key, [])),
+        "supports_planet_info": supports_planet_info,
+        "planet_info_default": deepcopy(AI_EXPORT_PLANET_INFO_DEFAULT) if supports_planet_info else None,
+        "supports_astro_meaning": supports_astro_meaning,
+        "supports_hover_meaning": supports_hover_meaning,
+        "astro_meaning_default": deepcopy(AI_EXPORT_ASTRO_MEANING_DEFAULT) if (supports_astro_meaning or supports_hover_meaning) else None,
+        "astro_meaning_title": meaning_meta["title"],
+        "astro_meaning_checkbox": meaning_meta["checkbox"],
+        "settings_template": {
+            "sections": deepcopy(AI_EXPORT_PRESET_SECTIONS.get(key, [])),
+            "planetInfo": deepcopy(AI_EXPORT_PLANET_INFO_DEFAULT) if supports_planet_info else None,
+            "astroMeaning": deepcopy(AI_EXPORT_ASTRO_MEANING_DEFAULT) if (supports_astro_meaning or supports_hover_meaning) else None,
+        },
+    }
+
+
+def build_export_registry(*, technique: str | None = None) -> dict[str, Any]:
+    techniques = [get_technique_info(item["key"]) for item in AI_EXPORT_TECHNIQUES]
+    techniques = [item for item in techniques if item is not None]
+    selected = get_technique_info(technique) if technique else None
+    return {
+        "source_of_truth": "Horosa-Web/astrostudyui/src/utils/aiExport.js",
+        "settings_key": AI_EXPORT_SETTINGS_KEY,
+        "settings_version": AI_EXPORT_SETTINGS_VERSION,
+        "section_migration_version": AI_EXPORT_SECTION_MIGRATION_VERSION,
+        "section_migration_keys": deepcopy(AI_EXPORT_SECTION_MIGRATION_KEYS),
+        "module_snapshot_prefix": MODULE_SNAPSHOT_PREFIX,
+        "jieqi_split_keys": list(JIEQI_SETTING_PRESETS.keys()),
+        "planet_info_default": deepcopy(AI_EXPORT_PLANET_INFO_DEFAULT),
+        "astro_meaning_default": deepcopy(AI_EXPORT_ASTRO_MEANING_DEFAULT),
+        "default_normalized_settings": {
+            "version": AI_EXPORT_SETTINGS_VERSION,
+            "sections": {},
+            "planetInfo": {},
+            "astroMeaning": {},
+        },
+        "techniques": techniques,
+        "selected_technique": selected,
+    }

@@ -1,0 +1,61 @@
+Use the Meihua Yishu (梅花易數) skill to divine this prediction market question.
+
+QUESTION TO DIVINE:
+==================
+Will Guillermo del Toro be nominated for Best Director at the 98th Academy Awards?
+
+CONTEXT:
+========
+Description: The Academy Awards are presented annually by the Academy of Motion Picture Arts and Sciences (AMPAS) to honor outstanding artistic and technical achievements in film. For the 98th Academy Awards in 2026, nominations are scheduled to be announced on January 22, followed by the ceremony on March 15, 2026.
+
+This market will resolve to "Yes" if the listed director is nominated for the 98th Academy Award for Best Director. If a director is not officially nominated for the Academy Award for Best Direc
+
+Current Market Data:
+- Current Probability: 37.0%
+- Trading Volume: $89,135
+- Days Until Resolution: 3
+- Expected Resolution: 2026-01-22T00:00:00+00:00
+
+Categories: General
+
+CASTING INPUTS (use any method):
+================================
+
+1. NUMBER-BASED (數字起卦):
+   - Upper trigram input: 35 → Trigram #3
+   - Lower trigram input: 14 → Trigram #6
+   - Moving line: 1
+
+2. TEXT-BASED (測字起卦):
+   - Word count: 14 → Upper trigram #6
+   - Character count: 69 → Lower trigram #5
+   - Moving line: 5
+
+3. DIRECTION-BASED (方位起卦):
+   - Category: other
+   - Direction: 東北
+   - Trigram: 艮 (#7)
+
+4. MEASUREMENT-BASED (尺寸起卦):
+   - Days until resolution: 3 → Upper #3
+   - Probability %: 37 → Lower #5
+   - Moving line: 4
+
+INSTRUCTIONS:
+=============
+1. Cast the hexagram using one or more methods above
+2. Identify: 本卦 (original), 變卦 (transformed), 互卦 (mutual)
+3. Determine 體卦 and 用卦
+4. Analyze 體用關係 (生, 剋, 比和)
+5. Consider 外應 if any context clues
+6. Provide final prediction
+
+YOUR PREDICTION (required format):
+==================================
+HEXAGRAM: [Hexagram number and Chinese name, e.g., "40 雷水解"]
+TRANSFORMED: [Transformed hexagram if applicable]
+CASTING_METHOD: [Which method(s) used]
+TI_YONG: [Brief 體用 analysis]
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences with Meihua interpretation]

@@ -1,0 +1,65 @@
+Use the Meihua Yishu (梅花易數) skill to divine this prediction market question.
+
+QUESTION TO DIVINE:
+==================
+Will Powell say "Stock Market" during January press conference?
+
+CONTEXT:
+========
+Description: Jerome Powell is currently scheduled to give an FOMC Introductory Statement and press conference on January 28, 2026, at 2:30 PM ET. This market pertains to his Introductory Statement as well as the following Q&A session.
+
+This market will resolve to "Yes" if Powell says the listed term during the FOMC Press Conference. Otherwise, this market will resolve to "No".
+
+Any usage of the word regardless of context will count toward the resolution of this market.
+
+Pluralization/possessive of the word w
+
+Current Market Data:
+- Current Probability: 26.0%
+- Trading Volume: $7,618
+- Days Until Resolution: 9
+- Expected Resolution: 2026-01-28T00:00:00+00:00
+
+Categories: General
+
+CASTING INPUTS (use any method):
+================================
+
+1. NUMBER-BASED (數字起卦):
+   - Upper trigram input: 18 → Trigram #2
+   - Lower trigram input: 9 → Trigram #1
+   - Moving line: 3
+
+2. TEXT-BASED (測字起卦):
+   - Word count: 9 → Upper trigram #1
+   - Character count: 55 → Lower trigram #7
+   - Moving line: 4
+
+3. DIRECTION-BASED (方位起卦):
+   - Category: other
+   - Direction: 東北
+   - Trigram: 艮 (#7)
+
+4. MEASUREMENT-BASED (尺寸起卦):
+   - Days until resolution: 9 → Upper #1
+   - Probability %: 26 → Lower #2
+   - Moving line: 5
+
+INSTRUCTIONS:
+=============
+1. Cast the hexagram using one or more methods above
+2. Identify: 本卦 (original), 變卦 (transformed), 互卦 (mutual)
+3. Determine 體卦 and 用卦
+4. Analyze 體用關係 (生, 剋, 比和)
+5. Consider 外應 if any context clues
+6. Provide final prediction
+
+YOUR PREDICTION (required format):
+==================================
+HEXAGRAM: [Hexagram number and Chinese name, e.g., "40 雷水解"]
+TRANSFORMED: [Transformed hexagram if applicable]
+CASTING_METHOD: [Which method(s) used]
+TI_YONG: [Brief 體用 analysis]
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences with Meihua interpretation]

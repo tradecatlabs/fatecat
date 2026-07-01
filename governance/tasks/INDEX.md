@@ -12,3 +12,5 @@
 | 0004 | bazi-professional-system-100 | Done | P0 | 把 FateCat 八字体系从当前工程可验收状态推进到专业八字体系 100% 验收口径：基础排盘、历法时间、证据解释、常规分析、高级格局、合化成败、用神裁决、岁运专题、Golden 回归和样本外 benchmark 全部具备可追溯规则、可验证测试、失败边界和发布门禁。 | 0004-bazi-professional-system-100/ |
 
 | 0005 | bazi-capability-100-roadmap | Blocked | P0 | 调研并设计把八字功能十个完善度维度从当前基线推进到100%的任务树、验收门禁和执行波次计划。当前被真实 corpus 数量门禁阻塞。 | 0005-bazi-capability-100-roadmap/ |
+
+| 0006 | business-logic-audit-remediation | Done | P0 | 修复 REVIEW-0001 业务代码业务模型与业务逻辑审计发现的阻塞级和警告级问题，恢复 fate-core 领域边界、业务选项语义一致性、入口真相源一致性、坐标边界校验和治理汇报准确性。 | 0006-business-logic-audit-remediation/ |

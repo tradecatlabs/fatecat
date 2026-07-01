@@ -1,0 +1,21 @@
+{
+  "kind": "collectionType",
+  "collectionName": "sign_ins",
+  "info": {
+    "singularName": "sign-in",
+    "pluralName": "sign-ins",
+    "displayName": "签到表",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "sign_in_uid": {
+      "type": "string"
+    },
+    "sign_in_date_list": {
+      "type": "json"
+    }
+  }
+}

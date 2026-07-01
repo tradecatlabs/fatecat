@@ -1,3 +1,12 @@
+---
+id: ARCHIVE-ARCHIVE-TASKS-PROJECT-HISTORY-0002-BAZI-ZIWEI-BENCHMARK-HARDENING-TODO
+type: archive
+status: archived
+owner: engineering
+created: 2026-06-17
+last_reviewed: 2026-06-17
+review_cycle: P365D
+---
 # Execution Checklist
 [x] TP-01.01 | P0 | 建立标杆来源登记表 | Verify: 文档列出来源、体系、可对标点、复核 URL 和版权边界。 | Gate: 不得复制商业产品文案或私有算法。 | Parallelizable: Yes
 [x] TP-01.02 | P0 | 固化当前 bazi/ziwei 能力基线 | Verify: 生成当前能力矩阵并链接到 registry/profile/tests。 | Gate: 基线必须来自仓库文件和命令输出。 | Parallelizable: Yes

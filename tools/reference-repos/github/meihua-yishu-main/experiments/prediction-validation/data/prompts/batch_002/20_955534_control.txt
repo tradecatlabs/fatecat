@@ -1,0 +1,30 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will the Doomsday Clock move by ten seconds or more?
+
+Description: The Doomsday Clock is a symbolic clock face that represents the likelihood of a man-made global catastrophe, maintained since 1947 by the members of the Bulletin of the Atomic Scientists. The closer the clock is set to midnight, the closer the scientists believe the world is to global disaster.
+
+This market will resolve to "Yes" if the Doomsday Clock is moved by ten seconds or more in either direction (i.e. closer than 80 seconds to midnight, or farther than 98 seconds to midnight, see https://t
+
+Current Market Data:
+- Current Probability: 27.0%
+- Trading Volume: $7,954
+- Liquidity: $1487
+- Days Until Resolution: 5
+- Expected Resolution: 2026-01-31T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

@@ -1,0 +1,496 @@
+{
+  "selection_timestamp": "2026-01-18T05:56:09.555900",
+  "count": 10,
+  "markets": [
+    {
+      "market_id": "614397",
+      "title": "Will Elle Fanning be nominated for Best Supporting Actress at the 98th Academy Awards?",
+      "description": "The Academy Awards are presented annually by the Academy of Motion Picture Arts and Sciences (AMPAS) to honor outstanding artistic and technical achievements in film. For the 98th Academy Awards in 2026, nominations are scheduled to be announced on January 22, followed by the ceremony on March 15, 2026.\n\nThis market will resolve to \"Yes\" if the listed actress is nominated for the 98th Academy Award for Best Supporting Actress. If an actress is not officially nominated for the Academy Award for Best Supporting Actress when the 2026 nominees are announced, the corresponding market will immediately resolve to \"No\".\n\nIf, for any reason, no nominations are declared by March 15, 2026, 11:59 PM ET,  this market will resolve to \"No\".\n\nThe primary resolution source for this market will be official information from the Academy Awards and AMPAS, including data from their website (e.g., https://www.oscars.org/) and the live broadcast of the award ceremony; however, a consensus of credible reporting may also be used.",
+      "slug": "will-elle-fanning-be-nominated-for-best-supporting-actress-at-the-98th-academy-awards",
+      "core_data": {
+        "current_prob": 0.24,
+        "volume_usd": 77006.182086,
+        "liquidity": 921.1407,
+        "end_date": "2026-01-22T00:00:00+00:00",
+        "days_until_resolution": 3
+      },
+      "context": {
+        "categories": [],
+        "sentiment": "neutral",
+        "active": true,
+        "closed": false,
+        "enable_order_book": true
+      },
+      "meihua_inputs": {
+        "number_based": {
+          "upper_input": 6,
+          "upper_trigram": 6,
+          "lower_input": 14,
+          "lower_trigram": 6,
+          "line": 2
+        },
+        "text_based": {
+          "word_count": 14,
+          "char_count": 73,
+          "upper_trigram": 6,
+          "lower_trigram": 1,
+          "line": 3
+        },
+        "direction_based": {
+          "category": "other",
+          "direction": "東北",
+          "trigram_name": "艮",
+          "trigram_number": 7
+        },
+        "measurement_based": {
+          "days": 3,
+          "prob_percent": 24,
+          "upper_trigram": 3,
+          "lower_trigram": 8,
+          "line": 3
+        }
+      }
+    },
+    {
+      "market_id": "1032318",
+      "title": "Will Silver (SI) settle over $90 on the final trading day of January 2026?",
+      "description": "This market will resolve to \"Yes\" if the official CME settlement price for the Active Month of Silver futures on the final trading day of January 2026 is higher than the listed price. Otherwise, the market will resolve to \"No\".\n\nFor CME Silver (SI) futures contracts, the Active Month is the nearest of CME's designated delivery-cycle months (March, May, July, September, December) that is not the spot month. The Active Month becomes a non-active month effective on its First Position Date, at which point the next eligible contract month becomes the Active Month.\n\nOnly the Active Month's official settlement price published by CME Group will be considered. Intraday trades, highs, lows, bids, offers, midpoint values, or indicative prices do not count.\n\nNote that the settlement price may differ from the last traded price. CME's methodology to determine the settlement price can vary by commodity and contract.\n\nOnly days during January on which CME publishes an official settlement price for the Active Month will be included. Days without settlement prices (weekends, holidays, or market closures) are ignored.\n\nThis market will resolve based on the settlement price as it appears on the CME settlement page at the time it is first published for that trading day, regardless of any later corrections or updates.\n\nThe resolution source for this market is the CME Group website — specifically, the daily \"Settlement\" price for the Active Month of Silver (SI) futures.",
+      "slug": "si-above-90-jan-2026",
+      "core_data": {
+        "current_prob": 0.49,
+        "volume_usd": 9431.480383,
+        "liquidity": 1485.2235,
+        "end_date": "2026-01-31T18:30:00+00:00",
+        "days_until_resolution": 13
+      },
+      "context": {
+        "categories": [],
+        "sentiment": "neutral",
+        "active": true,
+        "closed": false,
+        "enable_order_book": true
+      },
+      "meihua_inputs": {
+        "number_based": {
+          "upper_input": 31,
+          "upper_trigram": 7,
+          "lower_input": 14,
+          "lower_trigram": 6,
+          "line": 3
+        },
+        "text_based": {
+          "word_count": 14,
+          "char_count": 61,
+          "upper_trigram": 6,
+          "lower_trigram": 5,
+          "line": 3
+        },
+        "direction_based": {
+          "category": "other",
+          "direction": "東北",
+          "trigram_name": "艮",
+          "trigram_number": 7
+        },
+        "measurement_based": {
+          "days": 13,
+          "prob_percent": 49,
+          "upper_trigram": 5,
+          "lower_trigram": 1,
+          "line": 2
+        }
+      }
+    },
+    {
+      "market_id": "638650",
+      "title": "Will the chopsticks catch SpaceX Starship Flight Test 12 Superheavy booster?",
+      "description": "This market will resolve to \"Yes\" if the booster for the twelfth Starship-SuperHeavy test is successfully caught by the chopsticks on the Orbital Launch Tower during its landing attempt. Otherwise, this market will resolve to \"No\".\n\nA successful catch is defined as the chopsticks capturing and supporting the booster without it falling to the ground or causing catastrophic damage during the landing process.\n\nThis market pertains to the twelfth Starship launch. If the rocket lifts off the pad, it will be considered the twelfth Starship launch, and this market will resolve based on it. If the rocket does not lift off the pad, it will not be considered the twelfth launch, and this market will stay open until the twelfth launch has occurred. If the twelfth launch has not occurred by April 30, 2026, 11:59 PM ET, this market will resolve to \"No\".\n\nThe resolution source for this market will be official video provided by SpaceX (https://www.youtube.com/c/SpaceX), as well as secondary video feeds and/or written reports if necessary.",
+      "slug": "will-the-chopsticks-catch-spacex-starship-flight-test-12-superheavy-booster-488-561",
+      "core_data": {
+        "current_prob": 0.19,
+        "volume_usd": 9892.14863,
+        "liquidity": 850.7645,
+        "end_date": "2026-01-31T00:00:00+00:00",
+        "days_until_resolution": 12
+      },
+      "context": {
+        "categories": [],
+        "sentiment": "neutral",
+        "active": true,
+        "closed": false,
+        "enable_order_book": true
+      },
+      "meihua_inputs": {
+        "number_based": {
+          "upper_input": 92,
+          "upper_trigram": 4,
+          "lower_input": 11,
+          "lower_trigram": 3,
+          "line": 1
+        },
+        "text_based": {
+          "word_count": 11,
+          "char_count": 66,
+          "upper_trigram": 3,
+          "lower_trigram": 2,
+          "line": 5
+        },
+        "direction_based": {
+          "category": "other",
+          "direction": "東北",
+          "trigram_name": "艮",
+          "trigram_number": 7
+        },
+        "measurement_based": {
+          "days": 12,
+          "prob_percent": 19,
+          "upper_trigram": 4,
+          "lower_trigram": 3,
+          "line": 1
+        }
+      }
+    },
+    {
+      "market_id": "1004841",
+      "title": "Will there be seven or eight announced new U.S. armed forces strikes against drug boats by January 31, 2026?",
+      "description": "This market will resolve according to the number of distinct vessels that Donald Trump, the U.S. government, or U.S. armed forces announce were struck by U.S. armed forces while designated as narco-terrorist targets between market creation and January 31, 2026, at 11:59 PM ET.\n\nAny announcement made within this market's timeframe of a qualifying, previously unannounced strike will count, regardless of whether the strike occurred within this market's timeframe.\n\nA qualifying \"strike\" is defined as the use of aerial bombs, drones, naval guns, artillery, or missiles (including cruise or ballistic missiles) launched by US military forces at a qualifying watercraft that is officially acknowledged by the US government or a consensus of credible reporting.\n\nA boarding or the use of small arms fire will not qualify.\n\nThe resolution source will be official information from the US government or armed forces; however, a consensus of credible reporting will also be used.",
+      "slug": "will-there-be-seven-or-eight-announced-new-us-armed-forces-strikes-against-drug-boats-by-january-31-2026",
+      "core_data": {
+        "current_prob": 0.176,
+        "volume_usd": 74729.96697,
+        "liquidity": 1357.75585,
+        "end_date": "2026-01-31T00:00:00+00:00",
+        "days_until_resolution": 12
+      },
+      "context": {
+        "categories": [],
+        "sentiment": "neutral",
+        "active": true,
+        "closed": false,
+        "enable_order_book": true
+      },
+      "meihua_inputs": {
+        "number_based": {
+          "upper_input": 29,
+          "upper_trigram": 5,
+          "lower_input": 19,
+          "lower_trigram": 3,
+          "line": 6
+        },
+        "text_based": {
+          "word_count": 19,
+          "char_count": 90,
+          "upper_trigram": 3,
+          "lower_trigram": 2,
+          "line": 1
+        },
+        "direction_based": {
+          "category": "other",
+          "direction": "東北",
+          "trigram_name": "艮",
+          "trigram_number": 7
+        },
+        "measurement_based": {
+          "days": 12,
+          "prob_percent": 17,
+          "upper_trigram": 4,
+          "lower_trigram": 1,
+          "line": 5
+        }
+      }
+    },
+    {
+      "market_id": "618531",
+      "title": "Will Ethan Hawke be nominated for Best Actor at the 98th Academy Awards?",
+      "description": "The Academy Awards are presented annually by the Academy of Motion Picture Arts and Sciences (AMPAS) to honor outstanding artistic and technical achievements in film. For the 98th Academy Awards in 2026, nominations are scheduled to be announced on January 22, followed by the ceremony on March 15, 2026.\n\nThis market will resolve to \"Yes\" if the listed actor is nominated for the 98th Academy Award for Best Actor. If a actor is not officially nominated for the Academy Award for Best Actor when the 2026 nominees are announced, the corresponding market will immediately resolve to \"No\".\n\nIf, for any reason, no nominations are declared by March 15, 2026, 11:59 PM ET,  this market will resolve to \"No\".\n\nThe primary resolution source for this market will be official information from the Academy Awards and AMPAS, including data from their website (e.g., https://www.oscars.org/) and the live broadcast of the award ceremony; however, a consensus of credible reporting may also be used.",
+      "slug": "will-ethan-hawke-be-nominated-for-best-actor-at-the-98th-academy-awards",
+      "core_data": {
+        "current_prob": 0.76,
+        "volume_usd": 8781.080435,
+        "liquidity": 3579.0836,
+        "end_date": "2026-01-22T00:00:00+00:00",
+        "days_until_resolution": 3
+      },
+      "context": {
+        "categories": [],
+        "sentiment": "neutral",
+        "active": true,
+        "closed": false,
+        "enable_order_book": true
+      },
+      "meihua_inputs": {
+        "number_based": {
+          "upper_input": 81,
+          "upper_trigram": 1,
+          "lower_input": 13,
+          "lower_trigram": 5,
+          "line": 4
+        },
+        "text_based": {
+          "word_count": 13,
+          "char_count": 60,
+          "upper_trigram": 5,
+          "lower_trigram": 4,
+          "line": 1
+        },
+        "direction_based": {
+          "category": "other",
+          "direction": "東北",
+          "trigram_name": "艮",
+          "trigram_number": 7
+        },
+        "measurement_based": {
+          "days": 3,
+          "prob_percent": 76,
+          "upper_trigram": 3,
+          "lower_trigram": 4,
+          "line": 1
+        }
+      }
+    },
+    {
+      "market_id": "614713",
+      "title": "Will Guillermo del Toro be nominated for Best Director at the 98th Academy Awards?",
+      "description": "The Academy Awards are presented annually by the Academy of Motion Picture Arts and Sciences (AMPAS) to honor outstanding artistic and technical achievements in film. For the 98th Academy Awards in 2026, nominations are scheduled to be announced on January 22, followed by the ceremony on March 15, 2026.\n\nThis market will resolve to \"Yes\" if the listed director is nominated for the 98th Academy Award for Best Director. If a director is not officially nominated for the Academy Award for Best Director when the 2026 nominees are announced, the corresponding market will immediately resolve to \"No\".\n\nIf, for any reason, no nominations are declared by March 15, 2026, 11:59 PM ET,  this market will resolve to \"No\".\n\nThe primary resolution source for this market will be official information from the Academy Awards and AMPAS, including data from their website (e.g., https://www.oscars.org/) and the live broadcast of the award ceremony; however, a consensus of credible reporting may also be used.",
+      "slug": "will-guillermo-del-toro-be-nominated-for-best-director-at-the-98th-academy-awards",
+      "core_data": {
+        "current_prob": 0.37,
+        "volume_usd": 89135.489532,
+        "liquidity": 4906.1089,
+        "end_date": "2026-01-22T00:00:00+00:00",
+        "days_until_resolution": 3
+      },
+      "context": {
+        "categories": [],
+        "sentiment": "neutral",
+        "active": true,
+        "closed": false,
+        "enable_order_book": true
+      },
+      "meihua_inputs": {
+        "number_based": {
+          "upper_input": 35,
+          "upper_trigram": 3,
+          "lower_input": 14,
+          "lower_trigram": 6,
+          "line": 1
+        },
+        "text_based": {
+          "word_count": 14,
+          "char_count": 69,
+          "upper_trigram": 6,
+          "lower_trigram": 5,
+          "line": 5
+        },
+        "direction_based": {
+          "category": "other",
+          "direction": "東北",
+          "trigram_name": "艮",
+          "trigram_number": 7
+        },
+        "measurement_based": {
+          "days": 3,
+          "prob_percent": 37,
+          "upper_trigram": 3,
+          "lower_trigram": 5,
+          "line": 4
+        }
+      }
+    },
+    {
+      "market_id": "802378",
+      "title": "Will Lauri Markkanen be traded this season?",
+      "description": "This market will resolve to \"Yes\" if the listed NBA player is traded from their current team to another NBA team before the 2025-2026 NBA trade deadline. Otherwise, this market will resolve to \"No\".\n\nThe NBA trade deadline for the 2025-2026 season is scheduled for February 5, 2026.\n\nThe resolution source for this market will be official information from the NBA; however a consensus of credible reporting may also be used.",
+      "slug": "will-lauri-markkanen-be-traded-this-season",
+      "core_data": {
+        "current_prob": 0.16,
+        "volume_usd": 89305.521372,
+        "liquidity": 1805.2411,
+        "end_date": "2026-02-05T00:00:00+00:00",
+        "days_until_resolution": 17
+      },
+      "context": {
+        "categories": [],
+        "sentiment": "neutral",
+        "active": true,
+        "closed": false,
+        "enable_order_book": true
+      },
+      "meihua_inputs": {
+        "number_based": {
+          "upper_input": 5,
+          "upper_trigram": 5,
+          "lower_input": 7,
+          "lower_trigram": 7,
+          "line": 6
+        },
+        "text_based": {
+          "word_count": 7,
+          "char_count": 37,
+          "upper_trigram": 7,
+          "lower_trigram": 5,
+          "line": 2
+        },
+        "direction_based": {
+          "category": "other",
+          "direction": "東北",
+          "trigram_name": "艮",
+          "trigram_number": 7
+        },
+        "measurement_based": {
+          "days": 17,
+          "prob_percent": 16,
+          "upper_trigram": 1,
+          "lower_trigram": 8,
+          "line": 3
+        }
+      }
+    },
+    {
+      "market_id": "1140417",
+      "title": "Will the Los Angeles Rams win the Super Bowl?",
+      "description": "This market will resolve according to the stage of elimination for the Los Angeles Rams in the 2025–26 NFL Playoffs.\n\nThe market will immediately resolve once the Los Angeles Rams’ stage of elimination can be confirmed.\n\nIf the Los Angeles Rams’ stage of elimination has not been confirmed by February 22, 2026, 11:59 PM ET, this market will resolve to “Other.”\n\nThe resolution source for this market will be official information from the NFL.",
+      "slug": "will-the-los-angeles-rams-win-the-super-bowl",
+      "core_data": {
+        "current_prob": 0.19,
+        "volume_usd": 9430.46,
+        "liquidity": 1430.2967,
+        "end_date": "2026-02-22T23:55:00+00:00",
+        "days_until_resolution": 35
+      },
+      "context": {
+        "categories": [],
+        "sentiment": "neutral",
+        "active": true,
+        "closed": false,
+        "enable_order_book": true
+      },
+      "meihua_inputs": {
+        "number_based": {
+          "upper_input": 30,
+          "upper_trigram": 6,
+          "lower_input": 9,
+          "lower_trigram": 1,
+          "line": 3
+        },
+        "text_based": {
+          "word_count": 9,
+          "char_count": 37,
+          "upper_trigram": 1,
+          "lower_trigram": 5,
+          "line": 4
+        },
+        "direction_based": {
+          "category": "other",
+          "direction": "東北",
+          "trigram_name": "艮",
+          "trigram_number": 7
+        },
+        "measurement_based": {
+          "days": 35,
+          "prob_percent": 19,
+          "upper_trigram": 3,
+          "lower_trigram": 3,
+          "line": 6
+        }
+      }
+    },
+    {
+      "market_id": "1032319",
+      "title": "Will Silver (SI) settle over $85 on the final trading day of January 2026?",
+      "description": "This market will resolve to \"Yes\" if the official CME settlement price for the Active Month of Silver futures on the final trading day of January 2026 is higher than the listed price. Otherwise, the market will resolve to \"No\".\n\nFor CME Silver (SI) futures contracts, the Active Month is the nearest of CME's designated delivery-cycle months (March, May, July, September, December) that is not the spot month. The Active Month becomes a non-active month effective on its First Position Date, at which point the next eligible contract month becomes the Active Month.\n\nOnly the Active Month's official settlement price published by CME Group will be considered. Intraday trades, highs, lows, bids, offers, midpoint values, or indicative prices do not count.\n\nNote that the settlement price may differ from the last traded price. CME's methodology to determine the settlement price can vary by commodity and contract.\n\nOnly days during January on which CME publishes an official settlement price for the Active Month will be included. Days without settlement prices (weekends, holidays, or market closures) are ignored.\n\nThis market will resolve based on the settlement price as it appears on the CME settlement page at the time it is first published for that trading day, regardless of any later corrections or updates.\n\nThe resolution source for this market is the CME Group website — specifically, the daily \"Settlement\" price for the Active Month of Silver (SI) futures.",
+      "slug": "si-above-85-jan-2026",
+      "core_data": {
+        "current_prob": 0.67,
+        "volume_usd": 7180.384363,
+        "liquidity": 988.5895,
+        "end_date": "2026-01-31T18:30:00+00:00",
+        "days_until_resolution": 13
+      },
+      "context": {
+        "categories": [],
+        "sentiment": "neutral",
+        "active": true,
+        "closed": false,
+        "enable_order_book": true
+      },
+      "meihua_inputs": {
+        "number_based": {
+          "upper_input": 80,
+          "upper_trigram": 8,
+          "lower_input": 14,
+          "lower_trigram": 6,
+          "line": 4
+        },
+        "text_based": {
+          "word_count": 14,
+          "char_count": 61,
+          "upper_trigram": 6,
+          "lower_trigram": 5,
+          "line": 3
+        },
+        "direction_based": {
+          "category": "other",
+          "direction": "東北",
+          "trigram_name": "艮",
+          "trigram_number": 7
+        },
+        "measurement_based": {
+          "days": 13,
+          "prob_percent": 67,
+          "upper_trigram": 5,
+          "lower_trigram": 3,
+          "line": 2
+        }
+      }
+    },
+    {
+      "market_id": "1097263",
+      "title": "Nicolás Maduro released from custody by December 31, 2026?",
+      "description": "This market will resolve to \"Yes\" if Nicolás Maduro is released from custody by the listed date, 11:59 PM ET. Otherwise, this market will resolve to \"No\".\n\nIf Nicolás Maduro is released but remains under house arrest, the market will still resolve to \"Yes\".\n\nIf Nicolás Maduro is released on parole, bond, or any other condition that results in them leaving state custody, the market will resolve to \"Yes\".\n\nTransporting Nicolás Maduro to another location of custody (e.g., a different prison, court, or hospital within the correctional system) will not suffice to resolve this market to \"Yes\". \n\nTemporary outings from prison for purposes such as testifying in court or before Congress, while still under the custody of correctional authorities, will not count as a release.\n\nThe primary resolution source for this market will be official information from government authorities or corrections departments; however, a consensus of credible reporting may also be used.",
+      "slug": "nicols-maduro-released-from-custody-by-december-31-2026",
+      "core_data": {
+        "current_prob": 0.16,
+        "volume_usd": 94748.16531,
+        "liquidity": 21881.1053,
+        "end_date": "2026-01-31T00:00:00+00:00",
+        "days_until_resolution": 12
+      },
+      "context": {
+        "categories": [],
+        "sentiment": "neutral",
+        "active": true,
+        "closed": false,
+        "enable_order_book": true
+      },
+      "meihua_inputs": {
+        "number_based": {
+          "upper_input": 48,
+          "upper_trigram": 8,
+          "lower_input": 9,
+          "lower_trigram": 1,
+          "line": 3
+        },
+        "text_based": {
+          "word_count": 9,
+          "char_count": 50,
+          "upper_trigram": 1,
+          "lower_trigram": 2,
+          "line": 5
+        },
+        "direction_based": {
+          "category": "other",
+          "direction": "東北",
+          "trigram_name": "艮",
+          "trigram_number": 7
+        },
+        "measurement_based": {
+          "days": 12,
+          "prob_percent": 16,
+          "upper_trigram": 4,
+          "lower_trigram": 8,
+          "line": 4
+        }
+      }
+    }
+  ]
+}

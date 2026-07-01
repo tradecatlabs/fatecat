@@ -34,6 +34,15 @@ def _load_csv():
 _load_csv()
 
 
+def _validate_coordinates(lng: float, lat: float) -> tuple[float, float]:
+    """校验经纬度物理范围，禁止非法坐标进入排盘链路。"""
+    if not -180 <= lng <= 180:
+        raise ValueError("经度必须在 -180 到 180 之间")
+    if not -90 <= lat <= 90:
+        raise ValueError("纬度必须在 -90 到 90 之间")
+    return lng, lat
+
+
 def _normalized_queries(query: str) -> list[str]:
     """构造若干查询关键词，优先精确（县区名），再回退原文本"""
     q = query.strip()
@@ -175,14 +184,14 @@ def get(name: str) -> tuple[float, float]:
     # 允许直接传入坐标字符串：lng,lat
     m = re.match(r"^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$", name)
     if m:
-        return float(m.group(1)), float(m.group(2))
+        return _validate_coordinates(float(m.group(1)), float(m.group(2)))
 
     if name in COMMON_CITIES:
-        return COMMON_CITIES[name]
+        return _validate_coordinates(*COMMON_CITIES[name])
 
     coords = get_coords(name)
     if coords:
-        return coords
+        return _validate_coordinates(*coords)
 
     raise ValueError(f"地点无法识别: {name}")
 

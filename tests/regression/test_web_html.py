@@ -317,6 +317,24 @@ def test_web_page_rejects_retired_report_systems():
     assert "# 袁天罡称骨报告" not in bone_response.text
 
 
+def test_web_page_rejects_out_of_range_direct_coordinates():
+    response = TestClient(app).get(
+        "/web",
+        params={
+            "birthDate": "1990-01-01",
+            "birthTime": "08:00",
+            "birthPlace": "999,999",
+            "gender": "male",
+            "name": "测试样本",
+        },
+    )
+
+    assert response.status_code == 200
+    assert_web_production_layout_html(response.text)
+    assert '<h2 id="errors">错误</h2>' in response.text
+    assert "经度必须在 -180 到 180 之间" in response.text
+
+
 def test_web_page_displays_submitted_birth_place_in_frontend():
     response = TestClient(app).get(
         "/web",

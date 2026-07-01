@@ -1,0 +1,64 @@
+Use the Meihua Yishu (梅花易數) skill to divine this prediction market question.
+
+QUESTION TO DIVINE:
+==================
+Will Paris Saint-Germain FC win on 2026-01-28?
+
+CONTEXT:
+========
+Description: In the upcoming game, scheduled for January 28, 2026
+If Paris Saint-Germain FC wins, this market will resolve to "Yes".
+Otherwise, this market will resolve to "No".
+If the game is postponed, this market will remain open until the game has been completed.
+If the game is canceled entirely, with no make-up game, this market will resolve "No".
+This market refers only to the outcome within the first 90 minutes of regular play plus stoppage time.
+
+Current Market Data:
+- Current Probability: 66.0%
+- Trading Volume: $8,727
+- Days Until Resolution: 3
+- Expected Resolution: 2026-01-28T20:00:00+00:00
+
+Categories: General
+
+CASTING INPUTS (use any method):
+================================
+
+1. NUMBER-BASED (數字起卦):
+   - Upper trigram input: 26 → Trigram #2
+   - Lower trigram input: 7 → Trigram #7
+   - Moving line: 3
+
+2. TEXT-BASED (測字起卦):
+   - Word count: 7 → Upper trigram #7
+   - Character count: 40 → Lower trigram #8
+   - Moving line: 5
+
+3. DIRECTION-BASED (方位起卦):
+   - Category: other
+   - Direction: 東北
+   - Trigram: 艮 (#7)
+
+4. MEASUREMENT-BASED (尺寸起卦):
+   - Days until resolution: 3 → Upper #3
+   - Probability %: 66 → Lower #2
+   - Moving line: 3
+
+INSTRUCTIONS:
+=============
+1. Cast the hexagram using one or more methods above
+2. Identify: 本卦 (original), 變卦 (transformed), 互卦 (mutual)
+3. Determine 體卦 and 用卦
+4. Analyze 體用關係 (生, 剋, 比和)
+5. Consider 外應 if any context clues
+6. Provide final prediction
+
+YOUR PREDICTION (required format):
+==================================
+HEXAGRAM: [Hexagram number and Chinese name, e.g., "40 雷水解"]
+TRANSFORMED: [Transformed hexagram if applicable]
+CASTING_METHOD: [Which method(s) used]
+TI_YONG: [Brief 體用 analysis]
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences with Meihua interpretation]

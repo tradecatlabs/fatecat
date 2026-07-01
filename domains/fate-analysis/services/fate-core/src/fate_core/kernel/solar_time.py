@@ -10,7 +10,7 @@ import subprocess
 from datetime import datetime, timedelta
 from typing import Any
 
-from fate_core.support.paths import TELEGRAM_TRUE_SOLAR_TIME_JS
+from fate_core.support.paths import FATE_TRUE_SOLAR_TIME_JS
 from fate_core.support.timezone import ensure_cn
 
 
@@ -21,7 +21,7 @@ def calc_true_solar_time(dt: datetime, longitude: float) -> datetime:
 
 def calculate_true_solar_time(dt: datetime, longitude: float, latitude: float | None = None) -> datetime:
     """调用 paipan-master 原生脚本计算真太阳时，失败即抛错。"""
-    script = TELEGRAM_TRUE_SOLAR_TIME_JS
+    script = FATE_TRUE_SOLAR_TIME_JS
     if not script.exists():
         raise RuntimeError("真太阳时脚本缺失: true_solar_time.js")
     latitude_value = latitude if latitude is not None else 0
@@ -54,7 +54,7 @@ def calculate_true_solar_time_detail(
     dt: datetime, longitude: float, latitude: float
 ) -> tuple[datetime, dict[str, Any], dict[str, Any]]:
     """调用 paipan-master 原生脚本计算真太阳时，并返回分解信息。"""
-    script = TELEGRAM_TRUE_SOLAR_TIME_JS
+    script = FATE_TRUE_SOLAR_TIME_JS
     if not script.exists():
         raise RuntimeError("真太阳时脚本缺失: true_solar_time.js")
     try:

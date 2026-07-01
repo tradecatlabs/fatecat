@@ -1,0 +1,65 @@
+Use the Meihua Yishu (梅花易數) skill to divine this prediction market question.
+
+QUESTION TO DIVINE:
+==================
+UFC 324: Yadong vs. O'Malley (Bantamweight, Main Card)
+
+CONTEXT:
+========
+Description: This market will resolve to "Yadong" if Song Yadong is officially declared the winner of the fight against Sean O'Malley at UFC 324: Gaethje vs. Pimblett, scheduled for January 24, 2026.
+
+It will resolve to "O'Malley" if Sean O'Malley is officially declared the winner.
+
+If the fight is declared a draw or technical draw, ruled a No Contest, not scored, canceled, or postponed beyond February 7, 2026, this market will resolve "50-50."
+
+The resolution source for this market will be official informat
+
+Current Market Data:
+- Current Probability: 36.0%
+- Trading Volume: $74,094
+- Days Until Resolution: 6
+- Expected Resolution: 2026-01-25T04:59:59.999000+00:00
+
+Categories: General
+
+CASTING INPUTS (use any method):
+================================
+
+1. NUMBER-BASED (數字起卦):
+   - Upper trigram input: 93 → Trigram #5
+   - Lower trigram input: 8 → Trigram #8
+   - Moving line: 5
+
+2. TEXT-BASED (測字起卦):
+   - Word count: 8 → Upper trigram #8
+   - Character count: 47 → Lower trigram #7
+   - Moving line: 1
+
+3. DIRECTION-BASED (方位起卦):
+   - Category: other
+   - Direction: 東北
+   - Trigram: 艮 (#7)
+
+4. MEASUREMENT-BASED (尺寸起卦):
+   - Days until resolution: 6 → Upper #6
+   - Probability %: 36 → Lower #4
+   - Moving line: 6
+
+INSTRUCTIONS:
+=============
+1. Cast the hexagram using one or more methods above
+2. Identify: 本卦 (original), 變卦 (transformed), 互卦 (mutual)
+3. Determine 體卦 and 用卦
+4. Analyze 體用關係 (生, 剋, 比和)
+5. Consider 外應 if any context clues
+6. Provide final prediction
+
+YOUR PREDICTION (required format):
+==================================
+HEXAGRAM: [Hexagram number and Chinese name, e.g., "40 雷水解"]
+TRANSFORMED: [Transformed hexagram if applicable]
+CASTING_METHOD: [Which method(s) used]
+TI_YONG: [Brief 體用 analysis]
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences with Meihua interpretation]

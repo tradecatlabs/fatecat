@@ -1,0 +1,34 @@
+{
+  "name": "fortune-telling-cms",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A Strapi application",
+  "scripts": {
+    "build": "strapi build",
+    "dev": "strapi develop",
+    "start": "strapi start",
+    "strapi": "strapi"
+  },
+  "dependencies": {
+    "@strapi/plugin-users-permissions": "5.10.3",
+    "@strapi/strapi": "5.10.3",
+    "@swc/core": "^1.12.9",
+    "axios": "^1.7.9",
+    "intellinode": "^2.2.9",
+    "moment": "^2.30.1",
+    "mqtt": "^5.10.3",
+    "openai": "^4.96.2",
+    "pg": "^8.15.6",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router-dom": "^6.0.0",
+    "styled-components": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=22.14.0",
+    "npm": ">=10.0.0"
+  },
+  "strapi": {
+    "uuid": "f5a5cffb-a114-4d9d-8cf8-685d5a913ee2"
+  }
+}

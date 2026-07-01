@@ -1,0 +1,140 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  buildCombinedZiweiCompatibilityPrompt,
+  buildZiweiChartInput,
+  calculateFullZiweiChart,
+} from '../src/lib/full-chart-engine/ziwei';
+import { buildSerializableZiweiResult } from '../src/lib/public-api/prompt-builders';
+
+test('紫微 MCP 返回结果应为可 JSON 序列化的纯数据', async () => {
+  const input = buildZiweiChartInput({
+    name: '',
+    gender: 'male',
+    dateType: 'solar',
+    year: '1990',
+    month: '5',
+    day: '15',
+    timeIndex: 1,
+    isLeapMonth: false,
+    useTrueSolarTime: false,
+  });
+
+  const runtime = await calculateFullZiweiChart(input);
+  const result = buildSerializableZiweiResult(runtime);
+  const parsed = JSON.parse(JSON.stringify(result));
+
+  assert.equal(parsed.basicInfo.gender, '男');
+  assert.deepEqual(parsed.scopeNames, [
+    'origin',
+    'decadal',
+    'yearly',
+    'monthly',
+    'daily',
+    'hourly',
+    'age',
+  ]);
+  assert.equal(parsed.payloadByScope.origin.payload_version, 'analysis_payload_v1');
+  assert.equal(parsed.payloadByScope.origin.language, 'zh-CN');
+  assert.equal(parsed.astrolabe, undefined);
+  assert.equal(parsed.horoscope, undefined);
+});
+
+test('紫微合盘提示词会按主题使用匹配的默认问题与任务口径', async () => {
+  const firstInput = buildZiweiChartInput({
+    name: '甲',
+    gender: 'male',
+    dateType: 'solar',
+    year: '1990',
+    month: '5',
+    day: '15',
+    timeIndex: 1,
+    isLeapMonth: false,
+    useTrueSolarTime: false,
+  });
+  const secondInput = buildZiweiChartInput({
+    name: '乙',
+    gender: 'female',
+    dateType: 'solar',
+    year: '1992',
+    month: '8',
+    day: '21',
+    timeIndex: 4,
+    isLeapMonth: false,
+    useTrueSolarTime: false,
+  });
+
+  const firstRuntime = await calculateFullZiweiChart(firstInput);
+  const secondRuntime = await calculateFullZiweiChart(secondInput);
+
+  const cooperationPrompt = buildCombinedZiweiCompatibilityPrompt({
+    primaryPayload: firstRuntime.payloadByScope.origin,
+    partnerPayload: secondRuntime.payloadByScope.origin,
+    topic: 'career-wealth',
+    question: '',
+  });
+  assert.match(cooperationPrompt, /【问题】\n请先从合作默契、优势互补和潜在风险开始分析。/);
+  assert.match(
+    cooperationPrompt,
+    /【任务】\n请综合双方盘面，重点分析合作分工、资源互补、利益风险、四化牵动与长期建议。/,
+  );
+  assert.match(
+    cooperationPrompt,
+    /【输出要求】\n先直接回答【问题】，再展开最关键的 2 到 4 个重点；/,
+  );
+  assert.doesNotMatch(cooperationPrompt, /关系主基调/);
+
+  const interactionPrompt = buildCombinedZiweiCompatibilityPrompt({
+    primaryPayload: firstRuntime.payloadByScope.origin,
+    partnerPayload: secondRuntime.payloadByScope.origin,
+    topic: 'chat',
+    question: '',
+  });
+  assert.match(interactionPrompt, /【问题】\n请先从互动模式、沟通盲点和长期建议开始分析。/);
+  assert.match(
+    interactionPrompt,
+    /【任务】\n请综合双方盘面，重点分析互动模式、沟通盲点、边界压力、四化牵动与长期建议。/,
+  );
+  assert.doesNotMatch(interactionPrompt, /整体关系匹配度/);
+});
+
+test('紫微合盘自定义问题不应额外拼接任务与输出要求', async () => {
+  const firstInput = buildZiweiChartInput({
+    name: '甲',
+    gender: 'male',
+    dateType: 'solar',
+    year: '1990',
+    month: '5',
+    day: '15',
+    timeIndex: 1,
+    isLeapMonth: false,
+    useTrueSolarTime: false,
+  });
+  const secondInput = buildZiweiChartInput({
+    name: '乙',
+    gender: 'female',
+    dateType: 'solar',
+    year: '1992',
+    month: '8',
+    day: '21',
+    timeIndex: 4,
+    isLeapMonth: false,
+    useTrueSolarTime: false,
+  });
+
+  const firstRuntime = await calculateFullZiweiChart(firstInput);
+  const secondRuntime = await calculateFullZiweiChart(secondInput);
+
+  const prompt = buildCombinedZiweiCompatibilityPrompt({
+    primaryPayload: firstRuntime.payloadByScope.origin,
+    partnerPayload: secondRuntime.payloadByScope.origin,
+    topic: 'chat',
+    question: '我们现在更适合继续推进关系，还是先放慢节奏？',
+    isCustomQuestion: true,
+  });
+
+  assert.match(prompt, /【问题】\n我们现在更适合继续推进关系，还是先放慢节奏？/);
+  assert.doesNotMatch(prompt, /【任务】/);
+  assert.doesNotMatch(prompt, /【输出要求】/);
+  assert.doesNotMatch(prompt, /先判断互动主轴/);
+});

@@ -1,0 +1,32 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will Russia strike on Kyiv municipality on January 28?
+
+Description: This market will resolve to "Yes" if the Russian Armed Forces initiate a drone, missile, or air strike on Kyiv municipality's on the listed date Eastern European Time (EET). Otherwise, this market will resolve to "No".
+
+For the purposes of this market, a qualifying "strike" is defined as the use of aerial bombs, drones, or missiles (including cruise or ballistic missiles) launched by Russian Armed Forces that impact Kyiv municipality's ground territory.
+
+A strike on any area within the terrestri
+
+Current Market Data:
+- Current Probability: 20.0%
+- Trading Volume: $9,162
+- Liquidity: $1525
+- Days Until Resolution: 5
+- Expected Resolution: 2026-01-31T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

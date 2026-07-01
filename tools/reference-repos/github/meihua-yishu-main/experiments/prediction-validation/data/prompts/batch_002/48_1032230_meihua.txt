@@ -1,0 +1,63 @@
+Use the Meihua Yishu (梅花易數) skill to divine this prediction market question.
+
+QUESTION TO DIVINE:
+==================
+Will Gold (GC) settle at >$5,100 in January?
+
+CONTEXT:
+========
+Description: This market will resolve according to the official CME settlement price for the Active Month of Gold futures on the final trading day of January 2026.
+
+If the reported value falls exactly between two brackets, then this market will resolve to the higher range bracket.
+
+If the final trading day of the month is shortened (for example, due to a market-holiday schedule), the official settlement price published for that shortened session will still be used for resolution. If no settlement price is pu
+
+Current Market Data:
+- Current Probability: 52.9%
+- Trading Volume: $91,295
+- Days Until Resolution: 5
+- Expected Resolution: 2026-01-31T18:30:00+00:00
+
+Categories: General
+
+CASTING INPUTS (use any method):
+================================
+
+1. NUMBER-BASED (數字起卦):
+   - Upper trigram input: 94 → Trigram #6
+   - Lower trigram input: 8 → Trigram #8
+   - Moving line: 6
+
+2. TEXT-BASED (測字起卦):
+   - Word count: 8 → Upper trigram #8
+   - Character count: 37 → Lower trigram #5
+   - Moving line: 3
+
+3. DIRECTION-BASED (方位起卦):
+   - Category: other
+   - Direction: 東北
+   - Trigram: 艮 (#7)
+
+4. MEASUREMENT-BASED (尺寸起卦):
+   - Days until resolution: 5 → Upper #5
+   - Probability %: 52 → Lower #4
+   - Moving line: 3
+
+INSTRUCTIONS:
+=============
+1. Cast the hexagram using one or more methods above
+2. Identify: 本卦 (original), 變卦 (transformed), 互卦 (mutual)
+3. Determine 體卦 and 用卦
+4. Analyze 體用關係 (生, 剋, 比和)
+5. Consider 外應 if any context clues
+6. Provide final prediction
+
+YOUR PREDICTION (required format):
+==================================
+HEXAGRAM: [Hexagram number and Chinese name, e.g., "40 雷水解"]
+TRANSFORMED: [Transformed hexagram if applicable]
+CASTING_METHOD: [Which method(s) used]
+TI_YONG: [Brief 體用 analysis]
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences with Meihua interpretation]

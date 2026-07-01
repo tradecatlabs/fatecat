@@ -1,0 +1,63 @@
+Use the Meihua Yishu (梅花易數) skill to divine this prediction market question.
+
+QUESTION TO DIVINE:
+==================
+Will Google reach $355 in January?
+
+CONTEXT:
+========
+Description: This market will resolve to "Yes" if, at any point during January 2026 (ET), any 1-minute candle for Alphabet Inc. (GOOGL) has a final "High" price equal to or above the listed price. Otherwise, this market will resolve to "No".
+
+Only prices achieved during regular trading hours (ET) will be considered.
+
+The resolution source for this market is Yahoo Finance — specifically, the Alphabet Inc. (GOOGL) "High" prices available at https://finance.yahoo.com/quote/GOOGL/, with the chart settings on "1m
+
+Current Market Data:
+- Current Probability: 17.0%
+- Trading Volume: $7,972
+- Days Until Resolution: 13
+- Expected Resolution: 2026-02-01T04:59:59.999000+00:00
+
+Categories: General
+
+CASTING INPUTS (use any method):
+================================
+
+1. NUMBER-BASED (數字起卦):
+   - Upper trigram input: 72 → Trigram #8
+   - Lower trigram input: 6 → Trigram #6
+   - Moving line: 6
+
+2. TEXT-BASED (測字起卦):
+   - Word count: 6 → Upper trigram #6
+   - Character count: 29 → Lower trigram #5
+   - Moving line: 5
+
+3. DIRECTION-BASED (方位起卦):
+   - Category: other
+   - Direction: 東北
+   - Trigram: 艮 (#7)
+
+4. MEASUREMENT-BASED (尺寸起卦):
+   - Days until resolution: 13 → Upper #5
+   - Probability %: 17 → Lower #1
+   - Moving line: 6
+
+INSTRUCTIONS:
+=============
+1. Cast the hexagram using one or more methods above
+2. Identify: 本卦 (original), 變卦 (transformed), 互卦 (mutual)
+3. Determine 體卦 and 用卦
+4. Analyze 體用關係 (生, 剋, 比和)
+5. Consider 外應 if any context clues
+6. Provide final prediction
+
+YOUR PREDICTION (required format):
+==================================
+HEXAGRAM: [Hexagram number and Chinese name, e.g., "40 雷水解"]
+TRANSFORMED: [Transformed hexagram if applicable]
+CASTING_METHOD: [Which method(s) used]
+TI_YONG: [Brief 體用 analysis]
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences with Meihua interpretation]

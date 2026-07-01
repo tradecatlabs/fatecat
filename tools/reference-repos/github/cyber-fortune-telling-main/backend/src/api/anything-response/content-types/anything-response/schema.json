@@ -1,0 +1,31 @@
+{
+  "kind": "collectionType",
+  "collectionName": "anything_responses",
+  "info": {
+    "singularName": "anything-response",
+    "pluralName": "anything-responses",
+    "displayName": "响应消息缓存",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "request_url": {
+      "type": "string"
+    },
+    "response_data": {
+      "type": "json"
+    },
+    "conversation_id": {
+      "type": "string"
+    },
+    "conversation_history": {
+      "type": "json"
+    },
+    "user_updated_at": {
+      "type": "datetime",
+      "required": false
+    }
+  }
+}

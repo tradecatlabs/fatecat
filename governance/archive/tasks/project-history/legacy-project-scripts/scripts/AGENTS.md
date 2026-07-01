@@ -1,3 +1,12 @@
+---
+id: ARCHIVE-ARCHIVE-TASKS-PROJECT-HISTORY-LEGACY-PROJECT-SCRIPTS-SCRIPTS-AGENTS
+type: archive
+status: archived
+owner: engineering
+created: 2026-06-17
+last_reviewed: 2026-06-17
+review_cycle: P365D
+---
 # AGENTS.md - project scripts
 
 ## 目录用途

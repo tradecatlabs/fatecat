@@ -1,0 +1,32 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will Israel strike 2 countries in January 2026?
+
+Description: This market will resolve according to the total number of different sovereign UN member states' soil that Israel initiates a drone, missile, or air strike between January 1, 2026, 12:00 AM ET and January 31, 2026, 11:59 PM ET.
+
+Strikes on embassies or consulates will count towards the country where the embassy or consulate is located, not towards the country they represent.
+
+Strikes within the territory controlled by Israel as of December 31, 2025, 11:59 PM ET, as well as strikes within the West
+
+Current Market Data:
+- Current Probability: 26.0%
+- Trading Volume: $74,575
+- Liquidity: $2458
+- Days Until Resolution: 12
+- Expected Resolution: 2026-01-31T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

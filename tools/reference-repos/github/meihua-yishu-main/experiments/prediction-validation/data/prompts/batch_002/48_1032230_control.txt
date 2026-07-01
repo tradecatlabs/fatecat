@@ -1,0 +1,32 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will Gold (GC) settle at >$5,100 in January?
+
+Description: This market will resolve according to the official CME settlement price for the Active Month of Gold futures on the final trading day of January 2026.
+
+If the reported value falls exactly between two brackets, then this market will resolve to the higher range bracket.
+
+If the final trading day of the month is shortened (for example, due to a market-holiday schedule), the official settlement price published for that shortened session will still be used for resolution. If no settlement price is pu
+
+Current Market Data:
+- Current Probability: 52.9%
+- Trading Volume: $91,295
+- Liquidity: $3636
+- Days Until Resolution: 5
+- Expected Resolution: 2026-01-31T18:30:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

@@ -1,0 +1,33 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Nothing Ever Happens: Interest Rates
+
+Description: This market will resolve immediately to “No” if any of the following conditions are met at any point by March 20, 2026, 11:59 PM ET:
+
+- The United States Federal Reserve increases or decreases the upper bound of the Target Federal Funds Rate.
+- The Bank of Japan increases or decreases the upper bound of the short-term policy interest rate.
+- The European Central Bank increases or decreases the upper bound of the deposit facility rate.
+- The Bank of Canada increases or decreases the target for th
+
+Current Market Data:
+- Current Probability: 42.0%
+- Trading Volume: $9,690
+- Liquidity: $2832
+- Days Until Resolution: 53
+- Expected Resolution: 2026-03-20T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

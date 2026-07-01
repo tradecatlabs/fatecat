@@ -15,6 +15,7 @@ fatecat-delivery/
 ├── scripts/
 ├── src/
 │   ├── bot_progress.py
+│   ├── calculation_service.py
 │   ├── report_jobs.py
 │   ├── report_markdown.py
 │   ├── service_config.py
@@ -28,6 +29,7 @@ fatecat-delivery/
 - 负责 FastAPI、Web HTML、Telegram Bot、标准 Markdown 报告和 legacy 交付适配。
 - 不定义 capability registry、字段 profile 或底层命理算法。
 - `src/bazi_calculator.py` 只保留兼容导出入口，真实八字 legacy 核心归属 `fate_core.kernel.bazi_calculator`；新增命理规则必须进入 `fate-core`，不能扩散到 API/Web/Bot/报告层。
+- `src/calculation_service.py` 只收敛 Web/API/Bot 到 fate-core/capability 的共享计算编排，不承载命理规则、HTML 渲染、Bot 文案或数据库写入。
 - 不读取真实 secret 入仓；delivery smoke 可临时生成本地 `.env` 并清理。
 - `src/web_ui.py` 只负责零美化语义 HTML：服务端直出、原生表单、真实链接、psql ASCII 表格、Markdown 原文和机器可读片段。
 - `src/web_forms.py` 只定义 Web 原生表单输入和服务端报告结果模型，不渲染 HTML、不调用命理计算。

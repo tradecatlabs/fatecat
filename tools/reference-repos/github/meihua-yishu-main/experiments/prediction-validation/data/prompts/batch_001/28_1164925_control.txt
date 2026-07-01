@@ -1,0 +1,33 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will Manchester United FC win on 2026-01-25?
+
+Description: In the upcoming game, scheduled for January 25, 2026
+If Manchester United FC wins, this market will resolve to "Yes".
+Otherwise, this market will resolve to "No".
+If the game is postponed, this market will remain open until the game has been completed.
+If the game is canceled entirely, with no make-up game, this market will resolve "No".
+This market refers only to the outcome within the first 90 minutes of regular play plus stoppage time.
+
+Current Market Data:
+- Current Probability: 17.0%
+- Trading Volume: $7,185
+- Liquidity: $140934
+- Days Until Resolution: 7
+- Expected Resolution: 2026-01-25T16:30:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

@@ -1,0 +1,32 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will António José Seguro win the 1st round of the 2026 Portugal presidential election in the Lisbon district?
+
+Description: Presidential elections are scheduled to be held in Portugal on 18 or 25 January 2026, with a possible second round on 8 or 15 February 2026. A second round will be held if no candidate secures more than 50% of the valid votes in the first round.
+
+This market will resolve according to the listed candidate that receives the highest number of valid votes in the first round of this election in the Lisbon District (Distrito Lisboa). 
+
+If the result of this election isn't known by December 31, 2026, 1
+
+Current Market Data:
+- Current Probability: 42.0%
+- Trading Volume: $8,405
+- Liquidity: $4549
+- Days Until Resolution: 6
+- Expected Resolution: 2026-01-25T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

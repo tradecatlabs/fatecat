@@ -1,0 +1,112 @@
+{
+  "kind": "collectionType",
+  "collectionName": "fortune_telling_users",
+  "info": {
+    "singularName": "fortune-telling-user",
+    "pluralName": "fortune-telling-users",
+    "displayName": "算命用户",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "username": {
+      "type": "string"
+    },
+    "gender": {
+      "type": "enumeration",
+      "enum": [
+        "male",
+        "female"
+      ]
+    },
+    "birth_date": {
+      "type": "date"
+    },
+    "birth_time": {
+      "type": "time"
+    },
+    "fortune_telling_uid": {
+      "type": "uid"
+    },
+    "height": {
+      "type": "decimal",
+      "required": false
+    },
+    "weight": {
+      "type": "decimal", 
+      "required": false
+    },
+    "profession": {
+      "type": "string",
+      "required": false
+    },
+    "constitution_type": {
+      "type": "enumeration",
+      "enum": [
+        "pinghe",
+        "qixu", 
+        "yangxu",
+        "yinxu",
+        "tanshi",
+        "shire",
+        "xueyu",
+        "qiyu",
+        "tebing"
+      ],
+      "required": false
+    },
+    "sleep_quality": {
+      "type": "enumeration",
+      "enum": [
+        "excellent",
+        "good", 
+        "average",
+        "poor",
+        "very_poor"
+      ],
+      "required": false
+    },
+    "exercise_frequency": {
+      "type": "enumeration",
+      "enum": [
+        "daily",
+        "frequent",
+        "occasional", 
+        "rarely",
+        "never"
+      ],
+      "required": false
+    },
+    "common_symptoms": {
+      "type": "json",
+      "required": false
+    },
+    "dietary_preferences": {
+      "type": "json",
+      "required": false
+    },
+    "body_discomfort": {
+      "type": "json",
+      "required": false
+    },
+    "health_info": {
+      "type": "text",
+      "required": false
+    },
+    "fortune_sections": {
+      "type": "json",
+      "required": false,
+      "default": [
+        "prophecy",
+        "health_advice",
+        "fortune_analysis",
+        "traditional_calendar",
+        "prophecy_explanation",
+        "feng_shui_decoration",
+        "daily_tips"
+      ]
+    }
+  }
+}

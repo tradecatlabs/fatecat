@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      # canping/heluo compute their four pillars in-process via horosa-core-js's vendored bazi chain,
+      # which imports the `lunar-javascript` npm package. node_modules is gitignored, so a fresh CI
+      # checkout must install it or the (non-runtime-gated) canping/heluo tests fail with
+      # ERR_MODULE_NOT_FOUND. Mirrors the runtime builders' `npm install --omit=dev`.
+      - name: Install horosa-core-js deps (lunar-javascript)
+        working-directory: ./horosa-skill/horosa-core-js
+        run: npm ci --omit=dev
+      - name: Run horosa-core-js JS golden self-check (horary/election/balbillus)
+        working-directory: ./horosa-skill/horosa-core-js
+        run: npm test
+      - name: Install dependencies
+        working-directory: ./horosa-skill
+        run: uv sync --dev
+      - name: Run unit tests
+        working-directory: ./horosa-skill
+        run: uv run pytest -q
+      - name: Verify README links
+        working-directory: ./horosa-skill
+        run: uv run python scripts/verify_readme_links.py
+      - name: Verify server.json
+        working-directory: ./horosa-skill
+        run: uv run python scripts/verify_server_json.py
+      - name: Verify macOS/Windows runtime-builder parity
+        working-directory: ./horosa-skill
+        run: uv run python scripts/verify_builder_parity.py
+      - name: Verify bundled knowledge index
+        working-directory: ./horosa-skill
+        run: uv run python scripts/build_knowledge_index.py --check
+      - name: Run HorosaBench local-only smoke
+        working-directory: ./horosa-skill
+        run: uv run python scripts/run_benchmark.py --skip-runtime
+
+  windows-smoke:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      # See the test job: canping/heluo need horosa-core-js's lunar-javascript dep (node_modules is
+      # gitignored). `npm ci` is cross-platform; setup-node provides npm on the Windows runner too.
+      - name: Install horosa-core-js deps (lunar-javascript)
+        working-directory: ./horosa-skill/horosa-core-js
+        run: npm ci --omit=dev
+      - name: Run horosa-core-js JS golden self-check (horary/election/balbillus)
+        working-directory: ./horosa-skill/horosa-core-js
+        run: npm test
+      - name: Install dependencies
+        working-directory: ./horosa-skill
+        run: uv sync --dev
+      - name: Run unit tests
+        working-directory: ./horosa-skill
+        run: uv run pytest -q
+      - name: Run Windows OpenClaw smoke
+        timeout-minutes: 35
+        working-directory: ./horosa-skill
+        run: |
+          $root = Join-Path $env:RUNNER_TEMP 'horosa-openclaw'
+          if (Test-Path $root) { Remove-Item -LiteralPath $root -Recurse -Force }
+          $workspace = Join-Path $root 'workspace'
+          $config = Join-Path $workspace 'config\mcporter.json'
+          $manualHome = Join-Path $root 'manual-home'
+          New-Item -ItemType Directory -Path $workspace -Force | Out-Null
+          uv run horosa-skill client openclaw-config --format mcporter --isolate-home $manualHome --write $config
+          uv run horosa-skill client openclaw-setup --workspace $workspace
+          uv run horosa-skill client openclaw-check --workspace $workspace
+          $configJson = Get-Content -Raw -LiteralPath $config | ConvertFrom-Json
+          $serverEnv = $configJson.mcpServers.horosa.env
+          foreach ($entry in $serverEnv.PSObject.Properties) {
+            Set-Item -Path "Env:$($entry.Name)" -Value ([string]$entry.Value)
+          }
+          '{"date":"2028-04-06","time":"09:33:00","zone":"+08:00","lat":"31n13","lon":"121e28","gpsLat":31.2167,"gpsLon":121.4667}' | uv run horosa-skill tool run qimen --stdin --output "$root\qimen-smoke.json"
+          uv run horosa-skill memory query --tool qimen --limit 1

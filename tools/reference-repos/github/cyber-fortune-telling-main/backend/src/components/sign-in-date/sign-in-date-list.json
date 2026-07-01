@@ -1,0 +1,13 @@
+{
+  "collectionName": "components_sign_in_date_sign_in_date_lists",
+  "info": {
+    "displayName": "sign_in_date_list",
+    "icon": "apps"
+  },
+  "options": {},
+  "attributes": {
+    "sign_in_date": {
+      "type": "date"
+    }
+  }
+}

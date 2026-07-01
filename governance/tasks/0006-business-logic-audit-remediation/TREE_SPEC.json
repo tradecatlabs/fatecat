@@ -1,0 +1,607 @@
+{
+  "schema_version": "1.0.0",
+  "overall_status": "In Progress",
+  "nodes": [
+    {
+      "id": "TP-01",
+      "title": "PRECHECK：冻结审计基线与治理资产边界",
+      "priority": "P0",
+      "type": "package",
+      "objective": "确认当前未提交治理资产、REVIEW-0001 finding、现有测试基线和执行边界，避免修复过程混入无关变更。",
+      "parent": null,
+      "depends_on": [],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "确认子节点范围、依赖与状态闭环",
+      "gate": "任务目标与上下文已确认",
+      "outputs": [],
+      "acceptance": [],
+      "status": "Done",
+      "evidence": "Wave 1 证据复现完成；TP-01.03 基线测试 45 passed。",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-01.01",
+      "title": "盘点当前治理资产 dirty diff",
+      "priority": "P0",
+      "type": "action",
+      "objective": "列出当前 governance 变更、未跟踪文件和它们是否属于本任务前置资产。",
+      "parent": "TP-01",
+      "depends_on": [],
+      "parallelizable": true,
+      "debug_required": false,
+      "verify": "git status --short --branch && git diff --name-status && git ls-files --others --exclude-standard",
+      "gate": "无业务源码 dirty diff；治理变更清单完整记录。",
+      "outputs": [
+        "dirty diff inventory",
+        "本任务可写/禁写边界"
+      ],
+      "acceptance": [
+        "不回滚现有治理资产；不把旧 dirty diff 误算成本任务修复。"
+      ],
+      "status": "Done",
+      "evidence": "git status、git diff --name-status、git ls-files --others 显示当前业务源码无 dirty diff；dirty 文件全部在 governance 下，0006 为本轮任务包。",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-01.02",
+      "title": "复现 REVIEW-0001 关键证据",
+      "priority": "P0",
+      "type": "action",
+      "objective": "用 rg 和最小测试复现 F-001 到 F-005 的当前状态，建立修复前证据。",
+      "parent": "TP-01",
+      "depends_on": [],
+      "parallelizable": true,
+      "debug_required": true,
+      "verify": "rg 'TELEGRAM_SRC_DIR|fatecat-delivery|domains/experience-delivery' domains/fate-analysis/services/fate-core/src || true",
+      "gate": "每个 finding 有当前失败证据或说明已被其他变更修复。",
+      "outputs": [
+        "baseline evidence block",
+        "DEBUG.md 或任务 STATUS evidence"
+      ],
+      "acceptance": [
+        "后续修复能对比前后状态，不靠人工印象关闭 BLOCK。"
+      ],
+      "status": "Done",
+      "evidence": "rg 复现 fate-core 到 delivery 反向依赖；API 非默认选项返回 200；useTrueSolarTime=false 核心回显冲突；location.get 接受越界坐标；入口存在 Web/API/Bot 分流。",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-01.03",
+      "title": "建立当前测试基线",
+      "priority": "P0",
+      "type": "action",
+      "objective": "运行目标回归，确认开始修复前哪些测试已经通过，哪些测试需要先补失败用例。",
+      "parent": "TP-01",
+      "depends_on": [
+        "TP-01.01",
+        "TP-01.02"
+      ],
+      "parallelizable": false,
+      "debug_required": true,
+      "verify": ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py tests/regression/test_web_html.py",
+      "gate": "基线测试结果记录到 STATUS；新增失败测试前能区分既有失败和本轮回归。",
+      "outputs": [
+        "baseline test evidence"
+      ],
+      "acceptance": [
+        "没有未解释的基线失败。"
+      ],
+      "status": "Done",
+      "evidence": ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py tests/regression/test_web_html.py：45 passed in 10.57s。",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-02",
+      "title": "F-001：修复 fate-core 反向依赖 delivery",
+      "priority": "P0",
+      "type": "package",
+      "objective": "迁移被领域内核使用的 delivery integration 到 fate-core adapter/provider，删除 TELEGRAM_SRC_DIR/sys.path 反向依赖。",
+      "parent": null,
+      "depends_on": [
+        "TP-01.03"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "确认子节点范围、依赖与状态闭环",
+      "gate": "前置步骤已完成: test-baseline",
+      "outputs": [],
+      "acceptance": [],
+      "status": "In Progress",
+      "evidence": "TP-02.01 ownership map 完成，待迁移 adapter/provider。",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-02.01",
+      "title": "绘制 integration ownership map",
+      "priority": "P0",
+      "type": "action",
+      "objective": "列出 bazi_calculator.py 和 ziwei_iztro.py 通过 delivery src 动态导入的模块、调用点和迁移目标。",
+      "parent": "TP-02",
+      "depends_on": [],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "rg 'TELEGRAM_SRC_DIR|sys.path|importlib|fortel_|lunar_|bazi_' domains/fate-analysis/services/fate-core/src -n",
+      "gate": "每个旧导入都有 fate-core 目标模块、测试和回滚说明。",
+      "outputs": [
+        "integration ownership map"
+      ],
+      "acceptance": [
+        "未识别清楚前不移动文件。"
+      ],
+      "status": "Done",
+      "evidence": "rg 命中 support paths、ziwei_iztro sys.path、bazi_calculator extension imports 和 calculate_complete 动态加载；目标迁入 fate_core.adapters 兼容模块。",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-02.02",
+      "title": "迁移核心 adapter/provider",
+      "priority": "P0",
+      "type": "action",
+      "objective": "把核心计算需要的旧 integration 移入 fate_core.adapters/providers 或 reference adapter，delivery 只保留交付入口。",
+      "parent": "TP-02",
+      "depends_on": [
+        "TP-02.01"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": ".venv/bin/python -m pytest -q domains/fate-analysis/services/fate-core/tests tests/regression/test_capability_protocol.py",
+      "gate": "迁移后核心能力测试通过；旧 facade 有 owner/removal 条件。",
+      "outputs": [
+        "fate-core adapter/provider modules",
+        "compatibility ledger update if needed"
+      ],
+      "acceptance": [
+        "领域算法不再依赖 delivery 目录形状。"
+      ],
+      "status": "Not Started",
+      "evidence": "待回填",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-02.03",
+      "title": "新增领域边界防回潮测试",
+      "priority": "P0",
+      "type": "action",
+      "objective": "新增结构测试，禁止 fate-core 源码再次引用 delivery 路径或 TELEGRAM_SRC_DIR。",
+      "parent": "TP-02",
+      "depends_on": [
+        "TP-02.02"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": ".venv/bin/python -m pytest -q tests/regression/test_architecture_boundaries.py",
+      "gate": "rg 'TELEGRAM_SRC_DIR|fatecat-delivery|domains/experience-delivery' domains/fate-analysis/services/fate-core/src 返回空。",
+      "outputs": [
+        "architecture boundary regression"
+      ],
+      "acceptance": [
+        "F-001 可由机器 gate 防回潮。"
+      ],
+      "status": "Not Started",
+      "evidence": "待回填",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-03",
+      "title": "F-002/F-003：修复业务选项语义和响应回显",
+      "priority": "P0",
+      "type": "package",
+      "objective": "建立 canonical options，未实现语义显式 422，useTrueSolarTime 回显与真实计算一致。",
+      "parent": null,
+      "depends_on": [
+        "TP-01.03"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "确认子节点范围、依赖与状态闭环",
+      "gate": "前置步骤已完成: test-baseline",
+      "outputs": [],
+      "acceptance": [],
+      "status": "In Progress",
+      "evidence": "TP-03.01 添加业务选项和 true solar 回显失败测试，待实现修复。",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-03.01",
+      "title": "先补业务选项失败测试",
+      "priority": "P0",
+      "type": "action",
+      "objective": "为 calendarType=lunar、midnightMode=late、daylightSaving 非默认、useTrueSolarTime=false 写失败用例。",
+      "parent": "TP-03",
+      "depends_on": [],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k 'calendarType or midnightMode or daylightSaving or trueSolar'",
+      "gate": "测试能证明当前静默忽略或回显冲突。",
+      "outputs": [
+        "option contract regression tests"
+      ],
+      "acceptance": [
+        "失败测试先于实现或与实现同提交清晰可审。"
+      ],
+      "status": "Done",
+      "evidence": "新增 API 测试：unsupported business options 当前 200 而期望 422；useTrueSolarTime=false 当前 input.options 回显 true。",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-03.02",
+      "title": "未实现业务选项显式拒绝",
+      "priority": "P0",
+      "type": "action",
+      "objective": "对未支持的 lunar/DST/late-midnight 语义返回 422，避免保存成已应用状态。",
+      "parent": "TP-03",
+      "depends_on": [
+        "TP-03.01"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py",
+      "gate": "非默认未实现选项返回 422；默认路径不回归。",
+      "outputs": [
+        "canonical option validator",
+        "API/Web/Bot error contract"
+      ],
+      "acceptance": [
+        "不再有未应用选项被持久化为已应用。"
+      ],
+      "status": "Not Started",
+      "evidence": "待回填",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-03.03",
+      "title": "修复 useTrueSolarTime 响应回显",
+      "priority": "P0",
+      "type": "action",
+      "objective": "让 input.options.useTrueSolarTime 与 inputTrace.useTrueSolarTime 和真实计算配置一致。",
+      "parent": "TP-03",
+      "depends_on": [
+        "TP-03.01"
+      ],
+      "parallelizable": true,
+      "debug_required": true,
+      "verify": ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k trueSolar",
+      "gate": "useTrueSolarTime=false 响应中不出现硬编码 true。",
+      "outputs": [
+        "response contract fix"
+      ],
+      "acceptance": [
+        "F-003 关闭。"
+      ],
+      "status": "Not Started",
+      "evidence": "待回填",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-03.04",
+      "title": "记录 raw options 与 normalized options",
+      "priority": "P1",
+      "type": "action",
+      "objective": "持久化只保存实际参与计算的 normalized options，同时保留 raw input 供审计。",
+      "parent": "TP-03",
+      "depends_on": [
+        "TP-03.02",
+        "TP-03.03"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k record",
+      "gate": "保存记录中的 options 与计算实际使用值一致。",
+      "outputs": [
+        "record replay regression"
+      ],
+      "acceptance": [
+        "记录回放不会假称未实现选项已应用。"
+      ],
+      "status": "Not Started",
+      "evidence": "待回填",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-04",
+      "title": "F-004：统一 Web/API/Bot 业务真相源",
+      "priority": "P1",
+      "type": "package",
+      "objective": "将 Web/API/Bot 的八字/紫微业务计算收敛到同一 canonical calculation usecase，delivery 仅负责适配和交付。",
+      "parent": null,
+      "depends_on": [
+        "TP-02",
+        "TP-03"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "确认子节点范围、依赖与状态闭环",
+      "gate": "前置步骤已完成: fix-domain-boundary, fix-option-semantics",
+      "outputs": [],
+      "acceptance": [],
+      "status": "Not Started",
+      "evidence": "待回填",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-04.01",
+      "title": "绘制 Web/API/Bot 当前业务流",
+      "priority": "P1",
+      "type": "action",
+      "objective": "列出 Web、API markdown、API pure-analysis、Bot report 的当前计算入口、输出字段和差异。",
+      "parent": "TP-04",
+      "depends_on": [],
+      "parallelizable": true,
+      "debug_required": false,
+      "verify": "rg 'CapabilityExecutor|calculate_pure_analysis|_calculate_bazi_raw|BaziCalculator' domains/experience-delivery/services/fatecat-delivery/src -n",
+      "gate": "每个入口都有迁移目标和兼容策略。",
+      "outputs": [
+        "entrypoint flow map"
+      ],
+      "acceptance": [
+        "没有遗漏 Bot 路径。"
+      ],
+      "status": "Not Started",
+      "evidence": "待回填",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-04.02",
+      "title": "建立 canonical calculation service",
+      "priority": "P1",
+      "type": "action",
+      "objective": "优先复用 CapabilityExecutor/calculate_pure_analysis，形成 Web/API/Bot 可共享的薄服务层。",
+      "parent": "TP-04",
+      "depends_on": [
+        "TP-04.01"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py tests/regression/test_web_html.py",
+      "gate": "delivery 不新增领域规则；共享服务输出稳定 canonical 字段。",
+      "outputs": [
+        "shared delivery calculation service"
+      ],
+      "acceptance": [
+        "同一输入不因入口不同走不同业务逻辑。"
+      ],
+      "status": "Not Started",
+      "evidence": "待回填",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-04.03",
+      "title": "入口一致性回归",
+      "priority": "P1",
+      "type": "action",
+      "objective": "同一输入经 Web/API/Bot 或其服务层生成的 canonical calculation 字段一致。",
+      "parent": "TP-04",
+      "depends_on": [
+        "TP-04.02"
+      ],
+      "parallelizable": false,
+      "debug_required": true,
+      "verify": ".venv/bin/python -m pytest -q tests/regression/test_entrypoint_consistency.py",
+      "gate": "Web/API/Bot canonical fields 一致；报告格式差异只允许在 delivery 层。",
+      "outputs": [
+        "entrypoint consistency regression"
+      ],
+      "acceptance": [
+        "F-004 关闭或降为有 owner 的兼容 WARN。"
+      ],
+      "status": "Not Started",
+      "evidence": "待回填",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-05",
+      "title": "F-005：补坐标输入边界校验",
+      "priority": "P1",
+      "type": "package",
+      "objective": "让 Web/Bot 直接 lng,lat 输入复用经纬度范围验证，无效坐标返回明确错误。",
+      "parent": null,
+      "depends_on": [
+        "TP-01.03"
+      ],
+      "parallelizable": true,
+      "debug_required": false,
+      "verify": "确认子节点范围、依赖与状态闭环",
+      "gate": "前置步骤已完成: test-baseline",
+      "outputs": [],
+      "acceptance": [],
+      "status": "In Progress",
+      "evidence": "TP-05.01 添加直接坐标和 Web 越界坐标失败测试，待实现校验。",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-05.01",
+      "title": "补 location 坐标边界测试",
+      "priority": "P1",
+      "type": "action",
+      "objective": "覆盖 999,999、181,0、0,91、-181,0、0,-91 和合法边界坐标。",
+      "parent": "TP-05",
+      "depends_on": [],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": ".venv/bin/python -m pytest -q tests/regression/test_location.py tests/regression/test_web_html.py -k coordinate",
+      "gate": "无效坐标当前能被测试捕获。",
+      "outputs": [
+        "location coordinate regression tests"
+      ],
+      "acceptance": [
+        "失败用例先建立。"
+      ],
+      "status": "Done",
+      "evidence": "新增 tests/regression/test_location.py 和 Web coordinate 测试；当前 5 个 location 越界用例未抛错、Web 未显示错误。",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-05.02",
+      "title": "实现坐标范围校验",
+      "priority": "P1",
+      "type": "action",
+      "objective": "在 location.get 或共享 validator 中校验经纬度范围，并让 Web/Bot 得到清晰错误。",
+      "parent": "TP-05",
+      "depends_on": [
+        "TP-05.01"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": ".venv/bin/python -m pytest -q tests/regression/test_location.py tests/regression/test_web_html.py",
+      "gate": "非法坐标明确拒绝；合法边界坐标通过。",
+      "outputs": [
+        "coordinate validator"
+      ],
+      "acceptance": [
+        "F-005 关闭。"
+      ],
+      "status": "Not Started",
+      "evidence": "待回填",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-06",
+      "title": "REVIEW/CLOSEOUT：回归、审查和治理收口",
+      "priority": "P0",
+      "type": "package",
+      "objective": "运行完整本地门禁，更新 REVIEW-0001 修复状态，整理治理资产和提交边界。",
+      "parent": null,
+      "depends_on": [
+        "TP-02",
+        "TP-03",
+        "TP-04",
+        "TP-05"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "确认子节点范围、依赖与状态闭环",
+      "gate": "前置步骤已完成: fix-domain-boundary, fix-option-semantics, unify-entrypoints, fix-coordinate-validation",
+      "outputs": [],
+      "acceptance": [],
+      "status": "Not Started",
+      "evidence": "待回填",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-06.01",
+      "title": "运行本地回归门禁",
+      "priority": "P0",
+      "type": "action",
+      "objective": "运行 focused regression、ruff、format、mypy、local-ci quick 和治理 strict。",
+      "parent": "TP-06",
+      "depends_on": [],
+      "parallelizable": false,
+      "debug_required": true,
+      "verify": "bash scripts/local-ci.sh --profile quick && .venv/bin/python governance/tools/validate_governance_package.py --project-root . --strict",
+      "gate": "所有本地门禁通过；失败必须回到对应 finding 修复。",
+      "outputs": [
+        "gate evidence directory",
+        "STATUS Recent Evidence"
+      ],
+      "acceptance": [
+        "没有跳过关键失败。"
+      ],
+      "status": "Not Started",
+      "evidence": "待回填",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-06.02",
+      "title": "更新 REVIEW-0001 修复状态",
+      "priority": "P0",
+      "type": "action",
+      "objective": "把 F-001 到 F-005 的状态、证据命令、剩余 WARN 和 owner 写回审计记录或 follow-up review。",
+      "parent": "TP-06",
+      "depends_on": [
+        "TP-06.01"
+      ],
+      "parallelizable": false,
+      "debug_required": true,
+      "verify": "rg 'F-001|F-002|F-003|F-004|F-005|closed|remaining' governance/evidence/reviews -n",
+      "gate": "REVIEW-0001 不再停留在未解释的 BLOCK。",
+      "outputs": [
+        "review closeout evidence"
+      ],
+      "acceptance": [
+        "每个 finding 都有关闭证据或剩余风险 owner。"
+      ],
+      "status": "Not Started",
+      "evidence": "待回填",
+      "blocker": "无",
+      "unblock": "无"
+    },
+    {
+      "id": "TP-06.03",
+      "title": "提交前交付包",
+      "priority": "P0",
+      "type": "action",
+      "objective": "整理 git diff、任务 closeout、提交说明和回滚路径。",
+      "parent": "TP-06",
+      "depends_on": [
+        "TP-06.02"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "git diff --check && git status --short --branch",
+      "gate": "无运行态、secret、无关格式化或未说明治理 churn。",
+      "outputs": [
+        "commit plan",
+        "rollback notes",
+        "task closeout packet"
+      ],
+      "acceptance": [
+        "可交给 auto-github 进行 commit/push。"
+      ],
+      "status": "Not Started",
+      "evidence": "待回填",
+      "blocker": "无",
+      "unblock": "无"
+    }
+  ],
+  "document_blocks": {
+    "in_scope": "- 以 governance/evidence/reviews/REVIEW-0001-业务代码业务模型与业务逻辑审计.md 的 F-001 到 F-005 为修复真相源。\n- 修复 fate-core 反向依赖 fatecat-delivery 的领域边界问题。\n- 修复 BaziOptions 中未实现选项静默忽略和响应回显不一致问题。\n- 收敛 Web/API/Bot 的业务计算入口，减少 legacy raw calculator 旁路。\n- 补充 Web/Bot 直接坐标输入范围校验。\n- 把治理资产变更、索引刷新和校验证据整理成可提交、可审计状态。",
+    "out_of_scope": "- 不在本任务内宣称八字专业体系 100%。\n- 不重做完整命理规则体系，不扩展高级格局、合化、用神或岁运专题。\n- 不引入 Redis/Celery/Kubernetes 或高并发公共服务架构。\n- 不改变 /web 的已批准黄金三块布局和零美化语义界面规则。\n- 不删除已公开 API、Bot、Web 入口，除非另有兼容账本和显式迁移 gate。",
+    "requirement_alignment": "- 目标: 修复 REVIEW-0001 业务代码业务模型与业务逻辑审计发现的阻塞级和警告级问题，恢复 fate-core 领域边界、业务选项语义一致性、入口真相源一致性、坐标边界校验和治理汇报准确性。\n- approved plan 顶层步骤数: 6\n- 编译后节点总数: 24\n- 编译后叶子节点数: 18\n- 对齐项: 用户要求使用 auto-tasks 设计修复计划。\n- 对齐项: 上一轮事实核查确认 REVIEW-0001 审计文档真实存在，治理校验通过，但当前治理变更未提交且汇报漏报了额外标准和索引变更。\n- 对齐项: 本计划只设计修复 REVIEW-0001 的业务代码/业务模型/业务逻辑问题和治理资产卫生，不扩大到八字专业体系 100% 路线图。\n- 计划摘要: 按 REVIEW-0001 的 BLOCK/WARN 顺序修复：先冻结治理与基线，再断开 fate-core 到 delivery 的反向依赖，然后修业务选项语义，统一入口真相源，补坐标校验，最后做 release gate 和审计 closeout。",
+    "repo_evidence": "- governance/evidence/reviews/REVIEW-0001-业务代码业务模型与业务逻辑审计.md 结论为 BLOCK。\n- F-001 指出 fate-core 通过 TELEGRAM_SRC_DIR 和 sys.path 反向依赖 fatecat-delivery。\n- F-002 指出 calendarType、midnightMode、daylightSaving 暴露但未真实参与计算。\n- F-003 指出 useTrueSolarTime=false 时 input.options 仍硬编码 true。\n- F-004 指出 Web/API/Bot 没有完全共享同一业务真相源。\n- F-005 指出 location.get 对 lng,lat 直接 float 返回但缺少范围校验。\n- 当前 git status 显示仅 governance/ 下存在未提交变更和未跟踪治理文档，没有业务源码改动。",
+    "constraints_matrix": "- 不得回滚或覆盖当前未提交治理资产，除非用户明确要求。\n- 不得用文档关闭业务 BLOCK；必须有代码、测试和运行命令证据。\n- 不得把未实现业务选项继续作为已应用配置保存。\n- 不得为了快速消除 scan 结果而删除仍被运行链路需要的 adapter，必须先迁移再收口。\n- 不得把 evaluation/oracle/reference 资源接入生产请求链路。",
+    "change_boundary": "- 任务设计阶段只写 governance/tasks/0006-business-logic-audit-remediation 和 governance/tasks/INDEX.md。\n- 修复执行阶段预计会改 domains/fate-analysis、domains/experience-delivery、tests/regression、contracts/fate 和 governance/evidence/reviews。\n- 不修改 HF Space 发布配置、GitHub workflow 或前端视觉样式，除非测试发现与本任务直接相关。",
+    "risk_matrix": "- high：迁移 delivery integration 模块可能影响八字、紫微、报告生成和 Bot 入口。\n- high：业务选项从静默忽略改为 422 可能影响已有调用方，需要明确契约和测试。\n- medium：统一入口可能触发 schema drift、import cycle 或性能变化。\n- medium：坐标校验会拒绝历史上可输入但无意义的坐标，需要 Web/Bot 错误提示一致。\n- medium：治理资产当前已有未提交变更，继续写入必须保持提交边界清晰。",
+    "assumptions_and_falsification": "- 短期最安全策略是先拒绝未实现业务选项，而不是一次性实现 lunar/DST/late midnight 全部语义。\n- fate-core 应拥有领域计算、provider、adapter 和 reference integration；delivery 只做入口、鉴权、报告、Bot/Web/API 交付。\n- 统一入口应优先收敛到已有 CapabilityExecutor 或 calculate_pure_analysis，而不是新增平行业务服务。\n- 当前任务的完成定义是关闭 REVIEW-0001 的工程 BLOCK，不是提高命理预测准确率。",
+    "critical_ambiguities": "- 未支持业务选项的短期策略需要确认：拒绝非默认值，还是本轮实现部分真实语义。\n- Bot 入口统一需要确认保留哪些用户可见文本和历史命令格式。\n- 迁移 delivery integration 模块时，部分旧模块的 license/source 边界需要重新核查。",
+    "debug_evidence_contract": "- 调试模式: Required\n- 若任务属于 bugfix / regression / flaky / crash / CI-only failure，必须切到 `Required`\n- `Required` 时必须在当前任务目录创建并维护 `DEBUG.md`\n- `DEBUG.md` 必须覆盖复现、观察、假设、实验、根因、修复、回归证据\n- 调试关注点: import boundary regression\n- 调试关注点: unsupported option silent drift\n- 调试关注点: canonical output mismatch across Web/API/Bot\n- 调试关注点: coordinate validation false positive\n- 调试关注点: governance index churn\n- 强制调试叶子节点: TP-01.02, TP-01.03, TP-03.03, TP-04.03, TP-06.01, TP-06.02",
+    "runtime_workflow_contract": "- workflow artifact 必须存入任务目录，而不是只留在聊天上下文。\n- worker 只能消费当前 packet 的最小上下文、允许工具、禁止动作、证据要求和停止条件。\n- verifier / 自审必须独立挑战关键发现，不能把 worker 自评当作验收。\n- integrator / closeout 必须报告 verified、rejected、unresolved、failed、not-covered。\n- 全局停止条件: 迁移 adapter 后基础排盘或紫微报告无法通过现有 golden/API 回归。\n- 全局停止条件: 发现非默认业务选项已有外部契约必须支持但当前实现无法证明正确。\n- 全局停止条件: Bot 用户命令格式需要破坏性修改。\n- 全局停止条件: 治理索引脚本继续批量改写 archive 文件且原因不清。\n- 需要审批: 删除公开 API 字段或改变字段名称。\n- 需要审批: 删除兼容 facade 或历史 import 路径。\n- 需要审批: 引入新生产依赖。\n- 需要审批: 把 lunar/DST/late midnight 真实实现纳入本轮，而不是先 422 拒绝。",
+    "runtime_verification_gate": "- [ ] 每个 tool/action 结果都有可回指证据或明确未执行原因。\n- [ ] 高风险动作没有由 worker/agent 自我批准；审批状态可追踪。\n- [ ] compaction / resume 后目标、计划、修改文件、审批状态和验证项未丢失。\n- [ ] verifier / 自审已检查关键发现是否有证据支持。\n- [ ] closeout 明确 coverage gaps、failed packets 和 unresolved questions。\n- [ ] TP-01.01: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-01.02: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-01.03: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-02.01: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-02.02: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-02.03: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-03.01: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-03.02: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-03.03: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-03.04: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-04.01: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-04.02: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-04.03: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-05.01: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-05.02: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-06.01: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-06.02: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-06.03: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据",
+    "runtime_state": "- Active workflow state: 以 `TASK_PACKAGE_SET.json` / `TASK_EXECUTION_WAVE_PACKET.json` 为准。\n- Approval state: 未记录即视为未授权。\n- Resume rule: 继续任务前重新读取当前 packet、Recent Evidence、Blockers、Runtime State。\n- Stop condition: 迁移 adapter 后基础排盘或紫微报告无法通过现有 golden/API 回归。\n- Stop condition: 发现非默认业务选项已有外部契约必须支持但当前实现无法证明正确。\n- Stop condition: Bot 用户命令格式需要破坏性修改。\n- Stop condition: 治理索引脚本继续批量改写 archive 文件且原因不清。\n- TP-01.01: status=Done; verifier_context=自审\n- TP-01.02: status=Done; verifier_context=自审\n- TP-01.03: status=Done; verifier_context=自审\n- TP-02.01: status=Done; verifier_context=自审\n- TP-02.02: status=Not Started; verifier_context=自审\n- TP-02.03: status=Not Started; verifier_context=自审\n- TP-03.01: status=Done; verifier_context=自审\n- TP-03.02: status=Not Started; verifier_context=自审\n- TP-03.03: status=Not Started; verifier_context=自审\n- TP-03.04: status=Not Started; verifier_context=自审\n- TP-04.01: status=Not Started; verifier_context=自审\n- TP-04.02: status=Not Started; verifier_context=自审\n- TP-04.03: status=Not Started; verifier_context=自审\n- TP-05.01: status=Done; verifier_context=自审\n- TP-05.02: status=Not Started; verifier_context=自审\n- TP-06.01: status=Not Started; verifier_context=自审\n- TP-06.02: status=Not Started; verifier_context=自审\n- TP-06.03: status=Not Started; verifier_context=自审",
+    "task_level_acceptance": "- fate-core 源码中不再出现 TELEGRAM_SRC_DIR、fatecat-delivery、domains/experience-delivery 或 delivery src 动态加载。\n- calendarType、midnightMode、daylightSaving 的非默认未实现语义不会被静默忽略；要么真实实现，要么返回 422。\n- useTrueSolarTime=false 的响应回显与 inputTrace 一致，不再硬编码 true。\n- Web/API/Bot 同一输入的 canonical calculation 字段一致，delivery 不新增领域算法。\n- location.get(\"999,999\") 等无效坐标明确失败，Web/Bot 输入返回可理解错误。\n- 治理 strict validate 与 health report 通过，review closeout 明确哪些 BLOCK 已关闭、哪些 WARN 留有 owner。\n- approved plan 已成功编译为递归任务树\n- 叶子节点数量: 18\n- 当前可立即执行叶子节点: TP-02.02, TP-03.02, TP-03.03, TP-05.02",
+    "validation_plan": "- 结构扫描：rg \"TELEGRAM_SRC_DIR|fatecat-delivery|domains/experience-delivery\" domains/fate-analysis/services/fate-core/src 应返回空。\n- API 契约测试：pytest 覆盖 unsupported options、useTrueSolarTime=false 回显、记录回放一致性。\n- 入口一致性测试：同一输入经 Web/API/Bot 或其服务层得到相同 canonical calculation 字段。\n- 坐标边界测试：location.get 和 Web 表单对无效经纬度返回明确错误。\n- 回归门禁：ruff、format、mypy、focused regression、local-ci quick。\n- 治理门禁：validate_governance_package.py --strict 与 governance_health_report.py --strict。\n- bugfix / regression / flaky 任务必须把 DEBUG.md 的回归证据串到 Recent Evidence\n- TP-01.01 | Verify: git status --short --branch && git diff --name-status && git ls-files --others --exclude-standard | Gate: 无业务源码 dirty diff；治理变更清单完整记录。\n- TP-01.02 | Verify: rg 'TELEGRAM_SRC_DIR|fatecat-delivery|domains/experience-delivery' domains/fate-analysis/services/fate-core/src || true | Gate: 每个 finding 有当前失败证据或说明已被其他变更修复。\n- TP-01.03 | Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py tests/regression/test_web_html.py | Gate: 基线测试结果记录到 STATUS；新增失败测试前能区分既有失败和本轮回归。\n- TP-02.01 | Verify: rg 'TELEGRAM_SRC_DIR|sys.path|importlib|fortel_|lunar_|bazi_' domains/fate-analysis/services/fate-core/src -n | Gate: 每个旧导入都有 fate-core 目标模块、测试和回滚说明。\n- TP-02.02 | Verify: .venv/bin/python -m pytest -q domains/fate-analysis/services/fate-core/tests tests/regression/test_capability_protocol.py | Gate: 迁移后核心能力测试通过；旧 facade 有 owner/removal 条件。\n- TP-02.03 | Verify: .venv/bin/python -m pytest -q tests/regression/test_architecture_boundaries.py | Gate: rg 'TELEGRAM_SRC_DIR|fatecat-delivery|domains/experience-delivery' domains/fate-analysis/services/fate-core/src 返回空。\n- TP-03.01 | Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k 'calendarType or midnightMode or daylightSaving or trueSolar' | Gate: 测试能证明当前静默忽略或回显冲突。\n- TP-03.02 | Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py | Gate: 非默认未实现选项返回 422；默认路径不回归。\n- TP-03.03 | Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k trueSolar | Gate: useTrueSolarTime=false 响应中不出现硬编码 true。\n- TP-03.04 | Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k record | Gate: 保存记录中的 options 与计算实际使用值一致。\n- TP-04.01 | Verify: rg 'CapabilityExecutor|calculate_pure_analysis|_calculate_bazi_raw|BaziCalculator' domains/experience-delivery/services/fatecat-delivery/src -n | Gate: 每个入口都有迁移目标和兼容策略。\n- TP-04.02 | Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py tests/regression/test_web_html.py | Gate: delivery 不新增领域规则；共享服务输出稳定 canonical 字段。\n- TP-04.03 | Verify: .venv/bin/python -m pytest -q tests/regression/test_entrypoint_consistency.py | Gate: Web/API/Bot canonical fields 一致；报告格式差异只允许在 delivery 层。\n- TP-05.01 | Verify: .venv/bin/python -m pytest -q tests/regression/test_location.py tests/regression/test_web_html.py -k coordinate | Gate: 无效坐标当前能被测试捕获。\n- TP-05.02 | Verify: .venv/bin/python -m pytest -q tests/regression/test_location.py tests/regression/test_web_html.py | Gate: 非法坐标明确拒绝；合法边界坐标通过。\n- TP-06.01 | Verify: bash scripts/local-ci.sh --profile quick && .venv/bin/python governance/tools/validate_governance_package.py --project-root . --strict | Gate: 所有本地门禁通过；失败必须回到对应 finding 修复。\n- TP-06.02 | Verify: rg 'F-001|F-002|F-003|F-004|F-005|closed|remaining' governance/evidence/reviews -n | Gate: REVIEW-0001 不再停留在未解释的 BLOCK。\n- TP-06.03 | Verify: git diff --check && git status --short --branch | Gate: 无运行态、secret、无关格式化或未说明治理 churn。",
+    "review_gate": "- 确认 fate-core 不再反向依赖 delivery。\n- 确认未实现业务选项不再静默参与记录或响应。\n- 确认 API/Web/Bot 未产生新平行业务计算链。\n- 确认测试覆盖正例、反例和边界例。\n- 确认治理变更清单完整，不再漏报新增标准或索引变更。",
+    "ship_readiness": "- .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py tests/regression/test_web_html.py\n- .venv/bin/python -m pytest -q domains/fate-analysis/services/fate-core/tests tests/regression/test_capability_protocol.py\n- bash scripts/local-ci.sh --profile quick\n- .venv/bin/python governance/tools/validate_governance_package.py --project-root . --strict\n- .venv/bin/python governance/tools/governance_health_report.py --project-root . --strict\n- git diff --check",
+    "global_acceptance_standards": "- [ ] 所有 P0 BLOCK finding 有测试先行或同步测试。\n- [ ] 所有代码迁移保持行为兼容，旧 facade 只允许作为明确注册的 adapter。\n- [ ] 任何未实现业务选项必须显式拒绝，不能保存成已应用状态。\n- [ ] 每个修复都要能指回 REVIEW-0001 finding id。\n- [ ] 最终 REVIEW-0001 可从 BLOCK 降为 PASS 或 PASS with tracked WARN。",
+    "package_context_blocks": "## TP-01\n- Step Key: `precheck-baseline`\n- 标题: PRECHECK：冻结审计基线与治理资产边界\n- 类型: `package`\n- 目标: 确认当前未提交治理资产、REVIEW-0001 finding、现有测试基线和执行边界，避免修复过程混入无关变更。\n- 父节点: `ROOT`\n- 子节点: TP-01.01, TP-01.02, TP-01.03\n- 依赖步骤 Key: 无\n- 依赖节点 ID: 无\n- 输入: 无\n- 输出: 无\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n### TP-01.01\n- Step Key: `dirty-governance-inventory`\n- 标题: 盘点当前治理资产 dirty diff\n- 类型: `action`\n- 目标: 列出当前 governance 变更、未跟踪文件和它们是否属于本任务前置资产。\n- 父节点: `TP-01`\n- 子节点: 无\n- 依赖步骤 Key: 无\n- 依赖节点 ID: 无\n- 输入: 无\n- 输出: dirty diff inventory；本任务可写/禁写边界\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n### TP-01.02\n- Step Key: `baseline-repro`\n- 标题: 复现 REVIEW-0001 关键证据\n- 类型: `action`\n- 目标: 用 rg 和最小测试复现 F-001 到 F-005 的当前状态，建立修复前证据。\n- 父节点: `TP-01`\n- 子节点: 无\n- 依赖步骤 Key: 无\n- 依赖节点 ID: 无\n- 输入: 无\n- 输出: baseline evidence block；DEBUG.md 或任务 STATUS evidence\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n### TP-01.03\n- Step Key: `test-baseline`\n- 标题: 建立当前测试基线\n- 类型: `action`\n- 目标: 运行目标回归，确认开始修复前哪些测试已经通过，哪些测试需要先补失败用例。\n- 父节点: `TP-01`\n- 子节点: 无\n- 依赖步骤 Key: dirty-governance-inventory, baseline-repro\n- 依赖节点 ID: TP-01.01, TP-01.02\n- 输入: 无\n- 输出: baseline test evidence\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n## TP-02\n- Step Key: `fix-domain-boundary`\n- 标题: F-001：修复 fate-core 反向依赖 delivery\n- 类型: `package`\n- 目标: 迁移被领域内核使用的 delivery integration 到 fate-core adapter/provider，删除 TELEGRAM_SRC_DIR/sys.path 反向依赖。\n- 父节点: `ROOT`\n- 子节点: TP-02.01, TP-02.02, TP-02.03\n- 依赖步骤 Key: test-baseline\n- 依赖节点 ID: TP-01.03\n- 输入: 无\n- 输出: 无\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n### TP-02.01\n- Step Key: `integration-ownership-map`\n- 标题: 绘制 integration ownership map\n- 类型: `action`\n- 目标: 列出 bazi_calculator.py 和 ziwei_iztro.py 通过 delivery src 动态导入的模块、调用点和迁移目标。\n- 父节点: `TP-02`\n- 子节点: 无\n- 依赖步骤 Key: 无\n- 依赖节点 ID: 无\n- 输入: 无\n- 输出: integration ownership map\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n### TP-02.02\n- Step Key: `migrate-core-adapters`\n- 标题: 迁移核心 adapter/provider\n- 类型: `action`\n- 目标: 把核心计算需要的旧 integration 移入 fate_core.adapters/providers 或 reference adapter，delivery 只保留交付入口。\n- 父节点: `TP-02`\n- 子节点: 无\n- 依赖步骤 Key: integration-ownership-map\n- 依赖节点 ID: TP-02.01\n- 输入: 无\n- 输出: fate-core adapter/provider modules；compatibility ledger update if needed\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n### TP-02.03\n- Step Key: `boundary-guard-test`\n- 标题: 新增领域边界防回潮测试\n- 类型: `action`\n- 目标: 新增结构测试，禁止 fate-core 源码再次引用 delivery 路径或 TELEGRAM_SRC_DIR。\n- 父节点: `TP-02`\n- 子节点: 无\n- 依赖步骤 Key: migrate-core-adapters\n- 依赖节点 ID: TP-02.02\n- 输入: 无\n- 输出: architecture boundary regression\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n## TP-03\n- Step Key: `fix-option-semantics`\n- 标题: F-002/F-003：修复业务选项语义和响应回显\n- 类型: `package`\n- 目标: 建立 canonical options，未实现语义显式 422，useTrueSolarTime 回显与真实计算一致。\n- 父节点: `ROOT`\n- 子节点: TP-03.01, TP-03.02, TP-03.03, TP-03.04\n- 依赖步骤 Key: test-baseline\n- 依赖节点 ID: TP-01.03\n- 输入: 无\n- 输出: 无\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n### TP-03.01\n- Step Key: `option-contract-tests`\n- 标题: 先补业务选项失败测试\n- 类型: `action`\n- 目标: 为 calendarType=lunar、midnightMode=late、daylightSaving 非默认、useTrueSolarTime=false 写失败用例。\n- 父节点: `TP-03`\n- 子节点: 无\n- 依赖步骤 Key: 无\n- 依赖节点 ID: 无\n- 输入: 无\n- 输出: option contract regression tests\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n### TP-03.02\n- Step Key: `reject-unsupported-options`\n- 标题: 未实现业务选项显式拒绝\n- 类型: `action`\n- 目标: 对未支持的 lunar/DST/late-midnight 语义返回 422，避免保存成已应用状态。\n- 父节点: `TP-03`\n- 子节点: 无\n- 依赖步骤 Key: option-contract-tests\n- 依赖节点 ID: TP-03.01\n- 输入: 无\n- 输出: canonical option validator；API/Web/Bot error contract\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n### TP-03.03\n- Step Key: `fix-true-solar-echo`\n- 标题: 修复 useTrueSolarTime 响应回显\n- 类型: `action`\n- 目标: 让 input.options.useTrueSolarTime 与 inputTrace.useTrueSolarTime 和真实计算配置一致。\n- 父节点: `TP-03`\n- 子节点: 无\n- 依赖步骤 Key: option-contract-tests\n- 依赖节点 ID: TP-03.01\n- 输入: 无\n- 输出: response contract fix\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n### TP-03.04\n- Step Key: `record-normalized-options`\n- 标题: 记录 raw options 与 normalized options\n- 类型: `action`\n- 目标: 持久化只保存实际参与计算的 normalized options，同时保留 raw input 供审计。\n- 父节点: `TP-03`\n- 子节点: 无\n- 依赖步骤 Key: reject-unsupported-options, fix-true-solar-echo\n- 依赖节点 ID: TP-03.02, TP-03.03\n- 输入: 无\n- 输出: record replay regression\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n## TP-04\n- Step Key: `unify-entrypoints`\n- 标题: F-004：统一 Web/API/Bot 业务真相源\n- 类型: `package`\n- 目标: 将 Web/API/Bot 的八字/紫微业务计算收敛到同一 canonical calculation usecase，delivery 仅负责适配和交付。\n- 父节点: `ROOT`\n- 子节点: TP-04.01, TP-04.02, TP-04.03\n- 依赖步骤 Key: fix-domain-boundary, fix-option-semantics\n- 依赖节点 ID: TP-02, TP-03\n- 输入: 无\n- 输出: 无\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n### TP-04.01\n- Step Key: `entrypoint-flow-map`\n- 标题: 绘制 Web/API/Bot 当前业务流\n- 类型: `action`\n- 目标: 列出 Web、API markdown、API pure-analysis、Bot report 的当前计算入口、输出字段和差异。\n- 父节点: `TP-04`\n- 子节点: 无\n- 依赖步骤 Key: 无\n- 依赖节点 ID: 无\n- 输入: 无\n- 输出: entrypoint flow map\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n### TP-04.02\n- Step Key: `canonical-calculation-service`\n- 标题: 建立 canonical calculation service\n- 类型: `action`\n- 目标: 优先复用 CapabilityExecutor/calculate_pure_analysis，形成 Web/API/Bot 可共享的薄服务层。\n- 父节点: `TP-04`\n- 子节点: 无\n- 依赖步骤 Key: entrypoint-flow-map\n- 依赖节点 ID: TP-04.01\n- 输入: 无\n- 输出: shared delivery calculation service\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n### TP-04.03\n- Step Key: `entrypoint-consistency-tests`\n- 标题: 入口一致性回归\n- 类型: `action`\n- 目标: 同一输入经 Web/API/Bot 或其服务层生成的 canonical calculation 字段一致。\n- 父节点: `TP-04`\n- 子节点: 无\n- 依赖步骤 Key: canonical-calculation-service\n- 依赖节点 ID: TP-04.02\n- 输入: 无\n- 输出: entrypoint consistency regression\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n## TP-05\n- Step Key: `fix-coordinate-validation`\n- 标题: F-005：补坐标输入边界校验\n- 类型: `package`\n- 目标: 让 Web/Bot 直接 lng,lat 输入复用经纬度范围验证，无效坐标返回明确错误。\n- 父节点: `ROOT`\n- 子节点: TP-05.01, TP-05.02\n- 依赖步骤 Key: test-baseline\n- 依赖节点 ID: TP-01.03\n- 输入: 无\n- 输出: 无\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n### TP-05.01\n- Step Key: `location-boundary-tests`\n- 标题: 补 location 坐标边界测试\n- 类型: `action`\n- 目标: 覆盖 999,999、181,0、0,91、-181,0、0,-91 和合法边界坐标。\n- 父节点: `TP-05`\n- 子节点: 无\n- 依赖步骤 Key: 无\n- 依赖节点 ID: 无\n- 输入: 无\n- 输出: location coordinate regression tests\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n### TP-05.02\n- Step Key: `location-range-validator`\n- 标题: 实现坐标范围校验\n- 类型: `action`\n- 目标: 在 location.get 或共享 validator 中校验经纬度范围，并让 Web/Bot 得到清晰错误。\n- 父节点: `TP-05`\n- 子节点: 无\n- 依赖步骤 Key: location-boundary-tests\n- 依赖节点 ID: TP-05.01\n- 输入: 无\n- 输出: coordinate validator\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n## TP-06\n- Step Key: `review-closeout`\n- 标题: REVIEW/CLOSEOUT：回归、审查和治理收口\n- 类型: `package`\n- 目标: 运行完整本地门禁，更新 REVIEW-0001 修复状态，整理治理资产和提交边界。\n- 父节点: `ROOT`\n- 子节点: TP-06.01, TP-06.02, TP-06.03\n- 依赖步骤 Key: fix-domain-boundary, fix-option-semantics, unify-entrypoints, fix-coordinate-validation\n- 依赖节点 ID: TP-02, TP-03, TP-04, TP-05\n- 输入: 无\n- 输出: 无\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n### TP-06.01\n- Step Key: `full-regression-gate`\n- 标题: 运行本地回归门禁\n- 类型: `action`\n- 目标: 运行 focused regression、ruff、format、mypy、local-ci quick 和治理 strict。\n- 父节点: `TP-06`\n- 子节点: 无\n- 依赖步骤 Key: 无\n- 依赖节点 ID: 无\n- 输入: 无\n- 输出: gate evidence directory；STATUS Recent Evidence\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n### TP-06.02\n- Step Key: `review-status-update`\n- 标题: 更新 REVIEW-0001 修复状态\n- 类型: `action`\n- 目标: 把 F-001 到 F-005 的状态、证据命令、剩余 WARN 和 owner 写回审计记录或 follow-up review。\n- 父节点: `TP-06`\n- 子节点: 无\n- 依赖步骤 Key: full-regression-gate\n- 依赖节点 ID: TP-06.01\n- 输入: 无\n- 输出: review closeout evidence\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n### TP-06.03\n- Step Key: `ship-package`\n- 标题: 提交前交付包\n- 类型: `action`\n- 目标: 整理 git diff、任务 closeout、提交说明和回滚路径。\n- 父节点: `TP-06`\n- 子节点: 无\n- 依赖步骤 Key: review-status-update\n- 依赖节点 ID: TP-06.02\n- 输入: 无\n- 输出: commit plan；rollback notes；task closeout packet\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无",
+    "package_acceptance_blocks": "## TP-01\n- 标题: PRECHECK：冻结审计基线与治理资产边界\n- 验收标准:\n  - 达成当前节点 objective，且输出物可复核\n- Verify: 确认子节点范围、依赖与状态闭环\n- Gate: 任务目标与上下文已确认\n- 输出物: 无\n\n### TP-01.01\n- 标题: 盘点当前治理资产 dirty diff\n- 验收标准:\n  - 不回滚现有治理资产；不把旧 dirty diff 误算成本任务修复。\n- Verify: git status --short --branch && git diff --name-status && git ls-files --others --exclude-standard\n- Gate: 无业务源码 dirty diff；治理变更清单完整记录。\n- 输出物: dirty diff inventory；本任务可写/禁写边界\n\n### TP-01.02\n- 标题: 复现 REVIEW-0001 关键证据\n- 验收标准:\n  - 后续修复能对比前后状态，不靠人工印象关闭 BLOCK。\n- Verify: rg 'TELEGRAM_SRC_DIR|fatecat-delivery|domains/experience-delivery' domains/fate-analysis/services/fate-core/src || true\n- Gate: 每个 finding 有当前失败证据或说明已被其他变更修复。\n- 输出物: baseline evidence block；DEBUG.md 或任务 STATUS evidence\n\n### TP-01.03\n- 标题: 建立当前测试基线\n- 验收标准:\n  - 没有未解释的基线失败。\n- Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py tests/regression/test_web_html.py\n- Gate: 基线测试结果记录到 STATUS；新增失败测试前能区分既有失败和本轮回归。\n- 输出物: baseline test evidence\n\n## TP-02\n- 标题: F-001：修复 fate-core 反向依赖 delivery\n- 验收标准:\n  - 达成当前节点 objective，且输出物可复核\n- Verify: 确认子节点范围、依赖与状态闭环\n- Gate: 前置步骤已完成: test-baseline\n- 输出物: 无\n\n### TP-02.01\n- 标题: 绘制 integration ownership map\n- 验收标准:\n  - 未识别清楚前不移动文件。\n- Verify: rg 'TELEGRAM_SRC_DIR|sys.path|importlib|fortel_|lunar_|bazi_' domains/fate-analysis/services/fate-core/src -n\n- Gate: 每个旧导入都有 fate-core 目标模块、测试和回滚说明。\n- 输出物: integration ownership map\n\n### TP-02.02\n- 标题: 迁移核心 adapter/provider\n- 验收标准:\n  - 领域算法不再依赖 delivery 目录形状。\n- Verify: .venv/bin/python -m pytest -q domains/fate-analysis/services/fate-core/tests tests/regression/test_capability_protocol.py\n- Gate: 迁移后核心能力测试通过；旧 facade 有 owner/removal 条件。\n- 输出物: fate-core adapter/provider modules；compatibility ledger update if needed\n\n### TP-02.03\n- 标题: 新增领域边界防回潮测试\n- 验收标准:\n  - F-001 可由机器 gate 防回潮。\n- Verify: .venv/bin/python -m pytest -q tests/regression/test_architecture_boundaries.py\n- Gate: rg 'TELEGRAM_SRC_DIR|fatecat-delivery|domains/experience-delivery' domains/fate-analysis/services/fate-core/src 返回空。\n- 输出物: architecture boundary regression\n\n## TP-03\n- 标题: F-002/F-003：修复业务选项语义和响应回显\n- 验收标准:\n  - 达成当前节点 objective，且输出物可复核\n- Verify: 确认子节点范围、依赖与状态闭环\n- Gate: 前置步骤已完成: test-baseline\n- 输出物: 无\n\n### TP-03.01\n- 标题: 先补业务选项失败测试\n- 验收标准:\n  - 失败测试先于实现或与实现同提交清晰可审。\n- Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k 'calendarType or midnightMode or daylightSaving or trueSolar'\n- Gate: 测试能证明当前静默忽略或回显冲突。\n- 输出物: option contract regression tests\n\n### TP-03.02\n- 标题: 未实现业务选项显式拒绝\n- 验收标准:\n  - 不再有未应用选项被持久化为已应用。\n- Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py\n- Gate: 非默认未实现选项返回 422；默认路径不回归。\n- 输出物: canonical option validator；API/Web/Bot error contract\n\n### TP-03.03\n- 标题: 修复 useTrueSolarTime 响应回显\n- 验收标准:\n  - F-003 关闭。\n- Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k trueSolar\n- Gate: useTrueSolarTime=false 响应中不出现硬编码 true。\n- 输出物: response contract fix\n\n### TP-03.04\n- 标题: 记录 raw options 与 normalized options\n- 验收标准:\n  - 记录回放不会假称未实现选项已应用。\n- Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k record\n- Gate: 保存记录中的 options 与计算实际使用值一致。\n- 输出物: record replay regression\n\n## TP-04\n- 标题: F-004：统一 Web/API/Bot 业务真相源\n- 验收标准:\n  - 达成当前节点 objective，且输出物可复核\n- Verify: 确认子节点范围、依赖与状态闭环\n- Gate: 前置步骤已完成: fix-domain-boundary, fix-option-semantics\n- 输出物: 无\n\n### TP-04.01\n- 标题: 绘制 Web/API/Bot 当前业务流\n- 验收标准:\n  - 没有遗漏 Bot 路径。\n- Verify: rg 'CapabilityExecutor|calculate_pure_analysis|_calculate_bazi_raw|BaziCalculator' domains/experience-delivery/services/fatecat-delivery/src -n\n- Gate: 每个入口都有迁移目标和兼容策略。\n- 输出物: entrypoint flow map\n\n### TP-04.02\n- 标题: 建立 canonical calculation service\n- 验收标准:\n  - 同一输入不因入口不同走不同业务逻辑。\n- Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py tests/regression/test_web_html.py\n- Gate: delivery 不新增领域规则；共享服务输出稳定 canonical 字段。\n- 输出物: shared delivery calculation service\n\n### TP-04.03\n- 标题: 入口一致性回归\n- 验收标准:\n  - F-004 关闭或降为有 owner 的兼容 WARN。\n- Verify: .venv/bin/python -m pytest -q tests/regression/test_entrypoint_consistency.py\n- Gate: Web/API/Bot canonical fields 一致；报告格式差异只允许在 delivery 层。\n- 输出物: entrypoint consistency regression\n\n## TP-05\n- 标题: F-005：补坐标输入边界校验\n- 验收标准:\n  - 达成当前节点 objective，且输出物可复核\n- Verify: 确认子节点范围、依赖与状态闭环\n- Gate: 前置步骤已完成: test-baseline\n- 输出物: 无\n\n### TP-05.01\n- 标题: 补 location 坐标边界测试\n- 验收标准:\n  - 失败用例先建立。\n- Verify: .venv/bin/python -m pytest -q tests/regression/test_location.py tests/regression/test_web_html.py -k coordinate\n- Gate: 无效坐标当前能被测试捕获。\n- 输出物: location coordinate regression tests\n\n### TP-05.02\n- 标题: 实现坐标范围校验\n- 验收标准:\n  - F-005 关闭。\n- Verify: .venv/bin/python -m pytest -q tests/regression/test_location.py tests/regression/test_web_html.py\n- Gate: 非法坐标明确拒绝；合法边界坐标通过。\n- 输出物: coordinate validator\n\n## TP-06\n- 标题: REVIEW/CLOSEOUT：回归、审查和治理收口\n- 验收标准:\n  - 达成当前节点 objective，且输出物可复核\n- Verify: 确认子节点范围、依赖与状态闭环\n- Gate: 前置步骤已完成: fix-domain-boundary, fix-option-semantics, unify-entrypoints, fix-coordinate-validation\n- 输出物: 无\n\n### TP-06.01\n- 标题: 运行本地回归门禁\n- 验收标准:\n  - 没有跳过关键失败。\n- Verify: bash scripts/local-ci.sh --profile quick && .venv/bin/python governance/tools/validate_governance_package.py --project-root . --strict\n- Gate: 所有本地门禁通过；失败必须回到对应 finding 修复。\n- 输出物: gate evidence directory；STATUS Recent Evidence\n\n### TP-06.02\n- 标题: 更新 REVIEW-0001 修复状态\n- 验收标准:\n  - 每个 finding 都有关闭证据或剩余风险 owner。\n- Verify: rg 'F-001|F-002|F-003|F-004|F-005|closed|remaining' governance/evidence/reviews -n\n- Gate: REVIEW-0001 不再停留在未解释的 BLOCK。\n- 输出物: review closeout evidence\n\n### TP-06.03\n- 标题: 提交前交付包\n- 验收标准:\n  - 可交给 auto-github 进行 commit/push。\n- Verify: git diff --check && git status --short --branch\n- Gate: 无运行态、secret、无关格式化或未说明治理 churn。\n- 输出物: commit plan；rollback notes；task closeout packet",
+    "package_acceptance_checklists": "## TP-01\n- 标题: PRECHECK：冻结审计基线与治理资产边界\n- 验收项:\n  - [ ] 达成 `PRECHECK：冻结审计基线与治理资产边界` 的 objective，且输出物可复核\n- Verify: 确认子节点范围、依赖与状态闭环\n- Gate: 任务目标与上下文已确认\n- 输出物:\n  - [ ] 确认当前未提交治理资产、REVIEW-0001 finding、现有测试基线和执行边界，避免修复过程混入无关变更。\n- 标准清单:\n  - [ ] Verify: 确认子节点范围、依赖与状态闭环\n  - [ ] Gate: 任务目标与上下文已确认\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n### TP-01.01\n- 标题: 盘点当前治理资产 dirty diff\n- 验收项:\n  - [ ] 不回滚现有治理资产；不把旧 dirty diff 误算成本任务修复。\n- Verify: git status --short --branch && git diff --name-status && git ls-files --others --exclude-standard\n- Gate: 无业务源码 dirty diff；治理变更清单完整记录。\n- 输出物:\n  - [ ] dirty diff inventory\n  - [ ] 本任务可写/禁写边界\n- 标准清单:\n  - [ ] Verify: git status --short --branch && git diff --name-status && git ls-files --others --exclude-standard\n  - [ ] Gate: 无业务源码 dirty diff；治理变更清单完整记录。\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n### TP-01.02\n- 标题: 复现 REVIEW-0001 关键证据\n- 验收项:\n  - [ ] 后续修复能对比前后状态，不靠人工印象关闭 BLOCK。\n- Verify: rg 'TELEGRAM_SRC_DIR|fatecat-delivery|domains/experience-delivery' domains/fate-analysis/services/fate-core/src || true\n- Gate: 每个 finding 有当前失败证据或说明已被其他变更修复。\n- 输出物:\n  - [ ] baseline evidence block\n  - [ ] DEBUG.md 或任务 STATUS evidence\n- 标准清单:\n  - [ ] Verify: rg 'TELEGRAM_SRC_DIR|fatecat-delivery|domains/experience-delivery' domains/fate-analysis/services/fate-core/src || true\n  - [ ] Gate: 每个 finding 有当前失败证据或说明已被其他变更修复。\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n  - [ ] 维护 `DEBUG.md` 并保留回归证据\n\n### TP-01.03\n- 标题: 建立当前测试基线\n- 验收项:\n  - [ ] 没有未解释的基线失败。\n- Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py tests/regression/test_web_html.py\n- Gate: 基线测试结果记录到 STATUS；新增失败测试前能区分既有失败和本轮回归。\n- 输出物:\n  - [ ] baseline test evidence\n- 标准清单:\n  - [ ] Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py tests/regression/test_web_html.py\n  - [ ] Gate: 基线测试结果记录到 STATUS；新增失败测试前能区分既有失败和本轮回归。\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n  - [ ] 维护 `DEBUG.md` 并保留回归证据\n\n## TP-02\n- 标题: F-001：修复 fate-core 反向依赖 delivery\n- 验收项:\n  - [ ] 达成 `F-001：修复 fate-core 反向依赖 delivery` 的 objective，且输出物可复核\n- Verify: 确认子节点范围、依赖与状态闭环\n- Gate: 前置步骤已完成: test-baseline\n- 输出物:\n  - [ ] 迁移被领域内核使用的 delivery integration 到 fate-core adapter/provider，删除 TELEGRAM_SRC_DIR/sys.path 反向依赖。\n- 标准清单:\n  - [ ] Verify: 确认子节点范围、依赖与状态闭环\n  - [ ] Gate: 前置步骤已完成: test-baseline\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n### TP-02.01\n- 标题: 绘制 integration ownership map\n- 验收项:\n  - [ ] 未识别清楚前不移动文件。\n- Verify: rg 'TELEGRAM_SRC_DIR|sys.path|importlib|fortel_|lunar_|bazi_' domains/fate-analysis/services/fate-core/src -n\n- Gate: 每个旧导入都有 fate-core 目标模块、测试和回滚说明。\n- 输出物:\n  - [ ] integration ownership map\n- 标准清单:\n  - [ ] Verify: rg 'TELEGRAM_SRC_DIR|sys.path|importlib|fortel_|lunar_|bazi_' domains/fate-analysis/services/fate-core/src -n\n  - [ ] Gate: 每个旧导入都有 fate-core 目标模块、测试和回滚说明。\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n### TP-02.02\n- 标题: 迁移核心 adapter/provider\n- 验收项:\n  - [ ] 领域算法不再依赖 delivery 目录形状。\n- Verify: .venv/bin/python -m pytest -q domains/fate-analysis/services/fate-core/tests tests/regression/test_capability_protocol.py\n- Gate: 迁移后核心能力测试通过；旧 facade 有 owner/removal 条件。\n- 输出物:\n  - [ ] fate-core adapter/provider modules\n  - [ ] compatibility ledger update if needed\n- 标准清单:\n  - [ ] Verify: .venv/bin/python -m pytest -q domains/fate-analysis/services/fate-core/tests tests/regression/test_capability_protocol.py\n  - [ ] Gate: 迁移后核心能力测试通过；旧 facade 有 owner/removal 条件。\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n### TP-02.03\n- 标题: 新增领域边界防回潮测试\n- 验收项:\n  - [ ] F-001 可由机器 gate 防回潮。\n- Verify: .venv/bin/python -m pytest -q tests/regression/test_architecture_boundaries.py\n- Gate: rg 'TELEGRAM_SRC_DIR|fatecat-delivery|domains/experience-delivery' domains/fate-analysis/services/fate-core/src 返回空。\n- 输出物:\n  - [ ] architecture boundary regression\n- 标准清单:\n  - [ ] Verify: .venv/bin/python -m pytest -q tests/regression/test_architecture_boundaries.py\n  - [ ] Gate: rg 'TELEGRAM_SRC_DIR|fatecat-delivery|domains/experience-delivery' domains/fate-analysis/services/fate-core/src 返回空。\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-03\n- 标题: F-002/F-003：修复业务选项语义和响应回显\n- 验收项:\n  - [ ] 达成 `F-002/F-003：修复业务选项语义和响应回显` 的 objective，且输出物可复核\n- Verify: 确认子节点范围、依赖与状态闭环\n- Gate: 前置步骤已完成: test-baseline\n- 输出物:\n  - [ ] 建立 canonical options，未实现语义显式 422，useTrueSolarTime 回显与真实计算一致。\n- 标准清单:\n  - [ ] Verify: 确认子节点范围、依赖与状态闭环\n  - [ ] Gate: 前置步骤已完成: test-baseline\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n### TP-03.01\n- 标题: 先补业务选项失败测试\n- 验收项:\n  - [ ] 失败测试先于实现或与实现同提交清晰可审。\n- Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k 'calendarType or midnightMode or daylightSaving or trueSolar'\n- Gate: 测试能证明当前静默忽略或回显冲突。\n- 输出物:\n  - [ ] option contract regression tests\n- 标准清单:\n  - [ ] Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k 'calendarType or midnightMode or daylightSaving or trueSolar'\n  - [ ] Gate: 测试能证明当前静默忽略或回显冲突。\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n### TP-03.02\n- 标题: 未实现业务选项显式拒绝\n- 验收项:\n  - [ ] 不再有未应用选项被持久化为已应用。\n- Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py\n- Gate: 非默认未实现选项返回 422；默认路径不回归。\n- 输出物:\n  - [ ] canonical option validator\n  - [ ] API/Web/Bot error contract\n- 标准清单:\n  - [ ] Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py\n  - [ ] Gate: 非默认未实现选项返回 422；默认路径不回归。\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n### TP-03.03\n- 标题: 修复 useTrueSolarTime 响应回显\n- 验收项:\n  - [ ] F-003 关闭。\n- Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k trueSolar\n- Gate: useTrueSolarTime=false 响应中不出现硬编码 true。\n- 输出物:\n  - [ ] response contract fix\n- 标准清单:\n  - [ ] Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k trueSolar\n  - [ ] Gate: useTrueSolarTime=false 响应中不出现硬编码 true。\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n  - [ ] 维护 `DEBUG.md` 并保留回归证据\n\n### TP-03.04\n- 标题: 记录 raw options 与 normalized options\n- 验收项:\n  - [ ] 记录回放不会假称未实现选项已应用。\n- Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k record\n- Gate: 保存记录中的 options 与计算实际使用值一致。\n- 输出物:\n  - [ ] record replay regression\n- 标准清单:\n  - [ ] Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k record\n  - [ ] Gate: 保存记录中的 options 与计算实际使用值一致。\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-04\n- 标题: F-004：统一 Web/API/Bot 业务真相源\n- 验收项:\n  - [ ] 达成 `F-004：统一 Web/API/Bot 业务真相源` 的 objective，且输出物可复核\n- Verify: 确认子节点范围、依赖与状态闭环\n- Gate: 前置步骤已完成: fix-domain-boundary, fix-option-semantics\n- 输出物:\n  - [ ] 将 Web/API/Bot 的八字/紫微业务计算收敛到同一 canonical calculation usecase，delivery 仅负责适配和交付。\n- 标准清单:\n  - [ ] Verify: 确认子节点范围、依赖与状态闭环\n  - [ ] Gate: 前置步骤已完成: fix-domain-boundary, fix-option-semantics\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n### TP-04.01\n- 标题: 绘制 Web/API/Bot 当前业务流\n- 验收项:\n  - [ ] 没有遗漏 Bot 路径。\n- Verify: rg 'CapabilityExecutor|calculate_pure_analysis|_calculate_bazi_raw|BaziCalculator' domains/experience-delivery/services/fatecat-delivery/src -n\n- Gate: 每个入口都有迁移目标和兼容策略。\n- 输出物:\n  - [ ] entrypoint flow map\n- 标准清单:\n  - [ ] Verify: rg 'CapabilityExecutor|calculate_pure_analysis|_calculate_bazi_raw|BaziCalculator' domains/experience-delivery/services/fatecat-delivery/src -n\n  - [ ] Gate: 每个入口都有迁移目标和兼容策略。\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n### TP-04.02\n- 标题: 建立 canonical calculation service\n- 验收项:\n  - [ ] 同一输入不因入口不同走不同业务逻辑。\n- Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py tests/regression/test_web_html.py\n- Gate: delivery 不新增领域规则；共享服务输出稳定 canonical 字段。\n- 输出物:\n  - [ ] shared delivery calculation service\n- 标准清单:\n  - [ ] Verify: .venv/bin/python -m pytest -q tests/regression/test_api_contracts.py tests/regression/test_web_html.py\n  - [ ] Gate: delivery 不新增领域规则；共享服务输出稳定 canonical 字段。\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n### TP-04.03\n- 标题: 入口一致性回归\n- 验收项:\n  - [ ] F-004 关闭或降为有 owner 的兼容 WARN。\n- Verify: .venv/bin/python -m pytest -q tests/regression/test_entrypoint_consistency.py\n- Gate: Web/API/Bot canonical fields 一致；报告格式差异只允许在 delivery 层。\n- 输出物:\n  - [ ] entrypoint consistency regression\n- 标准清单:\n  - [ ] Verify: .venv/bin/python -m pytest -q tests/regression/test_entrypoint_consistency.py\n  - [ ] Gate: Web/API/Bot canonical fields 一致；报告格式差异只允许在 delivery 层。\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n  - [ ] 维护 `DEBUG.md` 并保留回归证据\n\n## TP-05\n- 标题: F-005：补坐标输入边界校验\n- 验收项:\n  - [ ] 达成 `F-005：补坐标输入边界校验` 的 objective，且输出物可复核\n- Verify: 确认子节点范围、依赖与状态闭环\n- Gate: 前置步骤已完成: test-baseline\n- 输出物:\n  - [ ] 让 Web/Bot 直接 lng,lat 输入复用经纬度范围验证，无效坐标返回明确错误。\n- 标准清单:\n  - [ ] Verify: 确认子节点范围、依赖与状态闭环\n  - [ ] Gate: 前置步骤已完成: test-baseline\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n### TP-05.01\n- 标题: 补 location 坐标边界测试\n- 验收项:\n  - [ ] 失败用例先建立。\n- Verify: .venv/bin/python -m pytest -q tests/regression/test_location.py tests/regression/test_web_html.py -k coordinate\n- Gate: 无效坐标当前能被测试捕获。\n- 输出物:\n  - [ ] location coordinate regression tests\n- 标准清单:\n  - [ ] Verify: .venv/bin/python -m pytest -q tests/regression/test_location.py tests/regression/test_web_html.py -k coordinate\n  - [ ] Gate: 无效坐标当前能被测试捕获。\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n### TP-05.02\n- 标题: 实现坐标范围校验\n- 验收项:\n  - [ ] F-005 关闭。\n- Verify: .venv/bin/python -m pytest -q tests/regression/test_location.py tests/regression/test_web_html.py\n- Gate: 非法坐标明确拒绝；合法边界坐标通过。\n- 输出物:\n  - [ ] coordinate validator\n- 标准清单:\n  - [ ] Verify: .venv/bin/python -m pytest -q tests/regression/test_location.py tests/regression/test_web_html.py\n  - [ ] Gate: 非法坐标明确拒绝；合法边界坐标通过。\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-06\n- 标题: REVIEW/CLOSEOUT：回归、审查和治理收口\n- 验收项:\n  - [ ] 达成 `REVIEW/CLOSEOUT：回归、审查和治理收口` 的 objective，且输出物可复核\n- Verify: 确认子节点范围、依赖与状态闭环\n- Gate: 前置步骤已完成: fix-domain-boundary, fix-option-semantics, unify-entrypoints, fix-coordinate-validation\n- 输出物:\n  - [ ] 运行完整本地门禁，更新 REVIEW-0001 修复状态，整理治理资产和提交边界。\n- 标准清单:\n  - [ ] Verify: 确认子节点范围、依赖与状态闭环\n  - [ ] Gate: 前置步骤已完成: fix-domain-boundary, fix-option-semantics, unify-entrypoints, fix-coordinate-validation\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n### TP-06.01\n- 标题: 运行本地回归门禁\n- 验收项:\n  - [ ] 没有跳过关键失败。\n- Verify: bash scripts/local-ci.sh --profile quick && .venv/bin/python governance/tools/validate_governance_package.py --project-root . --strict\n- Gate: 所有本地门禁通过；失败必须回到对应 finding 修复。\n- 输出物:\n  - [ ] gate evidence directory\n  - [ ] STATUS Recent Evidence\n- 标准清单:\n  - [ ] Verify: bash scripts/local-ci.sh --profile quick && .venv/bin/python governance/tools/validate_governance_package.py --project-root . --strict\n  - [ ] Gate: 所有本地门禁通过；失败必须回到对应 finding 修复。\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n  - [ ] 维护 `DEBUG.md` 并保留回归证据\n\n### TP-06.02\n- 标题: 更新 REVIEW-0001 修复状态\n- 验收项:\n  - [ ] 每个 finding 都有关闭证据或剩余风险 owner。\n- Verify: rg 'F-001|F-002|F-003|F-004|F-005|closed|remaining' governance/evidence/reviews -n\n- Gate: REVIEW-0001 不再停留在未解释的 BLOCK。\n- 输出物:\n  - [ ] review closeout evidence\n- 标准清单:\n  - [ ] Verify: rg 'F-001|F-002|F-003|F-004|F-005|closed|remaining' governance/evidence/reviews -n\n  - [ ] Gate: REVIEW-0001 不再停留在未解释的 BLOCK。\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n  - [ ] 维护 `DEBUG.md` 并保留回归证据\n\n### TP-06.03\n- 标题: 提交前交付包\n- 验收项:\n  - [ ] 可交给 auto-github 进行 commit/push。\n- Verify: git diff --check && git status --short --branch\n- Gate: 无运行态、secret、无关格式化或未说明治理 churn。\n- 输出物:\n  - [ ] commit plan\n  - [ ] rollback notes\n  - [ ] task closeout packet\n- 标准清单:\n  - [ ] Verify: git diff --check && git status --short --branch\n  - [ ] Gate: 无运行态、secret、无关格式化或未说明治理 churn。\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检",
+    "planning_summary": "按 REVIEW-0001 的 BLOCK/WARN 顺序修复：先冻结治理与基线，再断开 fate-core 到 delivery 的反向依赖，然后修业务选项语义，统一入口真相源，补坐标校验，最后做 release gate 和审计 closeout。\n- 编译节点总数: 24\n- 叶子执行项: 18\n- 执行波次数: 11\n- 当前任务必须遵守 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP`",
+    "lifecycle_gates": "- SPEC：确认 REVIEW-0001 finding、当前 dirty governance 状态和本任务边界。\n- PLAN：任务树、依赖、验收命令和 ready leaves 落盘。\n- BUILD：按 P0 finding 先后修复，不先做报告包装。\n- TEST：每个 finding 对应至少一个测试或结构 scan。\n- REVIEW：用 auto-review 复核 future-optimal-drift、ponytail-complexity、contract、architecture。\n- SHIP：local-ci quick、治理 strict、REVIEW-0001 closeout 全部通过后才提交。",
+    "simplest_path": "不大重写、不换主链。先用显式 422 阻止未实现语义造成假结果；领域边界先迁移现有 integration 到 fate-core adapter/provider；入口一致性优先复用已有 CapabilityExecutor/calculate_pure_analysis。",
+    "split_strategy": "按 REVIEW-0001 finding 分包：PRECHECK、F-001、F-002/F-003、F-004、F-005、VERIFY/CLOSEOUT。每个包只处理一个业务风险面，并以测试和 scan 证明完成。",
+    "blockers": "- 无"
+  }
+}

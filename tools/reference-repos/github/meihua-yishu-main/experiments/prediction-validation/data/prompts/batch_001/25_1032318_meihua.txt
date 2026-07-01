@@ -1,0 +1,61 @@
+Use the Meihua Yishu (梅花易數) skill to divine this prediction market question.
+
+QUESTION TO DIVINE:
+==================
+Will Silver (SI) settle over $90 on the final trading day of January 2026?
+
+CONTEXT:
+========
+Description: This market will resolve to "Yes" if the official CME settlement price for the Active Month of Silver futures on the final trading day of January 2026 is higher than the listed price. Otherwise, the market will resolve to "No".
+
+For CME Silver (SI) futures contracts, the Active Month is the nearest of CME's designated delivery-cycle months (March, May, July, September, December) that is not the spot month. The Active Month becomes a non-active month effective on its First Position Date, at which
+
+Current Market Data:
+- Current Probability: 49.0%
+- Trading Volume: $9,431
+- Days Until Resolution: 13
+- Expected Resolution: 2026-01-31T18:30:00+00:00
+
+Categories: General
+
+CASTING INPUTS (use any method):
+================================
+
+1. NUMBER-BASED (數字起卦):
+   - Upper trigram input: 31 → Trigram #7
+   - Lower trigram input: 14 → Trigram #6
+   - Moving line: 3
+
+2. TEXT-BASED (測字起卦):
+   - Word count: 14 → Upper trigram #6
+   - Character count: 61 → Lower trigram #5
+   - Moving line: 3
+
+3. DIRECTION-BASED (方位起卦):
+   - Category: other
+   - Direction: 東北
+   - Trigram: 艮 (#7)
+
+4. MEASUREMENT-BASED (尺寸起卦):
+   - Days until resolution: 13 → Upper #5
+   - Probability %: 49 → Lower #1
+   - Moving line: 2
+
+INSTRUCTIONS:
+=============
+1. Cast the hexagram using one or more methods above
+2. Identify: 本卦 (original), 變卦 (transformed), 互卦 (mutual)
+3. Determine 體卦 and 用卦
+4. Analyze 體用關係 (生, 剋, 比和)
+5. Consider 外應 if any context clues
+6. Provide final prediction
+
+YOUR PREDICTION (required format):
+==================================
+HEXAGRAM: [Hexagram number and Chinese name, e.g., "40 雷水解"]
+TRANSFORMED: [Transformed hexagram if applicable]
+CASTING_METHOD: [Which method(s) used]
+TI_YONG: [Brief 體用 analysis]
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences with Meihua interpretation]

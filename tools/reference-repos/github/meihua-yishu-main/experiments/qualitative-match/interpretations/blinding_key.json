@@ -1,0 +1,19 @@
+{
+  "WARNING": "DO NOT READ THIS FILE UNTIL ALL EVALUATIONS ARE COMPLETE",
+  "description": "Maps which interpretation (A or B) is the real (cast) hexagram vs the random control",
+  "random_seed": 20260224,
+  "key": {
+    "E01": {"real": "B", "control": "A"},
+    "E02": {"real": "B", "control": "A"},
+    "E03": {"real": "A", "control": "B"},
+    "E04": {"real": "A", "control": "B"},
+    "E05": {"real": "A", "control": "B"},
+    "E06": {"real": "A", "control": "B"},
+    "E07": {"real": "A", "control": "B"},
+    "E08": {"real": "B", "control": "A"},
+    "E09": {"real": "A", "control": "B"},
+    "E10": {"real": "A", "control": "B"},
+    "E11": {"real": "A", "control": "B"},
+    "E12": {"real": "B", "control": "A"}
+  }
+}

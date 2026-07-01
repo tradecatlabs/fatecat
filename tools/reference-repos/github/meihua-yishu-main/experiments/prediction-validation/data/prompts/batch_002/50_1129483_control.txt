@@ -1,0 +1,30 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will MrBeast hit 109.5 billion views by January 31?
+
+Description: This market will resolve to "Yes" if the MrBeast YouTube channel (https://www.youtube.com/@MrBeast) hits the specified number of views by January 31, 2026, 11:59 PM ET.  Otherwise, this market will resolve to "No".
+
+The primary resolution source for this market will be the MrBeast YouTube channel (https://www.youtube.com/@MrBeast).
+
+Current Market Data:
+- Current Probability: 79.0%
+- Trading Volume: $9,537
+- Liquidity: $2044
+- Days Until Resolution: 5
+- Expected Resolution: 2026-01-31T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

@@ -1,0 +1,109 @@
+name: Clang/LLVM Build
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build-clang-linux:
+    runs-on: ubuntu-22.04
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        clang_version: [19, 20, 21]
+        build_type: [Release, Debug]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Add Ubuntu mirrors
+      run: |
+        # GitHub Actions caching proxy is at times unreliable
+        mirrors=/etc/apt/mirrors.txt
+        printf 'http://azure.archive.ubuntu.com/ubuntu\tpriority:1\n' | \
+          sudo tee $mirrors
+        curl http://mirrors.ubuntu.com/mirrors.txt | sudo tee --append $mirrors
+        sudo sed -i \
+          "s~http://azure.archive.ubuntu.com/ubuntu/~mirror+file:$mirrors~" \
+          /etc/apt/sources.list
+
+    - name: Install base dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget ninja-build
+
+    - name: Install Clang ${{ matrix.clang_version }}
+      run: |
+        wget https://apt.llvm.org/llvm.sh
+        chmod +x llvm.sh
+        sudo ./llvm.sh ${{ matrix.clang_version }} all
+        sudo apt-get install -y libc++-${{ matrix.clang_version }}-dev libc++abi-${{ matrix.clang_version }}-dev
+        # 验证安装
+        clang++-${{ matrix.clang_version }} --version
+        ls -la /usr/lib/llvm-${{ matrix.clang_version }}/
+
+    - name: Install CMake 4.0+
+      run: |
+        wget https://github.com/Kitware/CMake/releases/download/v4.1.2/cmake-4.1.2-linux-x86_64.sh
+        chmod +x cmake-4.1.2-linux-x86_64.sh
+        sudo ./cmake-4.1.2-linux-x86_64.sh --skip-license --prefix=/usr/local
+        cmake --version
+
+    - name: Check libc++ modules availability
+      run: |
+        if [ -d "/usr/lib/llvm-${{ matrix.clang_version }}/share/libc++/v1" ]; then
+          echo "libc++ modules found at /usr/lib/llvm-${{ matrix.clang_version }}/share/libc++/v1"
+          ls -la /usr/lib/llvm-${{ matrix.clang_version }}/share/libc++/v1/
+        else
+          echo "Warning: libc++ modules not found, module support may be limited"
+        fi
+
+    - name: Configure CMake
+      run: |
+        cmake -B ${{ github.workspace }}/build \
+          -G "Ninja" \
+          -DCMAKE_CXX_COMPILER=clang++-${{ matrix.clang_version }} \
+          -DCMAKE_C_COMPILER=clang-${{ matrix.clang_version }} \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DCMAKE_CXX_FLAGS="-stdlib=libc++" \
+          -DCMAKE_EXE_LINKER_FLAGS="-lc++abi" \
+          -DLIBCXX_MODULE_DIRS=/usr/lib/llvm-${{ matrix.clang_version }}/share/libc++/v1 \
+          -DLIBCXX_INCLUDE_DIRS=/usr/lib/llvm-${{ matrix.clang_version }}/include/c++/v1 \
+          -S ${{ github.workspace }}
+      env:
+        CC: clang-${{ matrix.clang_version }}
+        CXX: clang++-${{ matrix.clang_version }}
+
+    - name: Build
+      run: cmake --build ${{ github.workspace }}/build --parallel 2
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: zhouyi-lab-linux-clang${{ matrix.clang_version }}-${{ matrix.build_type }}
+        path: |
+          ${{ github.workspace }}/build/*.a
+          ${{ github.workspace }}/build/example/*
+        retention-days: 7
+
+    - name: Display build summary
+      if: always()
+      run: |
+        echo "========================================="
+        echo "Build Summary for Clang ${{ matrix.clang_version }}"
+        echo "========================================="
+        echo "Build Type: ${{ matrix.build_type }}"
+        echo "Compiler: clang++-${{ matrix.clang_version }}"
+        clang++-${{ matrix.clang_version }} --version
+        echo "========================================="
+

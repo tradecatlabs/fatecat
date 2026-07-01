@@ -1,0 +1,31 @@
+record_id,market_id,batch,title,categories,initial_prob,volume_usd,days_until,selection_date,expected_resolution,control_pred,control_conf,meihua_pred,meihua_conf,hexagram,outcome,resolution_date,control_correct,meihua_correct
+001_618531,618531,1,Will Ethan Hawke be nominated for Best Actor at the 98th Academy Awards?,,0.76,8781.080435,3,2026-01-18,2026-01-22,YES,0.7,NO,0.55,天風姤,YES,2026-01-25,1,0
+001_1183931,1183931,1,"Will the price of Bitcoin be above $98,000 on January 21?",,0.17,9785.863137,3,2026-01-18,2026-01-21,NO,0.8,YES,0.45,風火家人,NO,2026-01-25,1,0
+001_1090519,1090519,1,Will Israel strike 2 countries in January 2026?,,0.26,74575.456698,12,2026-01-18,2026-01-31,NO,0.7,YES,0.5,火地晉,YES,2026-01-25,0,1
+001_903574,903574,1,Will Han Duck Soo be sentenced to 5–10 years in prison?,,0.29,78779.149123,2,2026-01-18,2026-01-21,NO,0.65,YES,0.55,山火賁,NO,2026-01-25,1,0
+001_1176066,1176066,1,Will USD reach 1.5M Iranian rials by January 31?,,0.39,7813.075419,12,2026-01-18,2026-01-31,NO,0.55,YES,0.5,風天小畜,PENDING,,,
+001_1191043,1191043,1,Australian Open Men's: Terence Atmane vs Francesco Maestrelli,,0.65,7514.669695,13,2026-01-18,2026-02-01,YES,0.6,YES,0.55,水地比,NO,2026-01-25,0,0
+001_1168569,1168569,1,"Will GE Vernova say ""Administration"" during earnings call?",,0.67,7915.735293,10,2026-01-18,2026-01-29,YES,0.65,NO,0.5,山地剝,PENDING,,,
+001_949493,949493,1,Fed rate cut by March 2026 meeting?,,0.3,7667.834479,58,2026-01-18,2026-03-18,NO,0.65,NO,0.6,火山旅,PENDING,,,
+001_576881,576881,1,Will US GDP growth in 2025 be greater than 2.5%?,,0.171,95559.742776,10,2026-01-18,2026-01-29,NO,0.8,YES,0.45,火澤睽,PENDING,,,
+001_915361,915361,1,"Will Powell say ""Stock Market"" during January press conference?",,0.26,7618.03939,9,2026-01-18,2026-01-28,NO,0.7,YES,0.5,澤天夬,PENDING,,,
+001_1114754,1114754,1,"UFC 324: Yadong vs. O'Malley (Bantamweight, Main Card)",,0.36,74093.704495,6,2026-01-18,2026-01-25,NO,0.6,NO,0.6,風地觀,NO,2026-01-25,1,1
+001_1015990,1015990,1,Will Google reach $355 in January?,,0.17,7972.322891,13,2026-01-18,2026-02-01,NO,0.8,NO,0.65,地水師,PENDING,,,
+001_638650,638650,1,Will the chopsticks catch SpaceX Starship Flight Test 12 Superheavy booster?,,0.19,9892.14863,12,2026-01-18,2026-01-31,NO,0.75,NO,0.55,雷火豐,PENDING,,,
+001_801052,801052,1,Will xAI have the #2 AI model at the end of January 2026?,,0.79,9823.772723,12,2026-01-18,2026-01-31,YES,0.75,YES,0.7,山風蠱,PENDING,,,
+001_1146193,1146193,1,Will the Supreme Court rule on Trump's tarriff's by January 31?,,0.68,91705.073536,12,2026-01-18,2026-01-31,YES,0.65,YES,0.6,風火家人,PENDING,,,
+001_1122611,1122611,1,Will António José Seguro win the 1st round of the 2026 Portugal presidential election in the Lisbon ,,0.42,8404.622591,6,2026-01-18,2026-01-25,NO,0.55,YES,0.5,雷澤歸妹,PENDING,,,
+001_920389,920389,1,Will Trump talk to Vladimir Putin in January?,,0.48,9292.504438,12,2026-01-18,2026-01-31,YES,0.52,NO,0.55,雷地豫,YES,2026-01-25,1,0
+001_1210019,1210019,1,Will all of Trump’s Greenland Tariffs go into effect by Feb 1?,,0.19,9823.924107,13,2026-01-18,2026-02-01,NO,0.75,YES,0.45,山雷頤,PENDING,,,
+001_1060122,1060122,1,Will Russia enter Zaliznychne by January 31?,,0.18,96768.196541,12,2026-01-18,2026-01-31,NO,0.8,NO,0.65,雷山小過,PENDING,,,
+001_1011869,1011869,1,Will the Bank of Russia decrease the key rate after the February Meeting?,,0.31,9719.021916,25,2026-01-18,2026-02-13,NO,0.65,YES,0.5,火風鼎,PENDING,,,
+001_614713,614713,1,Will Guillermo del Toro be nominated for Best Director at the 98th Academy Awards?,,0.37,89135.489532,3,2026-01-18,2026-01-22,NO,0.6,NO,0.6,火水未濟,NO,2026-01-25,1,1
+001_1137268,1137268,1,Will Kendrick Lamar perform at the 2026 Grammy Awards?,,0.56,9318.255641,13,2026-01-18,2026-02-01,YES,0.55,YES,0.55,澤天夬,PENDING,,,
+001_614355,614355,1,Will Teyana Taylor win Best Supporting Actress at the 98th Academy Awards?,,0.65,71044.544004,55,2026-01-18,2026-03-15,YES,0.6,YES,0.6,震為雷,PENDING,,,
+001_628072,628072,1,Will Leon Thomas win Best New Artist at the 68th Annual GRAMMY Awards?,,0.17,76348.188778,13,2026-01-18,2026-02-01,NO,0.8,NO,0.6,地風升,PENDING,,,
+001_1032318,1032318,1,Will Silver (SI) settle over $90 on the final trading day of January 2026?,,0.49,9431.480383,13,2026-01-18,2026-01-31,NO,0.52,YES,0.5,山水蒙,PENDING,,,
+001_1082349,1082349,1,"Will Trump say ""Ego"" in January?",,0.81,8366.860433,12,2026-01-18,2026-01-31,YES,0.75,YES,0.65,澤水困,PENDING,,,
+001_614702,614702,1,Will Chloé Zhao be nominated for Best Director at the 98th Academy Awards?,,0.83,74928.313128,3,2026-01-18,2026-01-22,YES,0.8,YES,0.7,雷風恆,YES,2026-01-25,1,1
+001_1164925,1164925,1,Will Manchester United FC win on 2026-01-25?,,0.17,7185.259519,7,2026-01-18,2026-01-25,NO,0.8,NO,0.65,風山漸,PENDING,,,
+001_1190916,1190916,1,Australian Open Women's: Iva Jovic vs Katie Volynets,,0.72,7838.579957,13,2026-01-18,2026-02-01,YES,0.7,YES,0.65,水地比,PENDING,,,
+001_1190999,1190999,1,Australian Open Men's: Juan Manuel Cerundolo vs Jordan Thompson,,0.33,7671.175911,13,2026-01-18,2026-02-01,NO,0.65,YES,0.5,山天大畜,NO,2026-01-25,1,0

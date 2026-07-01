@@ -1,0 +1,66 @@
+name: MSVC Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-msvc:
+    runs-on: windows-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Release, Debug]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install OpenSSL via vcpkg
+      shell: pwsh
+      run: |
+        Write-Host "Installing OpenSSL using vcpkg..."
+        Write-Host "VCPKG_ROOT: $env:VCPKG_INSTALLATION_ROOT"
+        
+        # Install OpenSSL using vcpkg (recommended by GitHub)
+        vcpkg install openssl:x64-windows-static-md
+        
+        # Set environment variable for CMake
+        echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+    - name: Install CMake 4.0+
+      run: |
+        choco install cmake --version=4.1.2 -y --force
+        cmake --version
+
+    - name: Configure CMake
+      shell: pwsh
+      run: |
+        Write-Host "VCPKG_ROOT: $env:VCPKG_ROOT"
+        
+        cmake -B "${{ github.workspace }}/build" `
+          -G "Visual Studio 17 2022" `
+          -A x64 `
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} `
+          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" `
+          -DVCPKG_TARGET_TRIPLET=x64-windows-static-md `
+          -S "${{ github.workspace }}"
+
+    - name: Build
+      run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }} -j 2
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: zhouyi-lab-windows-msvc-${{ matrix.build_type }}
+        path: |
+          ${{ github.workspace }}/build/${{ matrix.build_type }}/*.lib
+          ${{ github.workspace }}/build/${{ matrix.build_type }}/*.exe
+        retention-days: 7
+

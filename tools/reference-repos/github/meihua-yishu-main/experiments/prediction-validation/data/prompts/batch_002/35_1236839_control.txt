@@ -1,0 +1,30 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will Bill or Hillary Clinton be held in contempt of Congress by Feb 28?
+
+Description: This market will resolve to “Yes” if Bill or Hillary Clinton (or both Bill and Hillary Clinton) are held in contempt of Congress by February 28, 2026, 11:59 PM ET. Otherwise, this market will resolve to “No”.
+
+Bill or Hillary Clinton will be considered to be held in contempt of Congress once a full chamber vote of the House of Representatives or Senate votes to approve a resolution (or other measure) holding them in contempt of Congress. A qualifying vote within this market’s timeframe will suff
+
+Current Market Data:
+- Current Probability: 57.0%
+- Trading Volume: $8,677
+- Liquidity: $2015
+- Days Until Resolution: 33
+- Expected Resolution: 2026-02-28T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

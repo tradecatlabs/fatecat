@@ -119,13 +119,47 @@ for runtime_state_root in "${runtime_state_roots[@]}"; do
 done
 
 node_modules_count=0
+reference_venv_count=0
+reference_pyvenv_count=0
+reference_cache_dirs_count=0
+reference_pollution_files_count=0
 reference_repo_root="${project_root}/tools/reference-repos"
 if [[ -d "${reference_repo_root}" ]]; then
   node_modules_count="$(find "${reference_repo_root}" -type d -name node_modules -print 2>/dev/null | wc -l)"
   find "${reference_repo_root}" -type d -name node_modules -prune -exec rm -rf {} +
+  reference_venv_count="$(
+    find "${reference_repo_root}" -type d \( -name venv -o -name .venv \) -print 2>/dev/null | wc -l
+  )"
+  find "${reference_repo_root}" -type d \( -name venv -o -name .venv \) -prune -exec rm -rf {} +
+  reference_pyvenv_count="$(
+    find "${reference_repo_root}" -type f -name pyvenv.cfg -print 2>/dev/null | wc -l
+  )"
+  while IFS= read -r pyvenv_file; do
+    pyvenv_root="$(dirname -- "${pyvenv_file}")"
+    rm -f "${pyvenv_file}"
+    if [[ -f "${pyvenv_root}/bin/activate" ]]; then
+      rm -rf "${pyvenv_root}/bin" "${pyvenv_root}/include" "${pyvenv_root}/lib" "${pyvenv_root}/lib64" "${pyvenv_root}/share"
+    fi
+  done < <(find "${reference_repo_root}" -type f -name pyvenv.cfg -print 2>/dev/null)
+  reference_cache_dirs_count="$(
+    find "${reference_repo_root}" -type d \( -name .pytest_cache -o -name .ruff_cache -o -name .mypy_cache \) -print 2>/dev/null | wc -l
+  )"
+  find "${reference_repo_root}" -type d \( -name .pytest_cache -o -name .ruff_cache -o -name .mypy_cache \) -prune -exec rm -rf {} +
+  reference_pollution_files_count="$(
+    find "${reference_repo_root}" \
+      -type f \( -name .DS_Store -o -name Thumbs.db -o -name '*.log' -o -name '*.db' -o -name '*.sqlite' -o -name '*.sqlite3' \) \
+      -print 2>/dev/null | wc -l
+  )"
+  find "${reference_repo_root}" \
+    -type f \( -name .DS_Store -o -name Thumbs.db -o -name '*.log' -o -name '*.db' -o -name '*.sqlite' -o -name '*.sqlite3' \) \
+    -exec rm -f {} +
 fi
 
 echo "[clean-runtime] removed ${python_cache_dirs_count} __pycache__ dirs"
 echo "[clean-runtime] removed ${python_bytecode_count} Python bytecode files"
 echo "[clean-runtime] removed ${runtime_database_count} runtime database files"
 echo "[clean-runtime] removed ${node_modules_count} reference repo node_modules dirs"
+echo "[clean-runtime] removed ${reference_venv_count} reference repo virtualenv dirs"
+echo "[clean-runtime] removed ${reference_pyvenv_count} reference repo pyvenv roots"
+echo "[clean-runtime] removed ${reference_cache_dirs_count} reference repo cache dirs"
+echo "[clean-runtime] removed ${reference_pollution_files_count} reference repo pollution files"

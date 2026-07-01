@@ -1,0 +1,32 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will the median home value in the Los Angeles Metro area be less than $1,130,000 by February 1?
+
+Description: This market will resolve according to the median home value for all property types in the Los Angeles Metro area on February 1, 2026.
+
+If the reported value falls exactly between two brackets, then this market will resolve to the higher range bracket.
+
+The resolution source will be official data from the Parcl Labs Sales Price Index for the Los Angeles Metro area (Parcl_ID: 2900078). The settlement price will be calculated by multiplying the published price index value (price per square foot) by
+
+Current Market Data:
+- Current Probability: 64.0%
+- Trading Volume: $9,158
+- Liquidity: $2416
+- Days Until Resolution: 6
+- Expected Resolution: 2026-02-01T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

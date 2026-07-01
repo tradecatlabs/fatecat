@@ -1,0 +1,32 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will Italy join the Board of Peace?
+
+Description: Donald Trump and the United States recently sent invitations to countries around the world, inviting them to join the US-led Board of Peace which will oversee conflict resolution in Gaza and elsewhere (see: https://www.reuters.com/world/middle-east/us-names-rubio-blair-kushner-gaza-board-under-trumps-plan-2026-01-17/).
+
+This market will resolve to “Yes” if the listed country joins the Board of Peace by March 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to “No”.
+
+A country will be c
+
+Current Market Data:
+- Current Probability: 19.0%
+- Trading Volume: $9,971
+- Liquidity: $1708
+- Days Until Resolution: 33
+- Expected Resolution: 2026-02-28T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

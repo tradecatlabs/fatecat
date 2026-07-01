@@ -23,7 +23,7 @@ def _load_reference_manifest() -> dict:
 
 def _reference_entries() -> dict[str, dict]:
     manifest = _load_reference_manifest()
-    entries = manifest["required"] + manifest["optionalFutureFeatures"]
+    entries = manifest["required"] + manifest["optionalFutureFeatures"] + manifest.get("legacyUnreviewedSnapshots", [])
     return {entry["id"]: entry for entry in entries}
 
 
@@ -211,8 +211,11 @@ def test_reference_manifest_entries_have_usage_contract_fields():
 
 def test_reference_manifest_blocks_missing_license_materials_from_production_role():
     for entry in _reference_entries().values():
-        missing_license = entry["licenseStatus"] == "missing_upstream_license"
-        if missing_license:
+        non_production_license = entry["licenseStatus"] in {
+            "missing_upstream_license",
+            "license_file_unreviewed",
+        }
+        if non_production_license:
             assert entry.get("auditRequired") is True
             assert entry["distributionAllowed"] is False
             assert entry["usageRole"] != "production_dependency"
@@ -221,6 +224,21 @@ def test_reference_manifest_blocks_missing_license_materials_from_production_rol
             assert entry.get("auditRequired") is True
             assert entry["usageRole"] == "reference_only"
             assert entry["productionUseAllowed"] is False
+
+
+def test_reference_manifest_covers_every_github_snapshot_directory():
+    manifest = _load_reference_manifest()
+    declared_paths = {
+        entry["path"]
+        for scope in ("required", "optionalFutureFeatures", "legacyUnreviewedSnapshots")
+        for entry in manifest.get(scope, [])
+        if entry["path"].startswith("github/")
+    }
+    actual_paths = {
+        f"github/{path.name}" for path in (ROOT / "tools" / "reference-repos" / "github").iterdir() if path.is_dir()
+    }
+
+    assert actual_paths == declared_paths
 
 
 def test_emitted_analysis_evidence_rule_ids_exist_in_classics_index():

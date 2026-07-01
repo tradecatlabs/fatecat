@@ -1,0 +1,34 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will New England face Los Angeles R in Super Bowl LX?
+
+Description: This market will resolve according to the teams that advance to Super Bowl LX. 
+
+If the Super Bowl LX matchup has not been confirmed by February 8, 2026, 11:59 PM ET, this market will resolve to "Other". 
+
+An announcement of Super Bowl LX matchup before this market's close date will immediately resolve this market to the corresponding option.
+
+If at any point it becomes impossible for this matchup to occur in Super Bowl LX based on the rules of the NFL (e.g. one team is eliminated in the playoff
+
+Current Market Data:
+- Current Probability: 30.0%
+- Trading Volume: $7,800
+- Liquidity: $7523
+- Days Until Resolution: 14
+- Expected Resolution: 2026-02-08T23:55:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

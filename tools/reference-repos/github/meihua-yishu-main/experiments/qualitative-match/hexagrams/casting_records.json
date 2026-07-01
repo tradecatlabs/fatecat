@@ -1,0 +1,534 @@
+{
+  "generated": "2026-02-24",
+  "random_seed": 20260224,
+  "events": [
+    {
+      "event_id": "E01",
+      "event_title": "Apple Global Experience Product Launch",
+      "event_domain": "Technology",
+      "expected_date": "2026-03-02",
+      "event_description": "Apple multi-city, multi-day product reveal across NYC/London/Shanghai. iPhone 17e, MacBook Pro M5, budget MacBook, iPad Air, possible Studio Display.",
+      "real_hexagram": {
+        "word_count": 5,
+        "char_count": 34,
+        "upper_trigram": "5 → 巽(風)",
+        "lower_trigram": "2 → 兌(澤)",
+        "changing_line": 3,
+        "primary_hexagram": {
+          "number": 61,
+          "name": "中孚"
+        },
+        "changed_hexagram": {
+          "number": 9,
+          "name": "小畜"
+        },
+        "mutual_hexagram": {
+          "number": 27,
+          "name": "頤"
+        }
+      },
+      "control_hexagram": {
+        "primary_hexagram": {
+          "number": 11,
+          "name": "泰"
+        },
+        "changing_line": 5,
+        "changed_hexagram": {
+          "number": 5,
+          "name": "需"
+        },
+        "mutual_hexagram": {
+          "number": 54,
+          "name": "歸妹"
+        }
+      },
+      "blinding": {
+        "real_is_A": false
+      }
+    },
+    {
+      "event_id": "E02",
+      "event_title": "Total Lunar Eclipse Blood Moon March 2026",
+      "event_domain": "Natural/Celestial",
+      "expected_date": "2026-03-03",
+      "event_description": "Last total lunar eclipse for 3 years. 58 min totality. Visible from N. America, Pacific, Australia, E. Asia. Color depends on atmospheric conditions.",
+      "real_hexagram": {
+        "word_count": 7,
+        "char_count": 35,
+        "upper_trigram": "7 → 艮(山)",
+        "lower_trigram": "3 → 離(火)",
+        "changing_line": 6,
+        "primary_hexagram": {
+          "number": 22,
+          "name": "賁"
+        },
+        "changed_hexagram": {
+          "number": 36,
+          "name": "明夷"
+        },
+        "mutual_hexagram": {
+          "number": 3,
+          "name": "屯"
+        }
+      },
+      "control_hexagram": {
+        "primary_hexagram": {
+          "number": 37,
+          "name": "家人"
+        },
+        "changing_line": 1,
+        "changed_hexagram": {
+          "number": 53,
+          "name": "漸"
+        },
+        "mutual_hexagram": {
+          "number": 64,
+          "name": "未濟"
+        }
+      },
+      "blinding": {
+        "real_is_A": false
+      }
+    },
+    {
+      "event_id": "E03",
+      "event_title": "SpaceX Starship Flight 12 Block 3 Launch",
+      "event_domain": "Science/Space",
+      "expected_date": "2026-03-08",
+      "event_description": "First Starship test of 2026. Block 3 vehicles, Raptor 3 engines, new Pad 2. Suborbital mission. Booster catch attempt.",
+      "real_hexagram": {
+        "word_count": 7,
+        "char_count": 34,
+        "upper_trigram": "7 → 艮(山)",
+        "lower_trigram": "2 → 兌(澤)",
+        "changing_line": 5,
+        "primary_hexagram": {
+          "number": 41,
+          "name": "損"
+        },
+        "changed_hexagram": {
+          "number": 61,
+          "name": "中孚"
+        },
+        "mutual_hexagram": {
+          "number": 24,
+          "name": "復"
+        }
+      },
+      "control_hexagram": {
+        "primary_hexagram": {
+          "number": 62,
+          "name": "小過"
+        },
+        "changing_line": 2,
+        "changed_hexagram": {
+          "number": 32,
+          "name": "恆"
+        },
+        "mutual_hexagram": {
+          "number": 28,
+          "name": "大過"
+        }
+      },
+      "blinding": {
+        "real_is_A": true
+      }
+    },
+    {
+      "event_id": "E04",
+      "event_title": "Trump Section 122 Tariff Constitutional Challenge",
+      "event_domain": "Legal/Regulatory",
+      "expected_date": "2026-03-07",
+      "event_description": "After SCOTUS struck down IEEPA tariffs, Trump imposed new tariffs under Section 122. Never used this way. Legal challenges expected within days.",
+      "real_hexagram": {
+        "word_count": 6,
+        "char_count": 44,
+        "upper_trigram": "6 → 坎(水)",
+        "lower_trigram": "4 → 震(雷)",
+        "changing_line": 2,
+        "primary_hexagram": {
+          "number": 24,
+          "name": "復"
+        },
+        "changed_hexagram": {
+          "number": 19,
+          "name": "臨"
+        },
+        "mutual_hexagram": {
+          "number": 2,
+          "name": "坤"
+        }
+      },
+      "control_hexagram": {
+        "primary_hexagram": {
+          "number": 57,
+          "name": "巽"
+        },
+        "changing_line": 2,
+        "changed_hexagram": {
+          "number": 53,
+          "name": "漸"
+        },
+        "mutual_hexagram": {
+          "number": 38,
+          "name": "睽"
+        }
+      },
+      "blinding": {
+        "real_is_A": true
+      }
+    },
+    {
+      "event_id": "E05",
+      "event_title": "Iran US Nuclear Crisis Deal or Strike",
+      "event_domain": "International Crisis",
+      "expected_date": "2026-03-10",
+      "event_description": "Largest US Middle East military buildup since 2003. Trump gave Iran 10-15 days to agree to deal. Indirect talks via Oman. Outcomes range from historic deal to military strikes.",
+      "real_hexagram": {
+        "word_count": 7,
+        "char_count": 31,
+        "upper_trigram": "7 → 艮(山)",
+        "lower_trigram": "7 → 艮(山)",
+        "changing_line": 2,
+        "primary_hexagram": {
+          "number": 52,
+          "name": "艮"
+        },
+        "changed_hexagram": {
+          "number": 18,
+          "name": "蠱"
+        },
+        "mutual_hexagram": {
+          "number": 3,
+          "name": "屯"
+        }
+      },
+      "control_hexagram": {
+        "primary_hexagram": {
+          "number": 4,
+          "name": "蒙"
+        },
+        "changing_line": 5,
+        "changed_hexagram": {
+          "number": 59,
+          "name": "渙"
+        },
+        "mutual_hexagram": {
+          "number": 24,
+          "name": "復"
+        }
+      },
+      "blinding": {
+        "real_is_A": true
+      }
+    },
+    {
+      "event_id": "E06",
+      "event_title": "Ukraine Russia Belarus Peace Negotiations",
+      "event_domain": "Politics/Diplomacy",
+      "expected_date": "2026-03-10",
+      "event_description": "Three rounds of Belarus talks. Kuleba-Lavrov first meeting since war began. Multi-tiered Western enforcement plan. Russia insists no ceasefire without comprehensive settlement.",
+      "real_hexagram": {
+        "word_count": 5,
+        "char_count": 37,
+        "upper_trigram": "5 → 巽(風)",
+        "lower_trigram": "5 → 巽(風)",
+        "changing_line": 6,
+        "primary_hexagram": {
+          "number": 57,
+          "name": "巽"
+        },
+        "changed_hexagram": {
+          "number": 48,
+          "name": "井"
+        },
+        "mutual_hexagram": {
+          "number": 38,
+          "name": "睽"
+        }
+      },
+      "control_hexagram": {
+        "primary_hexagram": {
+          "number": 15,
+          "name": "謙"
+        },
+        "changing_line": 3,
+        "changed_hexagram": {
+          "number": 2,
+          "name": "坤"
+        },
+        "mutual_hexagram": {
+          "number": 3,
+          "name": "屯"
+        }
+      },
+      "blinding": {
+        "real_is_A": true
+      }
+    },
+    {
+      "event_id": "E07",
+      "event_title": "Champions League Round of 16 Draw",
+      "event_domain": "Sports",
+      "expected_date": "2026-02-27",
+      "event_description": "UEFA draws knockout matchups at Nyon HQ. Determines R16 first legs Mar 10-11. Arsenal, Chelsea, Liverpool, Atletico Madrid await opponents.",
+      "real_hexagram": {
+        "word_count": 6,
+        "char_count": 28,
+        "upper_trigram": "6 → 坎(水)",
+        "lower_trigram": "4 → 震(雷)",
+        "changing_line": 4,
+        "primary_hexagram": {
+          "number": 24,
+          "name": "復"
+        },
+        "changed_hexagram": {
+          "number": 51,
+          "name": "震"
+        },
+        "mutual_hexagram": {
+          "number": 2,
+          "name": "坤"
+        }
+      },
+      "control_hexagram": {
+        "primary_hexagram": {
+          "number": 23,
+          "name": "剝"
+        },
+        "changing_line": 1,
+        "changed_hexagram": {
+          "number": 27,
+          "name": "頤"
+        },
+        "mutual_hexagram": {
+          "number": 2,
+          "name": "坤"
+        }
+      },
+      "blinding": {
+        "real_is_A": true
+      }
+    },
+    {
+      "event_id": "E08",
+      "event_title": "World Baseball Classic 2026 Pool Stage",
+      "event_domain": "Sports",
+      "expected_date": "2026-03-05",
+      "event_description": "20 national teams in 4 pools. Pool play Mar 5-11 in Miami, Houston, San Juan, Tokyo. US vs Italy/Mexico/Brazil/GB in Pool B.",
+      "real_hexagram": {
+        "word_count": 6,
+        "char_count": 33,
+        "upper_trigram": "6 → 坎(水)",
+        "lower_trigram": "1 → 乾(天)",
+        "changing_line": 3,
+        "primary_hexagram": {
+          "number": 5,
+          "name": "需"
+        },
+        "changed_hexagram": {
+          "number": 60,
+          "name": "節"
+        },
+        "mutual_hexagram": {
+          "number": 38,
+          "name": "睽"
+        }
+      },
+      "control_hexagram": {
+        "primary_hexagram": {
+          "number": 13,
+          "name": "同人"
+        },
+        "changing_line": 6,
+        "changed_hexagram": {
+          "number": 49,
+          "name": "革"
+        },
+        "mutual_hexagram": {
+          "number": 44,
+          "name": "姤"
+        }
+      },
+      "blinding": {
+        "real_is_A": false
+      }
+    },
+    {
+      "event_id": "E09",
+      "event_title": "98th Academy Awards Oscars Ceremony",
+      "event_domain": "Cultural/Entertainment",
+      "expected_date": "2026-03-15",
+      "event_description": "Sinners leads with record 16 noms. PTA's One Battle After Another has 13. New Best Casting category. Conan O'Brien hosts. Dolby Theatre.",
+      "real_hexagram": {
+        "word_count": 5,
+        "char_count": 31,
+        "upper_trigram": "5 → 巽(風)",
+        "lower_trigram": "7 → 艮(山)",
+        "changing_line": 6,
+        "primary_hexagram": {
+          "number": 53,
+          "name": "漸"
+        },
+        "changed_hexagram": {
+          "number": 39,
+          "name": "蹇"
+        },
+        "mutual_hexagram": {
+          "number": 64,
+          "name": "未濟"
+        }
+      },
+      "control_hexagram": {
+        "primary_hexagram": {
+          "number": 50,
+          "name": "鼎"
+        },
+        "changing_line": 4,
+        "changed_hexagram": {
+          "number": 18,
+          "name": "蠱"
+        },
+        "mutual_hexagram": {
+          "number": 43,
+          "name": "夬"
+        }
+      },
+      "blinding": {
+        "real_is_A": true
+      }
+    },
+    {
+      "event_id": "E10",
+      "event_title": "NCAA March Madness Selection Sunday",
+      "event_domain": "Sports",
+      "expected_date": "2026-03-15",
+      "event_description": "68-team bracket revealed on CBS. Duke projected #1 overall seed. Bubble teams learn fate. First Four begins Mar 17.",
+      "real_hexagram": {
+        "word_count": 5,
+        "char_count": 31,
+        "upper_trigram": "5 → 巽(風)",
+        "lower_trigram": "7 → 艮(山)",
+        "changing_line": 6,
+        "primary_hexagram": {
+          "number": 53,
+          "name": "漸"
+        },
+        "changed_hexagram": {
+          "number": 39,
+          "name": "蹇"
+        },
+        "mutual_hexagram": {
+          "number": 64,
+          "name": "未濟"
+        }
+      },
+      "control_hexagram": {
+        "primary_hexagram": {
+          "number": 11,
+          "name": "泰"
+        },
+        "changing_line": 1,
+        "changed_hexagram": {
+          "number": 46,
+          "name": "升"
+        },
+        "mutual_hexagram": {
+          "number": 54,
+          "name": "歸妹"
+        }
+      },
+      "blinding": {
+        "real_is_A": true
+      }
+    },
+    {
+      "event_id": "E11",
+      "event_title": "Trump State of the Union Aftermath",
+      "event_domain": "Politics/Diplomacy",
+      "expected_date": "2026-03-03",
+      "event_description": "SOTU delivered Feb 24. Congressional reactions, poll movements, legislative responses to tariff crisis. Spanberger gave Democratic response.",
+      "real_hexagram": {
+        "word_count": 6,
+        "char_count": 29,
+        "upper_trigram": "6 → 坎(水)",
+        "lower_trigram": "5 → 巽(風)",
+        "changing_line": 5,
+        "primary_hexagram": {
+          "number": 48,
+          "name": "井"
+        },
+        "changed_hexagram": {
+          "number": 46,
+          "name": "升"
+        },
+        "mutual_hexagram": {
+          "number": 38,
+          "name": "睽"
+        }
+      },
+      "control_hexagram": {
+        "primary_hexagram": {
+          "number": 2,
+          "name": "坤"
+        },
+        "changing_line": 3,
+        "changed_hexagram": {
+          "number": 15,
+          "name": "謙"
+        },
+        "mutual_hexagram": {
+          "number": 2,
+          "name": "坤"
+        }
+      },
+      "blinding": {
+        "real_is_A": true
+      }
+    },
+    {
+      "event_id": "E12",
+      "event_title": "February 2026 Blizzard Aftermath Polar Vortex",
+      "event_domain": "Weather/Natural",
+      "expected_date": "2026-03-07",
+      "event_description": "Blizzard of 2026 dumped 2-3 feet on NE US. Polar vortex collapse. Recovery, infrastructure damage. March pattern: continued cold or abrupt thaw?",
+      "real_hexagram": {
+        "word_count": 6,
+        "char_count": 40,
+        "upper_trigram": "6 → 坎(水)",
+        "lower_trigram": "0 → 坤(地)",
+        "changing_line": 4,
+        "primary_hexagram": {
+          "number": 8,
+          "name": "比"
+        },
+        "changed_hexagram": {
+          "number": 45,
+          "name": "萃"
+        },
+        "mutual_hexagram": {
+          "number": 23,
+          "name": "剝"
+        }
+      },
+      "control_hexagram": {
+        "primary_hexagram": {
+          "number": 5,
+          "name": "需"
+        },
+        "changing_line": 2,
+        "changed_hexagram": {
+          "number": 63,
+          "name": "既濟"
+        },
+        "mutual_hexagram": {
+          "number": 38,
+          "name": "睽"
+        }
+      },
+      "blinding": {
+        "real_is_A": false
+      }
+    }
+  ]
+}

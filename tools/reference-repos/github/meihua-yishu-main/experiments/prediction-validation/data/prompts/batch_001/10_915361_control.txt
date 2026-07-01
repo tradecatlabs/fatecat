@@ -1,0 +1,34 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will Powell say "Stock Market" during January press conference?
+
+Description: Jerome Powell is currently scheduled to give an FOMC Introductory Statement and press conference on January 28, 2026, at 2:30 PM ET. This market pertains to his Introductory Statement as well as the following Q&A session.
+
+This market will resolve to "Yes" if Powell says the listed term during the FOMC Press Conference. Otherwise, this market will resolve to "No".
+
+Any usage of the word regardless of context will count toward the resolution of this market.
+
+Pluralization/possessive of the word w
+
+Current Market Data:
+- Current Probability: 26.0%
+- Trading Volume: $7,618
+- Liquidity: $1556
+- Days Until Resolution: 9
+- Expected Resolution: 2026-01-28T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

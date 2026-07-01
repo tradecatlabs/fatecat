@@ -48,7 +48,7 @@ TRUST_PROXY_HEADERS = env_flag("FATE_TRUST_PROXY_HEADERS")
 ENABLE_HSTS = env_flag("FATE_ENABLE_HSTS")
 
 import db_v2 as db  # noqa: E402
-from bazi_calculator import BaziCalculator  # noqa: E402
+from calculation_service import calculate_delivery_result  # noqa: E402
 from fate_core.capabilities import CapabilityExecutor, CapabilityInput, list_capabilities  # noqa: E402
 from fate_core.usecases import PureAnalysisInput, calculate_pure_analysis  # noqa: E402
 from liuyao_factors import generate_factor  # noqa: E402
@@ -66,7 +66,6 @@ from models import (  # noqa: E402
 from prediction_systems import enabled_report_system_ids, prediction_systems_payload  # noqa: E402
 from rate_limiter import get_queue_status  # noqa: E402
 from report_generator import (  # noqa: E402
-    build_report_hide,
     generate_full_report,
     normalize_report_system,
     public_birth_place,
@@ -907,7 +906,29 @@ def execute_prediction_capability(capability_id: str, payload: dict[str, Any]):
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 
+def _validate_supported_bazi_options(req: BaziRequest) -> None:
+    """拒绝当前主链尚未真实实现的业务选项。"""
+    if req.options.calendarType != "solar":
+        raise HTTPException(status_code=422, detail="calendarType=lunar 暂未实现；请使用 solar 公历输入。")
+    if req.options.daylightSaving != "auto":
+        raise HTTPException(status_code=422, detail="daylightSaving=on/off 暂未实现；请使用 auto。")
+    if req.options.midnightMode != "early":
+        raise HTTPException(status_code=422, detail="midnightMode=late 暂未实现；请使用 early。")
+
+
+def _normalized_bazi_options(req: BaziRequest, *, report_system: str) -> dict[str, Any]:
+    """记录本次计算真实采用的业务选项口径。"""
+    return {
+        "calendarType": "solar",
+        "daylightSaving": "auto",
+        "midnightMode": "early",
+        "useTrueSolarTime": req.options.useTrueSolarTime,
+        "reportSystem": report_system,
+    }
+
+
 def _parse_bazi_request(req: BaziRequest) -> tuple[datetime, float, float]:
+    _validate_supported_bazi_options(req)
     birth_time = req.birthTime.strip()
     if len(birth_time) == 5:
         birth_time = f"{birth_time}:00"
@@ -953,42 +974,21 @@ def _build_bazi_data(result: dict, *, birth_dt: datetime, true_solar_time: datet
     )
 
 
-def _calculate_bazi_raw(req: BaziRequest, *, report_system: str = "bazi") -> tuple[dict, BaziCalculator, datetime]:
+def _calculate_bazi_raw(req: BaziRequest, *, report_system: str = "bazi") -> tuple[dict, Any, datetime]:
     birth_dt, longitude, latitude = _parse_bazi_request(req)
-    report_hide = build_report_hide(report_system)
-    display_birth_place = public_birth_place(req.birthPlace.name)
-    calculator = BaziCalculator(
-        birth_dt,
-        req.gender,
-        longitude,
+    calculation = calculate_delivery_result(
+        birth_dt=birth_dt,
+        gender=req.gender,
+        longitude=longitude,
         latitude=latitude,
+        birth_place=req.birthPlace.name,
         name=req.name,
-        birth_place=display_birth_place,
+        report_system=report_system,
         use_true_solar_time=req.options.useTrueSolarTime,
     )
-    result = calculator.calculate(hide=report_hide)
-    return result, calculator, birth_dt
-
-
-def _calculate_ziwei_capability(req: BaziRequest) -> dict[str, Any]:
-    """使用统一 capability 执行紫微，不再从八字扩展链拼装 Markdown 数据。"""
-    birth_dt, longitude, latitude = _parse_bazi_request(req)
-    display_birth_place = public_birth_place(req.birthPlace.name)
-    result = CapabilityExecutor().execute(
-        CapabilityInput(
-            capability_id="ziwei",
-            payload={
-                "birthDateTime": birth_dt.strftime("%Y-%m-%d %H:%M:%S"),
-                "gender": req.gender,
-                "longitude": longitude,
-                "latitude": latitude,
-                "birthPlace": display_birth_place,
-                "name": req.name,
-                "useTrueSolarTime": req.options.useTrueSolarTime,
-            },
-        )
-    )
-    return result.data
+    if calculation.calculator is None:
+        raise RuntimeError("_calculate_bazi_raw 只用于 bazi 体系")
+    return calculation.data, calculation.calculator, birth_dt
 
 
 @app.post("/api/v1/bazi/simple")
@@ -1080,7 +1080,11 @@ def calculate_bazi(
                 dst=0,
                 true_solar=1 if req.options.useTrueSolarTime else 0,
                 early_zi=1 if req.options.midnightMode == "early" else 0,
-                biz_data={"input": req.model_dump(), "result": result},
+                biz_data={
+                    "input": req.model_dump(),
+                    "normalizedOptions": _normalized_bazi_options(req, report_system="bazi"),
+                    "result": result,
+                },
             )
 
         return BaziResponse(
@@ -1098,17 +1102,26 @@ def calculate_bazi(
 
 
 def _build_markdown_report_payload(req: BaziRequest) -> dict[str, Any]:
-    report_system = normalize_report_system(req.options.reportSystem)
-    if report_system == "ziwei":
-        result = _run_with_calculation_slot(lambda: _calculate_ziwei_capability(req))
-    else:
-        result, _calculator, _birth_dt = _run_with_calculation_slot(
-            lambda: _calculate_bazi_raw(req, report_system=report_system)
+    birth_dt, longitude, latitude = _parse_bazi_request(req)
+    calculation = _run_with_calculation_slot(
+        lambda: calculate_delivery_result(
+            birth_dt=birth_dt,
+            gender=req.gender,
+            longitude=longitude,
+            latitude=latitude,
+            birth_place=req.birthPlace.name,
+            name=req.name,
+            report_system=req.options.reportSystem,
+            use_true_solar_time=req.options.useTrueSolarTime,
         )
-    report_hide = build_report_hide(report_system)
-    markdown = generate_full_report(result, hide=report_hide, report_system=report_system)
+    )
+    markdown = generate_full_report(
+        calculation.data,
+        hide=calculation.report_hide,
+        report_system=calculation.report_system,
+    )
     return {
-        "reportSystem": report_system,
+        "reportSystem": calculation.report_system,
         "markdown": markdown,
     }
 

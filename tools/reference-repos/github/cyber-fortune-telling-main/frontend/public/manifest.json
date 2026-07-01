@@ -1,0 +1,15 @@
+{
+    "name": "玄乎儿分光镜",
+    "short_name": "玄乎儿分光镜",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "description": "玄乎儿分光镜",
+    "icons": [
+      {
+        "src": "/android-chrome-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }

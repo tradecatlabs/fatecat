@@ -49,4 +49,5 @@ domains/*/services/*/runtime/
 infra/runtime/local-state/**/*.db
 infra/runtime/local-state/**/*.sqlite
 infra/runtime/local-state/vendor-build/
+infra/runtime/local-state/exports/
 tools/reference-repos/**/node_modules/

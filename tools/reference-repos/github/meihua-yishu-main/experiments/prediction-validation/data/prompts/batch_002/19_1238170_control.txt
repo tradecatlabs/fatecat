@@ -1,0 +1,30 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will Tesla (TSLA) beat quarterly earnings?
+
+Description: As of market creation, Tesla is estimated to release earnings on January 28, 2026. The Street consensus estimate for Tesla’s non-GAAP EPS for the relevant quarter is $0.45 as of market creation. This market will resolve to "Yes" if Tesla reports non-GAAP EPS greater than $0.45 for the relevant quarter in its next quarterly earnings release. Otherwise, it will resolve to "No." The resolution source will be the non-GAAP EPS listed in the company’s official earnings documents. 
+
+If Tesla releases e
+
+Current Market Data:
+- Current Probability: 26.0%
+- Trading Volume: $9,492
+- Liquidity: $4159
+- Days Until Resolution: 3
+- Expected Resolution: 2026-01-28T22:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

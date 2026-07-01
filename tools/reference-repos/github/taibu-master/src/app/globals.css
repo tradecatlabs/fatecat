@@ -1,0 +1,238 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* 
+ * TaiBu 全局样式
+ * 支持深色/浅色主题切换
+ */
+
+/* ===== 主题变量定义 ===== */
+:root {
+  color-scheme: light;
+
+  /* ios 安全区域 */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --mobile-header-height: calc(4rem + var(--sat));
+
+  /* 浅色主题 - 参考 Notion 设计规范 */
+  --background: #f7f6f3;
+  --background-secondary: #efedea;
+  --background-tertiary: #e3e1db;
+  --foreground: #37352f;
+  --foreground-secondary: rgba(55, 53, 47, 0.65);
+  --foreground-tertiary: rgba(55, 53, 47, 0.45);
+
+  /* 强调色 - Notion 蓝色 */
+  --accent: #2eaadc;
+  --accent-light: #eff6ff;
+
+  /* 边框和分隔线 */
+  --border: #e5e5e5;
+  --border-hover: #d4d4d4;
+
+  /* 阴影 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+  /* 侧边栏宽度 */
+  --sidebar-width: 240px;
+}
+
+/* 安全区域工具类 */
+.safe-top {
+  padding-top: var(--sat);
+}
+
+.safe-top-header {
+  padding-top: var(--sat);
+  min-height: var(--mobile-header-height);
+}
+
+.safe-bottom {
+  padding-bottom: var(--sab);
+}
+
+.safe-area-inset-bottom {
+  padding-bottom: var(--sab);
+}
+
+/* 深色主题 */
+.dark {
+  color-scheme: dark;
+
+  --background: #0a0a0a;
+  --background-secondary: #1a1a1a;
+  --background-tertiary: #262626;
+  --foreground: #ffffff;
+  --foreground-secondary: #a0a0a0;
+  --foreground-tertiary: #7a7a7a;
+
+  --accent: #D4AF37;
+  --accent-light: #3d3520;
+
+  --border: #2a2a2a;
+  --border-hover: #3a3a3a;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+}
+
+/* ===== Tailwind 主题配置 ===== */
+@theme inline {
+  --color-background: var(--background);
+  --color-background-secondary: var(--background-secondary);
+  --color-background-tertiary: var(--background-tertiary);
+  --color-foreground: var(--foreground);
+  --color-foreground-secondary: var(--foreground-secondary);
+  --color-foreground-tertiary: var(--foreground-tertiary);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+
+  /* 字体 */
+  --font-sans: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+  --font-mono: "SFMono-Regular", "JetBrains Mono", "Menlo", "Monaco", "Consolas", "Liberation Mono", monospace;
+}
+
+/* ===== 基础样式 ===== */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== 自定义滚动条 ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
+}
+
+/* ===== 隐藏滚动条 ===== */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ===== 动画 ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes soundWave {
+  0%, 100% {
+    transform: scaleY(0.25);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.sound-wave-bar {
+  height: 100%;
+  transform-origin: center;
+  animation: soundWave 1s ease-in-out infinite;
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out;
+}
+
+.animate-zoom-in {
+  animation: zoomIn 0.3s ease-out;
+}
+
+/* ===== 主题切换过渡 ===== */
+body,
+.theme-transition,
+.theme-transition * {
+  transition: background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease;
+}

@@ -1,0 +1,152 @@
+{
+  "name": "mingyu-core",
+  "version": "0.1.2",
+  "description": "Mingyu core algorithms: traditional Chinese metaphysics (八字Bazi, 紫微斗数Ziwei, 奇门遁甲Qimen, 六爻Liuyao, 六壬Liuren, 梅花易数Meihua, and more)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./bazi": {
+      "import": "./dist/bazi/index.js",
+      "types": "./dist/bazi/index.d.ts"
+    },
+    "./divination/liuyao": {
+      "import": "./dist/divination/algorithms/liuyao.js",
+      "types": "./dist/divination/algorithms/liuyao.d.ts"
+    },
+    "./divination/meihua": {
+      "import": "./dist/divination/algorithms/meihua/index.js",
+      "types": "./dist/divination/algorithms/meihua/index.d.ts"
+    },
+    "./divination/qimen": {
+      "import": "./dist/divination/algorithms/qimen/index.js",
+      "types": "./dist/divination/algorithms/qimen/index.d.ts"
+    },
+    "./divination/liuren": {
+      "import": "./dist/divination/algorithms/liuren/index.js",
+      "types": "./dist/divination/algorithms/liuren/index.d.ts"
+    },
+    "./divination/xiaoliuren": {
+      "import": "./dist/divination/algorithms/xiaoliuren.js",
+      "types": "./dist/divination/algorithms/xiaoliuren.d.ts"
+    },
+    "./divination/lenormand": {
+      "import": "./dist/divination/algorithms/lenormand.js",
+      "types": "./dist/divination/algorithms/lenormand.d.ts"
+    },
+    "./divination/ssgw": {
+      "import": "./dist/divination/algorithms/ssgw.js",
+      "types": "./dist/divination/algorithms/ssgw.d.ts"
+    },
+    "./divination/almanac": {
+      "import": "./dist/divination/algorithms/almanac.js",
+      "types": "./dist/divination/algorithms/almanac.d.ts"
+    },
+    "./divination/astrolabe": {
+      "import": "./dist/divination/algorithms/astrolabe.js",
+      "types": "./dist/divination/algorithms/astrolabe.d.ts"
+    },
+    "./divination/divination-data": {
+      "import": "./dist/divination/divination-data.js",
+      "types": "./dist/divination/divination-data.d.ts"
+    },
+    "./divination/meihua-omens": {
+      "import": "./dist/divination/meihua-omens.js",
+      "types": "./dist/divination/meihua-omens.d.ts"
+    },
+    "./divination/hexagram-data": {
+      "import": "./dist/divination/hexagram-data.js",
+      "types": "./dist/divination/hexagram-data.d.ts"
+    },
+    "./divination/ssgw-data": {
+      "import": "./dist/divination/ssgw-data/index.js",
+      "types": "./dist/divination/ssgw-data/index.d.ts"
+    },
+    "./divination/tarot": {
+      "import": "./dist/divination/tarot.js",
+      "types": "./dist/divination/tarot.d.ts"
+    },
+    "./divination/tarot-data": {
+      "import": "./dist/divination/tarot-data.js",
+      "types": "./dist/divination/tarot-data.d.ts"
+    },
+    "./divination/divination-helpers": {
+      "import": "./dist/divination/divination-helpers.js",
+      "types": "./dist/divination/divination-helpers.d.ts"
+    },
+    "./ziwei/iztro": {
+      "import": "./dist/ziwei/iztro/index.js",
+      "types": "./dist/ziwei/iztro/index.d.ts"
+    },
+    "./birth-time-reverse": {
+      "import": "./dist/birth-time-reverse/index.js",
+      "types": "./dist/birth-time-reverse/index.d.ts"
+    },
+    "./calendar": {
+      "import": "./dist/calendar/index.js",
+      "types": "./dist/calendar/index.d.ts"
+    },
+    "./types": {
+      "import": "./dist/types/index.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc --build tsconfig.json",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build",
+    "test": "tsx --test \"tests/**/*.test.ts\""
+  },
+  "dependencies": {
+    "tyme4ts": "^1.3.3"
+  },
+  "peerDependencies": {
+    "celestine": "^0.2.1",
+    "iztro": "^2.5.8"
+  },
+  "peerDependenciesMeta": {
+    "iztro": {
+      "optional": true
+    },
+    "celestine": {
+      "optional": true
+    }
+  },
+  "keywords": [
+    "bazi",
+    "八字",
+    "ziweidoushu",
+    "紫微斗数",
+    "qimen",
+    "奇门遁甲",
+    "liuyao",
+    "六爻",
+    "liuren",
+    "六壬",
+    "meihua",
+    "梅花易数",
+    "chinese-metaphysics",
+    "divination"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Brhiza/mingyu"
+  },
+  "devDependencies": {
+    "celestine": "^0.2.1",
+    "iztro": "^2.5.8",
+    "tsup": "^8.5.1"
+  }
+}

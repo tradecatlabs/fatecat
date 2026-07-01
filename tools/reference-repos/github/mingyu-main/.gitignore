@@ -1,0 +1,33 @@
+# 依赖目录
+node_modules/
+
+# npm lockfile（本项目改用 pnpm，npm lockfile 不再维护）
+package-lock.json
+
+# 构建产物
+dist/
+
+# TypeScript 增量编译缓存
+*.tsbuildinfo
+
+# 本地调试与截图输出
+output/
+.playwright-cli/
+
+# 日志文件
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# AI 协作说明文件
+agent.md
+AGENTS.md
+
+# 系统与编辑器杂项
+.DS_Store
+Thumbs.db
+
+# Claude Code 本地数据
+.claude/

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
 import sys
 from collections.abc import Callable
 from datetime import datetime
@@ -18,7 +17,6 @@ from fate_core.support.paths import (
     FATE_PROFILE_DIR,
     FATE_REPO_ROOT,
     FATE_VENDOR_ROOT,
-    TELEGRAM_START_SCRIPT,
 )
 from fate_core.usecases import (
     PureAnalysisInput,
@@ -245,12 +243,10 @@ def _run_capability_execute(args: argparse.Namespace) -> int:
 
 
 def _run_serve(args: argparse.Namespace) -> int:
-    start_script = TELEGRAM_START_SCRIPT
-    command = [sys.executable, str(start_script), args.mode]
     print(build_branding_text(compact=False))
     print("")
-    completed = subprocess.run(command, cwd=start_script.parent, check=False)
-    return completed.returncode
+    print("fate-core CLI 只负责纯分析与 capability 执行；交付服务请从 delivery 服务入口启动。", file=sys.stderr)
+    return 2
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -302,7 +298,7 @@ def build_parser() -> argparse.ArgumentParser:
     capability_parser.add_argument("--pretty", action="store_true", help="格式化输出 JSON")
     capability_parser.set_defaults(handler=_run_capability_execute)
 
-    serve_parser = subparsers.add_parser("serve", help="启动 Telegram 交付层")
+    serve_parser = subparsers.add_parser("serve", help="提示交付服务启动边界")
     serve_parser.add_argument("mode", choices=("bot", "api", "both"), help="启动模式")
     serve_parser.set_defaults(handler=_run_serve)
     return parser

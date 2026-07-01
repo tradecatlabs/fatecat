@@ -1,0 +1,221 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { baziCalculator } from '../src/utils/bazi/baziCalculator';
+import { getMonthDaysInfo, getYearInfo } from '../src/utils/bazi/calendarTool';
+import {
+  buildFortuneSelectionContext,
+  normalizeFortuneSelection,
+} from '../src/utils/bazi/fortuneSelection';
+import { getDayHourBreakdown } from '../src/utils/bazi/fortuneSelection/helpers/breakdown';
+import type { BaziChartResult } from '../src/utils/bazi/baziTypes';
+
+function createMockResult(): BaziChartResult {
+  return {
+    pillars: {
+      year: { gan: '甲', zhi: '午', ganZhi: '甲午' },
+      month: { gan: '己', zhi: '丑', ganZhi: '己丑' },
+      day: { gan: '甲', zhi: '子', ganZhi: '甲子' },
+      hour: { gan: '庚', zhi: '申', ganZhi: '庚申' },
+    },
+    dayMaster: {
+      gan: '甲',
+      element: '木',
+      yinYang: '阳',
+    },
+    luckInfo: {
+      startInfo: '',
+      handoverInfo: '',
+      cycles: [
+        {
+          age: 8,
+          year: 2008,
+          ganZhi: '甲子',
+          isXiaoyun: false,
+          type: '大运',
+          years: [
+            {
+              year: 2008,
+              age: 8,
+              ganZhi: '戊子',
+              tenGod: '',
+              tenGodZhi: '',
+              xiaoyun: {
+                ganZhi: '丙寅',
+                tenGod: '',
+                tenGodZhi: '',
+              },
+            },
+            {
+              year: 2009,
+              age: 9,
+              ganZhi: '己丑',
+              tenGod: '',
+              tenGodZhi: '',
+            },
+          ],
+        },
+      ],
+    },
+  } as BaziChartResult;
+}
+
+test('选择大运时会附带该大运下的全部流年', () => {
+  const result = createMockResult();
+  const context = buildFortuneSelectionContext(result, {
+    scope: 'dayun',
+    cycleIndex: 0,
+  });
+
+  assert.ok(context);
+  assert.equal(context.scope, 'dayun');
+  assert.equal(context.displayLabel, '甲子运');
+  assert.equal(context.yearBreakdown?.length, 2);
+  assert.match(context.promptPayload.breakdownTitle ?? '', /流年/);
+  assert.match(context.promptPayload.breakdownLines?.[0] ?? '', /2008年/);
+  assert.doesNotMatch(context.promptPayload.breakdownLines?.[0] ?? '', /童运/);
+  assert.match(
+    context.promptPayload.summaryLines.join('\n'),
+    /大运十神：天干甲为比肩，地支子主气为正印/,
+  );
+  assert.match(context.promptPayload.summaryLines.join('\n'), /大运触发：/);
+  assert.match(context.promptPayload.summaryLines.join('\n'), /天干甲合月柱己/);
+  assert.match(context.promptPayload.summaryLines.join('\n'), /地支子冲年柱午/);
+  assert.match(context.promptPayload.summaryLines.join('\n'), /地支子合月柱丑/);
+  assert.match(context.promptPayload.summaryLines.join('\n'), /地支子与日柱子伏吟/);
+  assert.match(context.promptPayload.evidenceLines?.join('\n') ?? '', /【主证】用户已选择年限运限/);
+  assert.match(context.promptPayload.evidenceLines?.join('\n') ?? '', /【主证】大运干支与十神/);
+  assert.match(context.promptPayload.evidenceLines?.join('\n') ?? '', /【应期】应期边界/);
+  assert.match(context.promptPayload.evidenceLines?.join('\n') ?? '', /【限制】断事层级限制/);
+});
+
+test('选择流年时会附带该流年下的全部流月', () => {
+  const result = createMockResult();
+  const context = buildFortuneSelectionContext(result, {
+    scope: 'year',
+    cycleIndex: 0,
+    year: 2008,
+  });
+
+  assert.ok(context);
+  assert.equal(context.scope, 'year');
+  assert.equal(context.year, 2008);
+  assert.equal(context.monthBreakdown?.length, 12);
+  assert.match(context.promptPayload.breakdownTitle ?? '', /流月/);
+  assert.match(context.promptPayload.breakdownLines?.[0] ?? '', /1月/);
+  assert.match(
+    context.promptPayload.breakdownLines?.[0] ?? '',
+    /\d{4}-\d{2}-\d{2} 至 \d{4}-\d{2}-\d{2}/,
+  );
+  assert.doesNotMatch(context.promptPayload.summaryLines.join('\n'), /童运/);
+  assert.match(
+    context.promptPayload.summaryLines.join('\n'),
+    /流年十神：天干戊为偏财，地支子主气为正印/,
+  );
+  assert.match(context.promptPayload.summaryLines.join('\n'), /流年触发：/);
+  assert.match(context.promptPayload.summaryLines.join('\n'), /地支子冲年柱午/);
+  assert.match(context.promptPayload.summaryLines.join('\n'), /地支子合月柱丑/);
+  assert.match(context.promptPayload.evidenceLines?.join('\n') ?? '', /【辅证】上层岁运背景/);
+  assert.match(context.promptPayload.evidenceLines?.join('\n') ?? '', /【主证】流年干支与十神/);
+  assert.match(context.promptPayload.evidenceLines?.join('\n') ?? '', /未选择具体流月或流日/);
+});
+
+test('节令月会使用实际交节日期范围，而不是直接套用公历月份', () => {
+  const yearInfo = getYearInfo(2024);
+  const firstMonth = yearInfo.months[0];
+  const firstMonthDays = getMonthDaysInfo(2024, 1);
+
+  assert.equal(firstMonth.month, '寅月');
+  assert.equal(firstMonth.ganZhi, '丙寅');
+  assert.equal(firstMonth.startDate, '2024-02-04');
+  assert.equal(firstMonth.endDate, '2024-03-05');
+  assert.equal(firstMonthDays[0]?.solarDate, '2024-02-04');
+  assert.equal(firstMonthDays.at(-1)?.solarDate, '2024-03-05');
+  assert.ok(firstMonth.startDateTime);
+  assert.ok(firstMonth.endDateTime);
+});
+
+test('选择流月时会附带该节令月下的全部流日', () => {
+  const result = createMockResult();
+  const context = buildFortuneSelectionContext(result, {
+    scope: 'month',
+    cycleIndex: 0,
+    year: 2008,
+    month: 1,
+  });
+
+  assert.ok(context);
+  assert.equal(context.scope, 'month');
+  assert.equal(context.month, 1);
+  assert.match(context.displayText, /2008年 寅月/);
+  assert.match(context.promptPayload.summaryLines.join('\n'), /日期范围：2008-02-04 至 2008-03-05/);
+  assert.match(context.promptPayload.summaryLines.join('\n'), /交节时刻：立春/);
+  assert.equal(context.dayBreakdown?.length, 31);
+  assert.match(context.promptPayload.breakdownTitle ?? '', /流日/);
+  assert.match(context.promptPayload.breakdownLines?.[0] ?? '', /2008-02-04/);
+  assert.match(
+    context.promptPayload.summaryLines.join('\n'),
+    /流月十神：天干甲为比肩，地支寅主气为比肩/,
+  );
+  assert.match(context.promptPayload.summaryLines.join('\n'), /流月触发：/);
+  assert.match(context.promptPayload.evidenceLines?.join('\n') ?? '', /【主证】流月干支与十神/);
+  assert.match(context.promptPayload.evidenceLines?.join('\n') ?? '', /以节气月为准/);
+});
+
+test('选择流日时只保留该流日本身', () => {
+  const result = createMockResult();
+  const normalized = normalizeFortuneSelection(result, {
+    scope: 'day',
+    cycleIndex: 0,
+    year: 2008,
+    month: 1,
+    day: 5,
+  });
+  const context = buildFortuneSelectionContext(result, normalized);
+
+  assert.ok(context);
+  assert.equal(context.scope, 'day');
+  assert.equal(context.promptPayload.breakdownTitle, '该流日包含的流时');
+  assert.equal(context.dayBreakdown?.length, 1);
+  assert.equal(context.hourBreakdown?.length, 13);
+  assert.match(context.promptPayload.summaryLines.join('\n'), /流日：2008-02-08/);
+  assert.match(
+    context.promptPayload.summaryLines.join('\n'),
+    /按子初换日：2008-02-07 23:00 至 2008-02-08 22:59/,
+  );
+  assert.match(context.promptPayload.breakdownLines?.[0] ?? '', /晚子时/);
+  assert.match(context.promptPayload.breakdownLines?.[1] ?? '', /早子时/);
+  assert.doesNotMatch(
+    context.promptPayload.breakdownLines?.join('\n') ?? '',
+    /2008-02-08 23:00-23:59/,
+  );
+  assert.match(context.promptPayload.evidenceLines?.join('\n') ?? '', /【主证】流日干支与十神/);
+  assert.match(context.promptPayload.evidenceLines?.join('\n') ?? '', /按子初换日/);
+  assert.match(context.promptPayload.evidenceLines?.join('\n') ?? '', /不得改写长期命局或整年趋势/);
+});
+
+test('流日时辰拆解应先拒绝无效日期', () => {
+  assert.throws(() => getDayHourBreakdown(2026, 2, 31), /日期需在 1-28 之间/);
+  assert.throws(() => getDayHourBreakdown(2026, 13, 1), /月份需在 1-12 之间/);
+  assert.throws(() => getDayHourBreakdown(1899, 1, 1), /年份需在 1900-2100 之间/);
+});
+
+test('交运年份默认应归到后一步大运，而不是继续挂在童运或前一步运里', () => {
+  const result = baziCalculator.calculateBazi({
+    year: 1990,
+    month: 1,
+    day: 1,
+    timeIndex: 12,
+    gender: 'male',
+    isLunar: false,
+    isLeapMonth: false,
+    useTrueSolarTime: false,
+  });
+
+  const normalized = normalizeFortuneSelection(result, {
+    scope: 'year',
+    year: 1998,
+  });
+
+  assert.equal(normalized.cycleIndex, 1);
+  assert.equal(result.luckInfo.cycles[normalized.cycleIndex ?? -1]?.ganZhi, '乙亥');
+});

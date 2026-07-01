@@ -1,0 +1,30 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Iran Strike on Israel by February 28?
+
+Description: This market will resolve to "Yes" if an Iran-initiated drone, missile, or air strike on the soil of Israel is announced or credibly reported to have occurred by the listed date, 11:59 PM ET. Otherwise, this market will resolve to "No".
+
+For the purposes of this market, a qualifying "strike" is defined as the use of aerial bombs, drones, or missiles (including FPV and ATGM strikes as well as cruise or ballistic missiles) launched by any Iranian operatives, including military forces, intelligence 
+
+Current Market Data:
+- Current Probability: 38.0%
+- Trading Volume: $75,750
+- Liquidity: $10938
+- Days Until Resolution: 33
+- Expected Resolution: 2026-02-28T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

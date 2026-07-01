@@ -1,3 +1,12 @@
+---
+id: ARCHIVE-ARCHIVE-TASKS-PROJECT-HISTORY-0001-COMPREHENSIVE-BAZI-STATEMENT-SERVICE-HARDENING-CONTEXT
+type: archive
+status: archived
+owner: engineering
+created: 2026-06-17
+last_reviewed: 2026-06-17
+review_cycle: P365D
+---
 # Repo Evidence
 - `scripts/project/modules/telegram/src/bazi_calculator.py` 当前通过 `lunar-python` 执行四柱、节气、起运计算。
 - `scripts/project/assets/data/calendar/solar_terms/raw/` 已保存 1900-2030 交节时间原始表，当前被 Git 与导出包排除。

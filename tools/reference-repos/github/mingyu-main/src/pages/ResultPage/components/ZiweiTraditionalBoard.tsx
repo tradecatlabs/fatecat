@@ -1,0 +1,212 @@
+import type { AnalysisPayloadV1 } from '@/types/analysis';
+import { uniqueNonEmptyStrings } from '@/lib/array-utils';
+import { ZIWEI_GRID_ORDER } from '../ResultPage.constants';
+import { joinStarNames } from '../ResultPage.helpers';
+import { ChartStarLine } from './ChartStar';
+
+export function ZiweiTraditionalBoard(props: {
+  payload: AnalysisPayloadV1;
+  boardTitle: string;
+  name: string;
+  selectedPalaceIndex: number;
+  onSelectPalace: (index: number) => void;
+}) {
+  const { payload, boardTitle, name, selectedPalaceIndex, onSelectPalace } = props;
+  const selectedPalace =
+    payload.palaces.find((item) => item.index === selectedPalaceIndex) ?? payload.palaces[0];
+  const palaceMap = new Map(payload.palaces.map((item) => [item.index, item]));
+  const oppositePalace = palaceMap.get(selectedPalace.opposite_palace_index)?.name ?? '暂无';
+  const surrounded = selectedPalace.surrounded_palace_indexes
+    .map((index) => palaceMap.get(index)?.name ?? `宫位${index}`)
+    .join('、');
+  const centerFocusTags = uniqueNonEmptyStrings(selectedPalace.scope_hits).slice(0, 2);
+  const centerSummaryTags =
+    centerFocusTags.length === 0
+      ? uniqueNonEmptyStrings(selectedPalace.summary_tags).slice(0, 2)
+      : [];
+
+  return (
+    <section className="ziwei-traditional-shell">
+      <div className="ziwei-traditional-head">
+        <div>
+          <h3>{boardTitle}</h3>
+        </div>
+        <span className="result-chip result-chip-highlight">{payload.active_scope.label}</span>
+      </div>
+
+      <div className="ziwei-traditional-board">
+        <div className="ziwei-board-note ziwei-board-note-top-left">
+          命宫支
+          <strong>{payload.basic_info.soul_palace_branch}</strong>
+        </div>
+        <div className="ziwei-board-note ziwei-board-note-top-right">
+          身宫支
+          <strong>{payload.basic_info.body_palace_branch}</strong>
+        </div>
+        <div className="ziwei-board-note ziwei-board-note-bottom-left">
+          {payload.basic_info.chinese_date}
+        </div>
+        <div className="ziwei-board-note ziwei-board-note-bottom-right">
+          {payload.basic_info.birth_time_label}
+        </div>
+
+        <div className="ziwei-traditional-grid">
+          {ZIWEI_GRID_ORDER.map((item, index) => {
+            if (item === 'center') {
+              return (
+                <div className="ziwei-board-center chart-center" key={`center-${index}`}>
+                  <div className="ziwei-board-center-head chart-center-head">
+                    <div className="chart-center-scope">{payload.active_scope.label}</div>
+                    <div className="chart-center-age">{payload.active_scope.nominal_age} 岁</div>
+                  </div>
+                  <div className="chart-center-info">
+                    <div>
+                      {name} · {payload.basic_info.gender}
+                    </div>
+                    <div>{payload.basic_info.zodiac}</div>
+                    <div>{payload.basic_info.solar_date}</div>
+                    <div>{payload.basic_info.lunar_date}</div>
+                    <div>{payload.basic_info.birth_time_label}</div>
+                    <div>{payload.active_scope.solar_date}</div>
+                  </div>
+                  <div className="ziwei-board-center-meta chart-center-grid">
+                    <div className="chart-center-chip">命主 {payload.basic_info.soul}</div>
+                    <div className="chart-center-chip">身主 {payload.basic_info.body}</div>
+                    <div className="chart-center-chip">
+                      {payload.basic_info.five_elements_class}
+                    </div>
+                    <div className="chart-center-chip">
+                      命宫 {payload.basic_info.soul_palace_branch}
+                    </div>
+                    <div className="chart-center-chip">长生 {selectedPalace.changsheng12}</div>
+                    <div className="chart-center-chip">博士 {selectedPalace.boshi12}</div>
+                  </div>
+                  <div className="ziwei-board-center-relation chart-center-focus">
+                    <div className="chart-center-focus-label">当前宫位</div>
+                    <div className="ziwei-board-center-name chart-center-focus-name">
+                      {selectedPalace.name}
+                    </div>
+                    <div className="ziwei-board-center-stars chart-center-focus-stars">
+                      {joinStarNames(selectedPalace.major_stars, '无主星')}
+                    </div>
+                    <div className="chart-center-relations">
+                      <div className="chart-center-relation-row">
+                        <span className="chart-center-relation-label">对宫</span>
+                        <span className="chart-center-relation-value">{oppositePalace}</span>
+                      </div>
+                      <div className="chart-center-relation-row">
+                        <span className="chart-center-relation-label">三方四正</span>
+                        <span className="chart-center-relation-value">{surrounded}</span>
+                      </div>
+                    </div>
+                    <div className="chart-center-badges">
+                      {centerFocusTags.map((tag) => (
+                        <span
+                          className="chart-center-chip chart-center-chip-strong"
+                          key={`${selectedPalace.index}-focus-${tag}`}
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                      {centerSummaryTags.map((tag) => (
+                        <span
+                          className="chart-center-chip"
+                          key={`${selectedPalace.index}-summary-${tag}`}
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            if (item === 'center-skip') {
+              return (
+                <div
+                  className="ziwei-board-center ziwei-board-center-empty"
+                  key={`empty-${index}`}
+                />
+              );
+            }
+
+            const palace = palaceMap.get(item);
+            if (!palace) return null;
+            const isActive = palace.index === selectedPalaceIndex;
+            const isOpposite = palace.index === selectedPalace.opposite_palace_index;
+            const isSurrounded = selectedPalace.surrounded_palace_indexes.includes(palace.index);
+            const footerBadges = uniqueNonEmptyStrings([
+              palace.dynamic_scope_name ?? palace.scope_hits[0],
+              palace.summary_tags[0],
+              palace.changsheng12,
+            ]).slice(0, 2);
+
+            return (
+              <button
+                type="button"
+                key={palace.index}
+                className={`ziwei-grid-cell chart-cell ${isActive ? 'is-active' : ''} ${
+                  palace.is_body_palace ? 'is-body-palace' : ''
+                } ${isOpposite ? 'is-opposite is-relation-opposite' : ''} ${
+                  isSurrounded ? 'is-surrounded is-relation-surrounded' : ''
+                }`}
+                onClick={() => onSelectPalace(palace.index)}
+              >
+                <div className="ziwei-grid-cell-corner chart-cell-corner chart-cell-corner-left">
+                  {palace.heavenly_stem}
+                  {palace.earthly_branch}
+                </div>
+                <div className="ziwei-grid-cell-corner chart-cell-corner chart-cell-corner-right">
+                  {palace.decadal_range[0]}-{palace.decadal_range[1]}
+                </div>
+                <div className="chart-cell-body">
+                  <div className="ziwei-grid-cell-title chart-cell-title-stack">
+                    <span className="chart-cell-title">{palace.name}</span>
+                    <div className="ziwei-grid-cell-flags chart-cell-flags">
+                      {palace.is_body_palace ? <span className="chart-cell-flag">身</span> : null}
+                      {palace.is_original_palace ? (
+                        <span className="chart-cell-flag">因</span>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div className="chart-cell-major-column">
+                    <ChartStarLine
+                      fallback="无主星"
+                      layout="column"
+                      stars={palace.major_stars}
+                      tone="major"
+                    />
+                  </div>
+
+                  <div className="chart-cell-side-columns">
+                    <ChartStarLine
+                      layout="column"
+                      limit={5}
+                      stars={palace.minor_stars}
+                      tone="minor"
+                    />
+                    <ChartStarLine
+                      layout="column"
+                      limit={4}
+                      stars={palace.scope_stars}
+                      tone="scope"
+                    />
+                  </div>
+                </div>
+                <div className="ziwei-grid-cell-foot chart-cell-foot">
+                  {footerBadges.map((item) => (
+                    <span className="chart-cell-badge" key={`${palace.index}-${item}`}>
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}

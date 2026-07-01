@@ -1,0 +1,30 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will all of Trump’s Greenland Tariffs go into effect by Feb 1?
+
+Description: On January 17, Donald Trump threatened to impose new tariffs on Denmark, Norway, Sweden, France, Germany, The United Kingdom, The Netherlands, and Finland, which would begin on February 1 and would remain in effect until a deal is struck for the US to purchase Greenland (see: https://truthsocial.com/@realDonaldTrump/posts/115911344443637897).
+
+This market will resolve to “Yes” if any new general tariff or tariffs on imports into the United States from all of the following countries — Denmark, No
+
+Current Market Data:
+- Current Probability: 19.0%
+- Trading Volume: $9,824
+- Liquidity: $4693
+- Days Until Resolution: 13
+- Expected Resolution: 2026-02-01T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

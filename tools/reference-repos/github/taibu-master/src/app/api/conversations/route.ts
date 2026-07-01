@@ -1,0 +1,143 @@
+import { type NextRequest } from 'next/server';
+import { jsonError, jsonOk, requireUserContext, resolveRequestDbClient } from '@/lib/api-utils';
+import { isValidChatMessagePayload } from '@/lib/server/conversation-messages';
+import type { ChatMessage } from '@/types';
+
+const CONVERSATION_LIST_SELECT = [
+    'id',
+    'user_id',
+    'personality',
+    'title',
+    'created_at',
+    'updated_at',
+    'source_type',
+    'question_preview:source_data->>question',
+    'is_archived',
+    'archived_kb_ids',
+].join(', ');
+
+function isObjectBody(value: unknown): value is Record<string, unknown> {
+    return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isNullableString(value: unknown): value is string | null | undefined {
+    return value === undefined || value === null || typeof value === 'string';
+}
+
+function normalizeConversationTitle(title: string | null | undefined): string | null | undefined {
+    if (typeof title !== 'string') {
+        return title;
+    }
+    const trimmed = title.trim();
+    return trimmed.length > 0 ? trimmed : '';
+}
+
+export async function GET(request: NextRequest) {
+    const auth = await requireUserContext(request);
+    if ('error' in auth) return jsonError(auth.error.message, auth.error.status);
+    const db = resolveRequestDbClient(auth);
+    if (!db) return jsonError('加载对话列表失败', 500);
+
+    const { searchParams } = new URL(request.url);
+    const includeArchived = searchParams.get('includeArchived') === 'true';
+    const limit = Math.min(Math.max(Number.parseInt(searchParams.get('limit') || '100', 10) || 100, 1), 100);
+    const offset = Math.max(Number.parseInt(searchParams.get('offset') || '0', 10) || 0, 0);
+    const sourceType = searchParams.get('sourceType');
+    const chartId = searchParams.get('chartId');
+
+    let query = db
+        .from('conversations_with_archive_status')
+        .select(CONVERSATION_LIST_SELECT)
+        .eq('user_id', auth.user.id)
+        .order('updated_at', { ascending: false });
+
+    if (!includeArchived) {
+        query = query.eq('is_archived', false);
+    }
+    if (sourceType) {
+        query = query.eq('source_type', sourceType);
+    }
+    if (chartId) {
+        query = query.eq('source_data->>chart_id', chartId);
+    }
+
+    const { data, error } = await query.range(offset, offset + limit);
+    if (error) {
+        console.error('[conversations] failed to load list:', error);
+        return jsonError('加载对话列表失败', 500);
+    }
+
+    const rows = data ?? [];
+    const hasMore = rows.length > limit;
+    const conversations = hasMore ? rows.slice(0, limit) : rows;
+
+    return jsonOk({
+        conversations,
+        pagination: {
+            hasMore,
+            nextOffset: hasMore ? offset + limit : null,
+        },
+    });
+}
+
+export async function POST(request: NextRequest) {
+    const auth = await requireUserContext(request);
+    if ('error' in auth) return jsonError(auth.error.message, auth.error.status);
+    const db = resolveRequestDbClient(auth);
+    if (!db) return jsonError('创建对话失败', 500);
+
+    let body: {
+        personality?: string;
+        title?: string;
+        messages?: unknown[] | null;
+    };
+
+    try {
+        const parsed = await request.json();
+        if (!isObjectBody(parsed)) {
+            return jsonError('请求体必须是对象', 400);
+        }
+        body = parsed as typeof body;
+    } catch {
+        return jsonError('请求体不是合法 JSON', 400);
+    }
+
+    if (!isNullableString(body.title)) {
+        return jsonError('title 必须是字符串或 null', 400);
+    }
+    if (!isNullableString(body.personality)) {
+        return jsonError('personality 必须是字符串或 null', 400);
+    }
+
+    const normalizedTitle = normalizeConversationTitle(body.title);
+
+    let initialMessages: ChatMessage[] = [];
+    if (Object.prototype.hasOwnProperty.call(body, 'messages')) {
+        if (body.messages === null) {
+            initialMessages = [];
+        } else if (Array.isArray(body.messages)) {
+            if (!body.messages.every(isValidChatMessagePayload)) {
+                return jsonError('messages 包含非法消息项', 400);
+            }
+            initialMessages = body.messages as ChatMessage[];
+        } else {
+            return jsonError('messages 必须是数组或 null', 400);
+        }
+    }
+
+    const { data, error } = await db.rpc('create_conversation_with_messages', {
+        p_user_id: auth.user.id,
+        p_title: normalizedTitle || '新对话',
+        p_personality: body.personality || 'general',
+        p_source_type: null,
+        p_source_data: null,
+        p_messages: initialMessages as ChatMessage[],
+    });
+
+    if (error || typeof data !== 'string') {
+        console.error('[conversations] failed to create conversation transactionally:', error || data);
+        return jsonError('创建对话失败', 500);
+    }
+
+    return jsonOk({ id: data }, 201);
+}

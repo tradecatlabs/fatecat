@@ -1,0 +1,63 @@
+Use the Meihua Yishu (梅花易數) skill to divine this prediction market question.
+
+QUESTION TO DIVINE:
+==================
+Will the chopsticks catch SpaceX Starship Flight Test 12 Superheavy booster?
+
+CONTEXT:
+========
+Description: This market will resolve to "Yes" if the booster for the twelfth Starship-SuperHeavy test is successfully caught by the chopsticks on the Orbital Launch Tower during its landing attempt. Otherwise, this market will resolve to "No".
+
+A successful catch is defined as the chopsticks capturing and supporting the booster without it falling to the ground or causing catastrophic damage during the landing process.
+
+This market pertains to the twelfth Starship launch. If the rocket lifts off the pad, it 
+
+Current Market Data:
+- Current Probability: 19.0%
+- Trading Volume: $9,892
+- Days Until Resolution: 12
+- Expected Resolution: 2026-01-31T00:00:00+00:00
+
+Categories: General
+
+CASTING INPUTS (use any method):
+================================
+
+1. NUMBER-BASED (數字起卦):
+   - Upper trigram input: 92 → Trigram #4
+   - Lower trigram input: 11 → Trigram #3
+   - Moving line: 1
+
+2. TEXT-BASED (測字起卦):
+   - Word count: 11 → Upper trigram #3
+   - Character count: 66 → Lower trigram #2
+   - Moving line: 5
+
+3. DIRECTION-BASED (方位起卦):
+   - Category: other
+   - Direction: 東北
+   - Trigram: 艮 (#7)
+
+4. MEASUREMENT-BASED (尺寸起卦):
+   - Days until resolution: 12 → Upper #4
+   - Probability %: 19 → Lower #3
+   - Moving line: 1
+
+INSTRUCTIONS:
+=============
+1. Cast the hexagram using one or more methods above
+2. Identify: 本卦 (original), 變卦 (transformed), 互卦 (mutual)
+3. Determine 體卦 and 用卦
+4. Analyze 體用關係 (生, 剋, 比和)
+5. Consider 外應 if any context clues
+6. Provide final prediction
+
+YOUR PREDICTION (required format):
+==================================
+HEXAGRAM: [Hexagram number and Chinese name, e.g., "40 雷水解"]
+TRANSFORMED: [Transformed hexagram if applicable]
+CASTING_METHOD: [Which method(s) used]
+TI_YONG: [Brief 體用 analysis]
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences with Meihua interpretation]

@@ -7,47 +7,47 @@
 # Task Package Status Table
 | Node ID | Parent | Depth | Depends On | Ready | Status | Recent Evidence | Blocker | Unblock Needed |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| TP-01 | ROOT | 1 | - | No | Done | Scorecard、Resource Map、Rule Source Gaps 已闭合。 | 无 | 无 |
-| TP-01.01 | TP-01 | 2 | - | No | Done | `SCORECARD.md` 已新增；字段覆盖检查通过。 | 无 | 无 |
-| TP-01.02 | TP-01 | 2 | - | No | Done | `RESOURCE_MAP.md` 已新增；资源角色边界检查通过。 | 无 | 无 |
-| TP-01.03 | TP-01 | 2 | TP-01.01, TP-01.02 | No | Done | `RULE_SOURCE_GAPS.md` 已新增；核心 gap id 检索通过。 | 无 | 无 |
-| TP-02 | ROOT | 1 | TP-01.03 | No | Done | 基础排盘与历法时间边界 gate 已闭合。 | 无 | 无 |
-| TP-02.01 | TP-02 | 2 | TP-01.03 | No | Done | `CALENDAR_BOUNDARY_MATRIX.md` 已新增；calendar/oracle tests `10 passed in 160.10s`。 | 无 | 无 |
-| TP-02.02 | TP-02 | 2 | TP-01.03 | No | Done | `CALENDAR_PROVIDER_CONTRACT.md` 已新增；依赖/Oracle 角色检索通过。 | 无 | 无 |
-| TP-02.03 | TP-02 | 2 | TP-01.03, TP-02.01, TP-02.02 | No | Done | `BASE_CHART_REGRESSION.md` 已新增；base-chart/API tests `40 passed, 1 skipped in 33.65s`。 | 无 | 无 |
-| TP-03 | ROOT | 1 | TP-01.03 | No | Done | 证据化与高风险输出边界 gate 已闭合。 | 无 | 无 |
-| TP-03.01 | TP-03 | 2 | TP-01.03 | No | Done | `RULE_ID_COVERAGE_AUDIT.md` 已新增；rule-depth/policy tests `44 passed in 61.80s`。 | 无 | 无 |
-| TP-03.02 | TP-03 | 2 | TP-01.03 | No | Done | `REPORT_FIELD_CONTRACT.md` 已新增；API/capability tests `41 passed in 5.64s`。 | 无 | 无 |
-| TP-03.03 | TP-03 | 2 | TP-01.03, TP-03.01, TP-03.02 | No | Done | `HIGH_RISK_OUTPUT_REGRESSION.md` 已新增；policy/statement tests `19 passed in 55.70s`。 | 无 | 无 |
-| TP-04 | ROOT | 1 | TP-02.03, TP-03.02 | No | Done | 常规八字分析 evaluator gate 已闭合。 | 无 | 无 |
-| TP-04.01 | TP-04 | 2 | TP-02.03, TP-03.02 | No | Done | `STRENGTH_MONTH_EVALUATOR.md` 已新增；rule-depth/golden tests `39 passed, 1 skipped in 88.40s`。 | 无 | 无 |
-| TP-04.02 | TP-04 | 2 | TP-02.03, TP-03.02 | No | Done | `TEN_GOD_STRUCTURE_EVALUATOR.md` 已新增；rule-depth/API tests `61 passed in 65.23s`。 | 无 | 无 |
-| TP-04.03 | TP-04 | 2 | TP-02.03, TP-03.02, TP-04.01, TP-04.02 | No | Done | `REGULAR_PATTERN_EVALUATOR.md` 已新增；rule-depth/statement tests `35 passed in 117.98s`。 | 无 | 无 |
-| TP-05 | ROOT | 1 | TP-04.03 | No | Done | 高级格局 evaluator gate 已闭合。 | 无 | 无 |
-| TP-05.01 | TP-05 | 2 | TP-04.03 | No | Done | `ADVANCED_PATTERN_RULE_MATRIX.md` 已新增；高级格局矩阵检索 PASS。 | 无 | 无 |
-| TP-05.02 | TP-05 | 2 | TP-04.03 | No | Done | `ADVANCED_PATTERN_GOLDEN.md` 已新增；rule-depth/golden tests `39 passed, 1 skipped in 89.54s`。 | 无 | 无 |
-| TP-05.03 | TP-05 | 2 | TP-04.03, TP-05.01, TP-05.02 | No | Done | `ADVANCED_PATTERN_EVALUATOR.md` 已新增；rule-depth/API tests `61 passed in 64.93s`。 | 无 | 无 |
-| TP-06 | ROOT | 1 | TP-04.03 | No | Done | 合化成败 gate 已闭合。 | 无 | 无 |
-| TP-06.01 | TP-06 | 2 | TP-04.03 | No | Done | `COMBINE_RELATION_CONDITION_CATALOG.md` 已新增；合化条件目录检索 PASS。 | 无 | 无 |
-| TP-06.02 | TP-06 | 2 | TP-04.03, TP-06.01 | No | Done | `COMBINE_TRANSFORM_STATE_EVALUATOR.md` 已新增；rule-depth/API tests `61 passed in 64.93s`。 | 无 | 无 |
-| TP-06.03 | TP-06 | 2 | TP-04.03, TP-06.02 | No | Done | `COMBINE_TRANSFORM_COUNTEREXAMPLE_MATRIX.md` 已新增；golden/rule-depth tests `39 passed, 1 skipped in 89.35s`。 | 无 | 无 |
-| TP-07 | ROOT | 1 | TP-04.01, TP-04.03, TP-06.03 | No | Done | 用神策略矩阵、决策 evaluator、冲突 golden 均已闭合。 | 无 | 无 |
-| TP-07.01 | TP-07 | 2 | TP-04.01, TP-04.03, TP-06.03 | No | Done | `YONGSHEN_STRATEGY_MATRIX.md` 已新增；rg gate PASS；rule-depth/API tests `61 passed in 64.97s`。 | 无 | 无 |
-| TP-07.02 | TP-07 | 2 | TP-04.01, TP-04.03, TP-06.03, TP-07.01 | No | Done | `YONGSHEN_DECISION_EVALUATOR.md` 已新增；format gate PASS；rule-depth/API tests `61 passed in 75.53s`。 | 无 | 无 |
-| TP-07.03 | TP-07 | 2 | TP-04.01, TP-04.03, TP-06.03, TP-07.02 | No | Done | `YONGSHEN_CONFLICT_GOLDEN.md` 已新增；format gate PASS；golden/rule-depth tests `39 passed, 1 skipped in 90.40s`。 | 无 | 无 |
-| TP-08 | ROOT | 1 | TP-04.02, TP-05.03, TP-07.03 | No | Done | 岁运触发、专题联合评分、专题风险边界均已闭合。 | 无 | 无 |
-| TP-08.01 | TP-08 | 2 | TP-04.02, TP-05.03, TP-07.03 | No | Done | `FORTUNE_TRIGGER_MATRIX.md` 已新增；rg gate PASS；rule-depth/API tests `61 passed in 64.77s`。 | 无 | 无 |
-| TP-08.02 | TP-08 | 2 | TP-04.02, TP-05.03, TP-07.03, TP-08.01 | No | Done | `TOPIC_PROFILE_JOINT_SCORING.md` 已新增；format gate PASS；API/rule-depth tests `61 passed in 64.99s`。 | 无 | 无 |
-| TP-08.03 | TP-08 | 2 | TP-04.02, TP-05.03, TP-07.03, TP-08.02 | No | Done | `TOPIC_RISK_BOUNDARY.md` 已新增；policy/statement tests `19 passed in 56.93s`；API/rule-depth tests `61 passed in 68.73s`。 | 无 | 无 |
-| TP-09 | ROOT | 1 | TP-08.03 | No | Done | Golden shard、MingLi full、BaziQA 审查、failure taxonomy 均已闭合。 | 无 | 无 |
-| TP-09.01 | TP-09 | 2 | TP-08.03 | No | Done | `GOLDEN_SHARD_DEEP_GATE.md` 已新增；shard 0/4 `10 passed in 629.63s`。 | 无 | 无 |
-| TP-09.02 | TP-09 | 2 | TP-08.03 | No | Done | `MINGLI_FULL_EVALUATION_GATE.md` 已新增；full benchmark answered=160/160, correct=44, accuracy=27.50%, no answer leakage；回归 `12 passed, 1 skipped in 39.71s`。 | 无 | 无 |
-| TP-09.03 | TP-09 | 2 | TP-08.03 | No | Done | `BAZIQA_ADMISSION_REVIEW.md` 已新增；BaziQA 判定为 future_candidate/evaluation_only，不进入 runtime 或正式 gate。 | 无 | 无 |
-| TP-09.04 | TP-09 | 2 | TP-08.03, TP-09.02 | No | Done | `MINGLI_FAILURE_TAXONOMY.md` 已新增；10 类 failure class 有 owner、缺口类型、回炉方向、禁止路径；无单题 ID 示例泄漏。 | 无 | 无 |
-| TP-10 | ROOT | 1 | TP-09.01, TP-09.03, TP-09.04 | No | Done | `FINAL_REVIEW.md` / `CLOSEOUT.md` 已新增；本地 quick/full gate PASS；Active BLOCK=0。 | 无 | 无 |
-| TP-10.01 | TP-10 | 2 | TP-09.01, TP-09.03, TP-09.04 | No | Done | `EVALUATOR_SPLIT_FORTUNE.md` 已新增；fortune evaluator 单切片完成；目标回归 `70 passed, 1 skipped in 106.56s`。 | 无 | 无 |
-| TP-10.02 | TP-10 | 2 | TP-09.01, TP-09.03, TP-09.04, TP-10.01 | No | Done | `REPORT_MARKDOWN_BOUNDARY_FINAL.md` 已新增；Web 不再泄漏 lifecycle/lifecycleGate；验证 `46 passed in 70.22s`。 | 无 | 无 |
-| TP-10.03 | TP-10 | 2 | TP-09.01, TP-09.03, TP-09.04, TP-10.02 | No | Done | `FINAL_REVIEW.md` / `CLOSEOUT.md` 已新增；quick evidence `/tmp/fatecat-local-ci-20260616233736`，full evidence `/tmp/fatecat-local-ci-20260616233751`；Active BLOCK=0。 | 无 | 无 |
+| TP-01 | ROOT | 1 | - | No | Done | Scorecard、Resource Map、Rule Source Gaps 已闭合。 | - | - |
+| TP-01.01 | TP-01 | 2 | - | No | Done | `SCORECARD.md` 已新增；字段覆盖检查通过。 | - | - |
+| TP-01.02 | TP-01 | 2 | - | No | Done | `RESOURCE_MAP.md` 已新增；资源角色边界检查通过。 | - | - |
+| TP-01.03 | TP-01 | 2 | TP-01.01, TP-01.02 | No | Done | `RULE_SOURCE_GAPS.md` 已新增；核心 gap id 检索通过。 | - | - |
+| TP-02 | ROOT | 1 | TP-01.03 | No | Done | 基础排盘与历法时间边界 gate 已闭合。 | - | - |
+| TP-02.01 | TP-02 | 2 | TP-01.03 | No | Done | `CALENDAR_BOUNDARY_MATRIX.md` 已新增；calendar/oracle tests `10 passed in 160.10s`。 | - | - |
+| TP-02.02 | TP-02 | 2 | TP-01.03 | No | Done | `CALENDAR_PROVIDER_CONTRACT.md` 已新增；依赖/Oracle 角色检索通过。 | - | - |
+| TP-02.03 | TP-02 | 2 | TP-01.03, TP-02.01, TP-02.02 | No | Done | `BASE_CHART_REGRESSION.md` 已新增；base-chart/API tests `40 passed, 1 skipped in 33.65s`。 | - | - |
+| TP-03 | ROOT | 1 | TP-01.03 | No | Done | 证据化与高风险输出边界 gate 已闭合。 | - | - |
+| TP-03.01 | TP-03 | 2 | TP-01.03 | No | Done | `RULE_ID_COVERAGE_AUDIT.md` 已新增；rule-depth/policy tests `44 passed in 61.80s`。 | - | - |
+| TP-03.02 | TP-03 | 2 | TP-01.03 | No | Done | `REPORT_FIELD_CONTRACT.md` 已新增；API/capability tests `41 passed in 5.64s`。 | - | - |
+| TP-03.03 | TP-03 | 2 | TP-01.03, TP-03.01, TP-03.02 | No | Done | `HIGH_RISK_OUTPUT_REGRESSION.md` 已新增；policy/statement tests `19 passed in 55.70s`。 | - | - |
+| TP-04 | ROOT | 1 | TP-02.03, TP-03.02 | No | Done | 常规八字分析 evaluator gate 已闭合。 | - | - |
+| TP-04.01 | TP-04 | 2 | TP-02.03, TP-03.02 | No | Done | `STRENGTH_MONTH_EVALUATOR.md` 已新增；rule-depth/golden tests `39 passed, 1 skipped in 88.40s`。 | - | - |
+| TP-04.02 | TP-04 | 2 | TP-02.03, TP-03.02 | No | Done | `TEN_GOD_STRUCTURE_EVALUATOR.md` 已新增；rule-depth/API tests `61 passed in 65.23s`。 | - | - |
+| TP-04.03 | TP-04 | 2 | TP-02.03, TP-03.02, TP-04.01, TP-04.02 | No | Done | `REGULAR_PATTERN_EVALUATOR.md` 已新增；rule-depth/statement tests `35 passed in 117.98s`。 | - | - |
+| TP-05 | ROOT | 1 | TP-04.03 | No | Done | 高级格局 evaluator gate 已闭合。 | - | - |
+| TP-05.01 | TP-05 | 2 | TP-04.03 | No | Done | `ADVANCED_PATTERN_RULE_MATRIX.md` 已新增；高级格局矩阵检索 PASS。 | - | - |
+| TP-05.02 | TP-05 | 2 | TP-04.03 | No | Done | `ADVANCED_PATTERN_GOLDEN.md` 已新增；rule-depth/golden tests `39 passed, 1 skipped in 89.54s`。 | - | - |
+| TP-05.03 | TP-05 | 2 | TP-04.03, TP-05.01, TP-05.02 | No | Done | `ADVANCED_PATTERN_EVALUATOR.md` 已新增；rule-depth/API tests `61 passed in 64.93s`。 | - | - |
+| TP-06 | ROOT | 1 | TP-04.03 | No | Done | 合化成败 gate 已闭合。 | - | - |
+| TP-06.01 | TP-06 | 2 | TP-04.03 | No | Done | `COMBINE_RELATION_CONDITION_CATALOG.md` 已新增；合化条件目录检索 PASS。 | - | - |
+| TP-06.02 | TP-06 | 2 | TP-04.03, TP-06.01 | No | Done | `COMBINE_TRANSFORM_STATE_EVALUATOR.md` 已新增；rule-depth/API tests `61 passed in 64.93s`。 | - | - |
+| TP-06.03 | TP-06 | 2 | TP-04.03, TP-06.02 | No | Done | `COMBINE_TRANSFORM_COUNTEREXAMPLE_MATRIX.md` 已新增；golden/rule-depth tests `39 passed, 1 skipped in 89.35s`。 | - | - |
+| TP-07 | ROOT | 1 | TP-04.01, TP-04.03, TP-06.03 | No | Done | 用神策略矩阵、决策 evaluator、冲突 golden 均已闭合。 | - | - |
+| TP-07.01 | TP-07 | 2 | TP-04.01, TP-04.03, TP-06.03 | No | Done | `YONGSHEN_STRATEGY_MATRIX.md` 已新增；rg gate PASS；rule-depth/API tests `61 passed in 64.97s`。 | - | - |
+| TP-07.02 | TP-07 | 2 | TP-04.01, TP-04.03, TP-06.03, TP-07.01 | No | Done | `YONGSHEN_DECISION_EVALUATOR.md` 已新增；format gate PASS；rule-depth/API tests `61 passed in 75.53s`。 | - | - |
+| TP-07.03 | TP-07 | 2 | TP-04.01, TP-04.03, TP-06.03, TP-07.02 | No | Done | `YONGSHEN_CONFLICT_GOLDEN.md` 已新增；format gate PASS；golden/rule-depth tests `39 passed, 1 skipped in 90.40s`。 | - | - |
+| TP-08 | ROOT | 1 | TP-04.02, TP-05.03, TP-07.03 | No | Done | 岁运触发、专题联合评分、专题风险边界均已闭合。 | - | - |
+| TP-08.01 | TP-08 | 2 | TP-04.02, TP-05.03, TP-07.03 | No | Done | `FORTUNE_TRIGGER_MATRIX.md` 已新增；rg gate PASS；rule-depth/API tests `61 passed in 64.77s`。 | - | - |
+| TP-08.02 | TP-08 | 2 | TP-04.02, TP-05.03, TP-07.03, TP-08.01 | No | Done | `TOPIC_PROFILE_JOINT_SCORING.md` 已新增；format gate PASS；API/rule-depth tests `61 passed in 64.99s`。 | - | - |
+| TP-08.03 | TP-08 | 2 | TP-04.02, TP-05.03, TP-07.03, TP-08.02 | No | Done | `TOPIC_RISK_BOUNDARY.md` 已新增；policy/statement tests `19 passed in 56.93s`；API/rule-depth tests `61 passed in 68.73s`。 | - | - |
+| TP-09 | ROOT | 1 | TP-08.03 | No | Done | Golden shard、MingLi full、BaziQA 审查、failure taxonomy 均已闭合。 | - | - |
+| TP-09.01 | TP-09 | 2 | TP-08.03 | No | Done | `GOLDEN_SHARD_DEEP_GATE.md` 已新增；shard 0/4 `10 passed in 629.63s`。 | - | - |
+| TP-09.02 | TP-09 | 2 | TP-08.03 | No | Done | `MINGLI_FULL_EVALUATION_GATE.md` 已新增；full benchmark answered=160/160, correct=44, accuracy=27.50%, no answer leakage；回归 `12 passed, 1 skipped in 39.71s`。 | - | - |
+| TP-09.03 | TP-09 | 2 | TP-08.03 | No | Done | `BAZIQA_ADMISSION_REVIEW.md` 已新增；BaziQA 判定为 future_candidate/evaluation_only，不进入 runtime 或正式 gate。 | - | - |
+| TP-09.04 | TP-09 | 2 | TP-08.03, TP-09.02 | No | Done | `MINGLI_FAILURE_TAXONOMY.md` 已新增；10 类 failure class 有 owner、缺口类型、回炉方向、禁止路径；无单题 ID 示例泄漏。 | - | - |
+| TP-10 | ROOT | 1 | TP-09.01, TP-09.03, TP-09.04 | No | Done | `FINAL_REVIEW.md` / `CLOSEOUT.md` 已新增；本地 quick/full gate PASS；Active BLOCK=0。 | - | - |
+| TP-10.01 | TP-10 | 2 | TP-09.01, TP-09.03, TP-09.04 | No | Done | `EVALUATOR_SPLIT_FORTUNE.md` 已新增；fortune evaluator 单切片完成；目标回归 `70 passed, 1 skipped in 106.56s`。 | - | - |
+| TP-10.02 | TP-10 | 2 | TP-09.01, TP-09.03, TP-09.04, TP-10.01 | No | Done | `REPORT_MARKDOWN_BOUNDARY_FINAL.md` 已新增；Web 不再泄漏 lifecycle/lifecycleGate；验证 `46 passed in 70.22s`。 | - | - |
+| TP-10.03 | TP-10 | 2 | TP-09.01, TP-09.03, TP-09.04, TP-10.02 | No | Done | `FINAL_REVIEW.md` / `CLOSEOUT.md` 已新增；quick evidence `/tmp/fatecat-local-ci-20260616233736`，full evidence `/tmp/fatecat-local-ci-20260616233751`；Active BLOCK=0。 | - | - |
 
 # Blockers
 - 无
@@ -56,6 +56,8 @@
 - Active workflow state: 以 `TASK_PACKAGE_SET.json` / `TASK_EXECUTION_WAVE_PACKET.json` 为准。
 - Approval state: 未记录即视为未授权。
 - Resume rule: 继续任务前重新读取当前 packet、Recent Evidence、Blockers、Runtime State。
+- Post-closeout addendum 2026-07-01: 已按用户要求补齐 ctext 八字典籍 TXT 语料，挂入 TP-01.02 resource boundary；新增/刷新 `五行精纪`、`滴天髓阐微`、`子平真诠评注`、`珞琭子三命消息赋注`、`兰台妙选`、`神峰通考`，`增补星平会海命学全书` 因 OCR 质量差登记为 blocked_until_manual_correction。
+- Post-closeout evidence 2026-07-01: `domains/fate-analysis/data-products/classics/source_manifest.tsv` 与 `copyright_review.tsv` 已记录来源、hash 与使用边界；验证命令为 `bash scripts/check-source-hygiene.sh`。
 - Stop condition: 发现 benchmark answer leakage，立即停止 benchmark 提升任务并回滚泄漏路径。
 - Stop condition: 核心排盘结果与 oracle/golden 不一致且无法解释，停止相关 evaluator 迁移。
 - Stop condition: 专家样本或资料 license 不清，相关规则只能停在 reference/beta，不得 production 化。

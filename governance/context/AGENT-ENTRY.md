@@ -19,3 +19,4 @@ review_cycle: P90D
 5. 涉及用户功能时必须产出 QA 计划或验证证据。
 6. 高风险变更必须说明回滚路径。
 7. 如果发现重复错误或标准缺失，记录到 `agent-governance/agent-feedback/`。
+8. 涉及代码、架构、评审、性能或 AI/LLM 调用链路时，完成主体任务后按 `governance/standards/性能效率优化标准.md` 做效率与优化检查。

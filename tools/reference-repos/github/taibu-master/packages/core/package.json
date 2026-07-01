@@ -1,0 +1,164 @@
+{
+  "name": "taibu-core",
+  "version": "3.4.0",
+  "description": "TaiBu Core - 命理计算工具核心库（SDK）",
+  "license": "MIT",
+  "homepage": "https://github.com/hhszzzz/taibu",
+  "bugs": {
+    "url": "https://github.com/hhszzzz/taibu/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hhszzzz/taibu.git",
+    "directory": "packages/core"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./mcp": {
+      "types": "./dist/mcp/index.d.ts",
+      "import": "./dist/mcp/index.js",
+      "default": "./dist/mcp/index.js"
+    },
+    "./astrology": {
+      "types": "./dist/domains/astrology/index.d.ts",
+      "import": "./dist/domains/astrology/index.js",
+      "default": "./dist/domains/astrology/index.js"
+    },
+    "./bazi": {
+      "types": "./dist/domains/bazi/index.d.ts",
+      "import": "./dist/domains/bazi/index.js",
+      "default": "./dist/domains/bazi/index.js"
+    },
+    "./bazi-dayun": {
+      "types": "./dist/domains/bazi-dayun/index.d.ts",
+      "import": "./dist/domains/bazi-dayun/index.js",
+      "default": "./dist/domains/bazi-dayun/index.js"
+    },
+    "./bazi-pillars-resolve": {
+      "types": "./dist/domains/bazi-pillars-resolve/index.d.ts",
+      "import": "./dist/domains/bazi-pillars-resolve/index.js",
+      "default": "./dist/domains/bazi-pillars-resolve/index.js"
+    },
+    "./ziwei": {
+      "types": "./dist/domains/ziwei/index.d.ts",
+      "import": "./dist/domains/ziwei/index.js",
+      "default": "./dist/domains/ziwei/index.js"
+    },
+    "./ziwei-horoscope": {
+      "types": "./dist/domains/ziwei-horoscope/index.d.ts",
+      "import": "./dist/domains/ziwei-horoscope/index.js",
+      "default": "./dist/domains/ziwei-horoscope/index.js"
+    },
+    "./ziwei-flying-star": {
+      "types": "./dist/domains/ziwei-flying-star/index.d.ts",
+      "import": "./dist/domains/ziwei-flying-star/index.js",
+      "default": "./dist/domains/ziwei-flying-star/index.js"
+    },
+    "./liuyao": {
+      "types": "./dist/domains/liuyao/index.d.ts",
+      "import": "./dist/domains/liuyao/index.js",
+      "default": "./dist/domains/liuyao/index.js"
+    },
+    "./meihua": {
+      "types": "./dist/domains/meihua/index.d.ts",
+      "import": "./dist/domains/meihua/index.js",
+      "default": "./dist/domains/meihua/index.js"
+    },
+    "./qimen": {
+      "types": "./dist/domains/qimen/index.d.ts",
+      "import": "./dist/domains/qimen/index.js",
+      "default": "./dist/domains/qimen/index.js"
+    },
+    "./tarot": {
+      "types": "./dist/domains/tarot/index.d.ts",
+      "import": "./dist/domains/tarot/index.js",
+      "default": "./dist/domains/tarot/index.js"
+    },
+    "./taiyi": {
+      "types": "./dist/domains/taiyi/index.d.ts",
+      "import": "./dist/domains/taiyi/index.js",
+      "default": "./dist/domains/taiyi/index.js"
+    },
+    "./xiaoliuren": {
+      "types": "./dist/domains/xiaoliuren/index.d.ts",
+      "import": "./dist/domains/xiaoliuren/index.js",
+      "default": "./dist/domains/xiaoliuren/index.js"
+    },
+    "./daliuren": {
+      "types": "./dist/domains/daliuren/index.d.ts",
+      "import": "./dist/domains/daliuren/index.js",
+      "default": "./dist/domains/daliuren/index.js"
+    },
+    "./almanac": {
+      "types": "./dist/domains/almanac/index.d.ts",
+      "import": "./dist/domains/almanac/index.js",
+      "default": "./dist/domains/almanac/index.js"
+    },
+    "./data/hexagrams": {
+      "types": "./dist/data/hexagrams.d.ts",
+      "import": "./dist/data/hexagrams.js",
+      "default": "./dist/data/hexagrams.js"
+    },
+    "./data/shensha": {
+      "types": "./dist/data/shensha.d.ts",
+      "import": "./dist/data/shensha.js",
+      "default": "./dist/data/shensha.js"
+    },
+    "./utils": {
+      "types": "./dist/shared/utils.d.ts",
+      "import": "./dist/shared/utils.js",
+      "default": "./dist/shared/utils.js"
+    },
+    "./timezone-utils": {
+      "types": "./dist/shared/timezone-utils.d.ts",
+      "import": "./dist/shared/timezone-utils.js",
+      "default": "./dist/shared/timezone-utils.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "mcp",
+    "taibu",
+    "astrology",
+    "bazi",
+    "ziwei",
+    "liuyao",
+    "meihua",
+    "qimen",
+    "tarot",
+    "taiyi",
+    "xiaoliuren",
+    "daliuren",
+    "divination"
+  ],
+  "scripts": {
+    "prebuild": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "circular-natal-horoscope-js": "^1.1.0",
+    "iztro": "^2.5.4",
+    "liuren-ts-lib": "^1.9.0",
+    "lunar-javascript": "^1.7.7",
+    "pinyin": "^4.0.0",
+    "taobi": "^0.4.5",
+    "tyme4ts": "^1.4.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

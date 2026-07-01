@@ -1,0 +1,329 @@
+{
+  "schema_version": "1.0.0",
+  "task_meta": {
+    "objective": "修复 REVIEW-0001 业务代码业务模型与业务逻辑审计发现的阻塞级和警告级问题，恢复 fate-core 领域边界、业务选项语义一致性、入口真相源一致性、坐标边界校验和治理汇报准确性。",
+    "overall_status": "In Progress",
+    "task_dir": "governance/tasks/0006-business-logic-audit-remediation"
+  },
+  "source_plan": {
+    "schema_version": "1.0.0",
+    "plan_path": "governance/tasks/0006-business-logic-audit-remediation/APPROVED_PLAN.json"
+  },
+  "generated_assets": [
+    {
+      "id": "tree-spec",
+      "type": "task-tree-spec",
+      "path": "governance/tasks/0006-business-logic-audit-remediation/TREE_SPEC.json",
+      "description": "approved plan 编译后的递归任务树规格",
+      "source_step_keys": [
+        "precheck-baseline",
+        "dirty-governance-inventory",
+        "baseline-repro",
+        "test-baseline",
+        "fix-domain-boundary",
+        "integration-ownership-map",
+        "migrate-core-adapters",
+        "boundary-guard-test",
+        "fix-option-semantics",
+        "option-contract-tests",
+        "reject-unsupported-options",
+        "fix-true-solar-echo",
+        "record-normalized-options",
+        "unify-entrypoints",
+        "entrypoint-flow-map",
+        "canonical-calculation-service",
+        "entrypoint-consistency-tests",
+        "fix-coordinate-validation",
+        "location-boundary-tests",
+        "location-range-validator",
+        "review-closeout",
+        "full-regression-gate",
+        "review-status-update",
+        "ship-package"
+      ]
+    },
+    {
+      "id": "asset-bundle",
+      "type": "asset-bundle-manifest",
+      "path": "governance/tasks/0006-business-logic-audit-remediation/ASSET_BUNDLE.json",
+      "description": "编译输出的资产包 manifest",
+      "source_step_keys": [
+        "precheck-baseline",
+        "dirty-governance-inventory",
+        "baseline-repro",
+        "test-baseline",
+        "fix-domain-boundary",
+        "integration-ownership-map",
+        "migrate-core-adapters",
+        "boundary-guard-test",
+        "fix-option-semantics",
+        "option-contract-tests",
+        "reject-unsupported-options",
+        "fix-true-solar-echo",
+        "record-normalized-options",
+        "unify-entrypoints",
+        "entrypoint-flow-map",
+        "canonical-calculation-service",
+        "entrypoint-consistency-tests",
+        "fix-coordinate-validation",
+        "location-boundary-tests",
+        "location-range-validator",
+        "review-closeout",
+        "full-regression-gate",
+        "review-status-update",
+        "ship-package"
+      ]
+    },
+    {
+      "id": "task-package-set",
+      "type": "task-package-set",
+      "path": "governance/tasks/0006-business-logic-audit-remediation/TASK_PACKAGE_SET.json",
+      "description": "编译输出的结构化任务包集合",
+      "source_step_keys": [
+        "precheck-baseline",
+        "dirty-governance-inventory",
+        "baseline-repro",
+        "test-baseline",
+        "fix-domain-boundary",
+        "integration-ownership-map",
+        "migrate-core-adapters",
+        "boundary-guard-test",
+        "fix-option-semantics",
+        "option-contract-tests",
+        "reject-unsupported-options",
+        "fix-true-solar-echo",
+        "record-normalized-options",
+        "unify-entrypoints",
+        "entrypoint-flow-map",
+        "canonical-calculation-service",
+        "entrypoint-consistency-tests",
+        "fix-coordinate-validation",
+        "location-boundary-tests",
+        "location-range-validator",
+        "review-closeout",
+        "full-regression-gate",
+        "review-status-update",
+        "ship-package"
+      ]
+    },
+    {
+      "id": "task-doc-set",
+      "type": "task-docs",
+      "description": "README/CONTEXT/ACCEPTANCE/PLAN/TODO/STATUS 任务文档集合",
+      "source_step_keys": [
+        "precheck-baseline",
+        "dirty-governance-inventory",
+        "baseline-repro",
+        "test-baseline",
+        "fix-domain-boundary",
+        "integration-ownership-map",
+        "migrate-core-adapters",
+        "boundary-guard-test",
+        "fix-option-semantics",
+        "option-contract-tests",
+        "reject-unsupported-options",
+        "fix-true-solar-echo",
+        "record-normalized-options",
+        "unify-entrypoints",
+        "entrypoint-flow-map",
+        "canonical-calculation-service",
+        "entrypoint-consistency-tests",
+        "fix-coordinate-validation",
+        "location-boundary-tests",
+        "location-range-validator",
+        "review-closeout",
+        "full-regression-gate",
+        "review-status-update",
+        "ship-package"
+      ],
+      "path": "governance/tasks/0006-business-logic-audit-remediation"
+    }
+  ],
+  "logical_deliverables": [
+    {
+      "step_key": "precheck-baseline",
+      "step_id": "TP-01",
+      "outputs": [
+        "确认当前未提交治理资产、REVIEW-0001 finding、现有测试基线和执行边界，避免修复过程混入无关变更。"
+      ]
+    },
+    {
+      "step_key": "dirty-governance-inventory",
+      "step_id": "TP-01.01",
+      "outputs": [
+        "dirty diff inventory",
+        "本任务可写/禁写边界"
+      ]
+    },
+    {
+      "step_key": "baseline-repro",
+      "step_id": "TP-01.02",
+      "outputs": [
+        "baseline evidence block",
+        "DEBUG.md 或任务 STATUS evidence"
+      ]
+    },
+    {
+      "step_key": "test-baseline",
+      "step_id": "TP-01.03",
+      "outputs": [
+        "baseline test evidence"
+      ]
+    },
+    {
+      "step_key": "fix-domain-boundary",
+      "step_id": "TP-02",
+      "outputs": [
+        "迁移被领域内核使用的 delivery integration 到 fate-core adapter/provider，删除 TELEGRAM_SRC_DIR/sys.path 反向依赖。"
+      ]
+    },
+    {
+      "step_key": "integration-ownership-map",
+      "step_id": "TP-02.01",
+      "outputs": [
+        "integration ownership map"
+      ]
+    },
+    {
+      "step_key": "migrate-core-adapters",
+      "step_id": "TP-02.02",
+      "outputs": [
+        "fate-core adapter/provider modules",
+        "compatibility ledger update if needed"
+      ]
+    },
+    {
+      "step_key": "boundary-guard-test",
+      "step_id": "TP-02.03",
+      "outputs": [
+        "architecture boundary regression"
+      ]
+    },
+    {
+      "step_key": "fix-option-semantics",
+      "step_id": "TP-03",
+      "outputs": [
+        "建立 canonical options，未实现语义显式 422，useTrueSolarTime 回显与真实计算一致。"
+      ]
+    },
+    {
+      "step_key": "option-contract-tests",
+      "step_id": "TP-03.01",
+      "outputs": [
+        "option contract regression tests"
+      ]
+    },
+    {
+      "step_key": "reject-unsupported-options",
+      "step_id": "TP-03.02",
+      "outputs": [
+        "canonical option validator",
+        "API/Web/Bot error contract"
+      ]
+    },
+    {
+      "step_key": "fix-true-solar-echo",
+      "step_id": "TP-03.03",
+      "outputs": [
+        "response contract fix"
+      ]
+    },
+    {
+      "step_key": "record-normalized-options",
+      "step_id": "TP-03.04",
+      "outputs": [
+        "record replay regression"
+      ]
+    },
+    {
+      "step_key": "unify-entrypoints",
+      "step_id": "TP-04",
+      "outputs": [
+        "将 Web/API/Bot 的八字/紫微业务计算收敛到同一 canonical calculation usecase，delivery 仅负责适配和交付。"
+      ]
+    },
+    {
+      "step_key": "entrypoint-flow-map",
+      "step_id": "TP-04.01",
+      "outputs": [
+        "entrypoint flow map"
+      ]
+    },
+    {
+      "step_key": "canonical-calculation-service",
+      "step_id": "TP-04.02",
+      "outputs": [
+        "shared delivery calculation service"
+      ]
+    },
+    {
+      "step_key": "entrypoint-consistency-tests",
+      "step_id": "TP-04.03",
+      "outputs": [
+        "entrypoint consistency regression"
+      ]
+    },
+    {
+      "step_key": "fix-coordinate-validation",
+      "step_id": "TP-05",
+      "outputs": [
+        "让 Web/Bot 直接 lng,lat 输入复用经纬度范围验证，无效坐标返回明确错误。"
+      ]
+    },
+    {
+      "step_key": "location-boundary-tests",
+      "step_id": "TP-05.01",
+      "outputs": [
+        "location coordinate regression tests"
+      ]
+    },
+    {
+      "step_key": "location-range-validator",
+      "step_id": "TP-05.02",
+      "outputs": [
+        "coordinate validator"
+      ]
+    },
+    {
+      "step_key": "review-closeout",
+      "step_id": "TP-06",
+      "outputs": [
+        "运行完整本地门禁，更新 REVIEW-0001 修复状态，整理治理资产和提交边界。"
+      ]
+    },
+    {
+      "step_key": "full-regression-gate",
+      "step_id": "TP-06.01",
+      "outputs": [
+        "gate evidence directory",
+        "STATUS Recent Evidence"
+      ]
+    },
+    {
+      "step_key": "review-status-update",
+      "step_id": "TP-06.02",
+      "outputs": [
+        "review closeout evidence"
+      ]
+    },
+    {
+      "step_key": "ship-package",
+      "step_id": "TP-06.03",
+      "outputs": [
+        "commit plan",
+        "rollback notes",
+        "task closeout packet"
+      ]
+    }
+  ],
+  "execution_snapshot": {
+    "total_nodes": 24,
+    "total_leaf_nodes": 18,
+    "ready_leaf_ids": [
+      "TP-02.02",
+      "TP-03.02",
+      "TP-03.03",
+      "TP-05.02"
+    ]
+  }
+}

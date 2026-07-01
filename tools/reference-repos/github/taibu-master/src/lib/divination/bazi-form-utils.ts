@@ -1,0 +1,134 @@
+import { Lunar, Solar } from 'lunar-javascript';
+import type { CalendarType, EarthlyBranch } from '@/types';
+
+export type CalendarSwitchInput = {
+    calendarType: CalendarType;
+    birthYear: number;
+    birthMonth: number;
+    birthDay: number;
+    isLeapMonth?: boolean;
+    birthHour: number;
+    birthMinute: number;
+};
+
+export type CalendarSwitchResult = {
+    birthYear: number;
+    birthMonth: number;
+    birthDay: number;
+    isLeapMonth: boolean;
+};
+
+const normalizeNow = (now: Date) => ({
+    year: now.getFullYear(),
+    month: now.getMonth() + 1,
+    day: now.getDate(),
+    hour: now.getHours(),
+    minute: now.getMinutes(),
+});
+
+const hasValidDate = (input: CalendarSwitchInput) => (
+    input.birthYear > 0 && input.birthMonth > 0 && input.birthDay > 0
+);
+
+export function normalizeBirthDateForCalendarSwitch(
+    input: CalendarSwitchInput,
+    target: CalendarType,
+    now: Date = new Date()
+): CalendarSwitchResult {
+    if (target === 'pillars') {
+        return {
+            birthYear: 0,
+            birthMonth: 0,
+            birthDay: 0,
+            isLeapMonth: false,
+        };
+    }
+
+    const safeNow = normalizeNow(now);
+    const shouldUseFallback = input.calendarType === 'pillars' || !hasValidDate(input);
+
+    if (target === 'solar') {
+        if (input.calendarType === 'lunar' && !shouldUseFallback) {
+            const lunar = Lunar.fromYmdHms(
+                input.birthYear,
+                input.isLeapMonth ? -Math.abs(input.birthMonth) : input.birthMonth,
+                input.birthDay,
+                input.birthHour,
+                input.birthMinute,
+                0
+            );
+            const solar = lunar.getSolar();
+            return {
+                birthYear: solar.getYear(),
+                birthMonth: solar.getMonth(),
+                birthDay: solar.getDay(),
+                isLeapMonth: false,
+            };
+        }
+
+        if (input.calendarType === 'solar' && !shouldUseFallback) {
+            return {
+                birthYear: input.birthYear,
+                birthMonth: input.birthMonth,
+                birthDay: input.birthDay,
+                isLeapMonth: false,
+            };
+        }
+
+        return {
+            birthYear: safeNow.year,
+            birthMonth: safeNow.month,
+            birthDay: safeNow.day,
+            isLeapMonth: false,
+        };
+    }
+
+    // target === 'lunar'
+    const solarBase = (!shouldUseFallback && input.calendarType === 'solar')
+        ? {
+            year: input.birthYear,
+            month: input.birthMonth,
+            day: input.birthDay,
+            hour: input.birthHour,
+            minute: input.birthMinute,
+        }
+        : safeNow;
+
+    const solar = Solar.fromYmdHms(
+        solarBase.year,
+        solarBase.month,
+        solarBase.day,
+        solarBase.hour,
+        solarBase.minute,
+        0
+    );
+    const lunar = solar.getLunar();
+    return {
+        birthYear: lunar.getYear(),
+        birthMonth: Math.abs(lunar.getMonth()),
+        birthDay: lunar.getDay(),
+        isLeapMonth: lunar.getMonth() < 0,
+    };
+}
+
+const BRANCH_BY_HOUR: { start: number; end: number; branch: EarthlyBranch }[] = [
+    { start: 23, end: 23, branch: '子' },
+    { start: 0, end: 0, branch: '子' },
+    { start: 1, end: 2, branch: '丑' },
+    { start: 3, end: 4, branch: '寅' },
+    { start: 5, end: 6, branch: '卯' },
+    { start: 7, end: 8, branch: '辰' },
+    { start: 9, end: 10, branch: '巳' },
+    { start: 11, end: 12, branch: '午' },
+    { start: 13, end: 14, branch: '未' },
+    { start: 15, end: 16, branch: '申' },
+    { start: 17, end: 18, branch: '酉' },
+    { start: 19, end: 20, branch: '戌' },
+    { start: 21, end: 22, branch: '亥' },
+];
+
+export function getEarthlyBranchByHour(hour: number): EarthlyBranch {
+    const normalized = ((hour % 24) + 24) % 24;
+    const match = BRANCH_BY_HOUR.find((item) => normalized >= item.start && normalized <= item.end);
+    return match?.branch ?? '子';
+}

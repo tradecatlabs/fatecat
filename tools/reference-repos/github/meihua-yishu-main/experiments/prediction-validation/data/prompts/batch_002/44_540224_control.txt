@@ -1,0 +1,30 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will the Los Angeles Rams win Super Bowl 2026?
+
+Description: This market will resolve to "Yes" if the Los Angeles Rams win Super Bowl LX. Otherwise, this market will resolve to "No".
+
+If at any point it becomes impossible for this team to win the Super Bowl based on the rules of the NFL (e.g. they are eliminated in the playoff bracket), this market will resolve immediately to "No".
+
+Current Market Data:
+- Current Probability: 29.4%
+- Trading Volume: $7,899,355
+- Liquidity: $1436848
+- Days Until Resolution: 13
+- Expected Resolution: 2026-02-08T12:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

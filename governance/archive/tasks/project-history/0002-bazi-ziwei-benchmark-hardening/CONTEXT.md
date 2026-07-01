@@ -1,3 +1,12 @@
+---
+id: ARCHIVE-ARCHIVE-TASKS-PROJECT-HISTORY-0002-BAZI-ZIWEI-BENCHMARK-HARDENING-CONTEXT
+type: archive
+status: archived
+owner: engineering
+created: 2026-06-17
+last_reviewed: 2026-06-17
+review_cycle: P365D
+---
 # Repo Evidence
 - `assets/fate/capabilities/registry.json` 显示 `bazi` 与 `ziwei` 均为 production，其中 `bazi` 是唯一 default。
 - `assets/fate/capabilities/profiles/bazi.json` 与 `ziwei.json` 定义两个体系的报告 profile。

@@ -40,7 +40,7 @@ evaluators/
 
 - `calculate_pure_analysis.py -> usecases.evaluators`
 - `usecases.evaluators -> usecases.rule_depth`
-- 禁止依赖 `domains/experience-delivery`、FastAPI、Bot、Web、Markdown 渲染或 benchmark evaluator。
+- 禁止依赖交付域、FastAPI、Bot、Web、Markdown 渲染或 benchmark evaluator。
 - 禁止读取 MingLi/BaziQA 的 expected answer、question_id 或 scoring result。
 
 ## 重构纪律

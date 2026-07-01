@@ -1,0 +1,30 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Set Handicap: Struff (-1.5) vs Kopriva (+1.5)
+
+Description: This market refers to the tennis match between Jan-Lennard Struff and Vit Kopriva in the Australian Open ATP, scheduled for January 18 2026.
+This market will resolve to "Struff" if Jan-Lennard Struff wins by 2 or more sets than Vit Kopriva, based on the final completed score. Otherwise, it will resolve to "Kopriva."
+If the match begins but is not completed, this market will resolve 50-50. If the match is canceled before play begins or delayed beyond 7 days from the scheduled date without a resul
+
+Current Market Data:
+- Current Probability: 64.0%
+- Trading Volume: $9,282
+- Liquidity: $109101
+- Days Until Resolution: 6
+- Expected Resolution: 2026-02-01T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

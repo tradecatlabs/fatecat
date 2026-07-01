@@ -1,0 +1,51 @@
+.DS_Store
+Thumbs.db
+
+.env
+.python-version
+
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.venv/
+
+.idea/
+.vscode/
+
+horosa-skill/.coverage
+horosa-skill/dist/
+horosa-skill/build/
+
+# horosa-core-js JS deps (lunar-javascript) — a build artifact. The runtime builders run
+# `npm install --omit=dev` and bundle node_modules into the payload; package-lock.json IS committed.
+horosa-skill/horosa-core-js/node_modules/
+
+vendor/runtime-source/
+
+# Local report QA artifacts generated during manual audits.
+HOROSA_IO_AUDIT_*/
+ds_technique_reports/
+all_technique_reports/
+horosa_*_report.json
+horosa_*_report.docx
+horosa_*_report.pdf
+.tmp_report_preview/
+
+# java instances launched with the repo as cwd write log4j logs under a literal
+# "${env:HOME:-...}" directory (unexpanded property path) — never commit runtime logs.
+${env:HOME*
+.horosa-logs/
+
+# local agent/session state — never upload
+.claude/
+.cursor/
+.editorconfig
+.gitattributes
+*.local.md
+notes-local*
+.horosa-cache/
+
+# changelog kept local-only — never upload (full git history purged)
+CHANGELOG.md

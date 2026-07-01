@@ -1,0 +1,346 @@
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import subprocess
+from pathlib import Path
+from typing import Any
+
+from horosa_skill.client_tools import extract_json_value, resolve_mcporter_command
+from horosa_skill.engine.registry import TOOL_DEFINITIONS
+from horosa_skill.testing_payloads import build_sample_payloads
+
+
+def _default_openclaw_workspace() -> Path:
+    raw = os.environ.get("OPENCLAW_WORKSPACE")
+    if raw:
+        return Path(raw).expanduser()
+    return Path.home() / ".openclaw" / "workspace"
+
+
+DEFAULT_WORKSPACE = _default_openclaw_workspace()
+DEFAULT_OUTPUT = Path.home() / ".horosa-skill" / "self_check_report_openclaw_full.json"
+
+
+def _run_mcporter(
+    workspace: Path,
+    config_path: Path,
+    selector: str,
+    payload: dict[str, Any],
+    *,
+    timeout_ms: int = 120000,
+    allow_retry: bool = True,
+) -> dict[str, Any]:
+    command = [
+        *resolve_mcporter_command(),
+        "call",
+        selector,
+        "--args",
+        json.dumps(payload, ensure_ascii=False),
+        "--output",
+        "json",
+        "--config",
+        str(config_path),
+        "--root",
+        str(workspace),
+        "--timeout",
+        str(timeout_ms),
+    ]
+    result = subprocess.run(
+        command,
+        cwd=str(workspace),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+        timeout=timeout_ms / 1000,
+    )
+    if result.returncode != 0:
+        try:
+            parsed = extract_json_value(result.stdout or "")
+        except ValueError:
+            parsed = None
+        if isinstance(parsed, dict):
+            if allow_retry and _is_timeout_response(parsed):
+                return _run_mcporter(
+                    workspace,
+                    config_path,
+                    selector,
+                    payload,
+                    timeout_ms=timeout_ms,
+                    allow_retry=False,
+                )
+            return parsed
+        raise RuntimeError(result.stderr.strip() or result.stdout.strip() or f"mcporter call failed: {selector}")
+    parsed = extract_json_value(result.stdout)
+    if allow_retry and isinstance(parsed, dict) and _is_timeout_response(parsed):
+        return _run_mcporter(
+            workspace,
+            config_path,
+            selector,
+            payload,
+            timeout_ms=timeout_ms,
+            allow_retry=False,
+        )
+    return parsed
+
+
+def _run_mcporter_list(workspace: Path, config_path: Path, *, timeout_ms: int = 120000) -> dict[str, Any]:
+    command = [
+        *resolve_mcporter_command(),
+        "list",
+        "horosa",
+        "--json",
+        "--config",
+        str(config_path),
+        "--root",
+        str(workspace),
+    ]
+    result = subprocess.run(
+        command,
+        cwd=str(workspace),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+        timeout=timeout_ms / 1000,
+    )
+    if result.returncode != 0:
+        try:
+            parsed = extract_json_value(result.stdout or "")
+        except ValueError:
+            parsed = None
+        if isinstance(parsed, dict):
+            return parsed
+        raise RuntimeError(result.stderr.strip() or result.stdout.strip() or "mcporter list failed")
+    return extract_json_value(result.stdout)
+
+
+def _assert(condition: bool, message: str) -> None:
+    if not condition:
+        raise AssertionError(message)
+
+
+def _is_timeout_response(payload: dict[str, Any]) -> bool:
+    issue = payload.get("issue")
+    if not isinstance(issue, dict) or issue.get("kind") != "offline":
+        return False
+    text = f"{payload.get('error', '')}\n{issue.get('rawMessage', '')}".lower()
+    return "timed out" in text
+
+
+def _has_export_contract(tool_name: str, response: dict[str, Any]) -> bool:
+    data = response.get("data", {})
+    if tool_name in {"export_registry", "export_parse", "knowledge_registry", "knowledge_read"}:
+        return True
+    return isinstance(data, dict) and isinstance(data.get("export_snapshot"), dict) and isinstance(data.get("export_format"), dict)
+
+
+def _check_one_tool(workspace: Path, config_path: Path, tool_name: str, payload: dict[str, Any]) -> dict[str, Any]:
+    definition = TOOL_DEFINITIONS[tool_name]
+    selector = f"horosa.{definition.mcp_name}"
+    response = _run_mcporter(workspace, config_path, selector, payload)
+
+    _assert(response.get("ok") is True, f"{tool_name}: ok != true")
+    memory_ref = response.get("memory_ref") or {}
+    run_id = memory_ref.get("run_id")
+    artifact_path = memory_ref.get("artifact_path")
+    _assert(isinstance(run_id, str) and run_id, f"{tool_name}: missing run_id")
+    _assert(isinstance(artifact_path, str) and Path(artifact_path).exists(), f"{tool_name}: artifact missing")
+    _assert(_has_export_contract(tool_name, response), f"{tool_name}: missing export contract")
+
+    show_result = _run_mcporter(
+        workspace,
+        config_path,
+        "horosa.horosa_memory_show",
+        {"run_id": run_id, "include_payload": False},
+    )
+    _assert(show_result.get("ok") is True, f"{tool_name}: memory_show failed")
+    _assert(show_result.get("result", {}).get("run_id") == run_id, f"{tool_name}: memory_show wrong run")
+
+    query_result = _run_mcporter(
+        workspace,
+        config_path,
+        "horosa.horosa_memory_query",
+        {"run_id": run_id, "tool": tool_name, "include_payload": False, "limit": 5},
+    )
+    _assert(query_result.get("ok") is True, f"{tool_name}: memory_query failed")
+    results = query_result.get("results") or []
+    _assert(any(item.get("run_id") == run_id for item in results if isinstance(item, dict)), f"{tool_name}: memory_query missing run")
+
+    return {
+        "selector": selector,
+        "run_id": run_id,
+        "artifact_path": artifact_path,
+        "trace_id": response.get("trace_id"),
+        "group_id": response.get("group_id"),
+        "has_export_snapshot": isinstance(response.get("data", {}).get("export_snapshot"), dict),
+        "has_export_format": isinstance(response.get("data", {}).get("export_format"), dict),
+    }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Run every Horosa MCP tool through OpenClaw/mcporter and verify call/return/store/read/find.")
+    parser.add_argument("--workspace", type=Path, default=DEFAULT_WORKSPACE)
+    parser.add_argument("--config", type=Path, default=None)
+    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    args = parser.parse_args()
+
+    workspace = args.workspace.expanduser().resolve()
+    config_path = (args.config.expanduser().resolve() if args.config is not None else workspace / "config" / "mcporter.json")
+    output_path = args.output.expanduser().resolve()
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    payloads = build_sample_payloads()
+    report: dict[str, Any] = {
+        "workspace": str(workspace),
+        "server": "horosa",
+        "tool_count": 0,
+        "business_tool_count": 0,
+        "listed_tool_count": None,
+        "tool_count_note": "business_tool_count/tool_count counts registered Horosa business tools; listed_tool_count counts all OpenClaw-visible MCP tools including memory/report/guidance helpers.",
+        "passed_tools": [],
+        "failed_tools": {},
+        "tools": {},
+        "dispatch": {},
+        "answer_writeback": {},
+        "report_export": {},
+        "memory_tools": {},
+        "ok": False,
+    }
+
+    if not config_path.exists():
+        report["server_visible"] = False
+        report["bootstrap_error"] = f"mcporter config not found: {config_path}"
+        output_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+        return 1
+
+    try:
+        list_result = _run_mcporter_list(workspace, config_path)
+        _assert(list_result.get("status") == "ok", "mcporter list did not return ok")
+        report["server_visible"] = True
+        report["listed_tool_count"] = len(list_result.get("tools", []))
+    except Exception as exc:  # noqa: BLE001
+        report["server_visible"] = False
+        report["bootstrap_error"] = str(exc)
+        output_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+        return 1
+
+    for tool_name in TOOL_DEFINITIONS:
+        report["tool_count"] += 1
+        report["business_tool_count"] += 1
+        try:
+            report["tools"][tool_name] = _check_one_tool(workspace, config_path, tool_name, payloads[tool_name])
+            report["passed_tools"].append(tool_name)
+        except Exception as exc:  # noqa: BLE001
+            report["failed_tools"][tool_name] = str(exc)
+
+    try:
+        dispatch_payload = {
+            "agent_confirmed_settings": True,
+            "clarification_notes": "OpenClaw full self-check confirmed dispatch settings.",
+            "query": "请起一局奇门遁甲并返回结构化结果",
+            "birth": payloads["qimen"],
+            "save_result": True,
+        }
+        dispatch_result = _run_mcporter(workspace, config_path, "horosa.horosa_dispatch", dispatch_payload)
+        _assert(dispatch_result.get("ok") is True, "dispatch: ok != true")
+        dispatch_memory = dispatch_result.get("memory_ref") or {}
+        dispatch_run_id = dispatch_memory.get("run_id")
+        _assert(isinstance(dispatch_run_id, str) and dispatch_run_id, "dispatch: missing run_id")
+        dispatch_show = _run_mcporter(workspace, config_path, "horosa.horosa_memory_show", {"run_id": dispatch_run_id, "include_payload": False})
+        dispatch_query = _run_mcporter(workspace, config_path, "horosa.horosa_memory_query", {"run_id": dispatch_run_id, "include_payload": False, "limit": 5})
+        _assert(dispatch_show.get("ok") is True, "dispatch: memory_show failed")
+        _assert(dispatch_query.get("ok") is True, "dispatch: memory_query failed")
+        _assert(bool(dispatch_result.get("result_export_contracts")), "dispatch: missing result_export_contracts")
+        report["dispatch"] = {
+            "ok": True,
+            "run_id": dispatch_run_id,
+            "selected_tools": dispatch_result.get("selected_tools", []),
+            "artifact_path": dispatch_memory.get("artifact_path"),
+        }
+    except Exception as exc:  # noqa: BLE001
+        report["dispatch"] = {"ok": False, "error": str(exc)}
+
+    try:
+        representative = report["tools"].get("chart") or next(iter(report["tools"].values()))
+        run_id = representative["run_id"]
+        answer_result = _run_mcporter(
+            workspace,
+            config_path,
+            "horosa.horosa_memory_record_answer",
+            {
+                "run_id": run_id,
+                "user_question": "这次结果代表什么？",
+                "ai_answer": "这是 OpenClaw 全量联调写回测试。",
+                "ai_answer_structured": {"status": "ok", "source": "openclaw-full-self-check"},
+                "answer_meta": {"mode": "openclaw", "scope": "full"},
+            },
+        )
+        _assert(answer_result.get("ok") is True, "memory_record_answer failed")
+        show_after = _run_mcporter(workspace, config_path, "horosa.horosa_memory_show", {"run_id": run_id, "include_payload": False})
+        result_record = show_after.get("result", {})
+        _assert(result_record.get("ai_answer_text") == "这是 OpenClaw 全量联调写回测试。", "memory_show missing ai_answer_text")
+        report["answer_writeback"] = {"ok": True, "run_id": run_id, "manifest_path": answer_result.get("manifest_path")}
+
+        template_result = _run_mcporter(
+            workspace,
+            config_path,
+            "horosa.horosa_report_template",
+            {"run_id": run_id, "tool_name": "chart"},
+        )
+        _assert(template_result.get("schema") == "horosa.skill.report.template.v1", "report_template failed")
+        render_result = _run_mcporter(
+            workspace,
+            config_path,
+            "horosa.horosa_report_render",
+            {
+                "run_id": run_id,
+                "tool_name": "chart",
+                "format": "pdf",
+                "ai_report": {"executive_summary": "OpenClaw 报告导出联调摘要。"},
+            },
+        )
+        artifact_path = render_result.get("artifact_path")
+        _assert(render_result.get("ok") is True, "report_render failed")
+        _assert(isinstance(artifact_path, str) and Path(artifact_path).exists(), "report artifact missing")
+        show_report = _run_mcporter(workspace, config_path, "horosa.horosa_memory_show", {"run_id": run_id, "include_payload": False})
+        artifact_kinds = {artifact.get("kind") for artifact in show_report.get("result", {}).get("artifacts", [])}
+        _assert("report_pdf" in artifact_kinds, "memory_show missing report_pdf artifact")
+        report["report_export"] = {
+            "ok": True,
+            "run_id": run_id,
+            "artifact_path": artifact_path,
+            "file_size": render_result.get("file_size"),
+            "sha256": render_result.get("sha256"),
+        }
+    except Exception as exc:  # noqa: BLE001
+        report["answer_writeback"] = {"ok": False, "error": str(exc)}
+        report["report_export"] = {"ok": False, "error": str(exc)}
+
+    report["memory_tools"] = {
+        "show_available": "horosa_memory_show",
+        "query_available": "horosa_memory_query",
+        "record_answer_available": "horosa_memory_record_answer",
+        "report_template_available": "horosa_report_template",
+        "report_render_available": "horosa_report_render",
+    }
+    report["ok"] = (
+        not report["failed_tools"]
+        and report["dispatch"].get("ok") is True
+        and report["answer_writeback"].get("ok") is True
+        and report["report_export"].get("ok") is True
+    )
+
+    output_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(json.dumps(report, ensure_ascii=False, indent=2))
+    return 0 if report["ok"] else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

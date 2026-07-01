@@ -51,14 +51,13 @@ BOT_PROXY_URL = (os.getenv("FATE_BOT_PROXY_URL") or "").strip() or None
 BOT_DRY_RUN = (os.getenv("FATE_BOT_DRY_RUN") or "").strip().lower() in {"1", "true", "yes", "on"}
 
 import db_v2 as db  # noqa: E402
-from bazi_calculator import BaziCalculator  # noqa: E402
 from bot_logging import setup_bot_logger  # noqa: E402
+from calculation_service import calculate_delivery_result  # noqa: E402
 from location import get as get_location  # noqa: E402
 from location import get_coords  # noqa: E402
 from rate_limiter import QueueFullError, acquire_slot, get_queue_status, record_request, release_slot  # noqa: E402
 from report_generator import (  # noqa: E402
     REPORT_SYSTEM_LABELS,
-    build_report_hide,
     generate_full_report,
     public_birth_place,
 )
@@ -931,19 +930,22 @@ def _calc_and_save_report(d: dict, lng: float, lat: float, user_id: str):
 
     # 传递姓名与出生地，避免回退默认“命主/未知”
     report_system = d.get("report_system", "bazi")
-    report_hide = build_report_hide(report_system)
-    display_birth_place = public_birth_place(d.get("birth_place"))
-    result = BaziCalculator(
-        birth_dt,
-        d["gender"],
-        lng,
+    calculation = calculate_delivery_result(
+        birth_dt=birth_dt,
+        gender=d["gender"],
+        longitude=lng,
         latitude=lat,
+        birth_place=d.get("birth_place", ""),
         name=d.get("name"),
-        birth_place=display_birth_place,
-    ).calculate(hide=report_hide)
+        report_system=report_system,
+        use_true_solar_time=True,
+    )
+    result = calculation.data
+    report_system = calculation.report_system
+    display_birth_place = calculation.display_birth_place
     calc_ms = int((time.monotonic() - t0) * 1000)
 
-    report_txt = generate_full_report(result, hide=report_hide, report_system=report_system)
+    report_txt = generate_full_report(result, hide=calculation.report_hide, report_system=report_system)
 
     TXT_DIR.mkdir(parents=True, exist_ok=True)
     gender_cn = "男" if d["gender"] == "male" else "女"

@@ -2,19 +2,12 @@ from __future__ import annotations
 
 import contextlib
 import io
-import sys
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
-from fate_core.support.paths import TELEGRAM_SRC_DIR
-
 from .legacy_bazi import BaziCalculator, now_cn
-
-if str(TELEGRAM_SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(TELEGRAM_SRC_DIR))
-
-from fortel_ziwei_integration import FortelZiweiCalculator  # noqa: E402
+from .legacy_integrations.fortel_ziwei_integration import FortelZiweiCalculator
 
 
 @dataclass(frozen=True)

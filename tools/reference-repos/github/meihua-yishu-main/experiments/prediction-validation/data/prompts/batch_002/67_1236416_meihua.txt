@@ -1,0 +1,63 @@
+Use the Meihua Yishu (梅花易數) skill to divine this prediction market question.
+
+QUESTION TO DIVINE:
+==================
+Will Italy join the Board of Peace?
+
+CONTEXT:
+========
+Description: Donald Trump and the United States recently sent invitations to countries around the world, inviting them to join the US-led Board of Peace which will oversee conflict resolution in Gaza and elsewhere (see: https://www.reuters.com/world/middle-east/us-names-rubio-blair-kushner-gaza-board-under-trumps-plan-2026-01-17/).
+
+This market will resolve to “Yes” if the listed country joins the Board of Peace by March 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to “No”.
+
+A country will be c
+
+Current Market Data:
+- Current Probability: 19.0%
+- Trading Volume: $9,971
+- Days Until Resolution: 33
+- Expected Resolution: 2026-02-28T00:00:00+00:00
+
+Categories: General
+
+CASTING INPUTS (use any method):
+================================
+
+1. NUMBER-BASED (數字起卦):
+   - Upper trigram input: 71 → Trigram #7
+   - Lower trigram input: 7 → Trigram #7
+   - Moving line: 6
+
+2. TEXT-BASED (測字起卦):
+   - Word count: 7 → Upper trigram #7
+   - Character count: 29 → Lower trigram #5
+   - Moving line: 6
+
+3. DIRECTION-BASED (方位起卦):
+   - Category: other
+   - Direction: 東北
+   - Trigram: 艮 (#7)
+
+4. MEASUREMENT-BASED (尺寸起卦):
+   - Days until resolution: 33 → Upper #1
+   - Probability %: 19 → Lower #3
+   - Moving line: 4
+
+INSTRUCTIONS:
+=============
+1. Cast the hexagram using one or more methods above
+2. Identify: 本卦 (original), 變卦 (transformed), 互卦 (mutual)
+3. Determine 體卦 and 用卦
+4. Analyze 體用關係 (生, 剋, 比和)
+5. Consider 外應 if any context clues
+6. Provide final prediction
+
+YOUR PREDICTION (required format):
+==================================
+HEXAGRAM: [Hexagram number and Chinese name, e.g., "40 雷水解"]
+TRANSFORMED: [Transformed hexagram if applicable]
+CASTING_METHOD: [Which method(s) used]
+TI_YONG: [Brief 體用 analysis]
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences with Meihua interpretation]

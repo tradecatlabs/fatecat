@@ -1,0 +1,39 @@
+# 所有文本文件使用 CRLF 换行符
+* text=auto eol=crlf
+
+# 源代码文件
+*.cpp text eol=crlf
+*.cppm text eol=crlf
+*.h text eol=crlf
+*.hpp text eol=crlf
+*.c text eol=crlf
+*.cc text eol=crlf
+
+# CMake 文件
+*.cmake text eol=crlf
+CMakeLists.txt text eol=crlf
+
+# 文档文件
+*.md text eol=crlf
+*.txt text eol=crlf
+
+# 配置文件
+*.json text eol=crlf
+*.xml text eol=crlf
+*.yml text eol=crlf
+*.yaml text eol=crlf
+
+# Shell 脚本 (保持 LF)
+*.sh text eol=lf
+
+# 二进制文件
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.a binary
+*.so binary
+*.dll binary
+*.exe binary
+

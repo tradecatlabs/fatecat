@@ -1,0 +1,34 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will DoorDash report 900 million or more total orders in Q4 2025?
+
+Description: This market will resolve according to DoorDash’s announced total orders for Q4 2025.
+
+If DoorDash does not publish Q4 2025 total order figures by March 31, 2026, 11:59 PM ET, this market will resolve to the lowest bracket.
+
+If the reported value falls exactly between two brackets, this market will resolve to the higher range bracket.
+
+The resolution source will be DoorDash investor relations earnings materials (https://ir.doordash.com/financials/quarterly-results/).
+
+Current Market Data:
+- Current Probability: 65.0%
+- Trading Volume: $7,909
+- Liquidity: $407
+- Days Until Resolution: 15
+- Expected Resolution: 2026-02-10T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

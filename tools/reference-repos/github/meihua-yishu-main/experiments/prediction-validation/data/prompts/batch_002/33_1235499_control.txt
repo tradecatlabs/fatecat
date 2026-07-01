@@ -1,0 +1,32 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will MegaETH perform an airdrop by February 28?
+
+Description: This market will resolve to "Yes" if MegaETH launches a token and performs an airdrop by 11:59 PM ET on the date specified in the title. Otherwise, this market will resolve to "No".
+
+For the purposes of this market "locked" tokens or non-swappable tokens will not suffice to resolve this market to "Yes". Airdrops of NFTs will not qualify.
+
+The primary resolution source for this market is on-chain information and official information from MegaETH, however a consensus of credible reporting will als
+
+Current Market Data:
+- Current Probability: 83.0%
+- Trading Volume: $8,235
+- Liquidity: $3237
+- Days Until Resolution: 34
+- Expected Resolution: 2026-03-01T05:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

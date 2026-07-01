@@ -1,0 +1,171 @@
+name: macOS Clang/LLVM Build
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build-clang-macos:
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14, macos-15]  # Apple Silicon (M1/M2)
+        build_type: [Release, Debug]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Setup Homebrew and install LLVM
+      run: |
+        brew update
+        brew install llvm ninja cmake
+        
+        # 显示安装的 LLVM 版本
+        LLVM_VERSION=$(/opt/homebrew/opt/llvm/bin/clang++ --version 2>/dev/null || /usr/local/opt/llvm/bin/clang++ --version)
+        echo "Installed LLVM version:"
+        echo "$LLVM_VERSION"
+
+    - name: Detect Homebrew LLVM paths
+      id: llvm-paths
+      run: |
+        # 根据架构检测 Homebrew 路径
+        if [ -d "/opt/homebrew/opt/llvm" ]; then
+          LLVM_PREFIX="/opt/homebrew/opt/llvm"
+        else
+          LLVM_PREFIX="/usr/local/opt/llvm"
+        fi
+        
+        echo "LLVM_PREFIX=${LLVM_PREFIX}" >> $GITHUB_OUTPUT
+        echo "Detected LLVM prefix: ${LLVM_PREFIX}"
+        
+        # 显示 LLVM 目录结构
+        echo "LLVM directory structure:"
+        ls -la "${LLVM_PREFIX}/" || true
+        ls -la "${LLVM_PREFIX}/share/" || true
+        ls -la "${LLVM_PREFIX}/share/libc++/" 2>/dev/null || echo "No share/libc++/ directory"
+        
+        # 查找 libc++ 模块路径 - 尝试多个可能的位置
+        LIBCXX_MODULES=""
+        for path in \
+          "${LLVM_PREFIX}/share/libc++/v1" \
+          "${LLVM_PREFIX}/lib/c++/v1" \
+          "${LLVM_PREFIX}/share/libc++" \
+          ; do
+          if [ -f "${path}/std.cppm" ]; then
+            LIBCXX_MODULES="${path}"
+            break
+          fi
+        done
+        
+        # 如果仍未找到，使用 find 命令
+        if [ -z "${LIBCXX_MODULES}" ]; then
+          LIBCXX_MODULES=$(find ${LLVM_PREFIX} -name "std.cppm" -exec dirname {} \; 2>/dev/null | head -1)
+        fi
+        
+        echo "LIBCXX_MODULES=${LIBCXX_MODULES}" >> $GITHUB_OUTPUT
+        echo "libc++ modules path: ${LIBCXX_MODULES}"
+        
+        # 头文件路径
+        LIBCXX_INCLUDE="${LLVM_PREFIX}/include/c++/v1"
+        echo "LIBCXX_INCLUDE=${LIBCXX_INCLUDE}" >> $GITHUB_OUTPUT
+        echo "libc++ include path: ${LIBCXX_INCLUDE}"
+        
+        # 验证路径存在
+        echo "=== Path Validation ==="
+        if [ -n "${LIBCXX_MODULES}" ] && [ -d "${LIBCXX_MODULES}" ]; then
+          echo "libc++ modules found:"
+          ls -la "${LIBCXX_MODULES}/"
+        else
+          echo "WARNING: libc++ modules NOT found at expected location"
+          echo "Searching entire LLVM prefix for .cppm files:"
+          find ${LLVM_PREFIX} -name "*.cppm" 2>/dev/null || echo "No .cppm files found"
+        fi
+        
+        if [ -d "${LIBCXX_INCLUDE}" ]; then
+          echo "libc++ headers found at: ${LIBCXX_INCLUDE}"
+          ls "${LIBCXX_INCLUDE}/__config" 2>/dev/null && echo "__config exists" || echo "WARNING: __config not found"
+        else
+          echo "WARNING: libc++ headers NOT found at: ${LIBCXX_INCLUDE}"
+        fi
+
+    - name: Get macOS SDK path
+      id: sdk-path
+      run: |
+        SDKROOT=$(xcrun --show-sdk-path)
+        echo "SDKROOT=${SDKROOT}" >> $GITHUB_OUTPUT
+        echo "macOS SDK path: ${SDKROOT}"
+
+    - name: Configure CMake
+      run: |
+        LLVM_PREFIX="${{ steps.llvm-paths.outputs.LLVM_PREFIX }}"
+        SDKROOT="${{ steps.sdk-path.outputs.SDKROOT }}"
+        LIBCXX_MODULES="${{ steps.llvm-paths.outputs.LIBCXX_MODULES }}"
+        LIBCXX_INCLUDE="${{ steps.llvm-paths.outputs.LIBCXX_INCLUDE }}"
+        
+        cmake -B ${{ github.workspace }}/build \
+          -G "Ninja" \
+          -DCMAKE_CXX_COMPILER="${LLVM_PREFIX}/bin/clang++" \
+          -DCMAKE_C_COMPILER="${LLVM_PREFIX}/bin/clang" \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DCMAKE_CXX_FLAGS="-isysroot ${SDKROOT} -stdlib=libc++" \
+          -DCMAKE_EXE_LINKER_FLAGS="-L${LLVM_PREFIX}/lib/c++ -Wl,-rpath,${LLVM_PREFIX}/lib/c++ -lc++ -lc++abi" \
+          -DCMAKE_OSX_SYSROOT="${SDKROOT}" \
+          -DLIBCXX_MODULE_DIRS="${LIBCXX_MODULES}" \
+          -DLIBCXX_INCLUDE_DIRS="${LIBCXX_INCLUDE}" \
+          -S ${{ github.workspace }}
+      env:
+        CC: ${{ steps.llvm-paths.outputs.LLVM_PREFIX }}/bin/clang
+        CXX: ${{ steps.llvm-paths.outputs.LLVM_PREFIX }}/bin/clang++
+
+    - name: Build
+      run: cmake --build ${{ github.workspace }}/build --parallel $(sysctl -n hw.ncpu)
+
+    - name: Verify build artifacts
+      run: |
+        echo "Build artifacts:"
+        ls -la ${{ github.workspace }}/build/
+        
+        # 检查可执行文件
+        if [ -f "${{ github.workspace }}/build/ZhouYiLab" ]; then
+          echo "Main executable found:"
+          file ${{ github.workspace }}/build/ZhouYiLab
+          
+          # 检查动态库依赖
+          echo "Dynamic library dependencies:"
+          otool -L ${{ github.workspace }}/build/ZhouYiLab || true
+        fi
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: zhouyi-lab-${{ matrix.os }}-${{ matrix.build_type }}
+        path: |
+          ${{ github.workspace }}/build/*.a
+          ${{ github.workspace }}/build/ZhouYiLab
+          ${{ github.workspace }}/build/example/*
+        retention-days: 7
+
+    - name: Display build summary
+      if: always()
+      run: |
+        echo "========================================="
+        echo "Build Summary for macOS"
+        echo "========================================="
+        echo "OS: ${{ matrix.os }}"
+        echo "Build Type: ${{ matrix.build_type }}"
+        echo "Architecture: $(uname -m)"
+        echo "Compiler: ${{ steps.llvm-paths.outputs.LLVM_PREFIX }}/bin/clang++"
+        ${{ steps.llvm-paths.outputs.LLVM_PREFIX }}/bin/clang++ --version
+        echo "macOS SDK: ${{ steps.sdk-path.outputs.SDKROOT }}"
+        echo "========================================="

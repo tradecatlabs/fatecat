@@ -1,0 +1,89 @@
+name: Publish to npm
+
+# Triggered on release tags (v0.3.0, v0.3.1, v1.0.0, ...) or manually.
+#
+# Supply-chain hardening (v0.8):
+#   - All `uses:` are pinned to a full commit SHA + version comment.
+#     Bumps are PR'd by Dependabot (see .github/dependabot.yml).
+#   - npm publish uses --provenance and OIDC Trusted Publishing.
+#     No NPM_TOKEN secret is needed (or trusted) — the GitHub OIDC
+#     id-token is exchanged at npmjs.com for short-lived publish creds.
+#
+# First-time / re-configuration setup (one-time, by repo admin):
+#   1. npmjs.com → Package "master-skill" → Settings → Trusted Publisher
+#   2. Add Trusted Publisher:
+#        Publisher: GitHub Actions
+#        Owner:     xr843
+#        Repository: Master-skill
+#        Workflow:  npm-publish.yml
+#        Environment: npm   (matches `environment.name` below)
+#   3. Confirm. From this point on, NPM_TOKEN can be deleted from
+#      repo Settings → Secrets → Actions (it is no longer used).
+#
+# Until Trusted Publisher is configured, the `Publish` step will fail
+# with a clear 401 from npm — that is the expected first-run failure;
+# fix it by completing the setup above, then re-run the release.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Run npm publish --dry-run only"
+        required: false
+        default: "true"
+        type: choice
+        options: ["true", "false"]
+
+permissions:
+  contents: read
+  # Required for npm provenance + OIDC Trusted Publishing.
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/master-skill
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6.4.0
+        with:
+          # Node >= 24 ships npm >= 11.5.1, the minimum for OIDC Trusted
+          # Publishing token exchange. Node 20's npm 10.x silently skips
+          # the exchange and the unauthenticated PUT fails with E404.
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Verify CLI is executable
+        run: |
+          test -x bin/cli.mjs || chmod +x bin/cli.mjs
+          node bin/cli.mjs list
+
+      - name: Verify package contents (what will ship)
+        run: npm pack --dry-run
+
+      - name: Verify version matches tag
+        if: github.event_name == 'release'
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          TAG="${GITHUB_REF_NAME#v}"
+          if [ "$PKG_VERSION" != "$TAG" ]; then
+            echo "::error::package.json version ($PKG_VERSION) != release tag ($TAG)"
+            exit 1
+          fi
+
+      - name: Publish (dry-run)
+        if: github.event_name == 'workflow_dispatch' && inputs.dry-run == 'true'
+        run: npm publish --dry-run --access public
+
+      - name: Publish
+        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.dry-run == 'false')
+        # No NODE_AUTH_TOKEN / NPM_TOKEN env — authentication is via
+        # OIDC Trusted Publisher. setup-node above wrote a .npmrc that
+        # `npm publish --provenance` will use for the OIDC token exchange.
+        run: npm publish --access public --provenance

@@ -146,6 +146,18 @@ bash scripts/export-runtime.sh --output-parent /tmp/fatecat-export --mode lite
 bash scripts/check-export-hygiene.sh /tmp/fatecat-export/fatecat
 ```
 
+### Vendor 快照未登记或混入运行态文件
+
+处理：
+
+```bash
+bash scripts/clean-runtime.sh
+bash scripts/vendor-health.sh
+python3 -m pytest -q tests/regression/test_fate_policy_assets.py
+```
+
+说明：`tools/reference-repos/github/*` 下所有目录必须进入 `vendor_sources.json` 的 `required`、`optionalFutureFeatures` 或 `legacyUnreviewedSnapshots`；未审历史快照不得当作生产依赖或成熟候选能力。
+
 ### 纯分析缺字段
 
 处理：

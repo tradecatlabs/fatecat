@@ -1,0 +1,30 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Bad Bunny wears a dress or skirt at the Super Bowl?
+
+Description: This market will resolve to “Yes” if Bad Bunny is photographed or videotaped wearing a dress or skirt at the 2026 Super Bowl. Otherwise, this market will resolve to “No”.
+
+A dress refers to a women's one-piece garment covering the torso and legs without a division between the legs, or a skirt is a separate bottom garment that encircles the lower body as a single unified piece of fabric rather than being bifurcated into separate leg openings, as commonly understood in Western formal or semi-forma
+
+Current Market Data:
+- Current Probability: 29.0%
+- Trading Volume: $7,540
+- Liquidity: $1980
+- Days Until Resolution: 13
+- Expected Resolution: 2026-02-08T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

@@ -1,0 +1,30 @@
+.birth-time, .birth_date {
+  background-color: #1a237e;
+  color: #1a237e;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+  border-radius: 4px;
+  border: 1px solid #1a237e;
+  font-weight: bold;
+}
+
+.birth-time:hover,
+.birth-time:active,
+.birth_date:hover,
+.birth_date:active {
+  color: #ffd602;
+  background-color: #1a237e;
+  font-weight: bold;
+}
+
+.user-info-title {
+    /* 不换行 */
+    white-space: nowrap;
+    width: 70px;
+}
+
+.user-info-value {
+    /* 左对齐 */
+    text-align: left;
+    width: 90%;
+}

@@ -1,0 +1,65 @@
+Use the Meihua Yishu (梅花易數) skill to divine this prediction market question.
+
+QUESTION TO DIVINE:
+==================
+Will Australia win the 2026 ICC Men’s T20 World Cup?
+
+CONTEXT:
+========
+Description: This market will resolve according to the national team that wins the 2026 ICC T20 Men’s World Cup.
+
+If at any point it becomes impossible for the listed team to win the 2026 ICC T20 Men’s World Cup based on the rules of the tournament (e.g., they are eliminated in the knockout stage), this market will resolve immediately to “No”.
+
+If the 2026 ICC T20 Men’s World Cup is permanently canceled or has not been completed by June 30, 2026, 11:59 PM, this market will resolve to “Other”.
+
+The primary re
+
+Current Market Data:
+- Current Probability: 22.0%
+- Trading Volume: $7,502
+- Days Until Resolution: 41
+- Expected Resolution: 2026-03-08T00:00:00+00:00
+
+Categories: General
+
+CASTING INPUTS (use any method):
+================================
+
+1. NUMBER-BASED (數字起卦):
+   - Upper trigram input: 2 → Trigram #2
+   - Lower trigram input: 10 → Trigram #2
+   - Moving line: 6
+
+2. TEXT-BASED (測字起卦):
+   - Word count: 10 → Upper trigram #2
+   - Character count: 43 → Lower trigram #3
+   - Moving line: 5
+
+3. DIRECTION-BASED (方位起卦):
+   - Category: other
+   - Direction: 東北
+   - Trigram: 艮 (#7)
+
+4. MEASUREMENT-BASED (尺寸起卦):
+   - Days until resolution: 41 → Upper #1
+   - Probability %: 22 → Lower #6
+   - Moving line: 3
+
+INSTRUCTIONS:
+=============
+1. Cast the hexagram using one or more methods above
+2. Identify: 本卦 (original), 變卦 (transformed), 互卦 (mutual)
+3. Determine 體卦 and 用卦
+4. Analyze 體用關係 (生, 剋, 比和)
+5. Consider 外應 if any context clues
+6. Provide final prediction
+
+YOUR PREDICTION (required format):
+==================================
+HEXAGRAM: [Hexagram number and Chinese name, e.g., "40 雷水解"]
+TRANSFORMED: [Transformed hexagram if applicable]
+CASTING_METHOD: [Which method(s) used]
+TI_YONG: [Brief 體用 analysis]
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences with Meihua interpretation]

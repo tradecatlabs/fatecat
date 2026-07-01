@@ -1,0 +1,5 @@
+numpy<2
+lunar-python
+timezonefinder
+geopy
+pytz

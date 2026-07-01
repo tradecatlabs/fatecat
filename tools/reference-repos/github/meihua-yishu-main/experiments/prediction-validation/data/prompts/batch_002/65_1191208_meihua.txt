@@ -1,0 +1,61 @@
+Use the Meihua Yishu (梅花易數) skill to divine this prediction market question.
+
+QUESTION TO DIVINE:
+==================
+Set Handicap: Struff (-1.5) vs Kopriva (+1.5)
+
+CONTEXT:
+========
+Description: This market refers to the tennis match between Jan-Lennard Struff and Vit Kopriva in the Australian Open ATP, scheduled for January 18 2026.
+This market will resolve to "Struff" if Jan-Lennard Struff wins by 2 or more sets than Vit Kopriva, based on the final completed score. Otherwise, it will resolve to "Kopriva."
+If the match begins but is not completed, this market will resolve 50-50. If the match is canceled before play begins or delayed beyond 7 days from the scheduled date without a resul
+
+Current Market Data:
+- Current Probability: 64.0%
+- Trading Volume: $9,282
+- Days Until Resolution: 6
+- Expected Resolution: 2026-02-01T00:00:00+00:00
+
+Categories: General
+
+CASTING INPUTS (use any method):
+================================
+
+1. NUMBER-BASED (數字起卦):
+   - Upper trigram input: 82 → Trigram #2
+   - Lower trigram input: 7 → Trigram #7
+   - Moving line: 5
+
+2. TEXT-BASED (測字起卦):
+   - Word count: 7 → Upper trigram #7
+   - Character count: 39 → Lower trigram #7
+   - Moving line: 4
+
+3. DIRECTION-BASED (方位起卦):
+   - Category: other
+   - Direction: 東北
+   - Trigram: 艮 (#7)
+
+4. MEASUREMENT-BASED (尺寸起卦):
+   - Days until resolution: 6 → Upper #6
+   - Probability %: 64 → Lower #8
+   - Moving line: 4
+
+INSTRUCTIONS:
+=============
+1. Cast the hexagram using one or more methods above
+2. Identify: 本卦 (original), 變卦 (transformed), 互卦 (mutual)
+3. Determine 體卦 and 用卦
+4. Analyze 體用關係 (生, 剋, 比和)
+5. Consider 外應 if any context clues
+6. Provide final prediction
+
+YOUR PREDICTION (required format):
+==================================
+HEXAGRAM: [Hexagram number and Chinese name, e.g., "40 雷水解"]
+TRANSFORMED: [Transformed hexagram if applicable]
+CASTING_METHOD: [Which method(s) used]
+TI_YONG: [Brief 體用 analysis]
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences with Meihua interpretation]

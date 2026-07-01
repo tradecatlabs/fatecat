@@ -1,0 +1,127 @@
+{
+  "generated": "2026-03-05",
+  "batch": 2,
+  "warning": "SEALED until evaluation phase. Do not open during interpretation.",
+  "events": [
+    {
+      "event_id": "E13",
+      "real_is_A": true,
+      "label_A": "real",
+      "label_B": "control"
+    },
+    {
+      "event_id": "E14",
+      "real_is_A": false,
+      "label_A": "control",
+      "label_B": "real"
+    },
+    {
+      "event_id": "E15",
+      "real_is_A": false,
+      "label_A": "control",
+      "label_B": "real"
+    },
+    {
+      "event_id": "E16",
+      "real_is_A": true,
+      "label_A": "real",
+      "label_B": "control"
+    },
+    {
+      "event_id": "E17",
+      "real_is_A": false,
+      "label_A": "control",
+      "label_B": "real"
+    },
+    {
+      "event_id": "E18",
+      "real_is_A": true,
+      "label_A": "real",
+      "label_B": "control"
+    },
+    {
+      "event_id": "E19",
+      "real_is_A": true,
+      "label_A": "real",
+      "label_B": "control"
+    },
+    {
+      "event_id": "E20",
+      "real_is_A": false,
+      "label_A": "control",
+      "label_B": "real"
+    },
+    {
+      "event_id": "E21",
+      "real_is_A": true,
+      "label_A": "real",
+      "label_B": "control"
+    },
+    {
+      "event_id": "E22",
+      "real_is_A": true,
+      "label_A": "real",
+      "label_B": "control"
+    },
+    {
+      "event_id": "E23",
+      "real_is_A": false,
+      "label_A": "control",
+      "label_B": "real"
+    },
+    {
+      "event_id": "E24",
+      "real_is_A": false,
+      "label_A": "control",
+      "label_B": "real"
+    },
+    {
+      "event_id": "E25",
+      "real_is_A": true,
+      "label_A": "real",
+      "label_B": "control"
+    },
+    {
+      "event_id": "E26",
+      "real_is_A": false,
+      "label_A": "control",
+      "label_B": "real"
+    },
+    {
+      "event_id": "E27",
+      "real_is_A": true,
+      "label_A": "real",
+      "label_B": "control"
+    },
+    {
+      "event_id": "E28",
+      "real_is_A": false,
+      "label_A": "control",
+      "label_B": "real"
+    },
+    {
+      "event_id": "E29",
+      "real_is_A": true,
+      "label_A": "real",
+      "label_B": "control"
+    },
+    {
+      "event_id": "E30",
+      "real_is_A": true,
+      "label_A": "real",
+      "label_B": "control"
+    },
+    {
+      "event_id": "E31",
+      "real_is_A": true,
+      "label_A": "real",
+      "label_B": "control"
+    },
+    {
+      "event_id": "E32",
+      "real_is_A": false,
+      "label_A": "control",
+      "label_B": "real"
+    }
+  ]
+}

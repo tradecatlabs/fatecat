@@ -1,0 +1,30 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will Epstein Data Set 9 be released before March?
+
+Description: This market will resolve to "Yes" if Data Set 9 of the Epstein Files is released between market creation and February 28, 2026, 11:59PM ET. Otherwise, this market will resolve to "No".
+
+A qualifying data set will be labeled "Data Set 9 Files" on the U.S. Department of Justice website in the Epstein Library. Any additions to previously released data sets or file releases under data sets with names not exhibiting a sequential relationship similar to that between "Data Set 7 Files" and "Data Set 8 
+
+Current Market Data:
+- Current Probability: 47.0%
+- Trading Volume: $7,091
+- Liquidity: $6216
+- Days Until Resolution: 33
+- Expected Resolution: 2026-02-28T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

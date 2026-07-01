@@ -1,0 +1,63 @@
+Use the Meihua Yishu (梅花易數) skill to divine this prediction market question.
+
+QUESTION TO DIVINE:
+==================
+Will Ja Morant be traded this season?
+
+CONTEXT:
+========
+Description: This market will resolve to "Yes" if the listed NBA player is traded from their current team to another NBA team before the 2025-2026 NBA trade deadline. Otherwise, this market will resolve to "No".
+
+The NBA trade deadline for the 2025-2026 season is scheduled for February 5, 2026.
+
+The resolution source for this market will be official information from the NBA; however a consensus of credible reporting may also be used.
+
+Current Market Data:
+- Current Probability: 44.0%
+- Trading Volume: $96,148
+- Days Until Resolution: 10
+- Expected Resolution: 2026-02-05T00:00:00+00:00
+
+Categories: General
+
+CASTING INPUTS (use any method):
+================================
+
+1. NUMBER-BASED (數字起卦):
+   - Upper trigram input: 47 → Trigram #7
+   - Lower trigram input: 7 → Trigram #7
+   - Moving line: 6
+
+2. TEXT-BASED (測字起卦):
+   - Word count: 7 → Upper trigram #7
+   - Character count: 31 → Lower trigram #7
+   - Moving line: 2
+
+3. DIRECTION-BASED (方位起卦):
+   - Category: other
+   - Direction: 東北
+   - Trigram: 艮 (#7)
+
+4. MEASUREMENT-BASED (尺寸起卦):
+   - Days until resolution: 10 → Upper #2
+   - Probability %: 44 → Lower #4
+   - Moving line: 6
+
+INSTRUCTIONS:
+=============
+1. Cast the hexagram using one or more methods above
+2. Identify: 本卦 (original), 變卦 (transformed), 互卦 (mutual)
+3. Determine 體卦 and 用卦
+4. Analyze 體用關係 (生, 剋, 比和)
+5. Consider 外應 if any context clues
+6. Provide final prediction
+
+YOUR PREDICTION (required format):
+==================================
+HEXAGRAM: [Hexagram number and Chinese name, e.g., "40 雷水解"]
+TRANSFORMED: [Transformed hexagram if applicable]
+CASTING_METHOD: [Which method(s) used]
+TI_YONG: [Brief 體用 analysis]
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences with Meihua interpretation]

@@ -1,0 +1,30 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will Silver (SI) settle over $90 on the final trading day of January 2026?
+
+Description: This market will resolve to "Yes" if the official CME settlement price for the Active Month of Silver futures on the final trading day of January 2026 is higher than the listed price. Otherwise, the market will resolve to "No".
+
+For CME Silver (SI) futures contracts, the Active Month is the nearest of CME's designated delivery-cycle months (March, May, July, September, December) that is not the spot month. The Active Month becomes a non-active month effective on its First Position Date, at which
+
+Current Market Data:
+- Current Probability: 49.0%
+- Trading Volume: $9,431
+- Liquidity: $1175
+- Days Until Resolution: 13
+- Expected Resolution: 2026-01-31T18:30:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

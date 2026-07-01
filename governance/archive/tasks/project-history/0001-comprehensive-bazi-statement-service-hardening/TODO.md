@@ -1,3 +1,12 @@
+---
+id: ARCHIVE-ARCHIVE-TASKS-PROJECT-HISTORY-0001-COMPREHENSIVE-BAZI-STATEMENT-SERVICE-HARDENING-TODO
+type: archive
+status: archived
+owner: engineering
+created: 2026-06-17
+last_reviewed: 2026-06-17
+review_cycle: P365D
+---
 # Execution Checklist
 [x] TP-01.01 | P0 | 盘点交节时间 raw 表 | Verify: 输出 schema 文档和来源哈希对照。 | Gate: 确认 raw 表不会进入导出包。 | Parallelizable: No
 [x] TP-01.02 | P0 | 构建节气 golden fixture | Verify: fixture schema 校验和样本快照通过。 | Gate: 明确时区、容差、来源哈希。 | Parallelizable: No

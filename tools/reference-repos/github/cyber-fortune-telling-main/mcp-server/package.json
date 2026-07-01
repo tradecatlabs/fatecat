@@ -1,0 +1,33 @@
+{
+  "name": "cyber-fortune-telling-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for Cyber Fortune Telling API - Docker-only fortune telling tools for AI models",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node src/test.js",
+    "docker:build": "docker build -t cyber-fortune-mcp-server .",
+    "docker:run": "docker run --rm -i --network host -e CYBER_FORTUNE_API_BASE_URL=http://localhost:11337/api cyber-fortune-mcp-server"
+  },
+  "keywords": ["mcp", "fortune-telling", "api", "llm", "ai", "prediction", "divination", "model-context-protocol", "docker"],
+  "author": "zhaoolee <zhaoolee@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zhaoolee/cyber-fortune-telling.git",
+    "directory": "mcp-server"
+  },
+  "homepage": "https://github.com/zhaoolee/cyber-fortune-telling/tree/main/mcp-server",
+  "bugs": {
+    "url": "https://github.com/zhaoolee/cyber-fortune-telling/issues"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.6.0",
+    "axios": "^1.6.0",
+    "node-fetch": "^3.3.2"
+  },
+  "engines": {
+    "node": ">=22.14.0"
+  }
+} 

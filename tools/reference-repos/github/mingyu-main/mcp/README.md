@@ -1,0 +1,158 @@
+# 命语 MCP Server
+
+让 AI 直接调用命语的排盘引擎和一站式提示词工具，无需手动复制排盘 JSON。
+
+## 支持的 Tool
+
+| Tool 名称           | 功能         | 说明                                                     |
+| ------------------- | ------------ | -------------------------------------------------------- |
+| `bazi_calculate`    | 八字排盘     | 输入出生信息，返回四柱、十神、藏干、大运、神煞、旺衰分析 |
+| `bazi_prompt`       | 八字提示词   | 八字排盘并返回可直接用于 AI 解读的结构化提示词           |
+| `ziwei_calculate`   | 紫微斗数排盘 | 输入出生信息，返回星盘、宫位、大限、流年数据             |
+| `ziwei_prompt`      | 紫微提示词   | 紫微斗数排盘并返回可直接用于 AI 解读的结构化提示词       |
+| `divine_liuyao`     | 六爻起卦     | 基于当前时间或自定义时间生成完整六爻卦象                 |
+| `liuyao_prompt`     | 六爻提示词   | 六爻起卦并返回可直接用于 AI 解读的结构化提示词           |
+| `divine_meihua`     | 梅花易数起卦 | 支持时间/数字/随机/外应四种起卦方式                      |
+| `meihua_prompt`     | 梅花提示词   | 梅花易数起卦并返回可直接用于 AI 解读的结构化提示词       |
+| `divine_xiaoliuren` | 小六壬起课   | 支持时间/数字/随机三种起课方式，返回三段宫位与行动倾向   |
+| `xiaoliuren_prompt` | 小六壬提示词 | 小六壬起课并返回可直接用于 AI 解读的结构化提示词         |
+| `divine_qimen`      | 奇门遁甲排盘 | 基于当前时间或自定义时间排时家奇门转盘                   |
+| `qimen_prompt`      | 奇门提示词   | 奇门遁甲排盘并返回可直接用于 AI 解读的结构化提示词       |
+| `divine_liuren`     | 大六壬排盘   | 基于当前时间或自定义时间排大六壬课盘                     |
+| `liuren_prompt`     | 大六壬提示词 | 大六壬排盘并返回可直接用于 AI 解读的结构化提示词         |
+| `divine_tarot`      | 塔罗抽牌     | 78 张塔罗，支持单牌/时间流/爱情/事业/选择牌阵            |
+| `tarot_prompt`      | 塔罗提示词   | 塔罗抽牌并返回可直接用于 AI 解读的结构化提示词           |
+| `divine_ssgw`       | 灵签求签     | 模拟传统摇签、掷筊流程，圣杯确认后方出签；三连阴杯则拒绝起卦，返回 ritual 记录 |
+| `ssgw_prompt`       | 灵签提示词   | 三山国王灵签求签（含传统掷筊流程）并返回可直接用于 AI 解读的结构化提示词 |
+| `divine_almanac`    | 黄历择日     | 按事项、日期范围和可选参与人八字筛选候选日期             |
+| `almanac_prompt`    | 择日提示词   | 黄历择日并返回可直接用于 AI 解读的结构化提示词           |
+| `divine_lenormand`  | 雷诺曼抽牌   | 支持单牌、三牌、五牌十字、关系、选择、九宫、元素和大桌牌阵 |
+| `lenormand_prompt`  | 雷诺曼提示词 | 雷诺曼抽牌并返回可直接用于 AI 解读的结构化提示词         |
+| `divine_astrolabe`  | 星盘生成     | 根据出生时间、经纬度和时区生成星体、宫位与相位数据       |
+| `astrolabe_prompt`  | 星盘提示词   | 星盘生成并返回可直接用于 AI 解读的结构化提示词           |
+
+## 快速开始
+
+### 1. 安装项目
+
+```bash
+git clone https://github.com/Brhiza/mingyu.git
+cd mingyu
+npm install
+```
+
+### 2. 本地启动测试
+
+```bash
+npm run mcp
+```
+
+### 3. 在 Claude Desktop 中配置
+
+打开 Claude Desktop 设置 -> Developer -> Edit Config，编辑 `claude_desktop_config.json`：
+
+```json
+{
+  "mcpServers": {
+    "mingyu": {
+      "command": "npm",
+      "args": ["run", "mcp"],
+      "cwd": "C:\\Users\\Administrator\\Documents\\GitHub\\mingyu"
+    }
+  }
+}
+```
+
+> 请将 `cwd` 替换为你本地项目的实际路径。
+
+### 4. 重启 Claude Desktop
+
+配置完成后重启 Claude Desktop，在对话中即可看到命语的工具图标。你可以直接让 Claude 调用排盘工具。
+
+## 使用示例
+
+在 Claude Desktop 中直接说：
+
+- "帮我排一下 1990 年 5 月 15 日丑时出生的八字"
+- "用八字提示词工具，问我适合创业还是上班"
+- "用八字盲派流派解读 1990 年 5 月 15 日丑时八字的事业运"
+- "用紫微飞星派解读 1992 年 8 月 21 日辰时女性的 2025 年事业财运"
+- "用紫微斗数排盘看 1992 年 8 月 21 日辰时女性的命盘"
+- "用六爻提示词工具起一卦，问今年事业运势如何"
+- "用小六壬数字起课，数字 18，问这件事能不能推进"
+- "抽一张塔罗牌并生成提示词，看看我近期的感情走向"
+- "用奇门遁甲提示词工具排个盘，问这次投资能不能成"
+- "用奇门飞盘法排盘，问这个项目的方向"
+- "用 2025-01-01 08:30 北京时间排奇门盘，问这个项目现在适不适合推进"
+- "用黄历择日工具看看 2026-06-01 到 2026-06-05 哪天适合签约"
+- "用黄历择日工具看看 2026-06-01 到 2026-06-05 哪天适合安葬"
+- "用黄历择日工具看看 2026-06-01 到 2026-06-05 哪天适合修造动土"
+- "用黄历择日工具看看 2026-06-01 到 2026-06-05 哪天适合修造动土"
+- "用雷诺曼关系牌阵看看这段关系下一步怎么走"
+- "用星盘提示词工具，按北京出生经纬度看我的事业发展"
+
+只需要结构化数据时调用 `*_calculate` 或 `divine_*` 工具；需要完整 AI 解读提示词时调用 `*_prompt` 工具，返回结构统一为 `result` 和 `prompt`。
+
+### 出生时间参数
+
+八字和紫微工具默认使用 `timeIndex` 表示出生时辰，范围为 `0` 到 `12`，其中 `0` 为早子时，`12` 为晚子时。
+
+需要启用真太阳时校正时，传入 `useTrueSolarTime: true`，并提供 `birthHour`、`birthMinute`、`birthLongitude`；此时可以不传 `timeIndex`，工具会按校正后的真太阳时自动换算时辰。八字工具的精准时间和经度使用数字，紫微工具与公开 API 保持一致，使用字符串。
+
+### 起卦与排盘时间参数
+
+六爻、梅花易数、小六壬、奇门遁甲、大六壬工具默认使用当前时间。需要复盘历史时刻、按用户指定时间起卦，或让本地 MCP 与网页端自定时间保持一致时，传入 `customDate`。
+
+`customDate` 必须是带时区的 ISO 8601 时间字符串，例如 `2025-01-01T08:30:00+08:00`。适用工具包括 `divine_liuyao`、`liuyao_prompt`、`divine_meihua`、`meihua_prompt`、`divine_xiaoliuren`、`xiaoliuren_prompt`、`divine_qimen`、`qimen_prompt`、`divine_liuren`、`liuren_prompt`。
+
+### 梅花外应参数
+
+梅花易数工具使用 `method: "external"` 时，需要提供 `externalOmens`。至少填写两项可映射外应，并填写 `count` 作为动爻数量，例如 `direction: "南"`、`object: "火电文书"`、`count: 3`。
+
+### 小六壬数字起课参数
+
+小六壬工具使用 `xiaoliurenMethod: "number"` 时，需要提供 `xiaoliurenNumber` 正整数。未提供时工具会返回参数错误；不传 `xiaoliurenMethod` 时默认按当前时间起课。
+
+### 黄历择日参数
+
+黄历择日工具需要提供 `topic`、`startDate`、`endDate`。日期使用 `YYYY-MM-DD` 格式，一次最多比较 31 天。`topic` 支持 `marriage`（订婚结婚）、`move`（搬家入宅）、`opening`（开业启动）、`contract`（签约合作）、`travel`（出行赴任）、`medical`（就医手术）、`study`（考试学习）、`burial`（安葬修坟）、`renovation`（修造动土）、`custom`（自定义）。`participants` 可选，每个参与人包含 `id`、`name`、`gender`、`year`、`month`、`day`、`timeIndex`、`dateType`、`isLeapMonth`。
+
+### 奇门遁甲排盘方法
+
+奇门遁甲工具支持 `qimenMethod` 参数：`zhuanpan`（转盘法，默认）或 `feipan`（飞盘法）。
+
+### 八字流派与紫微流派
+
+`bazi_prompt` 工具支持 `school` 参数：`traditional`（传统派子平正法）、`mangpai`（盲派十神象法）、`xinpai`（新派调候流通）。不传则不附加流派指引。
+
+`ziwei_prompt` 工具支持 `school` 参数：`sanhe`（三合派三方四正）、`feixing`（飞星派四化飞星链路）、`sihua`（四化派生年四化主线）。不传则不附加流派指引。
+
+### 紫微 promptScope 参数
+
+`ziwei_calculate` 和 `ziwei_prompt` 默认只返回 `origin`（本命）范围，避免响应过大。传入 `promptScope` 时会返回 `origin` 加指定范围。支持的值：`origin`、`decadal`、`yearly`、`monthly`、`daily`、`hourly`、`age`。
+
+### 雷诺曼牌阵参数
+
+雷诺曼工具的 `spreadType` 支持 `single`、`three`、`five`（五牌十字阵）、`relationship`、`decision`、`nine`、`element`（四元素牌阵）、`grandTableau`（大桌牌阵），不传时默认使用三牌事件线。
+
+### 星盘参数
+
+星盘工具需要提供 `year`、`month`、`day`、`hour`、`minute`、`latitude`、`longitude`、`timezone`。`gender` 使用 `男`、`女` 或空字符串，`locationName` 可选；可传 `useTrueSolarTime` 启用真太阳时校正。提示词工具可额外提供 `astrolabeTopic` 和 `astrolabeScopeText`，用于写入本命、流年、流月或流日分析对象。
+
+## 在其他 MCP 客户端中使用
+
+任何支持 MCP 协议的客户端都可以使用，如 Cursor、Cline、Windsurf 等。
+
+配置方式类似：指定启动命令为 `npm run mcp`，工作目录为项目根目录即可。
+
+## 工作原理
+
+MCP Server 通过 stdio transport 与 AI 客户端通信：
+
+1. AI 客户端启动 `npm run mcp`
+2. MCP Server 注册排盘 tool 和一站式提示词 tool
+3. AI 根据对话内容决定调用哪个 tool
+4. MCP Server 执行排盘引擎，返回结构化 JSON 数据
+5. 使用提示词 tool 时，MCP Server 同时返回排盘结果和结构化 AI 提示词
+
+无需网络端口、无需额外配置，开箱即用。

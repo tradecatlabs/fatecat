@@ -1,0 +1,18 @@
+[submodule "3rdparty/fmt"]
+	path = 3rdparty/fmt
+	url = https://github.com/fmtlib/fmt.git
+[submodule "3rdparty/nlohmann_json"]
+	path = 3rdparty/nlohmann_json
+	url = https://github.com/nlohmann/json.git
+	branch = develop
+[submodule "3rdparty/magic_enum"]
+	path = 3rdparty/magic_enum
+	url = https://github.com/banderzhm/magic_enum.git
+	branch = master
+[submodule "3rdparty/tyme4cpp"]
+	path = 3rdparty/tyme4cpp
+	url = https://github.com/6tail/tyme4cpp.git
+[submodule "3rdparty/asio"]
+	path = 3rdparty/asio
+	url = https://github.com/banderzhm/asio.git
+	branch = module

@@ -1,3 +1,12 @@
+---
+id: ARCHIVE-ARCHIVE-TASKS-PROJECT-HISTORY-0001-COMPREHENSIVE-BAZI-STATEMENT-SERVICE-HARDENING-ACCEPTANCE
+type: archive
+status: archived
+owner: engineering
+created: 2026-06-17
+last_reviewed: 2026-06-17
+review_cycle: P365D
+---
 # Task-Level Acceptance
 - 综合八字默认报告结构有快照测试，非八字体系统一不可进入默认输出。
 - 节气/月令/立春/起运边界有可复现 regression 测试，并进入 acceptance 门禁。

@@ -1,0 +1,33 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will John Cornyn win the 2026 Texas Republican Primary?
+
+Description: This market will resolve according to the winner of the Republican Primary for United States Senator from Texas. 
+
+If no 2026 Texas Republican Senate Primary takes place, this market will resolve to "Other".
+
+The resolution source for this market will be the first announcement of the results from the Texas Republican party, however an overwhelming consensus of credible reporting may suffice.
+
+
+Current Market Data:
+- Current Probability: 26.0%
+- Trading Volume: $986,645
+- Liquidity: $12401
+- Days Until Resolution: 36
+- Expected Resolution: 2026-03-03T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

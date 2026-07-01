@@ -391,6 +391,78 @@ def test_calculate_api_returns_success_with_record_id(monkeypatch):
     assert saved["birth_place"] == "北京市"
 
 
+def test_calculate_record_keeps_raw_and_normalized_options(monkeypatch):
+    saved = {}
+
+    def fake_save_record(**kwargs):
+        saved.update(kwargs)
+        return 44
+
+    payload = _payload()
+    payload["options"]["useTrueSolarTime"] = False
+    payload["options"]["reportSystem"] = "ziwei"
+
+    monkeypatch.setattr("main.db.save_record", fake_save_record)
+    monkeypatch.setattr(main, "API_TOKEN", "test-token")
+
+    response = TestClient(app).post(
+        "/api/v1/bazi/calculate?user_id=u1",
+        json=payload,
+        headers={"X-FateCat-API-Key": "test-token"},
+    )
+
+    assert response.status_code == 200
+    assert saved["calendar_type"] == "solar"
+    assert saved["dst"] == 0
+    assert saved["early_zi"] == 1
+    assert saved["true_solar"] == 0
+    assert saved["biz_data"]["input"]["options"]["useTrueSolarTime"] is False
+    assert saved["biz_data"]["input"]["options"]["reportSystem"] == "ziwei"
+    assert saved["biz_data"]["normalizedOptions"] == {
+        "calendarType": "solar",
+        "daylightSaving": "auto",
+        "midnightMode": "early",
+        "useTrueSolarTime": False,
+        "reportSystem": "bazi",
+    }
+
+
+def test_calculate_api_rejects_unsupported_business_options():
+    payload = _payload()
+    payload["options"]["calendarType"] = "lunar"
+
+    lunar_response = TestClient(app).post("/api/v1/bazi/calculate", json=payload)
+
+    assert lunar_response.status_code == 422
+    assert "calendarType=lunar" in lunar_response.text
+
+    payload = _payload()
+    payload["options"]["daylightSaving"] = "on"
+    dst_response = TestClient(app).post("/api/v1/bazi/calculate", json=payload)
+
+    assert dst_response.status_code == 422
+    assert "daylightSaving" in dst_response.text
+
+    payload = _payload()
+    payload["options"]["midnightMode"] = "late"
+    midnight_response = TestClient(app).post("/api/v1/bazi/calculate", json=payload)
+
+    assert midnight_response.status_code == 422
+    assert "midnightMode=late" in midnight_response.text
+
+
+def test_simple_api_echoes_false_true_solar_option_consistently():
+    payload = _payload()
+    payload["options"]["useTrueSolarTime"] = False
+
+    response = TestClient(app).post("/api/v1/bazi/simple", json=payload)
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["input"]["options"]["useTrueSolarTime"] is False
+    assert data["inputTrace"]["useTrueSolarTime"] is False
+
+
 def test_user_token_can_write_only_own_record(monkeypatch):
     saved = {}
 

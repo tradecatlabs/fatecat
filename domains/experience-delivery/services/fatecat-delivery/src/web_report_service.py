@@ -10,10 +10,10 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
-from fate_core.capabilities import CapabilityExecutor, CapabilityInput
+from calculation_service import calculate_delivery_result
 from location import get as get_location
 from prediction_systems import report_system_allowed_text
-from report_generator import REPORT_SYSTEM_LABELS, build_report_hide, generate_full_report, public_birth_place
+from report_generator import REPORT_SYSTEM_LABELS, generate_full_report, public_birth_place
 from web_forms import WebReportForm, WebReportResult
 
 
@@ -65,34 +65,30 @@ def validate_web_report_form(form: WebReportForm) -> ValidatedWebReportInput:
 def build_web_report_result(form: WebReportForm) -> WebReportResult:
     """生成 Web 工作台使用的 Markdown 报告与结构化工作台数据。"""
     validated = validate_web_report_form(form)
-    report_hide = build_report_hide(validated.report_system)
-    calc_result = (
-        CapabilityExecutor()
-        .execute(
-            CapabilityInput(
-                capability_id=validated.report_system,
-                payload={
-                    "birthDateTime": validated.birth_dt.strftime("%Y-%m-%d %H:%M:%S"),
-                    "gender": validated.gender,
-                    "longitude": validated.longitude,
-                    "latitude": validated.latitude,
-                    "birthPlace": validated.display_birth_place,
-                    "name": form.name,
-                    "useTrueSolarTime": True,
-                },
-            )
-        )
-        .data
+    calculation = calculate_delivery_result(
+        birth_dt=validated.birth_dt,
+        gender=validated.gender,
+        longitude=validated.longitude,
+        latitude=validated.latitude,
+        birth_place=validated.display_birth_place,
+        name=form.name,
+        report_system=validated.report_system,
+        use_true_solar_time=True,
+        bazi_engine="capability",
     )
-    markdown = generate_full_report(calc_result, hide=report_hide, report_system=validated.report_system)
+    markdown = generate_full_report(
+        calculation.data,
+        hide=calculation.report_hide,
+        report_system=calculation.report_system,
+    )
     payload = {
         "birthDate": form.birth_date,
         "birthTime": validated.normalized_time,
-        "birthPlace": validated.display_birth_place,
+        "birthPlace": calculation.display_birth_place,
         "gender": validated.gender,
         "name": form.name,
-        "reportSystem": validated.report_system,
-        "reportSystemLabel": REPORT_SYSTEM_LABELS[validated.report_system],
+        "reportSystem": calculation.report_system,
+        "reportSystemLabel": REPORT_SYSTEM_LABELS[calculation.report_system],
         "longitude": validated.longitude,
         "latitude": validated.latitude,
         "useTrueSolarTime": True,
@@ -103,9 +99,9 @@ def build_web_report_result(form: WebReportForm) -> WebReportResult:
         resolved_latitude=validated.latitude,
         normalized_time=validated.normalized_time,
         input_payload=payload,
-        report_system=validated.report_system,
-        report_system_label=REPORT_SYSTEM_LABELS[validated.report_system],
-        workbench=_build_workbench_payload(calc_result, validated.report_system),
+        report_system=calculation.report_system,
+        report_system_label=REPORT_SYSTEM_LABELS[calculation.report_system],
+        workbench=_build_workbench_payload(calculation.data, calculation.report_system),
     )
 
 

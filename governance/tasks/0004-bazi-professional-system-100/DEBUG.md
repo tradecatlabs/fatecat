@@ -85,6 +85,14 @@ sed -n '1,260p' governance/tasks/0003-bazi-system-100/MINGLI_FAILURE_TAXONOMY.md
 
 ## Experiments
 
+### E1: 执行八字专业体系 100% 任务树
+- Hypothesis: H1
+- Change: 按 TP-01 到 TP-10 执行规则证据、历法边界、高级格局、合化、用神、岁运专题、Golden 分片、MingLi full、报告边界和最终门禁收口。
+- Expected: 如果 H1 成立，则补齐规则证据闭环后，工程门禁、规则深度、专题边界和评测链路可全部进入可复核状态；MingLi 准确率仍可能保留 WARN，但必须有 failure taxonomy 和禁止答案泄漏证据。
+- Result: confirmed；`FINAL_REVIEW.md` 记录 Active BLOCK=0，quick/full gate PASS；MingLi full answered=160/160、accuracy=27.50%，无 answer leakage，并有 `MINGLI_FAILURE_TAXONOMY.md` 记录后续 owner。
+- Verdict: confirmed
+- Revert: 回滚本任务新增治理证据、evaluator 切片和相关测试即可恢复上一阶段口径；不涉及生产数据迁移。
+
 - Calendar gate:
 
 ```bash
@@ -112,23 +120,21 @@ bash scripts/run-mingli-bench.sh --predictions-file /tmp/fatecat-mingli-full.jso
 
 ## Root Cause
 
-待执行任务树后更新。当前阶段的根因假设是 H1：专业 100% 的核心不是排盘库缺失，而是规则证据闭环、反例矩阵、专题 profile、样本外失败归因和维护边界没有全部闭合。
+- 专业 100% 的核心缺口不是排盘库缺失，而是规则证据闭环、反例矩阵、专题 profile、样本外失败归因和维护边界没有全部闭合。
+- MingLi 准确率低说明专题推理仍有长期提升空间，但这不是本任务的 active BLOCK；本任务已把失败归因和禁止答案泄漏变成可追踪门禁。
 
 ## Fix
 
-待各叶子节点执行后逐项记录。当前已完成的修复是创建 `0004-bazi-professional-system-100` 任务容器，并把 10 个专业维度拆成可执行任务树。
-
-- `TP-03.01`：更新过期地区隐私断言，Web 提交地区应显示，旧“非北京地区已隐藏”文案不得回潮。
+- 已完成 TP-01 到 TP-10：刷新 scorecard、资源地图、规则缺口；补历法边界、证据合同、常规分析、高级格局、合化、用神、岁运专题、Golden 分片、MingLi full、BaziQA 准入审查、失败归因和最终 review。
+- `TP-03.01` 更新过期地区隐私断言：Web 提交地区应显示，旧“非北京地区已隐藏”文案不得回潮。
+- `TP-10.03` 完成最终门禁和 `FINAL_REVIEW.md` / `CLOSEOUT.md` 收口，Active BLOCK=0，剩余 WARN 带 owner 和后续路径。
 
 ## Regression Evidence
 
-待每个叶子节点执行后补充：
-
-- leaf id
-- command
-- result
-- evidence path
-- remaining risk
+- `FINAL_REVIEW.md`：quick `50 passed in 8.81s`；full `183 passed, 1 skipped in 459.42s`；delivery smoke API/Bot dry-run/export smoke PASS。
+- `MINGLI_FULL_EVALUATION_GATE.md`：answered=160/160，accuracy=27.50%，no answer leakage；回归 `12 passed, 1 skipped in 39.71s`。
+- `GOLDEN_SHARD_DEEP_GATE.md`：shard 0/4 `10 passed in 629.63s`。
+- `REPORT_MARKDOWN_BOUNDARY_FINAL.md`：Web/API/Markdown regression `46 passed in 70.22s`。
 
 ## Stop Rules
 

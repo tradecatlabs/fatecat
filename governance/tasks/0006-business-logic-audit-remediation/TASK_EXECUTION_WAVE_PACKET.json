@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-06-17T23:17:54+08:00",
+  "meta": {
+    "task_id": "0006",
+    "slug": "business-logic-audit-remediation",
+    "phase": "EXECUTE_WAVE",
+    "source_task_package_set": "governance/tasks/0006-business-logic-audit-remediation/TASK_PACKAGE_SET.json",
+    "selection": "current"
+  },
+  "overview": {
+    "overall_status": "Done",
+    "leaf_total": 18,
+    "ready_leaf_count": 0,
+    "selected_leaf_count": 0,
+    "selected_wave_numbers": []
+  },
+  "ready_leaf_ids": [],
+  "selected_leaf_ids": [],
+  "execution_waves": [
+    {
+      "wave": 1,
+      "leaf_ids": [
+        "TP-01.01",
+        "TP-01.02"
+      ]
+    },
+    {
+      "wave": 2,
+      "leaf_ids": [
+        "TP-01.03"
+      ]
+    },
+    {
+      "wave": 3,
+      "leaf_ids": [
+        "TP-02.01",
+        "TP-03.01",
+        "TP-05.01"
+      ]
+    },
+    {
+      "wave": 4,
+      "leaf_ids": [
+        "TP-02.02",
+        "TP-03.02",
+        "TP-03.03",
+        "TP-05.02"
+      ]
+    },
+    {
+      "wave": 5,
+      "leaf_ids": [
+        "TP-02.03",
+        "TP-03.04"
+      ]
+    },
+    {
+      "wave": 6,
+      "leaf_ids": [
+        "TP-04.01"
+      ]
+    },
+    {
+      "wave": 7,
+      "leaf_ids": [
+        "TP-04.02"
+      ]
+    },
+    {
+      "wave": 8,
+      "leaf_ids": [
+        "TP-04.03"
+      ]
+    },
+    {
+      "wave": 9,
+      "leaf_ids": [
+        "TP-06.01"
+      ]
+    },
+    {
+      "wave": 10,
+      "leaf_ids": [
+        "TP-06.02"
+      ]
+    },
+    {
+      "wave": 11,
+      "leaf_ids": [
+        "TP-06.03"
+      ]
+    }
+  ],
+  "execution_batch": [],
+  "blocked_leafs": []
+}

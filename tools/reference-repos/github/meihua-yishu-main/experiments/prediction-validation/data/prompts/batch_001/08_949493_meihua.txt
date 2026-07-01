@@ -1,0 +1,65 @@
+Use the Meihua Yishu (梅花易數) skill to divine this prediction market question.
+
+QUESTION TO DIVINE:
+==================
+Fed rate cut by March 2026 meeting?
+
+CONTEXT:
+========
+Description: This market will resolve to “Yes” if the upper bound of the target federal funds rate is decreased at any point between December 16, 2025 and the completion of the Federal Open Market Committee (FOMC) meeting for March 2026, currently scheduled for March 17-18. Otherwise, this market will resolve to “No”.
+
+If no March meeting takes place by April 7, 2026, 11:59 PM ET, and no qualifying rate cut has been announced, this market will resolve to "No". 
+
+Emergency rate cuts will qualify.
+
+The primary
+
+Current Market Data:
+- Current Probability: 30.0%
+- Trading Volume: $7,668
+- Days Until Resolution: 58
+- Expected Resolution: 2026-03-18T00:00:00+00:00
+
+Categories: General
+
+CASTING INPUTS (use any method):
+================================
+
+1. NUMBER-BASED (數字起卦):
+   - Upper trigram input: 67 → Trigram #3
+   - Lower trigram input: 7 → Trigram #7
+   - Moving line: 2
+
+2. TEXT-BASED (測字起卦):
+   - Word count: 7 → Upper trigram #7
+   - Character count: 29 → Lower trigram #5
+   - Moving line: 6
+
+3. DIRECTION-BASED (方位起卦):
+   - Category: other
+   - Direction: 東北
+   - Trigram: 艮 (#7)
+
+4. MEASUREMENT-BASED (尺寸起卦):
+   - Days until resolution: 58 → Upper #2
+   - Probability %: 30 → Lower #6
+   - Moving line: 4
+
+INSTRUCTIONS:
+=============
+1. Cast the hexagram using one or more methods above
+2. Identify: 本卦 (original), 變卦 (transformed), 互卦 (mutual)
+3. Determine 體卦 and 用卦
+4. Analyze 體用關係 (生, 剋, 比和)
+5. Consider 外應 if any context clues
+6. Provide final prediction
+
+YOUR PREDICTION (required format):
+==================================
+HEXAGRAM: [Hexagram number and Chinese name, e.g., "40 雷水解"]
+TRANSFORMED: [Transformed hexagram if applicable]
+CASTING_METHOD: [Which method(s) used]
+TI_YONG: [Brief 體用 analysis]
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences with Meihua interpretation]

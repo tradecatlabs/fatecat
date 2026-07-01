@@ -1,0 +1,30 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will Germany win the most medals in the 2026 Winter Olympics?
+
+Description: This market will resolve according to the country that wins the most medals (including gold, silver, and bronze) at the 2026 Milano-Cortina Winter Olympics, scheduled for February 6-22, 2026.
+
+In the case of ties, the ordered list for most medals won will use most gold medals won as a tiebreaker (e.g. If Norway and China tie for most medals won, and Norway wins more gold medals than China, Norway will be ranked first and China will be second). If this also results in a tie, the country whose nam
+
+Current Market Data:
+- Current Probability: 16.0%
+- Trading Volume: $7,688
+- Liquidity: $24533
+- Days Until Resolution: 27
+- Expected Resolution: 2026-02-22T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

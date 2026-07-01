@@ -1,0 +1,65 @@
+Use the Meihua Yishu (梅花易數) skill to divine this prediction market question.
+
+QUESTION TO DIVINE:
+==================
+Will Trump say "Ego" in January?
+
+CONTEXT:
+========
+Description: This market will resolve to “Yes” if Donald Trump mentions the listed term between January 2, 2026, 12:00 AM ET and January 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to “No”.
+
+Pluralization/possessive of the word will count toward the resolution of this market.
+
+Instances where the term is used in a compound word will count regardless of context (e.g. joyful is not a compound word for "joy," however "killjoy" is a compounding of the words "kill" and "joy").
+
+If this market requi
+
+Current Market Data:
+- Current Probability: 81.0%
+- Trading Volume: $8,367
+- Days Until Resolution: 12
+- Expected Resolution: 2026-01-31T00:00:00+00:00
+
+Categories: General
+
+CASTING INPUTS (use any method):
+================================
+
+1. NUMBER-BASED (數字起卦):
+   - Upper trigram input: 66 → Trigram #2
+   - Lower trigram input: 6 → Trigram #6
+   - Moving line: 6
+
+2. TEXT-BASED (測字起卦):
+   - Word count: 6 → Upper trigram #6
+   - Character count: 27 → Lower trigram #3
+   - Moving line: 3
+
+3. DIRECTION-BASED (方位起卦):
+   - Category: other
+   - Direction: 東北
+   - Trigram: 艮 (#7)
+
+4. MEASUREMENT-BASED (尺寸起卦):
+   - Days until resolution: 12 → Upper #4
+   - Probability %: 81 → Lower #1
+   - Moving line: 3
+
+INSTRUCTIONS:
+=============
+1. Cast the hexagram using one or more methods above
+2. Identify: 本卦 (original), 變卦 (transformed), 互卦 (mutual)
+3. Determine 體卦 and 用卦
+4. Analyze 體用關係 (生, 剋, 比和)
+5. Consider 外應 if any context clues
+6. Provide final prediction
+
+YOUR PREDICTION (required format):
+==================================
+HEXAGRAM: [Hexagram number and Chinese name, e.g., "40 雷水解"]
+TRANSFORMED: [Transformed hexagram if applicable]
+CASTING_METHOD: [Which method(s) used]
+TI_YONG: [Brief 體用 analysis]
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences with Meihua interpretation]

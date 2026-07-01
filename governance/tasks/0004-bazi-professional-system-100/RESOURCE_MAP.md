@@ -1,6 +1,6 @@
 # FateCat 专业八字体系资源地图
 
-更新时间：2026-06-16
+更新时间：2026-07-01
 
 ## 资源使用原则
 
@@ -22,6 +22,7 @@
 | `MingLi-Bench` | `evaluation_only` | MIT；离线 benchmark 数据 | false | 160 题样本外评测、分类准确率、失败归因。 | 禁止进入请求链路；禁止答案泄漏；禁止把 sample 命中率当专业完成度。 |
 | `BaziQA` | `future_candidate` | 待审查 license、dataset schema 和题型契约 | false | 可能补充八字问答样本外评测。 | 未完成准入审查前禁止纳入正式 release gate 或 runtime。 |
 | `bazi-1` | `reference_only` | 本地快照缺明确上游 LICENSE，`distributionAllowed=false` | false | 金不换、调候、神煞、格局、干支关系、十神规则材料。 | 禁止作为生产依赖；禁止复制大段原文；禁止无 `sourceRuleId` 进入报告。 |
+| `classics/ctext-bazi-corpus` | `reference_only` | ctext 可见文本整理；`copyright_review.tsv` 逐本标记 `review_required` | false | 五行精纪、滴天髓阐微、子平真诠评注、珞琭子三命消息赋注、兰台妙选、神峰通考等规则源语料。 | 禁止作为 runtime dependency；禁止把大段原文复制进报告；禁止未经人工复核直接升级为 production 断语。 |
 | `bazi-calculator-by-alvamind` | `reference_only` | MIT 字段来自 package 元信息，仍需本地 license 审查 | false | TypeScript 基础分析结构和输入输出组织参考。 | 禁止作为生产依赖；禁止用它补高级专业断法。 |
 | `rule-engine` | `future_candidate` | PyPI BSD；当前未纳入项目依赖 | false | 后期 registry 表达式膨胀时可能替代局部条件表达式。 | 当前阶段禁止引入；优先 Python evaluator 和现有 registry。 |
 | `iztro` | `future_candidate` | MIT；紫微方向候选，不属于八字 100% 主线 | false | 紫微盘面和后续独立 capability。 | 禁止混入默认八字 Markdown；紫微需独立验收。 |
@@ -53,6 +54,7 @@
 | `MingLi-Bench` | 用于评测门槛、分类失败队列和 regression policy。 | 用答案训练或硬编码预测；把 benchmark 数据当用户样例。 |
 | `BaziQA` | 完成 `TP-09.03` license、schema、adapter 和 no-runtime gate。 | license/source 不清时纳入 release gate。 |
 | `bazi-1` | 只能把短规则摘要、条件和来源转成本仓 registry。 | 复制大段原文或作为生产依赖。 |
+| `classics/ctext-bazi-corpus` | 只允许先进入规则索引种子、人工复核、短摘要和 golden 依据。 | 未经版权/文本质量复核直接进入报告长文引用；OCR 质量差的《增补星平会海命学全书》不得入库。 |
 | `rule-engine` | 只有当 JSON registry + Python evaluator 条件表达膨胀到不可维护，并有迁移测试时考虑。 | 为了“看起来专业”提前新增规则引擎依赖。 |
 
 ## TP-01.02 Gate 判定

@@ -1,0 +1,122 @@
+name: publish-github-packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_core:
+        description: Publish @hhszzzz/taibu-core
+        required: true
+        type: boolean
+        default: true
+      publish_mcp:
+        description: Publish @hhszzzz/taibu-mcp
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          scope: '@hhszzzz'
+          registry-url: https://npm.pkg.github.com
+
+      - name: Setup pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.33.0 --activate
+          pnpm --version
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: |
+          pnpm -C packages/core build
+          pnpm -C packages/mcp build
+
+      - name: Validate GitHub package rewrite rules
+        run: pnpm test:github-packages
+
+      - name: Prepare GitHub package artifacts
+        run: pnpm prepare:github-packages
+
+      - name: Read package versions
+        id: versions
+        run: |
+          set -euo pipefail
+          core_version=$(node -p "require('./.release/github-packages/core/package.json').version")
+          mcp_version=$(node -p "require('./.release/github-packages/mcp/package.json').version")
+
+          if [[ -z "$core_version" || "$core_version" == "undefined" ]]; then
+            echo "Failed to read core package version from prepared artifact." >&2
+            exit 1
+          fi
+
+          if [[ -z "$mcp_version" || "$mcp_version" == "undefined" ]]; then
+            echo "Failed to read mcp package version from prepared artifact." >&2
+            exit 1
+          fi
+
+          echo "core_version=$core_version" >> "$GITHUB_OUTPUT"
+          echo "mcp_version=$mcp_version" >> "$GITHUB_OUTPUT"
+
+      - name: Check published GitHub Packages versions
+        id: published
+        run: |
+          set -euo pipefail
+
+          core_version="${{ steps.versions.outputs.core_version }}"
+          mcp_version="${{ steps.versions.outputs.mcp_version }}"
+
+          echo "Checking @hhszzzz/taibu-core@$core_version"
+          if npm view "@hhszzzz/taibu-core@${{ steps.versions.outputs.core_version }}" version --registry=https://npm.pkg.github.com >/dev/null 2>&1; then
+            echo "core_exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "core_exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "Checking @hhszzzz/taibu-mcp@$mcp_version"
+          if npm view "@hhszzzz/taibu-mcp@${{ steps.versions.outputs.mcp_version }}" version --registry=https://npm.pkg.github.com >/dev/null 2>&1; then
+            echo "mcp_exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "mcp_exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ensure core is available for mcp
+        if: ${{ inputs.publish_mcp }}
+        run: |
+          if [[ "${{ inputs.publish_core }}" != "true" && "${{ steps.published.outputs.core_exists }}" != "true" ]]; then
+            echo "@hhszzzz/taibu-core@${{ steps.versions.outputs.core_version }} is not available in GitHub Packages." >&2
+            echo "Publish core first, or enable publish_core in this workflow run." >&2
+            exit 1
+          fi
+
+      - name: Publish @hhszzzz/taibu-core
+        if: ${{ inputs.publish_core && steps.published.outputs.core_exists != 'true' }}
+        run: npm publish ./.release/github-packages/core
+
+      - name: Skip existing @hhszzzz/taibu-core version
+        if: ${{ inputs.publish_core && steps.published.outputs.core_exists == 'true' }}
+        run: echo "@hhszzzz/taibu-core@${{ steps.versions.outputs.core_version }} already exists, skipping."
+
+      - name: Publish @hhszzzz/taibu-mcp
+        if: ${{ inputs.publish_mcp && steps.published.outputs.mcp_exists != 'true' }}
+        run: npm publish ./.release/github-packages/mcp
+
+      - name: Skip existing @hhszzzz/taibu-mcp version
+        if: ${{ inputs.publish_mcp && steps.published.outputs.mcp_exists == 'true' }}
+        run: echo "@hhszzzz/taibu-mcp@${{ steps.versions.outputs.mcp_version }} already exists, skipping."

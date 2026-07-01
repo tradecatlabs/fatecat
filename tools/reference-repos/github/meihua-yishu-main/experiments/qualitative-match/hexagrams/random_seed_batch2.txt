@@ -1,0 +1,5 @@
+Batch 2 Random Seed: 20260305
+Blinding Seed: 20260306
+Generated: 2026-03-05
+Method: Python random.Random(20260305) for control hexagrams
+        Python random.Random(20260306) for A/B assignment

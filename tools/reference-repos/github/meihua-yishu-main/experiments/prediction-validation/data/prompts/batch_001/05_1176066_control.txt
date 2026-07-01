@@ -1,0 +1,30 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will USD reach 1.5M Iranian rials by January 31?
+
+Description: This market will resolve to “Yes” if the finalized USD exchange rate on Bonbast reaches or exceeds 150,000 Iranian toman (equivalent to 1,500,000 Iranian rials) at any point between market creation and January 31, 2026. Otherwise, this market will resolve to “No”.
+
+This market will resolve according to the daily finalized free-market USD exchange rate as displayed on Bonbast (https://www.bonbast.com/graph/usd), which publishes prices in Iranian toman, where 1 Iranian toman equals 10 Iranian rial
+
+Current Market Data:
+- Current Probability: 39.0%
+- Trading Volume: $7,813
+- Liquidity: $1160
+- Days Until Resolution: 12
+- Expected Resolution: 2026-01-31T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

@@ -1,0 +1,34 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Australian Open Men's: Terence Atmane vs Francesco Maestrelli
+
+Description: This market refers on the tennis match between Terence Atmane and Francesco Maestrelli in the Australian Open ATP, scheduled for January 17 at 7:00PM ET.
+
+This market will resolve to 'Atmane' if Terence Atmane advances against Francesco Maestrelli.
+
+This market will resolve to 'Maestrelli' if Francesco Maestrelli advances against Terence Atmane.
+
+If the match is canceled (not played at all), ends in a tie, or is delayed beyond 7 days from the scheduled date without a winner determined, this mark
+
+Current Market Data:
+- Current Probability: 65.0%
+- Trading Volume: $7,515
+- Liquidity: $19821
+- Days Until Resolution: 13
+- Expected Resolution: 2026-02-01T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

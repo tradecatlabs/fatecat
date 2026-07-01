@@ -1,0 +1,32 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will there be seven or eight announced new U.S. armed forces strikes against drug boats by January 31, 2026?
+
+Description: This market will resolve according to the number of distinct vessels that Donald Trump, the U.S. government, or U.S. armed forces announce were struck by U.S. armed forces while designated as narco-terrorist targets between market creation and January 31, 2026, at 11:59 PM ET.
+
+Any announcement made within this market's timeframe of a qualifying, previously unannounced strike will count, regardless of whether the strike occurred within this market's timeframe.
+
+A qualifying "strike" is defined a
+
+Current Market Data:
+- Current Probability: 81.0%
+- Trading Volume: $79,039
+- Liquidity: $1772
+- Days Until Resolution: 5
+- Expected Resolution: 2026-01-31T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

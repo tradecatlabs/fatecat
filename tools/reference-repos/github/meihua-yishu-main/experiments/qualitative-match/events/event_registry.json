@@ -1,0 +1,86 @@
+[
+  {
+    "id": "E01",
+    "title": "Apple Global Experience Product Launch",
+    "domain": "Technology",
+    "date": "2026-03-02",
+    "desc": "Apple multi-city, multi-day product reveal across NYC/London/Shanghai. iPhone 17e, MacBook Pro M5, budget MacBook, iPad Air, possible Studio Display."
+  },
+  {
+    "id": "E02",
+    "title": "Total Lunar Eclipse Blood Moon March 2026",
+    "domain": "Natural/Celestial",
+    "date": "2026-03-03",
+    "desc": "Last total lunar eclipse for 3 years. 58 min totality. Visible from N. America, Pacific, Australia, E. Asia. Color depends on atmospheric conditions."
+  },
+  {
+    "id": "E03",
+    "title": "SpaceX Starship Flight 12 Block 3 Launch",
+    "domain": "Science/Space",
+    "date": "2026-03-08",
+    "desc": "First Starship test of 2026. Block 3 vehicles, Raptor 3 engines, new Pad 2. Suborbital mission. Booster catch attempt."
+  },
+  {
+    "id": "E04",
+    "title": "Trump Section 122 Tariff Constitutional Challenge",
+    "domain": "Legal/Regulatory",
+    "date": "2026-03-07",
+    "desc": "After SCOTUS struck down IEEPA tariffs, Trump imposed new tariffs under Section 122. Never used this way. Legal challenges expected within days."
+  },
+  {
+    "id": "E05",
+    "title": "Iran US Nuclear Crisis Deal or Strike",
+    "domain": "International Crisis",
+    "date": "2026-03-10",
+    "desc": "Largest US Middle East military buildup since 2003. Trump gave Iran 10-15 days to agree to deal. Indirect talks via Oman. Outcomes range from historic deal to military strikes."
+  },
+  {
+    "id": "E06",
+    "title": "Ukraine Russia Belarus Peace Negotiations",
+    "domain": "Politics/Diplomacy",
+    "date": "2026-03-10",
+    "desc": "Three rounds of Belarus talks. Kuleba-Lavrov first meeting since war began. Multi-tiered Western enforcement plan. Russia insists no ceasefire without comprehensive settlement."
+  },
+  {
+    "id": "E07",
+    "title": "Champions League Round of 16 Draw",
+    "domain": "Sports",
+    "date": "2026-02-27",
+    "desc": "UEFA draws knockout matchups at Nyon HQ. Determines R16 first legs Mar 10-11. Arsenal, Chelsea, Liverpool, Atletico Madrid await opponents."
+  },
+  {
+    "id": "E08",
+    "title": "World Baseball Classic 2026 Pool Stage",
+    "domain": "Sports",
+    "date": "2026-03-05",
+    "desc": "20 national teams in 4 pools. Pool play Mar 5-11 in Miami, Houston, San Juan, Tokyo. US vs Italy/Mexico/Brazil/GB in Pool B."
+  },
+  {
+    "id": "E09",
+    "title": "98th Academy Awards Oscars Ceremony",
+    "domain": "Cultural/Entertainment",
+    "date": "2026-03-15",
+    "desc": "Sinners leads with record 16 noms. PTA's One Battle After Another has 13. New Best Casting category. Conan O'Brien hosts. Dolby Theatre."
+  },
+  {
+    "id": "E10",
+    "title": "NCAA March Madness Selection Sunday",
+    "domain": "Sports",
+    "date": "2026-03-15",
+    "desc": "68-team bracket revealed on CBS. Duke projected #1 overall seed. Bubble teams learn fate. First Four begins Mar 17."
+  },
+  {
+    "id": "E11",
+    "title": "Trump State of the Union Aftermath",
+    "domain": "Politics/Diplomacy",
+    "date": "2026-03-03",
+    "desc": "SOTU delivered Feb 24. Congressional reactions, poll movements, legislative responses to tariff crisis. Spanberger gave Democratic response."
+  },
+  {
+    "id": "E12",
+    "title": "February 2026 Blizzard Aftermath Polar Vortex",
+    "domain": "Weather/Natural",
+    "date": "2026-03-07",
+    "desc": "Blizzard of 2026 dumped 2-3 feet on NE US. Polar vortex collapse. Recovery, infrastructure damage. March pattern: continued cold or abrupt thaw?"
+  }
+]

@@ -1,0 +1,206 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-06-17T23:20:01+08:00",
+  "task": {
+    "task_id": "0006",
+    "slug": "business-logic-audit-remediation",
+    "task_dir": "governance/tasks/0006-business-logic-audit-remediation",
+    "detected_phase": "closeout",
+    "overall_status": "Done"
+  },
+  "source_refs": {
+    "task_context_packet": null,
+    "task_package_set": "governance/tasks/0006-business-logic-audit-remediation/TASK_PACKAGE_SET.json",
+    "git_delivery_evidence": null
+  },
+  "closeout_gate": {
+    "ready": true,
+    "failures": []
+  },
+  "summary": {
+    "leaf_total": 18,
+    "leaf_done": 18,
+    "todo_total": 18,
+    "todo_checked": 18,
+    "blocker_count": 0
+  },
+  "leaves": [
+    {
+      "id": "TP-01.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "git status、git diff --name-status、git ls-files --others 显示当前业务源码无 dirty diff；dirty 文件全部在 governance 下，0006 为本轮任务包。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-01.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "rg 复现 fate-core 到 delivery 反向依赖；API 非默认选项返回 200；useTrueSolarTime=false 核心回显冲突；location.get 接受越界坐标；入口存在 Web/API/Bot 分流。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-01.03",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py tests/regression/test_web_html.py：45 passed in 10.57s。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-02.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "rg 命中 support paths、ziwei_iztro sys.path、bazi_calculator extension imports 和 calculate_complete 动态加载；目标迁入 fate_core.adapters 兼容模块。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-02.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "迁移 legacy integrations 到 fate_core.adapters.legacy_integrations；边界扫描返回空；fate-core tests 3 passed；API/Web 48 passed；compileall 通过。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-02.03",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "新增 `tests/regression/test_architecture_boundaries.py`；pytest 1 passed；rg 旧路径 marker 返回空。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "新增 API 测试：unsupported business options 当前 200 而期望 422；useTrueSolarTime=false 当前 input.options 回显 true。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`_validate_supported_bazi_options` 已拒绝未实现选项；focused API 测试 2 passed；完整 API/Web 48 passed。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03.03",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "BaziCalculator input.options.useTrueSolarTime 改为请求值；focused true solar 测试 2 passed；完整 API/Web 48 passed。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03.04",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "记录 `biz_data.input` 原始 options 与 `biz_data.normalizedOptions`；focused API 3 passed。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-04.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "CONTEXT.md 已写入 Web/API/Bot 业务流、迁移目标和兼容策略；rg 扫描确认当前分流点。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-04.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "新增 `calculation_service.py` 统一 Web/API/Bot 计算编排；API/Web 49 passed；delivery api/bot smoke PASS。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-04.03",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "新增 `tests/regression/test_entrypoint_consistency.py`；focused 2 passed；API/Web/architecture 50 passed。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-05.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "新增 tests/regression/test_location.py 和 Web coordinate 测试；当前 5 个 location 越界用例未抛错、Web 未显示错误。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-05.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`location._validate_coordinates` 拒绝越界经纬度；location/Web coordinate focused 测试 9 passed；完整 API/Web 48 passed。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-06.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "quick CI PASS；governance strict PASS；task docs PASS；debug note PASS。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-06.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "REVIEW-0001 更新为 PASS WITH RESIDUAL RISKS；F-001 到 F-005 均 CLOSED；governance strict PASS。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-06.03",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "git diff --check PASS；git status 已盘点，未发现运行态、secret 或未说明格式化；交付包可交给 auto-github 进行 commit/push。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    }
+  ],
+  "git_delivery": null,
+  "recommended_asset_handoff": {
+    "source_refs": [
+      "governance/tasks/0006-business-logic-audit-remediation/TASK_PACKAGE_SET.json"
+    ],
+    "artifacts": [
+      "task-package-set.json",
+      "task-closeout-packet.json"
+    ]
+  },
+  "upstream_packets": {
+    "task_context_packet_loaded": false,
+    "task_package_set_loaded": true,
+    "git_delivery_evidence_loaded": false
+  }
+}

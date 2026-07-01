@@ -1,0 +1,1389 @@
+{
+  "generated": "2026-03-05",
+  "batch": 2,
+  "method": "取象法 (Imagery-based hexagram casting)",
+  "random_seed": 20260305,
+  "blinding_seed": 20260306,
+  "events": [
+    {
+      "event_id": "E13",
+      "event_title_zh": "2026年F1澳洲大獎賽",
+      "event_title_en": "2026 F1 Australian Grand Prix",
+      "event_domain": "Sports",
+      "expected_date": "2026-03-08",
+      "event_description": "F1 2026 season opener at Albert Park, Melbourne. First race with revolutionary new regulation cars featuring active aero and smaller engines. New teams and driver lineups debut.",
+      "real_hexagram": {
+        "method": "取象法",
+        "quxiang_analysis": "F1賽車=震（車、速度、競爭、運動員）；大獎賽=乾（金、冠軍、最高榮譽）",
+        "upper_trigram": "4 → 震(☳)",
+        "upper_reason": "震：賽車、速度、競爭、運動——F1的核心意象",
+        "lower_trigram": "1 → 乾(☰)",
+        "lower_reason": "乾：大獎、金牌、冠軍、最高級別——Grand Prix的本質",
+        "changing_line": 5,
+        "changing_line_calc": "(4+1) mod 6 = 5",
+        "primary_hexagram": {
+          "number": 34,
+          "name": "雷天大壯"
+        },
+        "changed_hexagram": {
+          "number": 43,
+          "name": "澤天夬"
+        },
+        "mutual_hexagram": {
+          "name": "澤天夬"
+        },
+        "ti_yong": {
+          "體卦": "乾（下卦）- 金",
+          "用卦": "震（上卦）- 木",
+          "生克關係": "體克用（吉）"
+        },
+        "strategy": {
+          "type": "吸引子",
+          "advice": "留",
+          "ji_rate": 50,
+          "change_path": null
+        },
+        "position_risk": {
+          "coefficient": 0.5,
+          "risk_level": "最佳",
+          "warning": null
+        },
+        "next_step": "【下一步】維持現狀，不宜改變。目前位置有利，變動反而損失。"
+      },
+      "control_hexagram": {
+        "method": "random",
+        "primary_hexagram": {
+          "number": 7,
+          "name": "地水師"
+        },
+        "changing_line": 4,
+        "changed_hexagram": {
+          "number": 40,
+          "name": "雷水解"
+        },
+        "mutual_hexagram": {
+          "name": "地雷復"
+        },
+        "ti_yong": {
+          "體卦": "坎（下卦）- 水",
+          "用卦": "坤（上卦）- 土",
+          "生克關係": "用克體（凶）"
+        }
+      },
+      "blinding": {
+        "real_is_A": true
+      }
+    },
+    {
+      "event_id": "E14",
+      "event_title_zh": "哥倫比亞國會大選",
+      "event_title_en": "Colombia Parliamentary Election",
+      "event_domain": "Politics",
+      "expected_date": "2026-03-08",
+      "event_description": "Colombia's parliamentary elections for Senate and House of Representatives. Test of Petro government's political support midway through his term.",
+      "real_hexagram": {
+        "method": "取象法",
+        "quxiang_analysis": "國會=乾（官方、政權、國家機構）；大選=兌（口舌、辯論、民意表達、投票）",
+        "upper_trigram": "1 → 乾(☰)",
+        "upper_reason": "乾：國會、政權、官方機構——政府權力的象徵",
+        "lower_trigram": "2 → 兌(☱)",
+        "lower_reason": "兌：選舉、投票、辯論、口舌——民意表達的過程",
+        "changing_line": 3,
+        "changing_line_calc": "(1+2) mod 6 = 3",
+        "primary_hexagram": {
+          "number": 10,
+          "name": "天澤履"
+        },
+        "changed_hexagram": {
+          "number": 1,
+          "name": "乾為天"
+        },
+        "mutual_hexagram": {
+          "name": "風火家人"
+        },
+        "ti_yong": {
+          "體卦": "乾（上卦）- 金",
+          "用卦": "兌（下卦）- 金",
+          "生克關係": "比和（吉）"
+        },
+        "strategy": {
+          "type": "福地",
+          "advice": "守",
+          "ji_rate": 50,
+          "change_path": null
+        },
+        "position_risk": {
+          "coefficient": -0.062,
+          "risk_level": "較差",
+          "warning": "⚠️ 爻位係數為負值 (-0.062)"
+        },
+        "next_step": "【下一步】穩守不動，靜觀其變。位置尚可，不主動出擊，等待時機。"
+      },
+      "control_hexagram": {
+        "method": "random",
+        "primary_hexagram": {
+          "number": 18,
+          "name": "山風蠱"
+        },
+        "changing_line": 4,
+        "changed_hexagram": {
+          "number": 50,
+          "name": "火風鼎"
+        },
+        "mutual_hexagram": {
+          "name": "雷澤歸妹"
+        },
+        "ti_yong": {
+          "體卦": "巽（下卦）- 木",
+          "用卦": "艮（上卦）- 土",
+          "生克關係": "體克用（吉）"
+        }
+      },
+      "blinding": {
+        "real_is_A": false
+      }
+    },
+    {
+      "event_id": "E15",
+      "event_title_zh": "美國編劇工會獎頒獎典禮",
+      "event_title_en": "Writers Guild of America Awards Ceremony",
+      "event_domain": "Culture/Entertainment",
+      "expected_date": "2026-03-08",
+      "event_description": "WGA Awards night, a key Oscar precursor for screenwriting. Honors best original and adapted screenplays of the year.",
+      "real_hexagram": {
+        "method": "取象法",
+        "quxiang_analysis": "編劇=離（文人、文書、書籍）；獎=兌（喜悅、金屬、讚美）；頒獎典禮=離+兌（光明舞台+喜悅表彰）",
+        "upper_trigram": "3 → 離(☲)",
+        "upper_reason": "離：文人、文書、書籍——編劇的核心屬性",
+        "lower_trigram": "2 → 兌(☱)",
+        "lower_reason": "兌：喜悅、獎項、讚美、口碑——頒獎的本質",
+        "changing_line": 5,
+        "changing_line_calc": "(3+2) mod 6 = 5",
+        "primary_hexagram": {
+          "number": 38,
+          "name": "火澤睽"
+        },
+        "changed_hexagram": {
+          "number": 10,
+          "name": "天澤履"
+        },
+        "mutual_hexagram": {
+          "name": "水火既濟"
+        },
+        "ti_yong": {
+          "體卦": "兌（下卦）- 金",
+          "用卦": "離（上卦）- 火",
+          "生克關係": "用克體（凶）"
+        },
+        "strategy": {
+          "type": "一般",
+          "advice": "觀",
+          "ji_rate": 33,
+          "change_path": "睽 → 未濟（變6爻得50%）"
+        },
+        "position_risk": {
+          "coefficient": 0.5,
+          "risk_level": "最佳",
+          "warning": null
+        },
+        "next_step": "【下一步】觀察局勢，再做決定。情況中等，需要更多信息才能判斷。"
+      },
+      "control_hexagram": {
+        "method": "random",
+        "primary_hexagram": {
+          "number": 48,
+          "name": "水風井"
+        },
+        "changing_line": 4,
+        "changed_hexagram": {
+          "number": 28,
+          "name": "澤風大過"
+        },
+        "mutual_hexagram": {
+          "name": "火澤睽"
+        },
+        "ti_yong": {
+          "體卦": "巽（下卦）- 木",
+          "用卦": "坎（上卦）- 水",
+          "生克關係": "用生體（大吉）"
+        }
+      },
+      "blinding": {
+        "real_is_A": false
+      }
+    },
+    {
+      "event_id": "E16",
+      "event_title_zh": "喬治亞州聯邦眾議院特別選舉",
+      "event_title_en": "Georgia Special U.S. House Election",
+      "event_domain": "Politics",
+      "expected_date": "2026-03-10",
+      "event_description": "Special general election to fill a vacant U.S. House seat in Georgia. A single-day vote with a clear winner determining partisan balance.",
+      "real_hexagram": {
+        "method": "取象法",
+        "quxiang_analysis": "聯邦=乾（國家、官方、最高權力）；眾議院=坤（眾人、民眾基礎）；特別選舉=震（突發、特別、異常之動）",
+        "upper_trigram": "1 → 乾(☰)",
+        "upper_reason": "乾：聯邦、國家、最高權力——聯邦政府的象徵",
+        "lower_trigram": "8 → 坤(☷)",
+        "lower_reason": "坤：眾人、民眾、基礎——眾議院代表人民",
+        "changing_line": 3,
+        "changing_line_calc": "(1+8) mod 6 = 3",
+        "primary_hexagram": {
+          "number": 12,
+          "name": "天地否"
+        },
+        "changed_hexagram": {
+          "number": 33,
+          "name": "天山遯"
+        },
+        "mutual_hexagram": {
+          "name": "風山漸"
+        },
+        "ti_yong": {
+          "體卦": "乾（上卦）- 金",
+          "用卦": "坤（下卦）- 土",
+          "生克關係": "用生體（大吉）"
+        },
+        "strategy": {
+          "type": "福地",
+          "advice": "守",
+          "ji_rate": 50,
+          "change_path": null
+        },
+        "position_risk": {
+          "coefficient": -0.062,
+          "risk_level": "較差",
+          "warning": "⚠️ 爻位係數為負值 (-0.062)"
+        },
+        "next_step": "【下一步】穩守不動，靜觀其變。位置尚可，不主動出擊，等待時機。"
+      },
+      "control_hexagram": {
+        "method": "random",
+        "primary_hexagram": {
+          "number": 10,
+          "name": "天澤履"
+        },
+        "changing_line": 5,
+        "changed_hexagram": {
+          "number": 38,
+          "name": "火澤睽"
+        },
+        "mutual_hexagram": {
+          "name": "風火家人"
+        },
+        "ti_yong": {
+          "體卦": "兌（下卦）- 金",
+          "用卦": "乾（上卦）- 金",
+          "生克關係": "比和（吉）"
+        }
+      },
+      "blinding": {
+        "real_is_A": true
+      }
+    },
+    {
+      "event_id": "E17",
+      "event_title_zh": "Pixar動畫《跳跳蟲》首週票房",
+      "event_title_en": "Pixar Hoppers Opening Weekend Box Office",
+      "event_domain": "Culture/Entertainment",
+      "expected_date": "2026-03-08",
+      "event_description": "Pixar's Hoppers opening weekend. Animated sci-fi about human mind transferred to robotic beaver to interact with animals. Jon Hamm, Piper Curda voice cast.",
+      "real_hexagram": {
+        "method": "取象法",
+        "quxiang_analysis": "動畫=離（色彩、光影、螢幕）；跳跳蟲=震（跳躍、活力、運動）；票房=兌（金錢、收穫）",
+        "upper_trigram": "3 → 離(☲)",
+        "upper_reason": "離：動畫、色彩、光影、螢幕——Pixar動畫的視覺本質",
+        "lower_trigram": "4 → 震(☳)",
+        "lower_reason": "震：跳躍、活力、運動——「跳跳蟲」的核心意象",
+        "changing_line": 1,
+        "changing_line_calc": "(3+4) mod 6 = 1",
+        "primary_hexagram": {
+          "number": 21,
+          "name": "火雷噬嗑"
+        },
+        "changed_hexagram": {
+          "number": 35,
+          "name": "火地晉"
+        },
+        "mutual_hexagram": {
+          "name": "水山蹇"
+        },
+        "ti_yong": {
+          "體卦": "離（上卦）- 火",
+          "用卦": "震（下卦）- 木",
+          "生克關係": "用生體（大吉）"
+        },
+        "strategy": {
+          "type": "排斥子",
+          "advice": "走",
+          "ji_rate": 17,
+          "change_path": "噬嗑 → 晉（變6爻得67%）"
+        },
+        "position_risk": {
+          "coefficient": 0.281,
+          "risk_level": "中等",
+          "warning": null
+        },
+        "next_step": "【下一步】積極改變，離開當前狀態。此位置不利久留，宜主動求變。"
+      },
+      "control_hexagram": {
+        "method": "random",
+        "primary_hexagram": {
+          "number": 29,
+          "name": "坎為水"
+        },
+        "changing_line": 1,
+        "changed_hexagram": {
+          "number": 60,
+          "name": "水澤節"
+        },
+        "mutual_hexagram": {
+          "name": "山雷頤"
+        },
+        "ti_yong": {
+          "體卦": "坎（上卦）- 水",
+          "用卦": "坎（下卦）- 水",
+          "生克關係": "比和（吉）"
+        }
+      },
+      "blinding": {
+        "real_is_A": false
+      }
+    },
+    {
+      "event_id": "E18",
+      "event_title_zh": "NVIDIA GTC大會黃仁勳主題演講",
+      "event_title_en": "NVIDIA GTC 2026 Jensen Huang Keynote",
+      "event_domain": "Technology",
+      "expected_date": "2026-03-17",
+      "event_description": "Jensen Huang's keynote at NVIDIA GTC 2026 in San Jose. Expected to announce next-gen AI chips, software platforms, and robotics developments.",
+      "real_hexagram": {
+        "method": "取象法",
+        "quxiang_analysis": "NVIDIA/GPU/AI=離（電子、科技、光明、網路）；黃仁勳=乾（CEO、領袖、最高）；大會=坤（聚集）",
+        "upper_trigram": "3 → 離(☲)",
+        "upper_reason": "離：電子科技、GPU、AI、網路——NVIDIA的產業屬性",
+        "lower_trigram": "1 → 乾(☰)",
+        "lower_reason": "乾：CEO、領袖、最高端——黃仁勳的角色與NVIDIA的頂級地位",
+        "changing_line": 4,
+        "changing_line_calc": "(3+1) mod 6 = 4",
+        "primary_hexagram": {
+          "number": 14,
+          "name": "火天大有"
+        },
+        "changed_hexagram": {
+          "number": 26,
+          "name": "山天大畜"
+        },
+        "mutual_hexagram": {
+          "name": "澤天夬"
+        },
+        "ti_yong": {
+          "體卦": "乾（下卦）- 金",
+          "用卦": "離（上卦）- 火",
+          "生克關係": "用克體（凶）"
+        },
+        "strategy": {
+          "type": "一般",
+          "advice": "觀",
+          "ji_rate": 33,
+          "change_path": "大有 → 鼎（變6爻得67%）"
+        },
+        "position_risk": {
+          "coefficient": 0.281,
+          "risk_level": "中等",
+          "warning": null
+        },
+        "next_step": "【下一步】觀察局勢，再做決定。情況中等，需要更多信息才能判斷。"
+      },
+      "control_hexagram": {
+        "method": "random",
+        "primary_hexagram": {
+          "number": 37,
+          "name": "風火家人"
+        },
+        "changing_line": 2,
+        "changed_hexagram": {
+          "number": 9,
+          "name": "風天小畜"
+        },
+        "mutual_hexagram": {
+          "name": "火水未濟"
+        },
+        "ti_yong": {
+          "體卦": "巽（上卦）- 木",
+          "用卦": "離（下卦）- 火",
+          "生克關係": "體生用（耗洩）"
+        }
+      },
+      "blinding": {
+        "real_is_A": true
+      }
+    },
+    {
+      "event_id": "E19",
+      "event_title_zh": "聯準會三月利率決議",
+      "event_title_en": "FOMC March Interest Rate Decision",
+      "event_domain": "Economy",
+      "expected_date": "2026-03-18",
+      "event_description": "Federal Reserve announces March rate decision after two-day FOMC meeting. Markets expect rates held at 3.5-3.75%. Any surprise cut or hawkish language would move markets.",
+      "real_hexagram": {
+        "method": "取象法",
+        "quxiang_analysis": "聯準會=乾（官方權威、最高金融機構）；利率=坎（水、流動性、金融之水）；決議=艮（止、定、決斷）",
+        "upper_trigram": "1 → 乾(☰)",
+        "upper_reason": "乾：聯準會、官方權威、最高金融機構——央行的地位",
+        "lower_trigram": "6 → 坎(☵)",
+        "lower_reason": "坎：水、流動性、利率——金融之水的流向",
+        "changing_line": 1,
+        "changing_line_calc": "(1+6) mod 6 = 1",
+        "primary_hexagram": {
+          "number": 6,
+          "name": "天水訟"
+        },
+        "changed_hexagram": {
+          "number": 10,
+          "name": "天澤履"
+        },
+        "mutual_hexagram": {
+          "name": "風火家人"
+        },
+        "ti_yong": {
+          "體卦": "乾（上卦）- 金",
+          "用卦": "坎（下卦）- 水",
+          "生克關係": "體生用（耗洩）"
+        },
+        "strategy": {
+          "type": "吸引子",
+          "advice": "留",
+          "ji_rate": 67,
+          "change_path": null
+        },
+        "position_risk": {
+          "coefficient": 0.188,
+          "risk_level": "中等",
+          "warning": null
+        },
+        "next_step": "【下一步】維持現狀，不宜改變。目前位置有利，變動反而損失。"
+      },
+      "control_hexagram": {
+        "method": "random",
+        "primary_hexagram": {
+          "number": 16,
+          "name": "雷地豫"
+        },
+        "changing_line": 1,
+        "changed_hexagram": {
+          "number": 51,
+          "name": "震為雷"
+        },
+        "mutual_hexagram": {
+          "name": "水山蹇"
+        },
+        "ti_yong": {
+          "體卦": "震（上卦）- 木",
+          "用卦": "坤（下卦）- 土",
+          "生克關係": "體克用（吉）"
+        }
+      },
+      "blinding": {
+        "real_is_A": true
+      }
+    },
+    {
+      "event_id": "E20",
+      "event_title_zh": "歐盟理事會春季高峰會議",
+      "event_title_en": "European Council Spring Summit",
+      "event_domain": "International/Diplomacy",
+      "expected_date": "2026-03-19",
+      "event_description": "EU heads of state meet in Brussels to discuss defense spending, Ukraine policy, economic strategy, and trade relations. Summit conclusions published at close.",
+      "real_hexagram": {
+        "method": "取象法",
+        "quxiang_analysis": "高峰=艮（山、高處、頂層）；歐盟理事會=乾（國家領袖、官方、最高層級）；會議=兌（討論、口舌）",
+        "upper_trigram": "7 → 艮(☶)",
+        "upper_reason": "艮：高峰、山頂、頂層——高峰會議的核心意象",
+        "lower_trigram": "1 → 乾(☰)",
+        "lower_reason": "乾：國家元首、官方領袖——歐盟各國首腦",
+        "changing_line": 2,
+        "changing_line_calc": "(7+1) mod 6 = 2",
+        "primary_hexagram": {
+          "number": 26,
+          "name": "山天大畜"
+        },
+        "changed_hexagram": {
+          "number": 22,
+          "name": "山火賁"
+        },
+        "mutual_hexagram": {
+          "name": "雷澤歸妹"
+        },
+        "ti_yong": {
+          "體卦": "艮（上卦）- 土",
+          "用卦": "乾（下卦）- 金",
+          "生克關係": "體生用（耗洩）"
+        },
+        "strategy": {
+          "type": "福地",
+          "advice": "守",
+          "ji_rate": 50,
+          "change_path": null
+        },
+        "position_risk": {
+          "coefficient": 0.312,
+          "risk_level": "佳",
+          "warning": null
+        },
+        "next_step": "【下一步】穩守不動，靜觀其變。位置尚可，不主動出擊，等待時機。"
+      },
+      "control_hexagram": {
+        "method": "random",
+        "primary_hexagram": {
+          "number": 51,
+          "name": "震為雷"
+        },
+        "changing_line": 2,
+        "changed_hexagram": {
+          "number": 54,
+          "name": "雷澤歸妹"
+        },
+        "mutual_hexagram": {
+          "name": "水山蹇"
+        },
+        "ti_yong": {
+          "體卦": "震（上卦）- 木",
+          "用卦": "震（下卦）- 木",
+          "生克關係": "比和（吉）"
+        }
+      },
+      "blinding": {
+        "real_is_A": false
+      }
+    },
+    {
+      "event_id": "E21",
+      "event_title_zh": "電影《乘客計畫》全球首映",
+      "event_title_en": "Project Hail Mary Global Premiere",
+      "event_domain": "Culture/Entertainment",
+      "expected_date": "2026-03-20",
+      "event_description": "Ryan Gosling stars in Amazon MGM's sci-fi adaptation of Andy Weir's novel. An astronaut wakes alone in space on a mission to save Earth from extinction. IMAX release.",
+      "real_hexagram": {
+        "method": "取象法",
+        "quxiang_analysis": "太空=乾（天、宇宙、最高處）；電影首映=離（光影、螢幕、火）；孤獨太空人=坎（隱伏、孤獨、險）",
+        "upper_trigram": "1 → 乾(☰)",
+        "upper_reason": "乾：太空、宇宙、天——故事的核心場景",
+        "lower_trigram": "3 → 離(☲)",
+        "lower_reason": "離：電影、光影、螢幕——首映的媒介本質",
+        "changing_line": 4,
+        "changing_line_calc": "(1+3) mod 6 = 4",
+        "primary_hexagram": {
+          "number": 13,
+          "name": "天火同人"
+        },
+        "changed_hexagram": {
+          "number": 37,
+          "name": "風火家人"
+        },
+        "mutual_hexagram": {
+          "name": "天風姤"
+        },
+        "ti_yong": {
+          "體卦": "離（下卦）- 火",
+          "用卦": "乾（上卦）- 金",
+          "生克關係": "體克用（吉）"
+        },
+        "strategy": {
+          "type": "排斥子",
+          "advice": "走",
+          "ji_rate": 17,
+          "change_path": "同人 → 遯（變6爻得67%）"
+        },
+        "position_risk": {
+          "coefficient": 0.281,
+          "risk_level": "中等",
+          "warning": null
+        },
+        "next_step": "【下一步】積極改變，離開當前狀態。此位置不利久留，宜主動求變。"
+      },
+      "control_hexagram": {
+        "method": "random",
+        "primary_hexagram": {
+          "number": 40,
+          "name": "雷水解"
+        },
+        "changing_line": 3,
+        "changed_hexagram": {
+          "number": 32,
+          "name": "雷風恆"
+        },
+        "mutual_hexagram": {
+          "name": "水火既濟"
+        },
+        "ti_yong": {
+          "體卦": "震（上卦）- 木",
+          "用卦": "坎（下卦）- 水",
+          "生克關係": "用生體（大吉）"
+        }
+      },
+      "blinding": {
+        "real_is_A": true
+      }
+    },
+    {
+      "event_id": "E22",
+      "event_title_zh": "世界室內田徑錦標賽",
+      "event_title_en": "World Athletics Indoor Championships",
+      "event_domain": "Sports",
+      "expected_date": "2026-03-21",
+      "event_description": "Biennial World Athletics Indoor Championships in Nanjing, China. Top track and field athletes compete for gold in sprints, jumps, throws, and distance events.",
+      "real_hexagram": {
+        "method": "取象法",
+        "quxiang_analysis": "田徑=震（運動、足、跑步、競技）；室內=艮（門、室、封閉空間、止）；錦標=乾（金、冠）",
+        "upper_trigram": "4 → 震(☳)",
+        "upper_reason": "震：運動、跑步、足、競技——田徑的本質",
+        "lower_trigram": "7 → 艮(☶)",
+        "lower_reason": "艮：室內、建築、門、封閉空間——室內場館",
+        "changing_line": 5,
+        "changing_line_calc": "(4+7) mod 6 = 5",
+        "primary_hexagram": {
+          "number": 62,
+          "name": "雷山小過"
+        },
+        "changed_hexagram": {
+          "number": 31,
+          "name": "澤山咸"
+        },
+        "mutual_hexagram": {
+          "name": "澤風大過"
+        },
+        "ti_yong": {
+          "體卦": "艮（下卦）- 土",
+          "用卦": "震（上卦）- 木",
+          "生克關係": "用克體（凶）"
+        },
+        "strategy": {
+          "type": "排斥子",
+          "advice": "走",
+          "ji_rate": 0,
+          "change_path": "小過 → 謙（變3爻得83%）"
+        },
+        "position_risk": {
+          "coefficient": 0.5,
+          "risk_level": "最佳",
+          "warning": null
+        },
+        "next_step": "【下一步】積極改變，離開當前狀態。此位置不利久留，宜主動求變。"
+      },
+      "control_hexagram": {
+        "method": "random",
+        "primary_hexagram": {
+          "number": 39,
+          "name": "水山蹇"
+        },
+        "changing_line": 5,
+        "changed_hexagram": {
+          "number": 15,
+          "name": "地山謙"
+        },
+        "mutual_hexagram": {
+          "name": "火水未濟"
+        },
+        "ti_yong": {
+          "體卦": "艮（下卦）- 土",
+          "用卦": "坎（上卦）- 水",
+          "生克關係": "體克用（吉）"
+        }
+      },
+      "blinding": {
+        "real_is_A": true
+      }
+    },
+    {
+      "event_id": "E23",
+      "event_title_zh": "南澳大利亞州議會選舉",
+      "event_title_en": "South Australia State Election",
+      "event_domain": "Politics",
+      "expected_date": "2026-03-21",
+      "event_description": "South Australia state election for House of Assembly and Legislative Council. Determines state government leadership.",
+      "real_hexagram": {
+        "method": "取象法",
+        "quxiang_analysis": "州=坤（地方、大地、區域）；議會選舉=兌（投票、辯論、口舌、民意）；南澳=離（南方）+坤（地）",
+        "upper_trigram": "8 → 坤(☷)",
+        "upper_reason": "坤：州、地方、大地、區域——州級行政的屬性",
+        "lower_trigram": "2 → 兌(☱)",
+        "lower_reason": "兌：選舉、投票、辯論——議會選舉的過程",
+        "changing_line": 4,
+        "changing_line_calc": "(8+2) mod 6 = 4",
+        "primary_hexagram": {
+          "number": 19,
+          "name": "地澤臨"
+        },
+        "changed_hexagram": {
+          "number": 54,
+          "name": "雷澤歸妹"
+        },
+        "mutual_hexagram": {
+          "name": "地雷復"
+        },
+        "ti_yong": {
+          "體卦": "兌（下卦）- 金",
+          "用卦": "坤（上卦）- 土",
+          "生克關係": "用生體（大吉）"
+        },
+        "strategy": {
+          "type": "吸引子",
+          "advice": "留",
+          "ji_rate": 83,
+          "change_path": null
+        },
+        "position_risk": {
+          "coefficient": 0.25,
+          "risk_level": "中等",
+          "warning": null
+        },
+        "next_step": "【下一步】維持現狀，不宜改變。目前位置有利，變動反而損失。"
+      },
+      "control_hexagram": {
+        "method": "random",
+        "primary_hexagram": {
+          "number": 27,
+          "name": "山雷頤"
+        },
+        "changing_line": 6,
+        "changed_hexagram": {
+          "number": 24,
+          "name": "地雷復"
+        },
+        "mutual_hexagram": {
+          "name": "坤為地"
+        },
+        "ti_yong": {
+          "體卦": "震（下卦）- 木",
+          "用卦": "艮（上卦）- 土",
+          "生克關係": "體克用（吉）"
+        }
+      },
+      "blinding": {
+        "real_is_A": false
+      }
+    },
+    {
+      "event_id": "E24",
+      "event_title_zh": "聯合國全球反詐欺高峰會",
+      "event_title_en": "UN/INTERPOL Global Fraud Summit",
+      "event_domain": "International/Diplomacy",
+      "expected_date": "2026-03-16",
+      "event_description": "UNODC/INTERPOL ministerial-level meeting at Vienna International Centre on combating transnational cybercrime and online fraud globally.",
+      "real_hexagram": {
+        "method": "取象法",
+        "quxiang_analysis": "高峰會=艮（山頂、聚合、止）；反詐欺=離（揭露、照明、明察）+坎（險、盜賊）；聯合國=乾（國際權威）",
+        "upper_trigram": "7 → 艮(☶)",
+        "upper_reason": "艮：高峰會、止（制止犯罪）、聚合——打擊犯罪的意象",
+        "lower_trigram": "3 → 離(☲)",
+        "lower_reason": "離：揭露、照明、明察秋毫——反詐欺=照亮黑暗",
+        "changing_line": 4,
+        "changing_line_calc": "(7+3) mod 6 = 4",
+        "primary_hexagram": {
+          "number": 22,
+          "name": "山火賁"
+        },
+        "changed_hexagram": {
+          "number": 30,
+          "name": "離為火"
+        },
+        "mutual_hexagram": {
+          "name": "雷水解"
+        },
+        "ti_yong": {
+          "體卦": "離（下卦）- 火",
+          "用卦": "艮（上卦）- 土",
+          "生克關係": "體生用（耗洩）"
+        },
+        "strategy": {
+          "type": "一般",
+          "advice": "觀",
+          "ji_rate": 33,
+          "change_path": "賁 → 家人（變2爻得67%）"
+        },
+        "position_risk": {
+          "coefficient": 0.25,
+          "risk_level": "中等",
+          "warning": null
+        },
+        "next_step": "【下一步】觀察局勢，再做決定。情況中等，需要更多信息才能判斷。"
+      },
+      "control_hexagram": {
+        "method": "random",
+        "primary_hexagram": {
+          "number": 26,
+          "name": "山天大畜"
+        },
+        "changing_line": 3,
+        "changed_hexagram": {
+          "number": 41,
+          "name": "山澤損"
+        },
+        "mutual_hexagram": {
+          "name": "雷澤歸妹"
+        },
+        "ti_yong": {
+          "體卦": "艮（上卦）- 土",
+          "用卦": "乾（下卦）- 金",
+          "生克關係": "體生用（耗洩）"
+        }
+      },
+      "blinding": {
+        "real_is_A": false
+      }
+    },
+    {
+      "event_id": "E25",
+      "event_title_zh": "邁阿密公開賽網球男單決賽",
+      "event_title_en": "Miami Open Men's Singles Final",
+      "event_domain": "Sports",
+      "expected_date": "2026-03-29",
+      "event_description": "ATP Masters 1000 men's singles final in Miami. One of tennis' most prestigious hard-court tournaments. Winner receives 1000 ranking points.",
+      "real_hexagram": {
+        "method": "取象法",
+        "quxiang_analysis": "網球=兌（圓球、金屬球拍、喜悅）；決賽=乾（冠軍、最高）；邁阿密=離（南方、熱帶、火熱）",
+        "upper_trigram": "2 → 兌(☱)",
+        "upper_reason": "兌：球（圓物）、金屬球拍、勝利的喜悅——網球的意象",
+        "lower_trigram": "3 → 離(☲)",
+        "lower_reason": "離：南方、熱帶、火熱的競爭——邁阿密的地理與賽事的激烈",
+        "changing_line": 5,
+        "changing_line_calc": "(2+3) mod 6 = 5",
+        "primary_hexagram": {
+          "number": 49,
+          "name": "澤火革"
+        },
+        "changed_hexagram": {
+          "number": 55,
+          "name": "雷火豐"
+        },
+        "mutual_hexagram": {
+          "name": "天風姤"
+        },
+        "ti_yong": {
+          "體卦": "離（下卦）- 火",
+          "用卦": "兌（上卦）- 金",
+          "生克關係": "體克用（吉）"
+        },
+        "strategy": {
+          "type": "吸引子",
+          "advice": "留",
+          "ji_rate": 50,
+          "change_path": null
+        },
+        "position_risk": {
+          "coefficient": 0.344,
+          "risk_level": "最佳",
+          "warning": null
+        },
+        "next_step": "【下一步】維持現狀，不宜改變。目前位置有利，變動反而損失。"
+      },
+      "control_hexagram": {
+        "method": "random",
+        "primary_hexagram": {
+          "number": 36,
+          "name": "地火明夷"
+        },
+        "changing_line": 5,
+        "changed_hexagram": {
+          "number": 63,
+          "name": "水火既濟"
+        },
+        "mutual_hexagram": {
+          "name": "雷水解"
+        },
+        "ti_yong": {
+          "體卦": "離（下卦）- 火",
+          "用卦": "坤（上卦）- 土",
+          "生克關係": "體生用（耗洩）"
+        }
+      },
+      "blinding": {
+        "real_is_A": true
+      }
+    },
+    {
+      "event_id": "E26",
+      "event_title_zh": "F1日本大獎賽鈴鹿站",
+      "event_title_en": "F1 Japanese Grand Prix at Suzuka",
+      "event_domain": "Sports",
+      "expected_date": "2026-03-29",
+      "event_description": "F1 Japanese Grand Prix at Suzuka Circuit. Third race of the 2026 season. Suzuka's figure-8 layout is one of the most demanding circuits in motorsport.",
+      "real_hexagram": {
+        "method": "取象法",
+        "quxiang_analysis": "F1賽車=震（車、速度、運動）；日本=離（日、太陽、東方）；鈴鹿=兌（鈴聲、金屬聲）",
+        "upper_trigram": "4 → 震(☳)",
+        "upper_reason": "震：賽車、速度、運動、震動——F1的核心屬性",
+        "lower_trigram": "3 → 離(☲)",
+        "lower_reason": "離：日本（日=太陽）、東方、光明——日本的類象",
+        "changing_line": 1,
+        "changing_line_calc": "(4+3) mod 6 = 1",
+        "primary_hexagram": {
+          "number": 55,
+          "name": "雷火豐"
+        },
+        "changed_hexagram": {
+          "number": 62,
+          "name": "雷山小過"
+        },
+        "mutual_hexagram": {
+          "name": "澤風大過"
+        },
+        "ti_yong": {
+          "體卦": "震（上卦）- 木",
+          "用卦": "離（下卦）- 火",
+          "生克關係": "體生用（耗洩）"
+        },
+        "strategy": {
+          "type": "吸引子",
+          "advice": "留",
+          "ji_rate": 50,
+          "change_path": null
+        },
+        "position_risk": {
+          "coefficient": 0.281,
+          "risk_level": "中等",
+          "warning": null
+        },
+        "next_step": "【下一步】維持現狀，不宜改變。目前位置有利，變動反而損失。"
+      },
+      "control_hexagram": {
+        "method": "random",
+        "primary_hexagram": {
+          "number": 61,
+          "name": "風澤中孚"
+        },
+        "changing_line": 6,
+        "changed_hexagram": {
+          "number": 60,
+          "name": "水澤節"
+        },
+        "mutual_hexagram": {
+          "name": "山雷頤"
+        },
+        "ti_yong": {
+          "體卦": "兌（下卦）- 金",
+          "用卦": "巽（上卦）- 木",
+          "生克關係": "體克用（吉）"
+        }
+      },
+      "blinding": {
+        "real_is_A": false
+      }
+    },
+    {
+      "event_id": "E27",
+      "event_title_zh": "NCAA男籃全國冠軍賽",
+      "event_title_en": "NCAA Men's Basketball Championship Game",
+      "event_domain": "Sports",
+      "expected_date": "2026-04-06",
+      "event_description": "National championship game in Indianapolis, concluding March Madness. Single decisive game between the Final Four survivors. Clear winner and national champion.",
+      "real_hexagram": {
+        "method": "取象法",
+        "quxiang_analysis": "NCAA=坤（大學、眾多隊伍、大地基礎）；男籃=震（跳躍、運動、彈跳）；冠軍賽=乾（最高）",
+        "upper_trigram": "8 → 坤(☷)",
+        "upper_reason": "坤：大學、眾多隊伍、廣闊的參與基礎——NCAA的特性",
+        "lower_trigram": "4 → 震(☳)",
+        "lower_reason": "震：籃球、跳躍、彈跳、身體衝撞——籃球運動的意象",
+        "changing_line": 6,
+        "changing_line_calc": "(8+4) mod 6 = 6",
+        "primary_hexagram": {
+          "number": 24,
+          "name": "地雷復"
+        },
+        "changed_hexagram": {
+          "number": 27,
+          "name": "山雷頤"
+        },
+        "mutual_hexagram": {
+          "name": "坤為地"
+        },
+        "ti_yong": {
+          "體卦": "震（下卦）- 木",
+          "用卦": "坤（上卦）- 土",
+          "生克關係": "體克用（吉）"
+        },
+        "strategy": {
+          "type": "一般",
+          "advice": "觀",
+          "ji_rate": 33,
+          "change_path": "復 → 臨（變5爻得83%）"
+        },
+        "position_risk": {
+          "coefficient": 0.062,
+          "risk_level": "中等",
+          "warning": null
+        },
+        "next_step": "【下一步】觀察局勢，再做決定。情況中等，需要更多信息才能判斷。"
+      },
+      "control_hexagram": {
+        "method": "random",
+        "primary_hexagram": {
+          "number": 26,
+          "name": "山天大畜"
+        },
+        "changing_line": 6,
+        "changed_hexagram": {
+          "number": 11,
+          "name": "地天泰"
+        },
+        "mutual_hexagram": {
+          "name": "雷澤歸妹"
+        },
+        "ti_yong": {
+          "體卦": "乾（下卦）- 金",
+          "用卦": "艮（上卦）- 土",
+          "生克關係": "用生體（大吉）"
+        }
+      },
+      "blinding": {
+        "real_is_A": true
+      }
+    },
+    {
+      "event_id": "E28",
+      "event_title_zh": "名人賽高爾夫大滿貫",
+      "event_title_en": "The Masters Golf Tournament",
+      "event_domain": "Sports",
+      "expected_date": "2026-04-12",
+      "event_description": "The Masters at Augusta National Golf Club. Golf's first major of 2026. The champion receives the iconic green jacket on Sunday, April 12.",
+      "real_hexagram": {
+        "method": "取象法",
+        "quxiang_analysis": "名人=乾（貴人、名人、高貴）；高爾夫=巽（草地、花園、風、柔和）；大滿貫=乾（大、金、最高榮譽）",
+        "upper_trigram": "1 → 乾(☰)",
+        "upper_reason": "乾：名人、貴人、最高榮譽——名人賽的尊貴地位",
+        "lower_trigram": "5 → 巽(☴)",
+        "lower_reason": "巽：草地、花園、風——高爾夫球場的自然意象",
+        "changing_line": 6,
+        "changing_line_calc": "(1+5) mod 6 = 6",
+        "primary_hexagram": {
+          "number": 44,
+          "name": "天風姤"
+        },
+        "changed_hexagram": {
+          "number": 28,
+          "name": "澤風大過"
+        },
+        "mutual_hexagram": {
+          "name": "乾為天"
+        },
+        "ti_yong": {
+          "體卦": "巽（下卦）- 木",
+          "用卦": "乾（上卦）- 金",
+          "生克關係": "用克體（凶）"
+        },
+        "strategy": {
+          "type": "排斥子",
+          "advice": "走",
+          "ji_rate": 17,
+          "change_path": "姤 → 遯（變5爻得67%）"
+        },
+        "position_risk": {
+          "coefficient": 0.0,
+          "risk_level": "中等",
+          "warning": null
+        },
+        "next_step": "【下一步】積極改變，離開當前狀態。此位置不利久留，宜主動求變。"
+      },
+      "control_hexagram": {
+        "method": "random",
+        "primary_hexagram": {
+          "number": 59,
+          "name": "風水渙"
+        },
+        "changing_line": 3,
+        "changed_hexagram": {
+          "number": 57,
+          "name": "巽為風"
+        },
+        "mutual_hexagram": {
+          "name": "山雷頤"
+        },
+        "ti_yong": {
+          "體卦": "巽（上卦）- 木",
+          "用卦": "坎（下卦）- 水",
+          "生克關係": "用生體（大吉）"
+        }
+      },
+      "blinding": {
+        "real_is_A": false
+      }
+    },
+    {
+      "event_id": "E29",
+      "event_title_zh": "秘魯總統大選",
+      "event_title_en": "Peru Presidential Election",
+      "event_domain": "Politics",
+      "expected_date": "2026-04-12",
+      "event_description": "Peru's general election for president and congress. Major Latin American democracy chooses new leadership amid economic and political challenges.",
+      "real_hexagram": {
+        "method": "取象法",
+        "quxiang_analysis": "秘魯=艮（安第斯山脈國家、山地）；總統大選=乾（最高領導人）+兌（投票、選舉）",
+        "upper_trigram": "7 → 艮(☶)",
+        "upper_reason": "艮：山、安第斯——秘魯的地理象徵",
+        "lower_trigram": "2 → 兌(☱)",
+        "lower_reason": "兌：選舉、投票、辯論——大選的過程",
+        "changing_line": 3,
+        "changing_line_calc": "(7+2) mod 6 = 3",
+        "primary_hexagram": {
+          "number": 41,
+          "name": "山澤損"
+        },
+        "changed_hexagram": {
+          "number": 26,
+          "name": "山天大畜"
+        },
+        "mutual_hexagram": {
+          "name": "地雷復"
+        },
+        "ti_yong": {
+          "體卦": "艮（上卦）- 土",
+          "用卦": "兌（下卦）- 金",
+          "生克關係": "體生用（耗洩）"
+        },
+        "strategy": {
+          "type": "福地",
+          "advice": "守",
+          "ji_rate": 50,
+          "change_path": null
+        },
+        "position_risk": {
+          "coefficient": -0.062,
+          "risk_level": "較差",
+          "warning": "⚠️ 爻位係數為負值 (-0.062)"
+        },
+        "next_step": "【下一步】穩守不動，靜觀其變。位置尚可，不主動出擊，等待時機。"
+      },
+      "control_hexagram": {
+        "method": "random",
+        "primary_hexagram": {
+          "number": 19,
+          "name": "地澤臨"
+        },
+        "changing_line": 5,
+        "changed_hexagram": {
+          "number": 60,
+          "name": "水澤節"
+        },
+        "mutual_hexagram": {
+          "name": "地雷復"
+        },
+        "ti_yong": {
+          "體卦": "兌（下卦）- 金",
+          "用卦": "坤（上卦）- 土",
+          "生克關係": "用生體（大吉）"
+        }
+      },
+      "blinding": {
+        "real_is_A": true
+      }
+    },
+    {
+      "event_id": "E30",
+      "event_title_zh": "匈牙利國會大選",
+      "event_title_en": "Hungary Parliamentary Election",
+      "event_domain": "Politics",
+      "expected_date": "2026-04-12",
+      "event_description": "Hungary parliamentary elections. Viktor Orbán's Fidesz seeks re-election. Opposition united under Peter Magyar's TISZA party. High stakes for EU relations.",
+      "real_hexagram": {
+        "method": "取象法",
+        "quxiang_analysis": "匈牙利=坤（中歐平原、大地）；國會=乾（官方、政權、國家機構）；大選=兌（投票）",
+        "upper_trigram": "8 → 坤(☷)",
+        "upper_reason": "坤：匈牙利大平原、中歐大地——匈牙利的地理象徵",
+        "lower_trigram": "1 → 乾(☰)",
+        "lower_reason": "乾：國會、政權、官方——國家政治權力的核心",
+        "changing_line": 3,
+        "changing_line_calc": "(8+1) mod 6 = 3",
+        "primary_hexagram": {
+          "number": 11,
+          "name": "地天泰"
+        },
+        "changed_hexagram": {
+          "number": 19,
+          "name": "地澤臨"
+        },
+        "mutual_hexagram": {
+          "name": "雷澤歸妹"
+        },
+        "ti_yong": {
+          "體卦": "坤（上卦）- 土",
+          "用卦": "乾（下卦）- 金",
+          "生克關係": "體生用（耗洩）"
+        },
+        "strategy": {
+          "type": "一般",
+          "advice": "觀",
+          "ji_rate": 33,
+          "change_path": "泰 → 臨（變4爻得83%）"
+        },
+        "position_risk": {
+          "coefficient": -0.375,
+          "risk_level": "高風險",
+          "warning": "⚠️ 三位陽爻是全表最凶的組合（-0.375）"
+        },
+        "next_step": "【下一步】觀察局勢，再做決定。情況中等，需要更多信息才能判斷。"
+      },
+      "control_hexagram": {
+        "method": "random",
+        "primary_hexagram": {
+          "number": 16,
+          "name": "雷地豫"
+        },
+        "changing_line": 5,
+        "changed_hexagram": {
+          "number": 45,
+          "name": "澤地萃"
+        },
+        "mutual_hexagram": {
+          "name": "水山蹇"
+        },
+        "ti_yong": {
+          "體卦": "坤（下卦）- 土",
+          "用卦": "震（上卦）- 木",
+          "生克關係": "用克體（凶）"
+        }
+      },
+      "blinding": {
+        "real_is_A": true
+      }
+    },
+    {
+      "event_id": "E31",
+      "event_title_zh": "NASA阿提米絲二號載人繞月任務",
+      "event_title_en": "NASA Artemis II Crewed Lunar Flyby Mission",
+      "event_domain": "Science/Space",
+      "expected_date": "2026-04-01",
+      "event_description": "First crewed mission beyond low Earth orbit since Apollo 17 in 1972. Four astronauts on a 10-day lunar flyby. Critical test before Artemis III lunar landing.",
+      "real_hexagram": {
+        "method": "取象法",
+        "quxiang_analysis": "阿提米絲=月神→坎（月亮）；繞月=巽（環繞、往返、飛行）；載人任務=坤（人、承載）",
+        "upper_trigram": "6 → 坎(☵)",
+        "upper_reason": "坎：月亮、月球——阿提米絲（月神）的直接象徵",
+        "lower_trigram": "5 → 巽(☴)",
+        "lower_reason": "巽：飛行、環繞、往返——繞月飛行的軌道意象",
+        "changing_line": 5,
+        "changing_line_calc": "(6+5) mod 6 = 5",
+        "primary_hexagram": {
+          "number": 48,
+          "name": "水風井"
+        },
+        "changed_hexagram": {
+          "number": 46,
+          "name": "地風升"
+        },
+        "mutual_hexagram": {
+          "name": "火澤睽"
+        },
+        "ti_yong": {
+          "體卦": "巽（下卦）- 木",
+          "用卦": "坎（上卦）- 水",
+          "生克關係": "用生體（大吉）"
+        },
+        "strategy": {
+          "type": "困境",
+          "advice": "變",
+          "ji_rate": 17,
+          "change_path": "井 → 需（變6爻得67%）"
+        },
+        "position_risk": {
+          "coefficient": 0.344,
+          "risk_level": "最佳",
+          "warning": null
+        },
+        "next_step": "【下一步】必須改變，不變則困。當前困境需主動突破，猶豫更糟。"
+      },
+      "control_hexagram": {
+        "method": "random",
+        "primary_hexagram": {
+          "number": 4,
+          "name": "山水蒙"
+        },
+        "changing_line": 1,
+        "changed_hexagram": {
+          "number": 41,
+          "name": "山澤損"
+        },
+        "mutual_hexagram": {
+          "name": "地雷復"
+        },
+        "ti_yong": {
+          "體卦": "艮（上卦）- 土",
+          "用卦": "坎（下卦）- 水",
+          "生克關係": "體克用（吉）"
+        }
+      },
+      "blinding": {
+        "real_is_A": true
+      }
+    },
+    {
+      "event_id": "E32",
+      "event_title_zh": "印度加甘揚無人太空試飛",
+      "event_title_en": "ISRO Gaganyaan Uncrewed Orbital Test Flight",
+      "event_domain": "Science/Space",
+      "expected_date": "2026-03-30",
+      "event_description": "India's first uncrewed orbital test flight of the Gaganyaan spacecraft. Critical step toward India's human spaceflight program. Tests life support and re-entry systems.",
+      "real_hexagram": {
+        "method": "取象法",
+        "quxiang_analysis": "太空試飛=震（發射、起飛、動力）；印度=離（南方、熱帶）；無人飛船=坤（空虛、大地出發）+乾（天）",
+        "upper_trigram": "4 → 震(☳)",
+        "upper_reason": "震：發射、起飛、爆發力——火箭升空的意象",
+        "lower_trigram": "8 → 坤(☷)",
+        "lower_reason": "坤：大地（從地面發射）、無人（空虛的飛船）——出發點",
+        "changing_line": 6,
+        "changing_line_calc": "(4+8) mod 6 = 6",
+        "primary_hexagram": {
+          "number": 16,
+          "name": "雷地豫"
+        },
+        "changed_hexagram": {
+          "number": 35,
+          "name": "火地晉"
+        },
+        "mutual_hexagram": {
+          "name": "水山蹇"
+        },
+        "ti_yong": {
+          "體卦": "坤（下卦）- 土",
+          "用卦": "震（上卦）- 木",
+          "生克關係": "用克體（凶）"
+        },
+        "strategy": {
+          "type": "困境",
+          "advice": "變",
+          "ji_rate": 17,
+          "change_path": "豫 → 晉（變1爻得67%）"
+        },
+        "position_risk": {
+          "coefficient": 0.062,
+          "risk_level": "中等",
+          "warning": null
+        },
+        "next_step": "【下一步】必須改變，不變則困。當前困境需主動突破，猶豫更糟。"
+      },
+      "control_hexagram": {
+        "method": "random",
+        "primary_hexagram": {
+          "number": 62,
+          "name": "雷山小過"
+        },
+        "changing_line": 1,
+        "changed_hexagram": {
+          "number": 55,
+          "name": "雷火豐"
+        },
+        "mutual_hexagram": {
+          "name": "澤風大過"
+        },
+        "ti_yong": {
+          "體卦": "震（上卦）- 木",
+          "用卦": "艮（下卦）- 土",
+          "生克關係": "體克用（吉）"
+        }
+      },
+      "blinding": {
+        "real_is_A": false
+      }
+    }
+  ]
+}

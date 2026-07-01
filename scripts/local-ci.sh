@@ -23,7 +23,7 @@ usage() {
 
 说明:
   - 本脚本是本地 CI/CD 调度入口，不调用 GitHub Actions，不 watch 远端 Acceptance。
-  - quick：本地快速门禁，覆盖 shell 语法、pure smoke、结构/卫生/隐私、ruff、format check、mypy、关键回归测试。
+  - quick：本地快速门禁，覆盖 shell 语法、pure smoke、vendor、结构/卫生/隐私、ruff、format check、mypy、关键回归测试。
   - full：本地完整验收，复用 scripts/acceptance.sh --with-dev。
   - container：真实 Docker 容器 build + smoke；--skip-container-build 可复用已有镜像。
   - public-service：公网服务静态准入门禁；可追加 --api-url 和 --require-live-bot 做外部验收。
@@ -137,6 +137,8 @@ run_quick() {
     --smoke \
     --output-file "${output_dir}/preflight-pure.json" \
     --pretty
+  run_step "clean runtime before vendor health" bash "${script_dir}/clean-runtime.sh"
+  run_step "vendor health" bash "${script_dir}/vendor-health.sh"
   run_step "structure gate" bash "${script_dir}/check-structure.sh"
   run_step "source hygiene" bash "${script_dir}/check-source-hygiene.sh"
   run_step "privacy fixtures" bash "${script_dir}/check-privacy-fixtures.sh"

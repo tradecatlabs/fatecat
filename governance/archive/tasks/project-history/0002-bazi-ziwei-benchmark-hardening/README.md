@@ -1,3 +1,12 @@
+---
+id: ARCHIVE-ARCHIVE-TASKS-PROJECT-HISTORY-0002-BAZI-ZIWEI-BENCHMARK-HARDENING-README
+type: archive
+status: archived
+owner: engineering
+created: 2026-06-17
+last_reviewed: 2026-06-17
+review_cycle: P365D
+---
 # Task Overview
 - Task ID: `0002`
 - Slug: `bazi-ziwei-benchmark-hardening`

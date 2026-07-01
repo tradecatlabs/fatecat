@@ -1,0 +1,32 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will Ja Morant be traded this season?
+
+Description: This market will resolve to "Yes" if the listed NBA player is traded from their current team to another NBA team before the 2025-2026 NBA trade deadline. Otherwise, this market will resolve to "No".
+
+The NBA trade deadline for the 2025-2026 season is scheduled for February 5, 2026.
+
+The resolution source for this market will be official information from the NBA; however a consensus of credible reporting may also be used.
+
+Current Market Data:
+- Current Probability: 44.0%
+- Trading Volume: $96,148
+- Liquidity: $1264
+- Days Until Resolution: 10
+- Expected Resolution: 2026-02-05T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

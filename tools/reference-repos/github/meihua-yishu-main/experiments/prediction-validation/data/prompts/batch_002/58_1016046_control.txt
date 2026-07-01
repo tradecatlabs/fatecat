@@ -1,0 +1,32 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will NVIDIA reach $200 in January?
+
+Description: This market will resolve to "Yes" if, at any point during January 2026 (ET), any 1-minute candle for NVIDIA (NVDA) has a final "High" price equal to or above the listed price. Otherwise, this market will resolve to "No".
+
+Only prices achieved during regular trading hours (ET) will be considered.
+
+The resolution source for this market is Yahoo Finance — specifically, the NVIDIA (NVDA) "High" prices available at https://finance.yahoo.com/quote/NVDA/, with the chart settings on "1m" for candle inte
+
+Current Market Data:
+- Current Probability: 15.8%
+- Trading Volume: $9,830
+- Liquidity: $1749
+- Days Until Resolution: 6
+- Expected Resolution: 2026-02-01T04:59:59.999000+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

@@ -1,0 +1,37 @@
+{
+  "name": "taibu-mcp",
+  "version": "3.4.1",
+  "description": "TaiBu MCP Server - 命理计算工具 (stdio)",
+  "license": "MIT",
+  "homepage": "https://github.com/hhszzzz/taibu",
+  "bugs": {
+    "url": "https://github.com/hhszzzz/taibu/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hhszzzz/taibu.git",
+    "directory": "packages/mcp"
+  },
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "mcp": "dist/index.js",
+    "taibu-mcp": "dist/index.js"
+  },
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": ["mcp", "taibu", "mcp-server", "bazi", "ziwei", "liuyao", "qimen", "tarot", "daliuren", "divination", "stdio"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "taibu-core": "workspace:*",
+    "@modelcontextprotocol/sdk": "1.25.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

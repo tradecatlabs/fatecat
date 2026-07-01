@@ -1,0 +1,32 @@
+You are analyzing a prediction market. Based ONLY on the market data and your general knowledge, predict the outcome.
+
+MARKET INFORMATION:
+==================
+Title: Will Dua Lipa perform during the Super Bowl LX halftime show?
+
+Description: This market will resolve to "Yes" if Dua Lipa performs live and in person during the Super Bowl LX halftime show currently scheduled for February 8, 2026. Otherwise, this market will resolve to "No."
+
+If this event is cancelled or otherwise delayed beyond March 31, 2026, 11:59 PM ET, this market will resolve to "No".
+
+The primary resolution source for this market will be footage of the Super Bowl LIX halftime show, however a consensus of credible reporting will also be used.
+
+Current Market Data:
+- Current Probability: 18.6%
+- Trading Volume: $9,048
+- Liquidity: $2962
+- Days Until Resolution: 14
+- Expected Resolution: 2026-02-09T00:00:00+00:00
+
+Categories: None
+
+INSTRUCTIONS:
+=============
+1. Analyze the question and market data
+2. Consider current probability and market sentiment
+3. Make a prediction
+
+YOUR PREDICTION (required format):
+==================================
+PREDICTION: [YES or NO]
+CONFIDENCE: [0.0 to 1.0]
+REASONING: [2-3 sentences explaining your prediction]

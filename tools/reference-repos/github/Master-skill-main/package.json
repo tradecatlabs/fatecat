@@ -1,0 +1,81 @@
+{
+  "name": "master-skill",
+  "version": "0.9.1",
+  "type": "module",
+  "description": "Buddhist Master AI Skills — RAG-grounded, source-cited, fidelity-tested. 15 pre-built masters across 四大传统 invokable via /master-<slug> slash commands: 1 印度 (Nāgārjuna · Madhyamaka root) + 8 汉传 (Xuanzang, Kumārajīva, Huineng, Zhiyi, Fazang, Yinguang, Ouyi, Xuyun) + 3 藏传 (Atiśa, Tsongkhapa, Milarepa) + 3 南传 (Buddhaghosa, Mahasi Sayadaw, Ajahn Chah), plus 3 teaching meta-skills: /compare-masters (parallel), /master-debate (4-round adversarial), /master-curriculum (sequenced study path).",
+  "bin": {
+    "master-skill": "./bin/cli.mjs"
+  },
+  "scripts": {
+    "list": "node bin/cli.mjs list",
+    "validate": "python3 scripts/validate.py --strict",
+    "validate:fidelity": "python3 scripts/validate-fidelity.py",
+    "validate:persona-fidelity": "python3 scripts/validate-persona-fidelity.py",
+    "validate:lore-content": "python3 scripts/validate-lore-triggers-content.py",
+    "validate:versions": "python3 scripts/check-manifest-versions.py",
+    "test:hook": "bash hooks/tests/test_session_start.sh",
+    "test:cli": "node --test tests/cli.test.mjs",
+    "test": "python3 scripts/validate.py --strict && python3 scripts/validate-fidelity.py && python3 scripts/validate-persona-fidelity.py && python3 scripts/check-manifest-versions.py && python3 scripts/test-fidelity.py --all --dry-run && node --test tests/cli.test.mjs",
+    "test:smoke": "python3 scripts/test-fidelity.py --master yinguang --max-tests 1",
+    "prepack": "node bin/cli.mjs list"
+  },
+  "keywords": [
+    "claude-skills",
+    "agent-skills",
+    "claude-code",
+    "cursor",
+    "codex",
+    "opencode",
+    "gemini-cli",
+    "buddhism",
+    "chinese-buddhism",
+    "tibetan-buddhism",
+    "theravada",
+    "ai-persona",
+    "rag",
+    "digital-humanities",
+    "cbeta",
+    "bdrc",
+    "suttacentral",
+    "fojin"
+  ],
+  "author": {
+    "name": "xr843",
+    "url": "https://github.com/xr843"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xr843/Master-skill.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xr843/Master-skill/issues"
+  },
+  "homepage": "https://fojin.app/chat",
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "files": [
+    "bin/",
+    "prebuilt/",
+    "scripts/",
+    "hooks/",
+    ".claude-plugin/",
+    ".cursor-plugin/",
+    ".codex/",
+    ".opencode/",
+    "gemini-extension.json",
+    "GEMINI.md",
+    "SKILL.md",
+    "ETHICS.md",
+    "LICENSE",
+    "README.md",
+    "README_EN.md",
+    "!**/__pycache__",
+    "!**/*.pyc"
+  ]
+}

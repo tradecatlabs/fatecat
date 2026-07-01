@@ -1,0 +1,106 @@
+/**
+ * 投票 API 路由
+ * GET: 获取用户投票状态
+ * POST: 投票（切换）- 添加错误处理
+ */
+
+import { NextRequest } from 'next/server';
+import { TargetType, VoteType } from '@/lib/community';
+import { getAuthContext, jsonError, jsonOk, requireUserContext, resolveRequestDbClient } from '@/lib/api-utils';
+import { withRetry } from '@/lib/retry';
+import { missingFields, missingSearchParams } from '@/lib/validation';
+
+export async function GET(request: NextRequest) {
+    try {
+        const auth = await getAuthContext(request);
+        if (auth.authError) {
+            return jsonError(auth.authError.message, auth.authError.status);
+        }
+        const db = resolveRequestDbClient(auth);
+        if (!db) {
+            return jsonError('获取投票状态失败', 500);
+        }
+        const { user } = auth;
+        if (!user) {
+            return jsonOk({ vote: null });
+        }
+
+        const { searchParams } = new URL(request.url);
+        const targetType = searchParams.get('targetType') as TargetType;
+        const targetId = searchParams.get('targetId');
+
+        if (missingSearchParams(searchParams, ['targetType', 'targetId']).length > 0) {
+            return jsonError('缺少参数', 400);
+        }
+        const voteResult = await withRetry(async () => {
+            const response = await db
+                .from('community_votes')
+                .select('vote_type')
+                .eq('user_id', user.id)
+                .eq('target_type', targetType)
+                .eq('target_id', targetId)
+                .maybeSingle();
+            if (response.error) {
+                throw response.error;
+            }
+            return response;
+        });
+
+        return jsonOk({ vote: voteResult.data?.vote_type || null });
+    } catch (error) {
+        console.error('获取投票状态失败:', error);
+        return jsonError('获取投票状态失败', 500);
+    }
+}
+
+export async function POST(request: NextRequest) {
+    try {
+        const auth = await requireUserContext(request);
+        if ('error' in auth) {
+            return jsonError(auth.error.message, auth.error.status);
+        }
+        const db = resolveRequestDbClient(auth);
+        if (!db) {
+            return jsonError('投票失败', 500);
+        }
+        const body = await request.json();
+        const { targetType, targetId, voteType } = body as {
+            targetType: TargetType;
+            targetId: string;
+            voteType: VoteType;
+        };
+
+        if (missingFields(body, ['targetType', 'targetId', 'voteType']).length > 0) {
+            return jsonError('缺少参数', 400);
+        }
+
+        // 验证 targetType 和 voteType 的有效性
+        if (!['post', 'comment'].includes(targetType)) {
+            return jsonError('无效的目标类型', 400);
+        }
+        if (!['up', 'down'].includes(voteType)) {
+            return jsonError('无效的投票类型', 400);
+        }
+        const { data, error } = await db.rpc('toggle_community_vote', {
+            p_target_type: targetType,
+            p_target_id: targetId,
+            p_vote_type: voteType,
+        });
+
+        if (error) {
+            console.error('投票失败:', error);
+            return jsonError('投票失败', 500);
+        }
+
+        const result = (Array.isArray(data) ? data[0] : data) as { status?: string; vote?: VoteType | null } | null;
+        if (result?.status !== 'ok') {
+            console.error('投票失败: invalid rpc result', data);
+            return jsonError('投票失败', 500);
+        }
+
+        return jsonOk({ vote: result.vote ?? null });
+    } catch (error) {
+        console.error('投票失败:', error);
+        return jsonError('投票失败', 500);
+    }
+}

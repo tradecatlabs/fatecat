@@ -1,0 +1,249 @@
+{
+  "generated": "2026-03-18",
+  "batch": 3,
+  "method": "取象法 via /meihua-yishu skill (full skill invocation)",
+  "total_events": 30,
+  "event_range": "E33-E62",
+  "events": [
+    {
+      "event_id": "E33",
+      "title_zh": "喬治亞州第14選區補選決選",
+      "title_en": "Georgia 14th District Runoff Election",
+      "domain": "Politics",
+      "expected_date": "2026-04-07",
+      "description": "Runoff between Democrat Shawn Harris (retired brigadier general) and Republican Clayton Fuller (DA, Trump-endorsed) for Marjorie Taylor Greene's former seat."
+    },
+    {
+      "event_id": "E34",
+      "title_zh": "印度阿薩姆邦立法議會選舉",
+      "title_en": "India Assam Legislative Assembly Election",
+      "domain": "Politics",
+      "expected_date": "2026-04-09",
+      "description": "State assembly elections in Assam, India. BJP seeking to retain power against Congress-led opposition alliance."
+    },
+    {
+      "event_id": "E35",
+      "title_zh": "諾斯洛普·格魯曼天鵝座NG-24國際太空站補給任務",
+      "title_en": "Northrop Grumman Cygnus NG-24 ISS Resupply Launch",
+      "domain": "Science/Space",
+      "expected_date": "2026-04-09",
+      "description": "SpaceX Falcon 9 launches Cygnus XL cargo spacecraft to ISS with 8,200+ lbs of supplies and experiments."
+    },
+    {
+      "event_id": "E36",
+      "title_zh": "吉布地總統選舉",
+      "title_en": "Djibouti Presidential Election",
+      "domain": "Politics",
+      "expected_date": "2026-04-10",
+      "description": "Presidential election in Djibouti. Incumbent Ismail Omar Guelleh has been in power since 1999."
+    },
+    {
+      "event_id": "E37",
+      "title_zh": "英國安特里大國民障礙賽",
+      "title_en": "Grand National at Aintree 2026",
+      "domain": "Sports",
+      "expected_date": "2026-04-11",
+      "description": "The world's most famous steeplechase horse race at Aintree Racecourse, Liverpool, England. Known for its extreme difficulty and unpredictability."
+    },
+    {
+      "event_id": "E38",
+      "title_zh": "貝南總統選舉",
+      "title_en": "Benin Presidential Election",
+      "domain": "Politics",
+      "expected_date": "2026-04-12",
+      "description": "Presidential election in Benin, West Africa. Test of democratic governance amid regional instability."
+    },
+    {
+      "event_id": "E39",
+      "title_zh": "NBA附加賽結果",
+      "title_en": "NBA Play-In Tournament 2026 Results",
+      "domain": "Sports",
+      "expected_date": "2026-04-17",
+      "description": "The NBA Play-In Tournament determines the final playoff seeds (7-10) in each conference. High-stakes single-elimination games."
+    },
+    {
+      "event_id": "E40",
+      "title_zh": "《乘風破浪的迈可》首週票房",
+      "title_en": "Michael (MJ Biopic) Opening Weekend Box Office",
+      "domain": "Culture/Entertainment",
+      "expected_date": "2026-04-17",
+      "description": "Opening weekend of the Michael Jackson biographical film starring Jaafar Jackson. Major cultural event given MJ's legacy and controversies."
+    },
+    {
+      "event_id": "E41",
+      "title_zh": "NBA季後賽首輪",
+      "title_en": "NBA Playoffs 2026 First Round",
+      "domain": "Sports",
+      "expected_date": "2026-04-28",
+      "description": "First round of the 2026 NBA Playoffs. Oklahoma City Thunder clinched first playoff spot. Best-of-7 series across East and West conferences."
+    },
+    {
+      "event_id": "E42",
+      "title_zh": "NHL史坦利盃季後賽首輪",
+      "title_en": "NHL Stanley Cup Playoffs 2026 First Round",
+      "domain": "Sports",
+      "expected_date": "2026-05-05",
+      "description": "First round of the NHL Stanley Cup Playoffs. Best-of-7 series determining which teams advance to the Conference Semifinals."
+    },
+    {
+      "event_id": "E43",
+      "title_zh": "Adobe高峰會2026主題演講",
+      "title_en": "Adobe Summit 2026 Keynote",
+      "domain": "Technology",
+      "expected_date": "2026-04-19",
+      "description": "Adobe's annual digital experience conference in Las Vegas. Expected AI-powered creative tool announcements and enterprise marketing innovations."
+    },
+    {
+      "event_id": "E44",
+      "title_zh": "2026波士頓馬拉松",
+      "title_en": "Boston Marathon 2026",
+      "domain": "Sports",
+      "expected_date": "2026-04-20",
+      "description": "The 130th running of the world's oldest annual marathon. Elite field competing on the iconic Boston course."
+    },
+    {
+      "event_id": "E45",
+      "title_zh": "Google Cloud Next 2026主題演講",
+      "title_en": "Google Cloud Next 2026 Keynote",
+      "domain": "Technology",
+      "expected_date": "2026-04-22",
+      "description": "Google's annual cloud computing conference in Las Vegas. Major AI, cloud infrastructure, and developer tool announcements expected."
+    },
+    {
+      "event_id": "E46",
+      "title_zh": "2026 NFL選秀第一輪",
+      "title_en": "NFL Draft 2026 First Round",
+      "domain": "Sports",
+      "expected_date": "2026-04-23",
+      "description": "First round of the NFL Draft in Pittsburgh, PA. Teams select college football's top prospects. Drama around trades, surprises, and #1 overall pick."
+    },
+    {
+      "event_id": "E47",
+      "title_zh": "雪佛龍錦標賽女子高爾夫大賽",
+      "title_en": "Chevron Championship 2026 Women's Golf Major",
+      "domain": "Sports",
+      "expected_date": "2026-04-26",
+      "description": "First women's golf major of 2026 at The Woodlands, Texas. Top female golfers competing for the championship."
+    },
+    {
+      "event_id": "E48",
+      "title_zh": "2026倫敦馬拉松",
+      "title_en": "London Marathon 2026",
+      "domain": "Sports",
+      "expected_date": "2026-04-26",
+      "description": "The TCS London Marathon, one of the six World Marathon Majors. Elite competition and mass participation event."
+    },
+    {
+      "event_id": "E49",
+      "title_zh": "《乘穿Prada的惡魔2》首週票房",
+      "title_en": "Devil Wears Prada 2 Opening Weekend",
+      "domain": "Culture/Entertainment",
+      "expected_date": "2026-05-01",
+      "description": "Sequel to the 2006 hit with Anne Hathaway and Meryl Streep returning. Directed by David Frankel. High anticipation for nostalgia-driven sequel."
+    },
+    {
+      "event_id": "E50",
+      "title_zh": "2026肯塔基德比",
+      "title_en": "Kentucky Derby 2026",
+      "domain": "Sports",
+      "expected_date": "2026-05-02",
+      "description": "The 152nd Kentucky Derby at Churchill Downs. 'The Most Exciting Two Minutes in Sports.' First leg of the Triple Crown."
+    },
+    {
+      "event_id": "E51",
+      "title_zh": "F1邁阿密大獎賽2026",
+      "title_en": "F1 Miami Grand Prix 2026",
+      "domain": "Sports",
+      "expected_date": "2026-05-03",
+      "description": "Formula 1 returns to Miami after a gap caused by cancelled Middle East races. First F1 race since March 29 Japanese GP. New regulation cars in warm weather."
+    },
+    {
+      "event_id": "E52",
+      "title_zh": "2026 Met Gala 紐約大都會藝術博物館慈善晚宴",
+      "title_en": "Met Gala 2026",
+      "domain": "Culture/Entertainment",
+      "expected_date": "2026-05-04",
+      "description": "Annual fundraising gala for the Metropolitan Museum of Art's Costume Institute. Fashion's biggest night with celebrity red carpet and themed costumes."
+    },
+    {
+      "event_id": "E53",
+      "title_zh": "英國地方議會選舉",
+      "title_en": "UK County Council Elections 2026",
+      "domain": "Politics",
+      "expected_date": "2026-05-07",
+      "description": "Local government elections across England. Key test of Labour government's popularity and Conservative recovery efforts."
+    },
+    {
+      "event_id": "E54",
+      "title_zh": "《乘真人快打2》首週票房",
+      "title_en": "Mortal Kombat 2 Opening Weekend",
+      "domain": "Culture/Entertainment",
+      "expected_date": "2026-05-15",
+      "description": "Sequel to the 2021 video game adaptation. Starring Karl Urban, Hiroyuki Sanada. Action/martial arts franchise film."
+    },
+    {
+      "event_id": "E55",
+      "title_zh": "英格蘭足總杯決賽",
+      "title_en": "FA Cup Final 2026",
+      "domain": "Sports",
+      "expected_date": "2026-05-16",
+      "description": "The final of English football's oldest cup competition at Wembley Stadium, London."
+    },
+    {
+      "event_id": "E56",
+      "title_zh": "維德角議會選舉",
+      "title_en": "Cape Verde Parliamentary Election",
+      "domain": "Politics",
+      "expected_date": "2026-05-17",
+      "description": "Parliamentary elections in Cape Verde, a stable democracy in West Africa. Test of the ruling party's mandate."
+    },
+    {
+      "event_id": "E57",
+      "title_zh": "法國網球公開賽開幕週",
+      "title_en": "French Open Roland Garros 2026 Opening Week",
+      "domain": "Sports",
+      "expected_date": "2026-05-18",
+      "description": "The second Grand Slam tennis tournament of the year begins in Paris. Clay court specialists and major upsets expected."
+    },
+    {
+      "event_id": "E58",
+      "title_zh": "Google I/O 2026 開發者大會主題演講",
+      "title_en": "Google I/O 2026 Keynote",
+      "domain": "Technology",
+      "expected_date": "2026-05-19",
+      "description": "Google's annual developer conference. Expected major AI/Gemini announcements, Android updates, and new product reveals."
+    },
+    {
+      "event_id": "E59",
+      "title_zh": "Dell Technologies World 2026主題演講",
+      "title_en": "Dell Technologies World 2026 Keynote",
+      "domain": "Technology",
+      "expected_date": "2026-05-18",
+      "description": "Dell's flagship IT conference in Las Vegas. AI, hybrid cloud, data management, and enterprise security focus."
+    },
+    {
+      "event_id": "E60",
+      "title_zh": "SpaceX星艦第12次試飛V3版",
+      "title_en": "SpaceX Starship Flight 12 V3 Launch",
+      "domain": "Science/Space",
+      "expected_date": "2026-04-15",
+      "description": "First launch of V3 Starship (Ship 39 + Booster 19). Raptor 3 engines with nearly double thrust. 43 metric tons lighter than V2."
+    },
+    {
+      "event_id": "E61",
+      "title_zh": "哥倫比亞總統選舉第一輪",
+      "title_en": "Colombia Presidential Election First Round",
+      "domain": "Politics",
+      "expected_date": "2026-05-31",
+      "description": "First round of Colombia's presidential election following the March parliamentary elections. Post-Petro era political realignment."
+    },
+    {
+      "event_id": "E62",
+      "title_zh": "歐洲冠軍聯賽決賽",
+      "title_en": "UEFA Champions League Final 2026",
+      "domain": "Culture/Sports",
+      "expected_date": "2026-05-30",
+      "description": "The Champions League Final at Puskas Arena, Budapest, Hungary. European club football's ultimate prize."
+    }
+  ]
+}

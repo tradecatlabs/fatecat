@@ -1,3 +1,12 @@
+---
+id: ARCHIVE-ARCHIVE-TASKS-PROJECT-HISTORY-0002-BAZI-ZIWEI-BENCHMARK-HARDENING-ACCEPTANCE
+type: archive
+status: archived
+owner: engineering
+created: 2026-06-17
+last_reviewed: 2026-06-17
+review_cycle: P365D
+---
 # Task-Level Acceptance
 - 八字 P0 边界、格局、用神、强弱、干支关系和运势触发有可复现测试或 golden。
 - 紫微 P0 命盘、星曜、宫位关系、四化、运限和解释层有可复现测试或 golden。
