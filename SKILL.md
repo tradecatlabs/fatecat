@@ -1,11 +1,11 @@
 ---
 name: fatecat
-description: "FateCat 执行型命理排盘 skill：安装并校验当前仓库，执行纯分析排盘，输出 JSON / Markdown，启动 Web / API / Telegram 交付层，并在发布前运行仓库卫生与生产就绪门禁。Use when 用户要求排盘、生成报告、启动 Web/API/Bot、验收 skill、导出 bundle、检查生产可用性。"
+description: "FateCat 执行型测算基础设施 skill：安装并校验当前仓库，执行生产化 capability，输出 JSON / Markdown，启动 Web / API / Telegram 交付层，并在发布前运行仓库卫生与生产就绪门禁。Use when 用户要求测算、排盘、生成报告、启动 Web/API/Bot、验收 skill、导出 bundle、检查生产可用性。"
 ---
 
 # fatecat Skill
 
-把 FateCat 从“仓库已存在”推进到“依赖就绪、健康通过、能真实执行排盘并交付结果”。本 skill 只编排当前仓库能力，不重写命理算法，不用文档替代真实命令证据。
+把 FateCat 从“仓库已存在”推进到“依赖就绪、健康通过、能真实执行测算 capability 并交付结果”。FateCat 是面向 Agent 与应用开发者的测算基础设施，提供统一的能力协议、可复现计算核心、证据化解释层和多端交付接口。本 skill 只编排当前仓库能力，不重写命理算法，不用文档替代真实命令证据。
 
 ## When to Use This Skill
 

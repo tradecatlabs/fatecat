@@ -4,7 +4,7 @@
 
 当前根目录是 FateCat 企业级系统仓库真相源：结构采用 `apps`、`ai`、`domains`、`platform`、`infra`、`contracts`、`catalog`、`governance`、`shared`、`tools`、`docs`、`scripts`、`tests` canonical roots；运行、测试、导出和治理入口全部从企业根解析。
 
-项目主旨：整理综合全部预测流派，首先完善中国传统主流和有效开源仓库，复用先于自写。
+项目主旨：FateCat 是面向 Agent 与应用开发者的测算基础设施，提供统一的能力协议、可复现计算核心、证据化解释层和多端交付接口。八字、紫微、黄历、梅花等体系都是独立 capability provider；复用成熟开源和稳定平台能力先于自写。
 
 ## 目录结构
 

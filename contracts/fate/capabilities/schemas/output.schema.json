@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "description": "统一预测能力输出契约说明。",
+  "description": "统一测算能力输出契约说明。",
   "requiredFields": ["capabilityId", "status", "reportProfile", "data", "evidence", "risk"],
   "visibilityRule": "默认综合八字报告只消费 capabilityId=bazi；其他体系必须 standalone 输出。",
   "dataRule": "data 保存结构化结果，不直接拼 Markdown。",

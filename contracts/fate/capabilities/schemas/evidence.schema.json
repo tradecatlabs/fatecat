@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "description": "统一预测能力 evidence 契约说明。",
+  "description": "统一测算能力 evidence 契约说明。",
   "requiredFields": ["required", "fields"],
   "commonEvidenceFields": [
     "source",

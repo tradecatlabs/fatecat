@@ -47,7 +47,7 @@ def test_build_branding_text_puts_disclaimer_before_branding():
     text = build_branding_text(compact=False)
 
     assert text.startswith("⚠️ 免责声明")
-    assert "TradeCat Labs｜FateCat 命理 AI 实验室项目" in text
+    assert "TradeCat Labs｜FateCat 测算基础设施" in text
 
 
 def test_full_report_puts_sponsor_before_report_and_drops_extension_blocks():

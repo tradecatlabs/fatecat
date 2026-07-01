@@ -279,11 +279,11 @@ def build_parser() -> argparse.ArgumentParser:
     health_parser.add_argument("--output-file", help="将结果写入指定文件")
     health_parser.set_defaults(handler=_run_health)
 
-    capabilities_parser = subparsers.add_parser("capabilities", help="列出统一预测能力注册表")
+    capabilities_parser = subparsers.add_parser("capabilities", help="列出统一测算能力注册表")
     capabilities_parser.add_argument("--pretty", action="store_true", help="格式化输出 JSON")
     capabilities_parser.set_defaults(handler=_run_capabilities)
 
-    capability_parser = subparsers.add_parser("capability", help="执行指定生产化预测能力")
+    capability_parser = subparsers.add_parser("capability", help="执行指定生产化测算能力")
     capability_parser.add_argument("capability_id", help="能力 ID，例如 bazi")
     capability_parser.add_argument("--input-json", help="直接传入 JSON 字符串")
     capability_parser.add_argument("--input-file", help="从 JSON 文件读取输入")

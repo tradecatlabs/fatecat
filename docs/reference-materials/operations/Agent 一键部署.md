@@ -1,8 +1,8 @@
 # FateCat Agent 一键部署
 
-> TradeCat Labs｜FateCat 命理 AI 实验室项目
-> FateCat 是 TradeCat Labs 的实验室项目。
-> 以成熟命理排盘、结构化报告与 Agent 交付为基础，探索 AI 命理分析基础设施。
+> TradeCat Labs｜FateCat 测算基础设施
+> FateCat 是面向 Agent 与应用开发者的测算基础设施。
+> 提供统一的能力协议、可复现计算核心、证据化解释层和多端交付接口。
 > DEX Screener：`https://dexscreener.com/bsc/0x8a99b8d53eff6bc331af529af74ad267f3167777`
 > X：`https://x.com/tradecatlabs`
 > GitHub：`https://github.com/tradecatlabs`

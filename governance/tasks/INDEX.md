@@ -14,3 +14,5 @@
 | 0005 | bazi-capability-100-roadmap | Blocked | P0 | 调研并设计把八字功能十个完善度维度从当前基线推进到100%的任务树、验收门禁和执行波次计划。当前被真实 corpus 数量门禁阻塞。 | 0005-bazi-capability-100-roadmap/ |
 
 | 0006 | business-logic-audit-remediation | Done | P0 | 修复 REVIEW-0001 业务代码业务模型与业务逻辑审计发现的阻塞级和警告级问题，恢复 fate-core 领域边界、业务选项语义一致性、入口真相源一致性、坐标边界校验和治理汇报准确性。 | 0006-business-logic-audit-remediation/ |
+
+| 0007 | measurement-infrastructure-foundation | In Progress | P0 | 把 FateCat 从命理工具集合升级为面向 Agent 与应用开发者的测算基础设施基线：统一能力协议、可复现计算核心、证据化解释层、多端交付接口、能力成熟度和生产门禁。 | 0007-measurement-infrastructure-foundation/ |

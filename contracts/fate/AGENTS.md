@@ -2,7 +2,7 @@
 
 ## 目录用途
 
-`contracts/fate/` 存放 FateCat 命理核心能力、字段、profile、权重和规则深度契约，是输出字段口径的配置真相源。
+`contracts/fate/` 存放 FateCat 测算基础设施的能力协议、字段、profile、权重和规则深度契约，是输出字段口径的配置真相源。
 
 ## 目录结构
 
@@ -24,7 +24,7 @@ contracts/fate/
 
 ## 职责边界
 
-- `capabilities/`：统一预测能力协议与注册表；默认能力只能是 `bazi`，其他体系必须独立输出或保持 planned。
+- `capabilities/`：统一测算能力协议与注册表；默认能力只能是 `bazi`，其他体系必须独立输出或保持 planned。
 - `future_features.json`：记录不再进入标准报告、后续需按新功能重新设计契约的候选能力。
 - `evidence_schema.json`：综合八字机器可读 evidence 字段契约；默认不渲染到 Markdown。
 - `weight_policy.json`：综合八字核心、动态、辅助、民俗权重边界。

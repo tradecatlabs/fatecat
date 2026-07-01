@@ -7,12 +7,12 @@ sdk: docker
 app_port: 7860
 pinned: false
 license: mit
-short_description: TradeCat Labs FateCat Web Markdown report workbench.
+short_description: TradeCat Labs FateCat measurement infrastructure workbench.
 ---
 
 # FateCat Web Markdown Workbench
 
-FateCat 是 TradeCat Labs 的命理 AI 实验室项目。这个 Space 提供免费的 Web 工作台，用于生成服务端 Markdown 命理排盘报告。
+FateCat 是面向 Agent 与应用开发者的测算基础设施，提供统一的能力协议、可复现计算核心、证据化解释层和多端交付接口。这个 Space 提供免费的 Web 工作台，用于生成服务端 Markdown 测算报告。
 
 ## 入口
 

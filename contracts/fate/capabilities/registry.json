@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "description": "FateCat 统一预测能力注册表。默认报告只允许 bazi，其余体系必须独立 capability 化。",
+  "description": "FateCat 统一测算能力注册表。默认报告只允许 bazi，其余体系必须独立 capability 化。",
   "capabilities": [
     {
       "capabilityId": "bazi",

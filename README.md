@@ -6,9 +6,9 @@
 
 <div align="center">
 
-**把专业命理排盘结果变成 AI 可稳定消费的结构化输入**
+**FateCat 是面向 Agent 与应用开发者的测算基础设施，提供统一的能力协议、可复现计算核心、证据化解释层和多端交付接口。**
 
-**外部成熟算法 × 纯命理分析内核 × CLI / Web / Telegram / FastAPI / Agent 统一交付层**
+**统一能力协议 × 可复现计算核心 × 证据化解释层 × CLI / Web / Telegram / FastAPI / Agent 多端交付接口**
 
 <p>
   <a href="https://tradecatlabs-fatecat.hf.space/web"><strong>立即免费使用 FateCat Web 工作台</strong></a>
@@ -48,7 +48,7 @@
 > 本项目及 AI 分析结果仅供传统文化研究、算法测试与娱乐参考。命理学非精密科学，命运掌握在自己手中。使用者因轻信或误读本程序结果而产生的任何心理、财务及生活决策后果，本开源项目及开发者概不负责。
 
 > [!TIP]
-> `FateCat` 是 `TradeCat Labs` 的实验室项目。推荐工作流：先用成熟排盘系统完成专业排盘，再把结构化命盘交给 AI / Agent 深度分析，尽量减少模型乱编。
+> `FateCat` 是 `TradeCat Labs` 的测算基础设施项目。推荐工作流：先由成熟算法或生产 capability 完成确定性计算，再把结构化结果交给 AI / Agent 深度分析，尽量减少模型乱编。
 >
 > - DEX Screener: `https://dexscreener.com/bsc/0x8a99b8d53eff6bc331af529af74ad267f3167777`
 > - X: `https://x.com/tradecatlabs`
@@ -61,17 +61,17 @@
 
 ## 项目总览
 
-FateCat 不是让 AI 直接“脑补排盘”，而是把“排盘”和“解释”拆开：
+FateCat 是面向 Agent 与应用开发者的测算基础设施，提供统一的能力协议、可复现计算核心、证据化解释层和多端交付接口。它不是让 AI 直接“脑补排盘”，而是把“确定性计算”和“解释交付”拆开：
 
-1. 成熟排盘系统或外部算法负责结构化计算。
-2. FateCat 负责统一字段、统一输出、统一交付入口。
+1. 成熟排盘系统、外部算法或生产 capability 负责可复现结构化计算。
+2. FateCat 负责统一能力协议、统一字段、统一证据链、统一输出和统一交付入口。
 3. AI / Agent 只基于稳定 JSON 或标准 Markdown 做解释、总结与后续任务。
 
 | 维度 | 说明 |
 |------|------|
-| 项目角色 | 专业排盘结果到 AI 分析结果之间的结构化中间层 |
+| 项目角色 | 面向 Agent 与应用开发者的测算基础设施 |
 | 当前形态 | 企业级系统仓库；源码、运行资产、契约、治理和导出入口均从 canonical roots 解析 |
-| 推荐链路 | `成熟排盘系统` -> `FateCat pure-analysis` -> `AI / Web / Telegram / API / Agent` |
+| 推荐链路 | `成熟算法 / capability provider` -> `FateCat capability executor` -> `AI / Web / Telegram / API / Agent` |
 | 核心真相源 | 目标为 `contracts/fate/` 定义字段与 capability 契约，`tools/reference-repos/` 或供应链 manifest 保留成熟算法快照 |
 | 明确边界 | 不让 AI 直接口算排盘，不在 vendor 快照内魔改外部源码；复用先于自写 |
 
@@ -89,7 +89,7 @@ FateCat 不是让 AI 直接“脑补排盘”，而是把“排盘”和“解�
 
 生产候选源码当前归位：
 
-- `domains/fate-analysis/services/fate-core/src/`：纯命理分析内核。
+- `domains/fate-analysis/services/fate-core/src/`：测算计算、能力执行与解释证据核心。
 - `domains/experience-delivery/services/fatecat-delivery/src/`：Web HTML、Telegram、FastAPI、报告生成与交付适配。
 
 企业根运行资产当前归位：
@@ -121,9 +121,9 @@ FateCat 不是让 AI 直接“脑补排盘”，而是把“排盘”和“解�
 
 ```mermaid
 flowchart LR
-    A[成熟排盘系统] --> B[外部成熟算法 tools/reference-repos]
-    B --> C[fate-core 纯分析服务 domains/fate-analysis]
-    F[字段 profile contracts/fate] --> C
+    A[成熟算法 / capability provider] --> B[外部成熟算法 tools/reference-repos]
+    B --> C[fate-core 测算能力执行服务 domains/fate-analysis]
+    F[capability / profile / evidence contracts/fate] --> C
     G[配置 / 数据 / schema infra + data-products] --> C
     C --> D[稳定 JSON + branding + disclaimer]
     D --> E1[CLI]
@@ -138,11 +138,11 @@ flowchart LR
 推荐工作流：
 
 ```text
-成熟排盘系统
+成熟算法 / capability provider
         ↓
-FateCat pure-analysis 输出稳定 JSON
+FateCat capability executor 输出稳定 JSON / Markdown
         ↓
-AI 基于结构化字段做命理解读
+AI 基于结构化字段和 evidence 做解释
         ↓
 Web / Telegram / API / Agent 继续交付
 ```

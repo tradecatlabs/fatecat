@@ -69,8 +69,8 @@ def test_web_page_renders_semantic_form():
     assert "<title>FateCat Web Markdown 报告</title>" in text
     assert "<h1>FateCat Web Markdown 报告</h1>" not in text
     assert '<h2 id="project-brand">项目归属</h2>' in text
-    assert "TradeCat Labs｜FateCat 命理 AI 实验室项目" in text
-    assert "FateCat 是 TradeCat Labs 的实验室项目。" in text
+    assert "TradeCat Labs｜FateCat 测算基础设施" in text
+    assert "FateCat 是面向 Agent 与应用开发者的测算基础设施。" in text
     assert "https://dexscreener.com/bsc/0x8a99b8d53eff6bc331af529af74ad267f3167777" in text
     assert "https://x.com/tradecatlabs" in text
     assert "https://github.com/tradecatlabs" in text
