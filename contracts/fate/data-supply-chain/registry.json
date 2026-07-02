@@ -329,7 +329,7 @@
           "path": "tools/reference-repos/vendor_sources.json",
           "role": "vendor_manifest",
           "required": true,
-          "sha256": "8f3a521ee96a8e0f4d686aeb0c2268bed8b98fab657e025fbe3824fbffe9a802"
+          "sha256": "88a55d1cc34ba990dd595ef617db1338ffc70bab35ed353aaffad842d50f6868"
         },
         {
           "path": "tools/reference-repos/github",

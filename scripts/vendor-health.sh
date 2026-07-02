@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import subprocess
 import sys
 from pathlib import Path
 
@@ -80,7 +81,56 @@ def snapshot_files_from_fs(path: Path) -> list[str]:
     return sorted(files)
 
 
+def snapshot_files_from_git(path: Path) -> list[str]:
+    try:
+        repo_root_raw = subprocess.check_output(
+            ["git", "-C", str(path), "rev-parse", "--show-toplevel"],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return []
+
+    repo_root = Path(repo_root_raw)
+    try:
+        rel_root = path.resolve().relative_to(repo_root.resolve()).as_posix()
+    except ValueError:
+        return []
+
+    try:
+        output = subprocess.check_output(
+            ["git", "-C", str(repo_root), "ls-files", "-z", "--", rel_root],
+            stderr=subprocess.DEVNULL,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return []
+
+    files: list[str] = []
+    for raw in output.split(b"\0"):
+        if not raw:
+            continue
+        repo_rel = Path(raw.decode("utf-8"))
+        try:
+            rel = repo_rel.relative_to(rel_root).as_posix()
+        except ValueError:
+            continue
+        rel_parts = Path(rel).parts
+        if any(part in IGNORED_DIRS for part in rel_parts):
+            continue
+        item = repo_root / repo_rel
+        if item.is_symlink():
+            continue
+        if item.is_file():
+            if item.name in IGNORED_FILE_NAMES or item.suffix in IGNORED_FILE_SUFFIXES:
+                continue
+            files.append(rel)
+    return sorted(files)
+
+
 def snapshot_files(path: Path) -> list[str]:
+    git_files = snapshot_files_from_git(path)
+    if git_files:
+        return git_files
     return snapshot_files_from_fs(path)
 
 

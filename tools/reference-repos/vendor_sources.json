@@ -71,7 +71,7 @@
       "revision": "unknown",
       "retrievedAt": "unknown",
       "revisionStatus": "legacy_snapshot_no_git_metadata",
-      "snapshotSha256": "195f863dd4c66f3925a757ea0c23255803ac0a27aa831500bafefd87064370be",
+      "snapshotSha256": "3817f93a677e0c63b353a94fa7275199f21582a36397edc2f90685b58aae9325",
       "usageRole": "production_dependency",
       "productionUseAllowed": true,
       "licenseEvidence": "tools/reference-repos/github/iztro-main/LICENSE",
@@ -351,7 +351,7 @@
       "riskNote": "多体系综合候选；接入前需完成架构适配、输出契约和许可证复核。",
       "retrievedAt": "2026-07-01",
       "revisionStatus": "git_shallow_clone_head",
-      "snapshotSha256": "a2ecc6ca4021333c3f537bc587b6c1083b5591524c8877a24fb9a6ec2735dca3",
+      "snapshotSha256": "beb51eec570c20dc60879c24ee4fed0d1a8eaf512d8f3a13394b65ccb0617124",
       "productionUseAllowed": false,
       "licenseEvidence": "tools/reference-repos/github/mingyu-main/packages/core/LICENSE"
     },
@@ -522,7 +522,7 @@
       "riskNote": "上游含 AGPL 与自定义仓库边界；已删除 node_modules 运行态目录，接入前需法律和架构复核。",
       "retrievedAt": "2026-07-01",
       "revisionStatus": "git_shallow_clone_head_sanitized",
-      "snapshotSha256": "0be1f6a364eabebbfbd6ea3a88f7ca9a3b4ee5e254f40f362cb6ddd05da52a94",
+      "snapshotSha256": "354273a5c37b3f5a0f1a3db8e126cee4096b80273ed0464ea345600770c727d1",
       "productionUseAllowed": false,
       "licenseEvidence": "tools/reference-repos/github/taibu-master/LICENSE-AGPL-3.0.txt"
     },
@@ -579,7 +579,7 @@
       "riskNote": "综合算法研究候选；接入前需完成模块边界、测试和许可证复核。",
       "retrievedAt": "2026-07-01",
       "revisionStatus": "git_shallow_clone_head",
-      "snapshotSha256": "f037d1f01166ef156cadf48cb6dbcc2ada606456b73d74de0f6558d07ca70a27",
+      "snapshotSha256": "e3a6529cecefa9147f96bb430836a2fb6a7510487a9d75de26395d6f68b67cdf",
       "productionUseAllowed": false,
       "licenseEvidence": "tools/reference-repos/github/ZhouYiLab-main/LICENSE"
     }

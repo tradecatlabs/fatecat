@@ -3,7 +3,7 @@
 # Global Standards
 - [x] 不提交敏感信息、运行态 DB、缓存、大型 raw/vendor 产物。
 - [x] 本地门禁真实执行并记录。
-- [ ] Git 操作非破坏性。
+- [x] Git 操作非破坏性。
 - [ ] 远端 CI 只基于当前 commit 证据判断。
 
 # Task Package Checklists
@@ -20,12 +20,13 @@
 ## TP-03.01
 - [ ] 提交推送完成。
 - Verify: `git log -1 --oneline`、`git push origin main`。
-- Gate: 远端 `origin/main` 指向新 commit。
+- Gate: 远端 `origin/main` 指向修复后的新 commit。
 
 ## TP-04.01
 - [ ] 远端 CI 证据完成。
 - Verify: `gh run list --limit 10` 或 GitHub Actions URL。
 - Gate: run head SHA equals current commit。
+- Baseline note: Acceptance run `28572173184` failed on vendor hash drift; container run `28572173334` passed.
 
 ## TP-05.01
 - [ ] closeout 完成。
