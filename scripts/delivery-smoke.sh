@@ -134,7 +134,7 @@ bash "${script_dir}/preflight.sh" --mode delivery --bootstrap --pretty
 case "${target}" in
   api)
     echo "[delivery-smoke] start api -> ${log_file}"
-    bash "${script_dir}/serve-api.sh" > "${log_file}" 2>&1 &
+    FATE_SERVICE_HOST="${host}" FATE_SERVICE_PORT="${port}" bash "${script_dir}/serve-api.sh" > "${log_file}" 2>&1 &
     child_pid="$!"
     deadline=$((SECONDS + startup_timeout))
     while (( SECONDS < deadline )); do

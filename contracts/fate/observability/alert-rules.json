@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": "fatecat.tradecatlabs/v1",
+  "description": "FateCat 本地 alert rules baseline。这里定义告警口径和触发条件，不连接外部告警平台。",
+  "rules": [
+    {
+      "id": "alert.error_budget_burn",
+      "name": "Error budget burn",
+      "severity": "critical",
+      "condition": "availability burn rate exceeds 14x over 5m or 6x over 1h",
+      "signals": ["fatecat_request_errors_total", "fatecat_requests_total"],
+      "runbook": "docs/reference-materials/operations/测算基础设施 API 接入.md#观测资源入口"
+    },
+    {
+      "id": "alert.queue_depth",
+      "name": "Report job queue depth",
+      "severity": "warning",
+      "condition": "fatecat_report_job_queue_size / fatecat_report_job_queue_max >= 0.8 for 5m",
+      "signals": ["fatecat_report_job_queue_size", "fatecat_report_job_queue_max"],
+      "runbook": "docs/reference-materials/operations/测算基础设施 API 接入.md#观测资源入口"
+    },
+    {
+      "id": "alert.provider_outage",
+      "name": "Provider outage",
+      "severity": "critical",
+      "condition": "provider.calculate trace_span status=error for a production provider",
+      "signals": ["trace_span", "provider.calculate"],
+      "runbook": "docs/reference-materials/operations/测算基础设施 API 接入.md#provider-lifecycle-gate"
+    },
+    {
+      "id": "alert.secret_scan_failure",
+      "name": "Secret scan failure",
+      "severity": "critical",
+      "condition": "scripts/secret-scan.sh exits non-zero",
+      "signals": ["scripts/secret-scan.sh", "control.secret_scan"],
+      "runbook": "docs/reference-materials/operations/测算基础设施 API 接入.md#安全资源入口"
+    },
+    {
+      "id": "alert.evaluation_regression",
+      "name": "Evaluation regression",
+      "severity": "warning",
+      "condition": "scripts/compare-evaluations.sh reports policy violation",
+      "signals": ["scripts/run-evaluations.sh", "scripts/compare-evaluations.sh"],
+      "runbook": "docs/reference-materials/operations/测算基础设施 API 接入.md#评测资源入口"
+    }
+  ],
+  "privacyBoundary": "alert rules 只包含聚合指标、span 状态、脚本状态和 runbook 路径，不包含真实日志、用户输入、token、secret、DSN 或报告正文。",
+  "externalConnectivity": "external_connectivity_pending",
+  "metadata": {
+    "owner": "contracts/fate/observability",
+    "storage": "policy_only",
+    "risk": "这是本地告警规则 baseline，不代表 PagerDuty、Grafana Alerting、Prometheus Alertmanager 或云监控已接入。"
+  }
+}

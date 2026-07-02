@@ -11,6 +11,22 @@
 | `bazi/golden/coverage_matrix_cases.json` | 100+ 匿名八字结构覆盖矩阵，用于锁定四柱、起运、覆盖标签和失败解释 | 测试依赖 |
 | `calendar/solar_terms/golden/` | 节气 golden fixture，用于测试成熟历法库输出 | 测试依赖 |
 
+## 供应链门禁
+
+```bash
+bash scripts/data-supply-chain-gate.sh \
+  --output-json infra/runtime/local-state/exports/supply-chain/data-supply-chain-gate.json
+```
+
+该门禁校验：
+
+- `contracts/fate/data-supply-chain/registry.json` 的资产字段、usageRole、productionEligibility、exportPolicy。
+- `classics/*.txt` 是否全部进入 `source_manifest.tsv` 和 `copyright_review.tsv`，并且 bytes / sha256 与文件一致。
+- 节气 raw 来源 manifest 是否具备完整 hash 字段。
+- `vendor_sources.json` 中 production dependency 是否满足 SPDX license 与 `productionUseAllowed=true`。
+
+该门禁不提供法律意见，不读取 raw 私有资料，不改变 production provider 算法。
+
 ## 原始资料规则
 
 - raw 私有资料只作为本地来源资料和人工复核材料，不进入此 canonical 数据产品目录。

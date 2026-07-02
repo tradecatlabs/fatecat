@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "description": "FateCat 数据供应链资源契约。用于登记数据、典籍、vendor、benchmark、导出边界和生产使用资格；登记不等于完成法律审计或生产连通验证。",
+  "requiredRegistryFields": [
+    "schemaVersion",
+    "apiVersion",
+    "description",
+    "schemas",
+    "policies",
+    "assets"
+  ],
+  "requiredAssetFields": [
+    "resourceType",
+    "apiVersion",
+    "id",
+    "name",
+    "assetType",
+    "domain",
+    "lifecycleLayer",
+    "usageRole",
+    "status",
+    "privacyClass",
+    "source",
+    "paths",
+    "manifests",
+    "hashPolicy",
+    "licensePolicy",
+    "exportPolicy",
+    "productionEligibility",
+    "verification",
+    "metadata"
+  ],
+  "requiredPathFields": [
+    "path",
+    "role",
+    "required"
+  ],
+  "requiredLicensePolicyFields": [
+    "licenseStatus",
+    "auditRequired",
+    "productionUseAllowed",
+    "distributionAllowed",
+    "evidencePaths"
+  ],
+  "requiredExportPolicyFields": [
+    "status",
+    "allowedInPublicExport",
+    "reason"
+  ],
+  "requiredProductionEligibilityFields": [
+    "status",
+    "reason"
+  ],
+  "allowedAssetType": [
+    "coordinate_table",
+    "classics_corpus",
+    "golden_fixture",
+    "source_manifest",
+    "vendor_manifest",
+    "reference_repo",
+    "benchmark",
+    "external_archive"
+  ],
+  "allowedLifecycleLayer": [
+    "raw",
+    "canonical",
+    "derived",
+    "reference",
+    "runtime",
+    "export"
+  ],
+  "allowedUsageRole": [
+    "production_input",
+    "evaluation_only",
+    "oracle_only",
+    "rule_index_seed",
+    "research_reference",
+    "future_capability_reference",
+    "source_archive_only"
+  ],
+  "allowedStatus": [
+    "available",
+    "review_required",
+    "requires_reference_repo",
+    "requires_private_raw",
+    "blocked"
+  ],
+  "allowedPrivacyClass": [
+    "non_personal",
+    "anonymous_fixture",
+    "public_text",
+    "review_required"
+  ],
+  "allowedLicenseStatus": [
+    "spdx",
+    "public_domain_candidate",
+    "review_required",
+    "missing_upstream_license",
+    "mixed",
+    "not_applicable"
+  ],
+  "allowedExportStatus": [
+    "included",
+    "excluded",
+    "manifest_only",
+    "manual_review_required"
+  ],
+  "allowedProductionEligibilityStatus": [
+    "allowed",
+    "evaluation_only",
+    "oracle_only",
+    "review_required",
+    "reference_only",
+    "blocked"
+  ],
+  "invariants": [
+    "usageRole=production_input 的资产必须 productionEligibility.status=allowed 且 licensePolicy.productionUseAllowed=true",
+    "status=review_required 的资产不得 productionEligibility.status=allowed",
+    "status=blocked 的资产不得 allowedInPublicExport=true",
+    "raw 或 source_archive_only 资产不得作为 production input",
+    "benchmark 和 golden fixture 只能 evaluation_only 或 oracle_only，不得注入生产推理路径",
+    "paths 中 required=true 的文件必须存在且 hashPolicy 要么声明 sha256，要么由对应 source manifest 校验",
+    "classics canonical TXT 必须同时出现在 source_manifest.tsv 与 copyright_review.tsv",
+    "vendor manifest 中 usageRole=production_dependency 的条目必须 spdx 且 productionUseAllowed=true"
+  ]
+}

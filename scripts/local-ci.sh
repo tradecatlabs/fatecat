@@ -23,7 +23,7 @@ usage() {
 
 说明:
   - 本脚本是本地 CI/CD 调度入口，不调用 GitHub Actions，不 watch 远端 Acceptance。
-  - quick：本地快速门禁，覆盖 shell 语法、pure smoke、vendor、结构/卫生/隐私、ruff、format check、mypy、关键回归测试。
+  - quick：本地快速门禁，覆盖 shell 语法、pure smoke、vendor、数据供应链、结构/卫生/隐私、ruff、format check、mypy、关键回归测试。
   - full：本地完整验收，复用 scripts/acceptance.sh --with-dev。
   - container：真实 Docker 容器 build + smoke；--skip-container-build 可复用已有镜像。
   - public-service：公网服务静态准入门禁；可追加 --api-url 和 --require-live-bot 做外部验收。
@@ -98,6 +98,8 @@ runtime_root="$(resolve_runtime_root)"
 mkdir -p "${output_dir}"
 output_dir="$(cd "${output_dir}" && pwd)"
 python_bin="${runtime_root}/.venv/bin/python"
+started_at="$(date -Iseconds)"
+summary_finalized="0"
 
 run_step() {
   local name="$1"
@@ -141,8 +143,38 @@ run_quick() {
   run_step "vendor health" bash "${script_dir}/vendor-health.sh"
   run_step "structure gate" bash "${script_dir}/check-structure.sh"
   run_step "source hygiene" bash "${script_dir}/check-source-hygiene.sh"
+  run_step "secret scan" bash "${script_dir}/secret-scan.sh" --output-json "${output_dir}/secret-scan.json"
+  run_step "production security gate" bash "${script_dir}/production-security-gate.sh" \
+    --output-json "${output_dir}/production-security-gate.json"
   run_step "privacy fixtures" bash "${script_dir}/check-privacy-fixtures.sh"
   run_step "public release policy" bash "${script_dir}/check-public-release-policy.sh"
+  run_step "developer docs smoke" bash "${script_dir}/developer-docs-smoke.sh" \
+    --output-json "${output_dir}/developer-docs-smoke.json" \
+    --openapi-json "${output_dir}/openapi.json"
+  run_step "provider lifecycle gate" bash "${script_dir}/provider-lifecycle-gate.sh" \
+    --output-json "${output_dir}/provider-lifecycle-gate.json"
+  run_step "provider dependency smoke" bash "${script_dir}/provider-dependency-smoke.sh" \
+    --output-json "${output_dir}/provider-dependency-smoke.json"
+  run_step "observability SLO gate" bash "${script_dir}/observability-slo-gate.sh" \
+    --output-json "${output_dir}/observability-slo-gate.json"
+  run_step "observability trace SLO smoke" bash "${script_dir}/observability-trace-slo-smoke.sh" \
+    --output-json "${output_dir}/observability-trace-slo-smoke.json"
+  run_step "bazi ziwei L4 golden smoke" bash "${script_dir}/bazi-ziwei-l4-golden-smoke.sh" \
+    --profile quick \
+    --output-json "${output_dir}/bazi-ziwei-l4-golden-smoke.json"
+  run_step "data supply chain gate" bash "${script_dir}/data-supply-chain-gate.sh" \
+    --output-json "${output_dir}/data-supply-chain-gate.json"
+  run_step "release artifacts" bash "${script_dir}/release-artifacts.sh" \
+    --output-dir "${output_dir}/release-artifacts" \
+    --summary-json "${output_dir}/release-artifacts-summary.json"
+  run_step "evaluation dashboard smoke" bash "${script_dir}/evaluation-dashboard-smoke.sh" \
+    --output-dir "${output_dir}/evaluation-dashboard-smoke"
+  run_step "webhook smoke" bash "${script_dir}/webhook-smoke.sh" \
+    --output-json "${output_dir}/webhook-smoke.json"
+  run_step "live release gate contract" bash "${script_dir}/live-release-gate.sh" \
+    --sbom-path "${output_dir}/release-artifacts/sbom.cyclonedx.json" \
+    --provenance-path "${output_dir}/release-artifacts/provenance.slsa.json" \
+    --output-json "${output_dir}/live-release-gate.json"
   run_step "ruff check" env RUFF_CACHE_DIR="${RUFF_CACHE_DIR:-/tmp/fatecat-ruff-cache}" \
     "${python_bin}" -m ruff check "${runtime_root}"
   run_step "ruff format check" env RUFF_CACHE_DIR="${RUFF_CACHE_DIR:-/tmp/fatecat-ruff-cache}" \
@@ -157,8 +189,26 @@ run_quick() {
     cd "${runtime_root}"
     "${python_bin}" -m pytest -q \
       tests/regression/test_api_contracts.py \
+      tests/regression/test_bazi_ziwei_l4_golden_smoke.py \
       tests/regression/test_branding_support.py \
-      tests/regression/test_web_html.py
+      tests/regression/test_data_supply_chain_gate.py \
+      tests/regression/test_developer_docs_smoke.py \
+      tests/regression/test_evaluation_dashboard.py \
+      tests/regression/test_evaluation_history_diff.py \
+      tests/regression/test_evaluation_runner.py \
+      tests/regression/test_observability_smoke.py \
+      tests/regression/test_observability_trace_slo.py \
+      tests/regression/test_provider_dependency_smoke.py \
+      tests/regression/test_provider_lifecycle_gate.py \
+      tests/regression/test_production_security_gate.py \
+      tests/regression/test_secret_scan.py \
+      tests/regression/test_security_smoke.py \
+      tests/regression/test_web_html.py \
+      tests/regression/test_webhook_smoke.py \
+      tests/regression/test_live_release_gate.py \
+      tests/regression/test_container_release_evidence.py \
+      tests/regression/test_release_artifacts.py \
+      tests/regression/test_rollback_drill.py
   )
   run_step "git whitespace check" git -C "${runtime_root}" diff --check
 }
@@ -200,15 +250,142 @@ run_public_service() {
 }
 
 write_summary() {
+  local exit_code="${1:-0}"
+  if [[ "${summary_finalized}" == "1" ]]; then
+    return 0
+  fi
+  summary_finalized="1"
+  set +e
+
+  local status="failed"
+  if [[ "${exit_code}" == "0" ]]; then
+    status="passed"
+  fi
+
   local summary_file="${output_dir}/summary.txt"
+  local summary_json="${output_dir}/summary.json"
+  local finished_at
+  finished_at="$(date -Iseconds)"
+  local commit
+  commit="$(git -C "${runtime_root}" rev-parse --verify HEAD 2>/dev/null || true)"
+  local branch
+  branch="$(git -C "${runtime_root}" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+  local dirty_count
+  dirty_count="$(git -C "${runtime_root}" status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
+  local untracked_count
+  untracked_count="$(git -C "${runtime_root}" status --porcelain 2>/dev/null | grep -c '^??' || true)"
+
   {
     printf 'profile=%s\n' "${profile}"
+    printf 'status=%s\n' "${status}"
+    printf 'exit_code=%s\n' "${exit_code}"
     printf 'runtime_root=%s\n' "${runtime_root}"
-    printf 'commit=%s\n' "$(git -C "${runtime_root}" rev-parse --verify HEAD 2>/dev/null || true)"
-    printf 'timestamp=%s\n' "$(date -Iseconds)"
+    printf 'commit=%s\n' "${commit}"
+    printf 'started_at=%s\n' "${started_at}"
+    printf 'finished_at=%s\n' "${finished_at}"
+    printf 'summary_json=%s\n' "${summary_json}"
   } > "${summary_file}"
-  echo "[local-ci] done profile=${profile} evidence=${output_dir}"
+
+  local summary_python="${python_bin}"
+  if [[ ! -x "${summary_python}" ]]; then
+    summary_python="python3"
+  fi
+
+  FATE_LOCAL_CI_SUMMARY_JSON="${summary_json}" \
+  FATE_LOCAL_CI_SCHEMA_VERSION="1" \
+  FATE_LOCAL_CI_KIND="fatecat.local_ci_summary" \
+  FATE_LOCAL_CI_PROFILE="${profile}" \
+  FATE_LOCAL_CI_STATUS="${status}" \
+  FATE_LOCAL_CI_EXIT_CODE="${exit_code}" \
+  FATE_LOCAL_CI_STARTED_AT="${started_at}" \
+  FATE_LOCAL_CI_FINISHED_AT="${finished_at}" \
+  FATE_LOCAL_CI_RUNTIME_ROOT="${runtime_root}" \
+  FATE_LOCAL_CI_COMMIT="${commit}" \
+  FATE_LOCAL_CI_BRANCH="${branch}" \
+  FATE_LOCAL_CI_DIRTY_COUNT="${dirty_count}" \
+  FATE_LOCAL_CI_UNTRACKED_COUNT="${untracked_count}" \
+  FATE_LOCAL_CI_SUMMARY_TEXT="${summary_file}" \
+  FATE_LOCAL_CI_PREFLIGHT_PURE="${output_dir}/preflight-pure.json" \
+  FATE_LOCAL_CI_SECRET_SCAN="${output_dir}/secret-scan.json" \
+  FATE_LOCAL_CI_PRODUCTION_SECURITY_GATE="${output_dir}/production-security-gate.json" \
+  FATE_LOCAL_CI_DEVELOPER_DOCS_SMOKE="${output_dir}/developer-docs-smoke.json" \
+  FATE_LOCAL_CI_OPENAPI="${output_dir}/openapi.json" \
+  FATE_LOCAL_CI_PROVIDER_LIFECYCLE_GATE="${output_dir}/provider-lifecycle-gate.json" \
+  FATE_LOCAL_CI_PROVIDER_DEPENDENCY_SMOKE="${output_dir}/provider-dependency-smoke.json" \
+  FATE_LOCAL_CI_OBSERVABILITY_SLO_GATE="${output_dir}/observability-slo-gate.json" \
+  FATE_LOCAL_CI_OBSERVABILITY_TRACE_SLO_SMOKE="${output_dir}/observability-trace-slo-smoke.json" \
+  FATE_LOCAL_CI_BAZI_ZIWEI_L4_GOLDEN_SMOKE="${output_dir}/bazi-ziwei-l4-golden-smoke.json" \
+  FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE="${output_dir}/data-supply-chain-gate.json" \
+  FATE_LOCAL_CI_RELEASE_ARTIFACTS="${output_dir}/release-artifacts" \
+  FATE_LOCAL_CI_RELEASE_ARTIFACTS_SUMMARY="${output_dir}/release-artifacts-summary.json" \
+  FATE_LOCAL_CI_EVALUATION_DASHBOARD_SMOKE="${output_dir}/evaluation-dashboard-smoke" \
+  FATE_LOCAL_CI_WEBHOOK_SMOKE="${output_dir}/webhook-smoke.json" \
+  FATE_LOCAL_CI_LIVE_RELEASE_GATE="${output_dir}/live-release-gate.json" \
+  "${summary_python}" - <<'PY'
+import json
+import os
+from pathlib import Path
+
+
+def env(name: str) -> str:
+    return os.environ.get(name, "")
+
+
+payload = {
+    "schemaVersion": int(env("FATE_LOCAL_CI_SCHEMA_VERSION") or "1"),
+    "kind": env("FATE_LOCAL_CI_KIND"),
+    "profile": env("FATE_LOCAL_CI_PROFILE"),
+    "status": env("FATE_LOCAL_CI_STATUS"),
+    "exitCode": int(env("FATE_LOCAL_CI_EXIT_CODE") or "1"),
+    "startedAt": env("FATE_LOCAL_CI_STARTED_AT"),
+    "finishedAt": env("FATE_LOCAL_CI_FINISHED_AT"),
+    "runtimeRoot": env("FATE_LOCAL_CI_RUNTIME_ROOT"),
+    "commit": env("FATE_LOCAL_CI_COMMIT"),
+    "git": {
+        "branch": env("FATE_LOCAL_CI_BRANCH"),
+        "dirtyCount": int(env("FATE_LOCAL_CI_DIRTY_COUNT") or "0"),
+        "untrackedCount": int(env("FATE_LOCAL_CI_UNTRACKED_COUNT") or "0"),
+    },
+    "artifacts": {
+        "summaryText": env("FATE_LOCAL_CI_SUMMARY_TEXT"),
+        "preflightPure": env("FATE_LOCAL_CI_PREFLIGHT_PURE"),
+        "secretScan": env("FATE_LOCAL_CI_SECRET_SCAN"),
+        "productionSecurityGate": env("FATE_LOCAL_CI_PRODUCTION_SECURITY_GATE"),
+        "developerDocsSmoke": env("FATE_LOCAL_CI_DEVELOPER_DOCS_SMOKE"),
+        "openapi": env("FATE_LOCAL_CI_OPENAPI"),
+        "providerLifecycleGate": env("FATE_LOCAL_CI_PROVIDER_LIFECYCLE_GATE"),
+        "providerDependencySmoke": env("FATE_LOCAL_CI_PROVIDER_DEPENDENCY_SMOKE"),
+        "observabilitySloGate": env("FATE_LOCAL_CI_OBSERVABILITY_SLO_GATE"),
+        "observabilityTraceSloSmoke": env("FATE_LOCAL_CI_OBSERVABILITY_TRACE_SLO_SMOKE"),
+        "baziZiweiL4GoldenSmoke": env("FATE_LOCAL_CI_BAZI_ZIWEI_L4_GOLDEN_SMOKE"),
+        "dataSupplyChainGate": env("FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE"),
+        "releaseArtifacts": env("FATE_LOCAL_CI_RELEASE_ARTIFACTS"),
+        "releaseArtifactsSummary": env("FATE_LOCAL_CI_RELEASE_ARTIFACTS_SUMMARY"),
+        "evaluationDashboardSmoke": env("FATE_LOCAL_CI_EVALUATION_DASHBOARD_SMOKE"),
+        "webhookSmoke": env("FATE_LOCAL_CI_WEBHOOK_SMOKE"),
+        "liveReleaseGate": env("FATE_LOCAL_CI_LIVE_RELEASE_GATE"),
+    },
+    "privacyBoundary": "只记录命令产物路径、commit 和状态，不复制测试日志全文或用户报告内容。",
+    "limitations": [
+        "该 summary 只证明本地 local-ci profile 执行结果，不代表远端 GitHub Actions 通过。",
+        "该 summary 不证明真实生产 API、HF Space、Telegram Bot、container digest 或 rollback drill 已完成。",
+    ],
 }
+
+Path(env("FATE_LOCAL_CI_SUMMARY_JSON")).write_text(
+    json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+    encoding="utf-8",
+)
+PY
+
+  if [[ "${status}" == "passed" ]]; then
+    echo "[local-ci] done profile=${profile} evidence=${output_dir}"
+  else
+    echo "[local-ci] failed profile=${profile} evidence=${output_dir} exit_code=${exit_code}" >&2
+  fi
+}
+
+trap 'rc=$?; write_summary "${rc}"' EXIT
 
 case "${profile}" in
   quick)
@@ -230,5 +407,3 @@ case "${profile}" in
     run_public_service
     ;;
 esac
-
-write_summary

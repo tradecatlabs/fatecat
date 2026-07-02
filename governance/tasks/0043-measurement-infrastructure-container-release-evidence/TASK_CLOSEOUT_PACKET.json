@@ -1,0 +1,86 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-02T14:45:26+08:00",
+  "task": {
+    "task_id": "0043",
+    "slug": "measurement-infrastructure-container-release-evidence",
+    "task_dir": "governance/tasks/0043-measurement-infrastructure-container-release-evidence",
+    "detected_phase": "closeout",
+    "overall_status": "Done"
+  },
+  "source_refs": {
+    "task_context_packet": null,
+    "task_package_set": null,
+    "git_delivery_evidence": null
+  },
+  "closeout_gate": {
+    "ready": true,
+    "failures": []
+  },
+  "summary": {
+    "leaf_total": 5,
+    "leaf_done": 5,
+    "todo_total": 5,
+    "todo_checked": 5,
+    "blocker_count": 0
+  },
+  "leaves": [
+    {
+      "id": "TP-01.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`docker version` 可用，现有 container build/smoke 脚本可复用",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-02.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`/tmp/fatecat-container-release-0043.json` 生成，`buildStatus=passed`、`smokeStatus=passed`",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-03.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`test_container_release_evidence.py` + `test_live_release_gate.py` 9 passed；组合 live gate `passed=5,pending=5`",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-04.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`/tmp/fatecat-public-release-0043/container-release-evidence.json` 生成，container smoke passed",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-05.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`bash scripts/local-ci.sh --profile quick --output /tmp/fatecat-local-ci-0043` -> `132 passed in 76.59s`",
+      "blocker": "无",
+      "unblock_needed": "生成 closeout"
+    }
+  ],
+  "git_delivery": null,
+  "recommended_asset_handoff": {
+    "source_refs": [],
+    "artifacts": [
+      "task-closeout-packet.json"
+    ]
+  },
+  "upstream_packets": {
+    "task_context_packet_loaded": false,
+    "task_package_set_loaded": false,
+    "git_delivery_evidence_loaded": false
+  }
+}

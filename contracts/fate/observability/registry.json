@@ -1,0 +1,245 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": "fatecat.tradecatlabs/v1",
+  "description": "FateCat 测算基础设施观测资源注册表。这里登记可发现的 health、ready、metrics、logs、trace/SLO/alert 信号，不保存运行时观测数据。",
+  "schemas": {
+    "observabilitySignal": "contracts/fate/observability/schemas/observability-signal.schema.json",
+    "resource": "contracts/fate/capabilities/schemas/resource.schema.json",
+    "sloPolicy": "contracts/fate/observability/slo-policy.json",
+    "alertRules": "contracts/fate/observability/alert-rules.json"
+  },
+  "signals": [
+    {
+      "resourceType": "ObservabilitySignal",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "signal.health",
+      "name": "HTTP health check",
+      "signalType": "health",
+      "status": "available",
+      "endpoint": "/health",
+      "fields": ["status"],
+      "localVerification": ["curl -sS http://127.0.0.1:8001/health"],
+      "privacyBoundary": "不包含用户输入、token、secret 或报告内容。",
+      "externalConnectivity": "not_required",
+      "links": {
+        "self": "/observability/signal.health",
+        "collection": "/observability",
+        "schema": "contracts/fate/observability/schemas/observability-signal.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/main.py",
+        "verificationScope": "服务进程存活",
+        "storage": "none",
+        "runtimeImpact": "constant-time endpoint",
+        "risk": "只证明进程响应，不证明依赖和生产链路健康。"
+      }
+    },
+    {
+      "resourceType": "ObservabilitySignal",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "signal.readiness",
+      "name": "HTTP readiness check",
+      "signalType": "readiness",
+      "status": "available",
+      "endpoint": "/ready",
+      "fields": ["status", "checks.database", "checks.capabilities"],
+      "localVerification": ["curl -sS http://127.0.0.1:8001/ready"],
+      "privacyBoundary": "不包含用户输入、token、secret 或报告内容。",
+      "externalConnectivity": "not_required",
+      "links": {
+        "self": "/observability/signal.readiness",
+        "collection": "/observability",
+        "schema": "contracts/fate/observability/schemas/observability-signal.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/main.py",
+        "verificationScope": "数据库可选状态与 capability registry 可加载性",
+        "storage": "none",
+        "runtimeImpact": "loads local registry and optional database",
+        "risk": "不代表真实域名、Bot webhook 或外部第三方连通验证完成。"
+      }
+    },
+    {
+      "resourceType": "ObservabilitySignal",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "signal.http_request_metrics",
+      "name": "HTTP request Prometheus metrics",
+      "signalType": "metric",
+      "status": "available",
+      "endpoint": "/metrics",
+      "fields": [
+        "fatecat_requests_total",
+        "fatecat_request_latency_seconds_bucket",
+        "fatecat_request_latency_seconds_count",
+        "fatecat_request_latency_seconds_sum",
+        "fatecat_request_errors_total",
+        "fatecat_inflight_requests"
+      ],
+      "localVerification": ["curl -sS http://127.0.0.1:8001/metrics"],
+      "privacyBoundary": "metric labels 只包含 method、route、status、error_class；不得包含用户姓名、出生地、token 或请求体。",
+      "externalConnectivity": "not_required",
+      "links": {
+        "self": "/observability/signal.http_request_metrics",
+        "collection": "/observability",
+        "schema": "contracts/fate/observability/schemas/observability-signal.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/main.py",
+        "verificationScope": "HTTP 请求量、错误量、延迟直方图和 in-flight 计数",
+        "storage": "in-memory counters exposed as Prometheus text",
+        "runtimeImpact": "per-request counter and histogram update",
+        "risk": "单进程内存指标重启会清零；生产聚合需要外部 Prometheus 或等价 collector。"
+      }
+    },
+    {
+      "resourceType": "ObservabilitySignal",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "signal.job_and_queue_metrics",
+      "name": "Report job and Bot queue metrics",
+      "signalType": "metric",
+      "status": "available",
+      "endpoint": "/metrics",
+      "fields": [
+        "fatecat_calculation_slots_in_use",
+        "fatecat_calculation_slots_max",
+        "fatecat_report_job_queue_size",
+        "fatecat_report_job_queue_max",
+        "fatecat_report_job_store_backend_info",
+        "fatecat_report_job_workers",
+        "fatecat_report_jobs",
+        "fatecat_bot_queue_size",
+        "fatecat_bot_queue_scope_info",
+        "fatecat_bot_queue_max_size",
+        "fatecat_bot_concurrent_requests",
+        "fatecat_bot_max_concurrent_requests",
+        "fatecat_bot_user_cooldown_seconds",
+        "fatecat_bot_user_daily_limit"
+      ],
+      "localVerification": ["curl -sS http://127.0.0.1:8001/metrics"],
+      "privacyBoundary": "队列指标只暴露数量、容量、backend、scope 和限制配置，不暴露用户 ID、chat ID、报告内容或出生信息。",
+      "externalConnectivity": "not_required",
+      "links": {
+        "self": "/observability/signal.job_and_queue_metrics",
+        "collection": "/observability",
+        "schema": "contracts/fate/observability/schemas/observability-signal.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/main.py",
+        "verificationScope": "同步计算槽、异步报告 job、Telegram Bot 队列和限流配置",
+        "storage": "in-memory counters and report job store stats",
+        "runtimeImpact": "reads local queue state when /metrics is requested",
+        "risk": "memory/sqlite 后端只覆盖单副本本地任务状态；分布式队列和生产告警待后续实现。"
+      }
+    },
+    {
+      "resourceType": "ObservabilitySignal",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "signal.request_id_and_structured_logs",
+      "name": "Request ID and structured JSON logs",
+      "signalType": "log",
+      "status": "available",
+      "endpoint": "application logs",
+      "fields": ["event", "requestId", "method", "route", "statusCode", "elapsedMs", "errorClass", "errorType"],
+      "localVerification": [
+        ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k 'metadata or openapi'"
+      ],
+      "privacyBoundary": "结构化日志字段不得包含真实 token、secret、DSN、私钥、请求体、姓名、出生地区或报告正文。",
+      "externalConnectivity": "not_required",
+      "links": {
+        "self": "/observability/signal.request_id_and_structured_logs",
+        "collection": "/observability",
+        "schema": "contracts/fate/observability/schemas/observability-signal.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/main.py",
+        "verificationScope": "HTTP 请求日志、validation_error、unhandled_exception 和 business_error",
+        "storage": "process logger / deployment log sink",
+        "runtimeImpact": "one structured log line per request or handled exception",
+        "risk": "当前未接入集中日志系统；生产日志保留和检索策略待后续实现。"
+      }
+    },
+    {
+      "resourceType": "ObservabilitySignal",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "signal.provider_report_traces",
+      "name": "Provider and report trace spans",
+      "signalType": "trace",
+      "status": "available",
+      "endpoint": "application logs",
+      "fields": [
+        "traceId",
+        "spanId",
+        "parentSpanId",
+        "spanName",
+        "spanKind",
+        "durationMs",
+        "status",
+        "attributes"
+      ],
+      "localVerification": [
+        "bash scripts/observability-trace-slo-smoke.sh --output-json infra/runtime/local-state/exports/observability/trace-slo-smoke.json"
+      ],
+      "privacyBoundary": "本地 span 只允许记录 trace/span ID、span 名称、耗时、状态、错误类别和白名单聚合属性，不记录用户出生信息、报告正文、token、secret 或 DSN。",
+      "externalConnectivity": "external_connectivity_pending",
+      "links": {
+        "self": "/observability/signal.provider_report_traces",
+        "collection": "/observability",
+        "schema": "contracts/fate/observability/schemas/observability-signal.schema.json"
+      },
+      "metadata": {
+        "owner": "fate_core.observability + domains/experience-delivery/services/fatecat-delivery/src/main.py",
+        "verificationScope": "W3C traceparent 传播、HTTP request span、capability/provider/report 本地 span 日志",
+        "storage": "process structured logs; external collector pending",
+        "runtimeImpact": "per-request and per-provider local span log",
+        "risk": "当前是 OpenTelemetry 语义兼容的本地 span baseline，尚未接入 OpenTelemetry SDK exporter、collector、trace backend 或生产采样策略。"
+      }
+    },
+    {
+      "resourceType": "ObservabilitySignal",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "signal.slo_and_alerts",
+      "name": "SLO and alert policy",
+      "signalType": "slo",
+      "status": "available",
+      "endpoint": "contracts/fate/observability/slo-policy.json + contracts/fate/observability/alert-rules.json",
+      "fields": [
+        "availabilityTarget",
+        "latencyBudget",
+        "errorBudget",
+        "queueDepthAlert",
+        "providerErrorAlert",
+        "secretScanAlert",
+        "evaluationRegressionAlert"
+      ],
+      "localVerification": [
+        "bash scripts/observability-slo-gate.sh --output-json infra/runtime/local-state/exports/observability/slo-gate.json"
+      ],
+      "privacyBoundary": "SLO/alert policy 不包含用户数据或密钥。",
+      "externalConnectivity": "external_connectivity_pending",
+      "links": {
+        "self": "/observability/signal.slo_and_alerts",
+        "collection": "/observability",
+        "schema": "contracts/fate/observability/schemas/observability-signal.schema.json"
+      },
+      "metadata": {
+        "owner": "contracts/fate/observability",
+        "verificationScope": "本地 SLO/error budget 目标、alert rules、runbook 引用和隐私边界",
+        "storage": "policy files; external monitoring backend pending",
+        "runtimeImpact": "none at request time",
+        "risk": "当前只完成本地 SLO/alert policy baseline，不代表真实生产流量、Prometheus Alertmanager、Grafana、PagerDuty 或云监控已接入。"
+      }
+    }
+  ],
+  "metadata": {
+    "resourceType": "ObservabilityRegistry",
+    "externalConnectivity": "外部连通验证待执行",
+    "policy": "registry 只声明 signals、端点和边界；真实生产 SLO、alert 和 trace backend 必须来自外部监控证据。",
+    "defaultResponseRule": "API 只返回观测契约，不返回真实日志、指标快照、请求体或用户数据。",
+    "smokeCommand": "bash scripts/observability-smoke.sh",
+    "smokeOutput": "infra/runtime/local-state/exports/observability/smoke.json",
+    "smokeScope": "本地 TestClient 验证 health、ready、metrics、request-id、结构化 http_request log 和 registry metadata；不接入 OpenTelemetry collector、dashboard 或生产监控平台。",
+    "traceSloSmokeCommand": "bash scripts/observability-trace-slo-smoke.sh",
+    "sloGateCommand": "bash scripts/observability-slo-gate.sh",
+    "traceBoundary": "W3C traceparent 与 OpenTelemetry 语义兼容本地 span 日志已可本地验证；外部 collector/exporter/backend 仍为外部连通验证待执行。"
+  }
+}

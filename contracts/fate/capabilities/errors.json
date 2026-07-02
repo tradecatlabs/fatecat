@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "description": "FateCat 测算基础设施标准错误码字典。",
+  "errors": [
+    {
+      "code": "FC_CAPABILITY_NOT_FOUND",
+      "httpStatus": 400,
+      "category": "capability",
+      "message": "未知 capability",
+      "retryable": false,
+      "description": "请求的 capabilityId 未在 registry 中登记。"
+    },
+    {
+      "code": "FC_CAPABILITY_NOT_PRODUCTION",
+      "httpStatus": 400,
+      "category": "capability",
+      "message": "能力尚未生产化",
+      "retryable": false,
+      "description": "planned 或 experimental 能力只能被发现，不能进入生产执行。"
+    },
+    {
+      "code": "FC_INPUT_INVALID",
+      "httpStatus": 422,
+      "category": "input",
+      "message": "请求参数无效",
+      "retryable": false,
+      "description": "请求体结构、字段类型或当前业务选项不符合 capability 输入契约。"
+    },
+    {
+      "code": "FC_PROVIDER_FAILED",
+      "httpStatus": 500,
+      "category": "provider",
+      "message": "能力 provider 执行失败",
+      "retryable": true,
+      "description": "底层 provider、成熟库或适配层在计算过程中失败。"
+    },
+    {
+      "code": "FC_EVIDENCE_MISSING",
+      "httpStatus": 500,
+      "category": "evidence",
+      "message": "证据链缺失",
+      "retryable": false,
+      "description": "生产能力输出缺少 evidencePolicy 要求的证据字段。"
+    },
+    {
+      "code": "FC_UNAUTHORIZED",
+      "httpStatus": 403,
+      "category": "auth",
+      "message": "未授权",
+      "retryable": false,
+      "description": "需要 API token、admin token 或用户级 token。"
+    },
+    {
+      "code": "FC_RATE_LIMITED",
+      "httpStatus": 429,
+      "category": "rate_limit",
+      "message": "请求过于频繁",
+      "retryable": true,
+      "description": "触发频率限制或报告队列容量限制。"
+    },
+    {
+      "code": "FC_JOB_NOT_FOUND",
+      "httpStatus": 404,
+      "category": "job",
+      "message": "报告任务不存在或已过期",
+      "retryable": false,
+      "description": "jobId 不存在、已过期或已被清理。"
+    },
+    {
+      "code": "FC_SERVICE_BUSY",
+      "httpStatus": 503,
+      "category": "system",
+      "message": "服务繁忙，请稍后再试",
+      "retryable": true,
+      "description": "计算并发槽、队列或下游资源暂时不可用。"
+    },
+    {
+      "code": "FC_TIMEOUT",
+      "httpStatus": 504,
+      "category": "system",
+      "message": "请求处理超时",
+      "retryable": true,
+      "description": "请求超过服务端处理时限。"
+    }
+  ]
+}

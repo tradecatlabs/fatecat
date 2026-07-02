@@ -1,0 +1,122 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-02T10:37:32+08:00",
+  "task": {
+    "task_id": "0029",
+    "slug": "measurement-infrastructure-openapi-sdk-sandbox",
+    "task_dir": "governance/tasks/0029-measurement-infrastructure-openapi-sdk-sandbox",
+    "detected_phase": "closeout",
+    "overall_status": "Done"
+  },
+  "source_refs": {
+    "task_context_packet": null,
+    "task_package_set": null,
+    "git_delivery_evidence": null
+  },
+  "closeout_gate": {
+    "ready": true,
+    "failures": []
+  },
+  "summary": {
+    "leaf_total": 9,
+    "leaf_done": 9,
+    "todo_total": 9,
+    "todo_checked": 9,
+    "blocker_count": 0
+  },
+  "leaves": [
+    {
+      "id": "TP-01.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "已盘点 OpenAPI、API 文档、示例和 local-ci。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-01.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "任务文档已回填。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-02.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`contracts/fate/developer/sandbox.json` 已新增并通过 JSON 校验。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-02.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "curl、Python、Node、Agent 示例已新增。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`bash scripts/export-openapi.sh --output /tmp/fatecat-openapi-0029.json`：PASS。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`bash scripts/developer-docs-smoke.sh ...`：PASS，checks=12。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03.03",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "focused tests：PASS，3 passed。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-04.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "API 文档、roadmap、AGENTS 已同步。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-04.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "quick CI、secret scan、diff check、task validators 和 closeout packet 已通过。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    }
+  ],
+  "git_delivery": null,
+  "recommended_asset_handoff": {
+    "source_refs": [],
+    "artifacts": [
+      "task-closeout-packet.json"
+    ]
+  },
+  "upstream_packets": {
+    "task_context_packet_loaded": false,
+    "task_package_set_loaded": false,
+    "git_delivery_evidence_loaded": false
+  }
+}

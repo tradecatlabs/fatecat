@@ -1,0 +1,252 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": "fatecat.tradecatlabs/v1",
+  "description": "FateCat 测算基础设施多端交付面资源注册表。这里登记 API、Web、Bot、CLI、Skill 与托管 Web 的同源链路和验证边界。",
+  "schemas": {
+    "deliverySurface": "contracts/fate/delivery/schemas/delivery-surface.schema.json",
+    "releaseGate": "contracts/fate/delivery/schemas/release-gate.schema.json",
+    "resource": "contracts/fate/capabilities/schemas/resource.schema.json"
+  },
+  "surfaces": [
+    {
+      "resourceType": "DeliverySurface",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "surface.fastapi",
+      "name": "FastAPI canonical API",
+      "surfaceType": "api",
+      "status": "available",
+      "entrypoints": [
+        "/metadata",
+        "/capabilities",
+        "/capabilities/{capability_id}/calculate",
+        "/api/v1/report/markdown",
+        "/api/v1/report/jobs"
+      ],
+      "supportedOutputs": ["json", "markdown", "report_job", "webhook_callback"],
+      "supportedReportSystems": ["bazi", "ziwei"],
+      "canonicalChain": [
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::_build_markdown_report_payload",
+        "domains/experience-delivery/services/fatecat-delivery/src/calculation_service.py::calculate_delivery_result",
+        "domains/experience-delivery/services/fatecat-delivery/src/report_generator.py::generate_full_report"
+      ],
+      "outputContracts": [
+        "contracts/fate/capabilities/schemas/report.schema.json",
+        "contracts/fate/capabilities/schemas/output.schema.json"
+      ],
+      "localVerification": [
+        ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k 'report or metadata or surfaces'",
+        "bash scripts/webhook-smoke.sh",
+        ".venv/bin/python -m pytest -q tests/regression/test_entrypoint_consistency.py"
+      ],
+      "privacyBoundary": "API 响应不得输出真实 token、secret、DSN 或私钥；非北京真实地区在公开 Markdown 展示中必须脱敏。",
+      "externalConnectivity": "not_required",
+      "links": {
+        "self": "/surfaces/surface.fastapi",
+        "collection": "/surfaces",
+        "schema": "contracts/fate/delivery/schemas/delivery-surface.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/main.py",
+        "sameSourceScope": "FastAPI 是标准 API 真相入口，报告和 capability 执行均经过 delivery/core 服务链路。",
+        "failureMode": "若 API 直接拼接命理结果或跳过 canonical service，entrypoint consistency 测试必须失败。",
+        "releaseImpact": "public API 发布阻断门禁",
+        "risk": "本地 API 通过不代表公网域名、TLS、CORS、生产 token、真实 webhook 接收端或 callback 重试策略已验证。"
+      }
+    },
+    {
+      "resourceType": "DeliverySurface",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "surface.web",
+      "name": "Web Markdown workbench",
+      "surfaceType": "web",
+      "status": "available",
+      "entrypoints": ["/web", "/api/v1/report/jobs/web", "/api/v1/report/jobs/{job_id}"],
+      "supportedOutputs": ["markdown", "workbench_json", "report_job"],
+      "supportedReportSystems": ["bazi", "ziwei"],
+      "canonicalChain": [
+        "domains/experience-delivery/services/fatecat-delivery/src/web_report_service.py::build_web_report_result",
+        "domains/experience-delivery/services/fatecat-delivery/src/calculation_service.py::calculate_delivery_result",
+        "domains/experience-delivery/services/fatecat-delivery/src/report_generator.py::generate_full_report"
+      ],
+      "outputContracts": [
+        "contracts/fate/capabilities/schemas/report.schema.json",
+        "tests/regression/test_web_html.py::assert_web_production_layout_html"
+      ],
+      "localVerification": [
+        ".venv/bin/python -m pytest -q tests/regression/test_web_html.py",
+        ".venv/bin/python -m pytest -q tests/regression/test_entrypoint_consistency.py"
+      ],
+      "privacyBoundary": "公开 Web 示例和用户界面不得展示北京以外的真实地区名称；复制 Markdown 不得由前端自行拼装核心报告。",
+      "externalConnectivity": "not_required",
+      "links": {
+        "self": "/surfaces/surface.web",
+        "collection": "/surfaces",
+        "schema": "contracts/fate/delivery/schemas/delivery-surface.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/web_report_service.py",
+        "sameSourceScope": "Web 只负责输入、异步任务和展示；Markdown 由服务端 canonical report chain 生成。",
+        "failureMode": "前端自行拼报告块或绕过 build_web_report_result 时测试必须失败。",
+        "releaseImpact": "公开 Web 入口发布阻断门禁",
+        "risk": "浏览器真实兼容性和托管平台外部链路需要单独 live 验证。"
+      }
+    },
+    {
+      "resourceType": "DeliverySurface",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "surface.telegram_bot",
+      "name": "Telegram Bot",
+      "surfaceType": "bot",
+      "status": "available",
+      "entrypoints": ["scripts/serve-bot.sh", "bash scripts/delivery-smoke.sh --target bot"],
+      "supportedOutputs": ["markdown", "document"],
+      "supportedReportSystems": ["bazi", "ziwei"],
+      "canonicalChain": [
+        "domains/experience-delivery/services/fatecat-delivery/src/bot.py",
+        "domains/experience-delivery/services/fatecat-delivery/src/calculation_service.py::calculate_delivery_result",
+        "domains/experience-delivery/services/fatecat-delivery/src/report_generator.py::generate_full_report"
+      ],
+      "outputContracts": ["references/live-bot-verification.md", "scripts/live-bot-smoke.sh"],
+      "localVerification": [
+        "bash scripts/delivery-smoke.sh --target bot --startup-timeout 8",
+        ".venv/bin/python -m pytest -q tests/regression/test_entrypoint_consistency.py"
+      ],
+      "privacyBoundary": "Bot 消息确认页隐藏非北京真实地区；日志和队列不得保存 token 或用户报告正文作为公开资产。",
+      "externalConnectivity": "requires_real_credentials",
+      "links": {
+        "self": "/surfaces/surface.telegram_bot",
+        "collection": "/surfaces",
+        "schema": "contracts/fate/delivery/schemas/delivery-surface.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/bot.py",
+        "sameSourceScope": "Bot 采集输入并调用 delivery calculation/report chain；dry-run 可本地验证，真实 Telegram API 需要 live token。",
+        "failureMode": "Bot 添加独立命理计算或绕过 calculation_service 时 entrypoint consistency 测试必须失败。",
+        "releaseImpact": "Bot 发布前必须通过 dry-run；live 发布需真实 Bot smoke",
+        "risk": "缺真实 FATE_BOT_TOKEN 时不能宣称 live Bot 已通过。"
+      }
+    },
+    {
+      "resourceType": "DeliverySurface",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "surface.cli",
+      "name": "fate-core CLI",
+      "surfaceType": "cli",
+      "status": "partial",
+      "entrypoints": ["fatecat pure-analysis", "fatecat capability", "fatecat health"],
+      "supportedOutputs": ["json"],
+      "supportedReportSystems": ["bazi", "ziwei", "almanac", "meihua"],
+      "canonicalChain": [
+        "domains/fate-analysis/services/fate-core/src/fate_core/cli.py",
+        "domains/fate-analysis/services/fate-core/src/fate_core/capabilities/executor.py::CapabilityExecutor"
+      ],
+      "outputContracts": [
+        "contracts/fate/capabilities/schemas/output.schema.json",
+        "contracts/fate/capabilities/schemas/capability.schema.json"
+      ],
+      "localVerification": [".venv/bin/python -m pytest -q tests/regression/test_fate_core_cli.py"],
+      "privacyBoundary": "CLI 输出 JSON 不应包含 secret；输入文件和 stdout 由调用方本地负责。",
+      "externalConnectivity": "not_required",
+      "links": {
+        "self": "/surfaces/surface.cli",
+        "collection": "/surfaces",
+        "schema": "contracts/fate/delivery/schemas/delivery-surface.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/fate-analysis/services/fate-core/src/fate_core/cli.py",
+        "sameSourceScope": "CLI 直接调用 fate-core usecase/capability executor；当前不生成标准 Markdown 报告，不替代 delivery Web/API/Bot。",
+        "failureMode": "CLI capability 执行若绕过 registry/provider admission，CLI 回归测试必须失败。",
+        "releaseImpact": "开发者本地能力验证入口",
+        "risk": "CLI 的 JSON 与 Markdown 交付报告不是同一输出格式，不能用 CLI 通过证明多端 Markdown 完全一致。"
+      }
+    },
+    {
+      "resourceType": "DeliverySurface",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "surface.agent_skill",
+      "name": "Agent Skill package",
+      "surfaceType": "skill",
+      "status": "partial",
+      "entrypoints": ["SKILL.md", "bash scripts/preflight.sh --mode pure --bootstrap --smoke"],
+      "supportedOutputs": ["json", "markdown_via_api_or_web"],
+      "supportedReportSystems": ["bazi", "ziwei"],
+      "canonicalChain": ["SKILL.md", "scripts/preflight.sh", "domains/fate-analysis/services/fate-core/src/fate_core"],
+      "outputContracts": ["SKILL.md", "references/io-contract.md", "references/commands.md"],
+      "localVerification": ["bash scripts/preflight.sh --mode pure --bootstrap --smoke"],
+      "privacyBoundary": "Skill 包不得内置用户真实数据或生产凭证；导出包卫生门禁排除 raw、runtime、cache 和数据库。",
+      "externalConnectivity": "not_required",
+      "links": {
+        "self": "/surfaces/surface.agent_skill",
+        "collection": "/surfaces",
+        "schema": "contracts/fate/delivery/schemas/delivery-surface.schema.json"
+      },
+      "metadata": {
+        "owner": "SKILL.md",
+        "sameSourceScope": "Skill 是安装和运行入口说明，不是独立线上服务；核心计算来自仓库 fate-core/delivery 脚本，不拥有独立命理算法。",
+        "failureMode": "Skill 文档若宣称未来体系已生产或绕过仓库脚本，应由 strict skill/acceptance 门禁阻断。",
+        "releaseImpact": "Skill 导出发布门禁",
+        "risk": "Skill 本身不是独立线上服务；Markdown 仍需通过 API/Web/Bot 交付链路生成。"
+      }
+    },
+    {
+      "resourceType": "DeliverySurface",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "surface.huggingface_space",
+      "name": "Hugging Face Space hosted Web",
+      "surfaceType": "hosted_web",
+      "status": "manual",
+      "entrypoints": ["https://<space>.hf.space/web", "docs/deployment/huggingface-space.md"],
+      "supportedOutputs": ["markdown"],
+      "supportedReportSystems": ["bazi", "ziwei"],
+      "canonicalChain": [
+        "infra/huggingface-space/Dockerfile",
+        "domains/experience-delivery/services/fatecat-delivery/src/web_report_service.py::build_web_report_result"
+      ],
+      "outputContracts": ["docs/deployment/huggingface-space.md", "scripts/production-readiness.sh"],
+      "localVerification": [
+        "bash scripts/container-smoke.sh",
+        "bash scripts/production-readiness.sh --api-url <真实域名>"
+      ],
+      "privacyBoundary": "免费公开 Space 默认关闭记录存储；用户复制 Markdown 后自行粘贴到外部 AI，FateCat 不自动发送给 Gemini。",
+      "externalConnectivity": "requires_hosted_platform",
+      "links": {
+        "self": "/surfaces/surface.huggingface_space",
+        "collection": "/surfaces",
+        "schema": "contracts/fate/delivery/schemas/delivery-surface.schema.json"
+      },
+      "metadata": {
+        "owner": "docs/deployment/huggingface-space.md",
+        "sameSourceScope": "托管 Web 复用 delivery 容器和 /web；真实 Space 是否可访问必须由外部 URL 验证。",
+        "failureMode": "没有真实 Space URL 和 production-readiness 证据时不得宣称托管生产已通过。",
+        "releaseImpact": "公开托管发布手动门禁",
+        "risk": "HF 平台资源、网络和 Space secret 配置不在本地仓库内可验证。"
+      }
+    }
+  ],
+  "releaseGate": {
+    "resourceType": "ReleaseGate",
+    "apiVersion": "fatecat.tradecatlabs/v1",
+    "id": "gate.live_release",
+    "contract": "contracts/fate/delivery/release-gate.json",
+    "localVerification": [
+      "bash scripts/local-ci.sh --profile quick --output <dir>",
+      "bash scripts/live-release-gate.sh --local-ci-summary <dir>/summary.json --output-json <path>",
+      "bash scripts/release-artifacts.sh --output-dir <dir>",
+      "bash scripts/rollback-drill.sh --output-json <path>",
+      "bash scripts/container-release-evidence.sh --output-json <path>",
+      "bash scripts/live-release-gate.sh --output-json <path>"
+    ],
+    "externalVerification": [
+      "bash scripts/live-release-gate.sh --require-live --api-url <真实API域名> --hf-space-url <真实HF Space URL> --run-live-bot --output-json <path>"
+    ],
+    "shipGateStatus": "blocked",
+    "externalConnectivity": "外部连通验证待执行",
+    "policy": "delivery registry 只声明 live release gate 入口；真实 API/HF/Bot/CI/container/SBOM/provenance 证据必须由 scripts/live-release-gate.sh 输出。"
+  },
+  "metadata": {
+    "resourceType": "DeliverySurfaceRegistry",
+    "externalConnectivity": "外部连通验证待执行",
+    "policy": "registry 只声明交付面、入口和同源链路；真实 Bot、托管 Web、公网 API 和浏览器兼容性必须来自外部验证证据。",
+    "defaultResponseRule": "API 只返回交付面契约，不返回真实用户输入、报告正文、token、日志或生产任务状态。"
+  }
+}

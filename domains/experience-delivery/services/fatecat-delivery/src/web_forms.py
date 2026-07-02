@@ -48,6 +48,8 @@ class WebReportForm:
 @dataclass
 class WebReportResult:
     markdown: str
+    policy_gate: dict[str, Any]
+    snapshot_gate: dict[str, Any]
     resolved_longitude: float
     resolved_latitude: float
     normalized_time: str

@@ -1,0 +1,113 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-02T10:10:55+08:00",
+  "task": {
+    "task_id": "0027",
+    "slug": "measurement-infrastructure-100-research-plan-refresh",
+    "task_dir": "governance/tasks/0027-measurement-infrastructure-100-research-plan-refresh",
+    "detected_phase": "closeout",
+    "overall_status": "Done"
+  },
+  "source_refs": {
+    "task_context_packet": null,
+    "task_package_set": null,
+    "git_delivery_evidence": null
+  },
+  "closeout_gate": {
+    "ready": true,
+    "failures": []
+  },
+  "summary": {
+    "leaf_total": 8,
+    "leaf_done": 8,
+    "todo_total": 8,
+    "todo_checked": 8,
+    "blocker_count": 0
+  },
+  "leaves": [
+    {
+      "id": "TP-01.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "OpenAPI、Stripe、Temporal、Backstage、Kubernetes、Terraform、OpenTelemetry、SRE、SLSA、OWASP、MLflow 链接已登记。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-01.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "同构能力已映射为 FateCat 要求。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-02.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`git status --short --branch`、`governance/tasks/INDEX.md`、`contracts/fate/` 已读取。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-02.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "主路线图区分本地已落地、仍待生产化、外部连通待执行。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`docs/reference-materials/roadmap/测算基础设施100%实现计划.md` 已刷新。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "D0-D10、MI-100、`0028+`、总验收清单已写入。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-04.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "README/CONTEXT/PLAN/ACCEPTANCE/ACCEPTANCE_CHECKLIST/TODO/STATUS 已回填。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-04.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "closeout validator、全任务树验证、占位符扫描和 diff check 均通过。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    }
+  ],
+  "git_delivery": null,
+  "recommended_asset_handoff": {
+    "source_refs": [],
+    "artifacts": [
+      "task-closeout-packet.json"
+    ]
+  },
+  "upstream_packets": {
+    "task_context_packet_loaded": false,
+    "task_package_set_loaded": false,
+    "git_delivery_evidence_loaded": false
+  }
+}

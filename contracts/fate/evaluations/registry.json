@@ -1,0 +1,298 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": "fatecat.tradecatlabs/v1",
+  "description": "FateCat 测算基础设施评测资源注册表。这里登记可发现的数据集和评测运行入口，不保存运行时结果库。",
+  "schemas": {
+    "dataset": "contracts/fate/evaluations/schemas/dataset.schema.json",
+    "evaluationRun": "contracts/fate/evaluations/schemas/evaluation-run.schema.json",
+    "resource": "contracts/fate/capabilities/schemas/resource.schema.json"
+  },
+  "resources": [
+    {
+      "resourceType": "Dataset",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "dataset.solar_terms_1900_2030",
+      "name": "1900-2030 节气 golden fixture",
+      "domain": "calendar",
+      "datasetType": "calendar_golden",
+      "usageRole": "evaluation_only",
+      "status": "available",
+      "localAvailability": "tracked_in_repo",
+      "privacyClass": "non_personal",
+      "sourceRef": {
+        "type": "data_product",
+        "path": "domains/fate-analysis/data-products/calendar/solar_terms/golden/solar_terms_1900_2030.json",
+        "manifest": "domains/fate-analysis/data-products/calendar/solar_terms/source_manifest.tsv"
+      },
+      "paths": [
+        "domains/fate-analysis/data-products/calendar/solar_terms/golden/solar_terms_1900_2030.json",
+        "domains/fate-analysis/data-products/bazi/golden/calendar_boundary_cases.json"
+      ],
+      "commands": [
+        ".venv/bin/python -m pytest -q tests/regression/test_solar_terms_golden.py",
+        ".venv/bin/python -m pytest -q tests/regression/test_calendar_oracle_contract.py"
+      ],
+      "coveredCapabilities": ["bazi"],
+      "links": {
+        "self": "/evaluations/dataset.solar_terms_1900_2030",
+        "collection": "/evaluations",
+        "schema": "contracts/fate/evaluations/schemas/dataset.schema.json",
+        "resource": "contracts/fate/capabilities/schemas/resource.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/fate-analysis/data-products",
+        "verificationScope": "节气、月令、立春年界、真太阳时后历法边界样本",
+        "releaseGate": "required",
+        "externalConnectivity": "not_required",
+        "risk": "fixture 锁本地回归边界；不等于外部天文历法全量证明。"
+      }
+    },
+    {
+      "resourceType": "Dataset",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "dataset.bazi_golden_matrix",
+      "name": "综合八字 golden 覆盖矩阵",
+      "domain": "bazi",
+      "datasetType": "bazi_golden",
+      "usageRole": "evaluation_only",
+      "status": "available",
+      "localAvailability": "tracked_in_repo",
+      "privacyClass": "anonymous_fixture",
+      "sourceRef": {
+        "type": "data_product",
+        "path": "domains/fate-analysis/data-products/bazi/golden/coverage_matrix_cases.json"
+      },
+      "paths": [
+        "domains/fate-analysis/data-products/bazi/golden/coverage_matrix_cases.json",
+        "domains/fate-analysis/data-products/bazi/golden/rule_depth_cases.json",
+        "domains/fate-analysis/data-products/bazi/golden/statement_cases.json"
+      ],
+      "commands": [
+        ".venv/bin/python -m pytest -q tests/regression/test_bazi_golden_coverage_matrix.py",
+        ".venv/bin/python -m pytest -q tests/regression/test_bazi_statement_golden.py",
+        ".venv/bin/python -m pytest -q tests/regression/test_bazi_ziwei_rule_depth.py -k bazi"
+      ],
+      "coveredCapabilities": ["bazi"],
+      "links": {
+        "self": "/evaluations/dataset.bazi_golden_matrix",
+        "collection": "/evaluations",
+        "schema": "contracts/fate/evaluations/schemas/dataset.schema.json",
+        "resource": "contracts/fate/capabilities/schemas/resource.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/fate-analysis/data-products",
+        "verificationScope": "匿名八字结构、格局、用神、规则深度、报告结构回归",
+        "releaseGate": "required",
+        "externalConnectivity": "not_required",
+        "risk": "工程回归样本，不等于真实用户命例库；不得作为确定性断语依据。"
+      }
+    },
+    {
+      "resourceType": "Dataset",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "dataset.ziwei_golden_cases",
+      "name": "紫微斗数 golden cases",
+      "domain": "ziwei",
+      "datasetType": "ziwei_golden",
+      "usageRole": "evaluation_only",
+      "status": "available",
+      "localAvailability": "tracked_in_repo",
+      "privacyClass": "anonymous_fixture",
+      "sourceRef": {
+        "type": "data_product",
+        "path": "domains/fate-analysis/data-products/ziwei/golden/cases.json"
+      },
+      "paths": [
+        "domains/fate-analysis/data-products/ziwei/golden/cases.json",
+        "domains/fate-analysis/data-products/ziwei/golden/rule_depth_cases.json"
+      ],
+      "commands": [
+        ".venv/bin/python -m pytest -q tests/regression/test_bazi_ziwei_benchmark_hardening.py -k ziwei",
+        ".venv/bin/python -m pytest -q tests/regression/test_bazi_ziwei_rule_depth.py -k ziwei"
+      ],
+      "coveredCapabilities": ["ziwei"],
+      "links": {
+        "self": "/evaluations/dataset.ziwei_golden_cases",
+        "collection": "/evaluations",
+        "schema": "contracts/fate/evaluations/schemas/dataset.schema.json",
+        "resource": "contracts/fate/capabilities/schemas/resource.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/fate-analysis/data-products",
+        "verificationScope": "紫微盘面核心字段、规则深度和典型结构回归",
+        "releaseGate": "required",
+        "externalConnectivity": "not_required",
+        "risk": "只锁项目当前结构化字段；不代表完整紫微流派全量评测。"
+      }
+    },
+    {
+      "resourceType": "Dataset",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "dataset.mingli_bench_offline",
+      "name": "MingLi-Bench 离线 benchmark",
+      "domain": "bazi",
+      "datasetType": "benchmark",
+      "usageRole": "evaluation_only",
+      "status": "requires_reference_repo",
+      "localAvailability": "requires_reference_repo",
+      "privacyClass": "review_required",
+      "sourceRef": {
+        "type": "reference_repo",
+        "path": "tools/reference-repos/github/MingLi-Bench-main",
+        "upstream": "https://github.com/DestinyLinker/MingLi-Bench"
+      },
+      "paths": [
+        "tools/reference-repos/github/MingLi-Bench-main/data/data.json",
+        "scripts/run-mingli-bench.sh",
+        "scripts/generate-mingli-predictions.sh",
+        "domains/fate-analysis/services/fate-core/src/fate_core/evaluation/mingli_baseline.py"
+      ],
+      "commands": [
+        "bash scripts/run-mingli-bench.sh --stats",
+        "bash scripts/generate-mingli-predictions.sh --output-jsonl infra/runtime/local-state/exports/mingli-predictions.jsonl --sample 5"
+      ],
+      "coveredCapabilities": ["bazi"],
+      "links": {
+        "self": "/evaluations/dataset.mingli_bench_offline",
+        "collection": "/evaluations",
+        "schema": "contracts/fate/evaluations/schemas/dataset.schema.json",
+        "resource": "contracts/fate/capabilities/schemas/resource.schema.json"
+      },
+      "metadata": {
+        "owner": "tools/reference-repos",
+        "verificationScope": "离线题库统计、提示词生成、FateCat baseline predictions 和 accuracy/coverage 评估",
+        "releaseGate": "optional",
+        "externalConnectivity": "not_required_for_offline_stats",
+        "risk": "依赖本地 reference repo；只作 evaluation_only，标准答案不得进入 production provider。"
+      }
+    },
+    {
+      "resourceType": "EvaluationRun",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "run.local_ci_quick",
+      "name": "本地 quick CI release gate",
+      "runType": "release_gate",
+      "gateType": "required",
+      "datasetIds": [
+        "dataset.solar_terms_1900_2030",
+        "dataset.bazi_golden_matrix",
+        "dataset.ziwei_golden_cases"
+      ],
+      "commands": ["bash scripts/local-ci.sh --profile quick"],
+      "releaseRequired": true,
+      "localAvailability": "tracked_in_repo",
+      "lastKnownStatusPolicy": "tracked_by_task_evidence",
+      "links": {
+        "self": "/evaluations/run.local_ci_quick",
+        "collection": "/evaluations",
+        "schema": "contracts/fate/evaluations/schemas/evaluation-run.schema.json",
+        "datasets": "/evaluations"
+      },
+      "metadata": {
+        "owner": "scripts/local-ci.sh",
+        "verificationScope": "本地快速回归、核心 API 契约、隐私和结构门禁",
+        "resultStorage": "任务 closeout evidence 与本地命令输出",
+        "externalConnectivity": "not_required",
+        "risk": "lastKnownStatus 由当前任务证据记录；registry 不伪造当前 commit 结果。"
+      }
+    },
+    {
+      "resourceType": "EvaluationRun",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "run.solar_terms_golden",
+      "name": "节气与历法边界 golden regression",
+      "runType": "golden_regression",
+      "gateType": "required",
+      "datasetIds": ["dataset.solar_terms_1900_2030"],
+      "commands": [".venv/bin/python -m pytest -q tests/regression/test_solar_terms_golden.py"],
+      "releaseRequired": true,
+      "localAvailability": "tracked_in_repo",
+      "lastKnownStatusPolicy": "tracked_by_task_evidence",
+      "links": {
+        "self": "/evaluations/run.solar_terms_golden",
+        "collection": "/evaluations",
+        "schema": "contracts/fate/evaluations/schemas/evaluation-run.schema.json",
+        "datasets": "/evaluations/dataset.solar_terms_1900_2030"
+      },
+      "metadata": {
+        "owner": "tests/regression/test_solar_terms_golden.py",
+        "verificationScope": "节气 fixture schema、lunar-python 容差对照、历法边界样本",
+        "resultStorage": "pytest 输出与任务 closeout evidence",
+        "externalConnectivity": "not_required",
+        "risk": "覆盖 fixture 与代表性边界，不宣称外部全量历法认证。"
+      }
+    },
+    {
+      "resourceType": "EvaluationRun",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "run.evaluation_dashboard_smoke",
+      "name": "Evaluation dashboard dry-run artifact smoke",
+      "runType": "release_gate",
+      "gateType": "required",
+      "datasetIds": [
+        "dataset.solar_terms_1900_2030",
+        "dataset.bazi_golden_matrix",
+        "dataset.ziwei_golden_cases"
+      ],
+      "commands": ["bash scripts/evaluation-dashboard-smoke.sh"],
+      "releaseRequired": true,
+      "localAvailability": "tracked_in_repo",
+      "lastKnownStatusPolicy": "tracked_by_task_evidence",
+      "links": {
+        "self": "/evaluations/run.evaluation_dashboard_smoke",
+        "collection": "/evaluations",
+        "schema": "contracts/fate/evaluations/schemas/evaluation-run.schema.json",
+        "datasets": "/evaluations"
+      },
+      "metadata": {
+        "owner": "scripts/evaluation-dashboard-smoke.sh",
+        "verificationScope": "用 dry-run EvaluationRun summary 验证 dashboard renderer、HTML artifact 和隐私边界。",
+        "resultStorage": "infra/runtime/local-state/exports/evaluations/dashboard-smoke/ 与任务 closeout evidence",
+        "externalConnectivity": "not_required",
+        "risk": "只验证 dashboard 生成链路；不代表 nightly 或远端 CI 已验证当前 diff。"
+      }
+    },
+    {
+      "resourceType": "EvaluationRun",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "run.mingli_bench_offline",
+      "name": "MingLi-Bench 离线 benchmark smoke",
+      "runType": "offline_benchmark",
+      "gateType": "optional",
+      "datasetIds": ["dataset.mingli_bench_offline"],
+      "commands": ["bash scripts/run-mingli-bench.sh --stats"],
+      "releaseRequired": false,
+      "localAvailability": "requires_reference_repo",
+      "lastKnownStatusPolicy": "not_embedded",
+      "links": {
+        "self": "/evaluations/run.mingli_bench_offline",
+        "collection": "/evaluations",
+        "schema": "contracts/fate/evaluations/schemas/evaluation-run.schema.json",
+        "datasets": "/evaluations/dataset.mingli_bench_offline"
+      },
+      "metadata": {
+        "owner": "scripts/run-mingli-bench.sh",
+        "verificationScope": "离线 stats、prompt 输出和 predictions 评估入口",
+        "resultStorage": "可选输出到 infra/runtime/local-state/exports/mingli-bench/evaluation.json",
+        "externalConnectivity": "not_required_for_offline_stats",
+        "risk": "依赖 reference repo；不是默认 release 必跑门禁，也不代表线上模型评测已完成。"
+      }
+    }
+  ],
+  "metadata": {
+    "resourceType": "EvaluationRegistry",
+    "externalConnectivity": "外部连通验证待执行",
+    "policy": "registry 只声明资源、命令和边界；真实运行结果必须来自本地命令、CI 或任务 closeout evidence。",
+    "defaultResponseRule": "API 只返回资源索引，不内联 large fixture 或 benchmark answer 内容。",
+    "runner": {
+      "command": "bash scripts/run-evaluations.sh",
+      "defaultMode": "all-local-required",
+      "summaryOutput": "infra/runtime/local-state/exports/evaluations/summary.json",
+      "safety": "runner 使用 shlex 拆分命令、白名单 bash scripts/*.sh 与 python -m pytest，不使用 shell=True。"
+    },
+    "diffPolicy": "contracts/fate/evaluations/diff-policy.json",
+    "diffCommand": "bash scripts/compare-evaluations.sh --baseline-json <baseline> --current-json <current>",
+    "dashboardCommand": "bash scripts/evaluation-dashboard.sh --summary-json <summary> --output-html <dashboard>",
+    "nightlyCommand": "bash scripts/evaluation-nightly.sh"
+  }
+}

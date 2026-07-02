@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "policyId": "policy.production_identity_siem_retention",
+  "description": "生产身份、外部 SIEM、不可变审计存储、retention 自动清理和 OWASP API Security Top 10 回归包准入策略。本文件是本地可验证 contract，不保存真实账号、token、SIEM endpoint 或生产连通结果。",
+  "identity": {
+    "baselineMode": "scoped_token_rbac",
+    "productionTargetMode": "external_oidc_or_idp",
+    "requiredForPublicMultiTenant": true,
+    "admissionEnvVars": [
+      "FATE_PUBLIC_MULTI_TENANT",
+      "FATE_OIDC_ISSUER",
+      "FATE_OIDC_AUDIENCE",
+      "FATE_OIDC_JWKS_URL",
+      "FATE_OIDC_REQUIRED_SCOPES"
+    ],
+    "localFallbackBoundary": "FATE_API_TOKEN、FATE_API_ADMIN_TOKEN 和 FATE_API_USER_TOKENS 只允许作为本地或单租户 scoped token baseline；不得宣称为 OAuth/OIDC 或生产 IdP。",
+    "externalConnectivity": "external_connectivity_pending"
+  },
+  "siem": {
+    "requiredForProductionRecords": true,
+    "immutableAuditRequired": true,
+    "admissionEnvVars": [
+      "FATE_AUDIT_SIEM_EXPORT_ENABLED",
+      "FATE_AUDIT_SIEM_ENDPOINT",
+      "FATE_AUDIT_SIEM_DESTINATION",
+      "FATE_AUDIT_IMMUTABILITY_MODE"
+    ],
+    "allowedImmutabilityModes": ["append_only", "worm", "external_siem"],
+    "privacyBoundary": "SIEM export 不得发送 token、请求体、报告正文、姓名、出生地区、recordId、jobId、userId 原文或 webhook secret。",
+    "externalConnectivity": "requires_real_credentials"
+  },
+  "retention": {
+    "requiredForPersistentRecords": true,
+    "currentRecordMode": "explicit_delete",
+    "targetRecordMode": "time_based_cleanup_with_audit",
+    "admissionEnvVars": [
+      "FATE_RECORD_RETENTION_DAYS",
+      "FATE_RECORD_RETENTION_AUTO_CLEANUP_ENABLED",
+      "FATE_RECORD_RETENTION_DELETE_MODE",
+      "FATE_AUDIT_EVENT_RETENTION_DAYS",
+      "FATE_REPORT_JOB_TTL_SECONDS"
+    ],
+    "allowedDeleteModes": ["tombstone_then_purge", "hard_delete"],
+    "localBoundary": "当前记录默认显式删除；若声明按年龄自动清理，必须有单独任务实现清理器、回归测试和审计事件。",
+    "externalConnectivity": "external_connectivity_pending"
+  },
+  "owaspApiSecurityTop10_2023": [
+    {
+      "id": "API1",
+      "name": "Broken Object Level Authorization",
+      "localCoverage": [
+        "tests/regression/test_api_contracts.py::user_token_owner_boundary",
+        "scripts/security-smoke.py::user_token_owner_boundary"
+      ]
+    },
+    {
+      "id": "API2",
+      "name": "Broken Authentication",
+      "localCoverage": [
+        "tests/regression/test_api_contracts.py::record token tests",
+        "scripts/security-smoke.py::records_can_be_disabled"
+      ]
+    },
+    {
+      "id": "API3",
+      "name": "Broken Object Property Level Authorization",
+      "localCoverage": [
+        "contracts/fate/capabilities/schemas/output.schema.json",
+        "tests/regression/test_api_contracts.py::security registry response contract"
+      ]
+    },
+    {
+      "id": "API4",
+      "name": "Unrestricted Resource Consumption",
+      "localCoverage": [
+        "scripts/security-smoke.py::request_body_limit",
+        "scripts/security-smoke.py::rate_limit_rejects_second_request"
+      ]
+    },
+    {
+      "id": "API5",
+      "name": "Broken Function Level Authorization",
+      "localCoverage": [
+        "tests/regression/test_api_contracts.py::scoped_user_token",
+        "contracts/fate/security/registry.json::control.rbac_policy"
+      ]
+    },
+    {
+      "id": "API6",
+      "name": "Unrestricted Access to Sensitive Business Flows",
+      "localCoverage": [
+        "contracts/fate/security/registry.json::control.rate_limit",
+        "contracts/fate/security/registry.json::control.production_readiness_external"
+      ]
+    },
+    {
+      "id": "API7",
+      "name": "Server Side Request Forgery",
+      "localCoverage": [
+        "scripts/webhook-smoke.py",
+        "contracts/fate/security/registry.json::control.report_job_webhook_signature"
+      ]
+    },
+    {
+      "id": "API8",
+      "name": "Security Misconfiguration",
+      "localCoverage": [
+        "scripts/production-readiness.sh",
+        "contracts/fate/security/registry.json::control.response_security_headers"
+      ]
+    },
+    {
+      "id": "API9",
+      "name": "Improper Inventory Management",
+      "localCoverage": [
+        "contracts/fate/security/registry.json",
+        "tests/regression/test_api_contracts.py::test_security_controls_are_discoverable_and_linked"
+      ]
+    },
+    {
+      "id": "API10",
+      "name": "Unsafe Consumption of APIs",
+      "localCoverage": [
+        "contracts/fate/security/registry.json::control.report_job_webhook_signature",
+        "contracts/fate/observability/alert-rules.json"
+      ]
+    }
+  ],
+  "releaseGate": {
+    "localCommand": "bash scripts/production-security-gate.sh",
+    "quickCiRequired": true,
+    "blocksPublicReleaseWithoutExternalEvidence": [
+      "external_oidc_or_idp",
+      "external_siem_or_immutable_audit_storage",
+      "time_based_record_retention_cleanup",
+      "production_live_smoke"
+    ]
+  },
+  "privacyBoundary": "策略文件、registry、gate output 和 API 响应不得包含真实 token、secret、DSN、私钥、证书、SIEM endpoint、用户输入或报告正文。"
+}

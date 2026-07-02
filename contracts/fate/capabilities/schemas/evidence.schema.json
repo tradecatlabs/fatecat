@@ -12,6 +12,8 @@
     "inputFacts",
     "calculationTrace"
   ],
+  "evidenceRefFields": ["id", "source", "ruleIds", "risk", "confidence"],
+  "evidenceRefsRule": "Report resource 的 evidenceRefs 只保存可跳转引用，不替代 capability response 中的原始 evidence。",
   "policyRule": "registry.json 的 evidencePolicy 是每个 capability 的 evidence 生产门禁。",
   "boundary": "evidence 是审计追溯字段，不得包装成科学确定性或替代专业建议。"
 }

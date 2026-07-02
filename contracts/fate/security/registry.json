@@ -1,0 +1,615 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": "fatecat.tradecatlabs/v1",
+  "description": "FateCat 测算基础设施安全、隐私与发布门禁资源注册表。这里登记可发现的 SecurityControl，不保存真实凭证或生产连通结果。",
+  "schemas": {
+    "securityControl": "contracts/fate/security/schemas/security-control.schema.json",
+    "resource": "contracts/fate/capabilities/schemas/resource.schema.json"
+  },
+  "controls": [
+    {
+      "resourceType": "SecurityControl",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.record_token_access",
+      "name": "Record API token and user-scope access",
+      "controlType": "auth",
+      "status": "available",
+      "scope": "record API read/write endpoints",
+      "envVars": ["FATE_RECORDS_ENABLED", "FATE_API_TOKEN", "FATE_API_ADMIN_TOKEN", "FATE_API_USER_TOKENS"],
+      "implementationRefs": [
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::_require_record_access",
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::_require_owner_or_admin"
+      ],
+      "localVerification": [
+        ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k 'token or record'"
+      ],
+      "privacyBoundary": "响应和日志不得输出 token 值；用户级 token 只能访问自己的记录。",
+      "externalConnectivity": "not_required",
+      "links": {
+        "self": "/security/control.record_token_access",
+        "collection": "/security",
+        "schema": "contracts/fate/security/schemas/security-control.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/main.py",
+        "threatModel": "未授权读取或写入用户测算记录",
+        "failureMode": "无 token、错误 token 或跨用户读取必须返回 403",
+        "releaseImpact": "记录接口启用时属于发布阻断门禁",
+        "risk": "当前是共享 token 模式，不是完整 OAuth/OIDC；公网多租户生产需要后续接入更强身份系统。"
+      }
+    },
+    {
+      "resourceType": "SecurityControl",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.cors_allowlist",
+      "name": "CORS allowlist",
+      "controlType": "cors",
+      "status": "available",
+      "scope": "browser API access",
+      "envVars": ["FATE_CORS_ALLOW_ORIGINS"],
+      "implementationRefs": [
+        "domains/experience-delivery/services/fatecat-delivery/src/service_config.py::cors_allow_origins",
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::CORSMiddleware"
+      ],
+      "localVerification": ["bash scripts/production-readiness.sh --skip-bootstrap"],
+      "privacyBoundary": "CORS 配置只登记允许来源，不包含用户输入或 secret。",
+      "externalConnectivity": "requires_real_domain",
+      "links": {
+        "self": "/security/control.cors_allowlist",
+        "collection": "/security",
+        "schema": "contracts/fate/security/schemas/security-control.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/service_config.py",
+        "threatModel": "公开 Web 环境误放开跨域访问",
+        "failureMode": "生产配置为空或包含 * 时 production-readiness 必须失败",
+        "releaseImpact": "公网发布必须显式配置真实 allowlist",
+        "risk": "本地合同测试不证明真实浏览器跨域生产域名已验证。"
+      }
+    },
+    {
+      "resourceType": "SecurityControl",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.rbac_policy",
+      "name": "Record API scoped RBAC policy",
+      "controlType": "rbac",
+      "status": "available",
+      "scope": "record API admin/user/owner/scope authorization",
+      "envVars": ["FATE_RECORDS_ENABLED", "FATE_API_TOKEN", "FATE_API_ADMIN_TOKEN", "FATE_API_USER_TOKENS"],
+      "implementationRefs": [
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::ApiPrincipal",
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::_user_token_principals",
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::_require_record_access",
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::_require_scope",
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::_require_owner_or_admin"
+      ],
+      "localVerification": [
+        ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k 'scoped_user_token or token or record'"
+      ],
+      "privacyBoundary": "RBAC 只登记角色、scope 名称和 owner 边界；响应、日志和 registry 不得输出 token 值、用户 ID 原文、请求体或报告正文。",
+      "externalConnectivity": "not_required",
+      "links": {
+        "self": "/security/control.rbac_policy",
+        "collection": "/security",
+        "schema": "contracts/fate/security/schemas/security-control.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/main.py",
+        "threatModel": "用户级 token 权限过宽导致越权读取、写入、列出或删除记录",
+        "failureMode": "缺少对应 record scope 或跨 owner 访问必须返回 403",
+        "releaseImpact": "记录接口启用时属于本地发布阻断门禁",
+        "risk": "当前是本地 scoped token RBAC baseline，不是 OAuth/OIDC、外部 IdP、组织级多租户权限或生产 IAM。",
+        "roles": ["admin", "user"],
+        "recordScopes": ["record.read", "record.list", "record.write", "record.delete"],
+        "tokenFormat": "FATE_API_USER_TOKENS 支持 user_id:token 兼容格式，也支持 user_id:token:record.read|record.list scoped 格式"
+      }
+    },
+    {
+      "resourceType": "SecurityControl",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.rate_limit",
+      "name": "Per-client request rate limit",
+      "controlType": "rate_limit",
+      "status": "available",
+      "scope": "HTTP request middleware",
+      "envVars": ["FATE_RATE_LIMIT_PER_MINUTE", "FATE_RATE_LIMIT_BACKEND", "FATE_TRUST_PROXY_HEADERS"],
+      "implementationRefs": [
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::_check_rate_limit",
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::production_guardrails"
+      ],
+      "localVerification": [
+        ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k 'rate'"
+      ],
+      "privacyBoundary": "限流 key 使用客户端地址或可信代理头，不记录请求体、姓名、出生地区或报告内容。",
+      "externalConnectivity": "external_connectivity_pending",
+      "links": {
+        "self": "/security/control.rate_limit",
+        "collection": "/security",
+        "schema": "contracts/fate/security/schemas/security-control.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/main.py",
+        "threatModel": "高频请求耗尽 CPU、队列、Bot 或报告生成资源",
+        "failureMode": "超过阈值必须返回 429 和 Retry-After",
+        "releaseImpact": "多副本公网部署必须声明 gateway/redis/waf/external 限流后端",
+        "risk": "单进程 memory 限流不适合多副本；真实网关/WAF 策略仍需生产验证。"
+      }
+    },
+    {
+      "resourceType": "SecurityControl",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.request_body_limit",
+      "name": "Request body size limit",
+      "controlType": "request_limit",
+      "status": "available",
+      "scope": "HTTP request body middleware",
+      "envVars": ["FATE_MAX_REQUEST_BYTES", "FATE_EDGE_BODY_LIMIT_ENABLED"],
+      "implementationRefs": [
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::RequestBodyLimitMiddleware"
+      ],
+      "localVerification": [
+        ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k 'body or too_large'"
+      ],
+      "privacyBoundary": "中间件只统计字节数，不把请求体写入日志或响应。",
+      "externalConnectivity": "external_connectivity_pending",
+      "links": {
+        "self": "/security/control.request_body_limit",
+        "collection": "/security",
+        "schema": "contracts/fate/security/schemas/security-control.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/main.py",
+        "threatModel": "超大请求体导致内存或队列资源耗尽",
+        "failureMode": "超过 MAX_REQUEST_BYTES 必须返回 413",
+        "releaseImpact": "公网部署应同时声明边缘层请求体限制",
+        "risk": "应用层限制是兜底；Nginx/Traefik/CDN 层限制需要外部部署验证。"
+      }
+    },
+    {
+      "resourceType": "SecurityControl",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.response_security_headers",
+      "name": "Public response security headers",
+      "controlType": "headers",
+      "status": "available",
+      "scope": "all public HTTP responses",
+      "envVars": ["FATE_ENABLE_HSTS"],
+      "implementationRefs": [
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::_apply_public_response_headers"
+      ],
+      "localVerification": [
+        ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k 'headers or metadata'"
+      ],
+      "privacyBoundary": "响应安全头不包含用户数据或 secret。",
+      "externalConnectivity": "external_connectivity_pending",
+      "links": {
+        "self": "/security/control.response_security_headers",
+        "collection": "/security",
+        "schema": "contracts/fate/security/schemas/security-control.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/main.py",
+        "threatModel": "浏览器嗅探、点击劫持、referrer 泄露和未声明 CSP",
+        "failureMode": "公共响应必须包含 X-Request-ID、nosniff、DENY、no-referrer 和 CSP；HSTS 按配置启用",
+        "releaseImpact": "生产 HTTPS 环境应启用应用层或网关层 HSTS",
+        "risk": "HSTS 是否由应用或网关设置需真实域名验证。"
+      }
+    },
+    {
+      "resourceType": "SecurityControl",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.audit_event_log",
+      "name": "Structured audit event log",
+      "controlType": "audit_log",
+      "status": "available",
+      "scope": "record API and report job lifecycle",
+      "envVars": ["FATE_AUDIT_LOG_ENABLED", "FATE_AUDIT_EVENT_RETENTION_DAYS"],
+      "implementationRefs": [
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::_log_audit_event",
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::calculate_bazi",
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::get_record",
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::get_user_records",
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::delete_record",
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::_submit_report_job",
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::cancel_report_job"
+      ],
+      "localVerification": [
+        ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k 'audit_event or retention'"
+      ],
+      "privacyBoundary": "audit_event 不得记录真实 token、请求体、报告正文、姓名、出生地区、recordId、jobId 或 userId 原文；资源 ID 只允许短哈希。",
+      "externalConnectivity": "not_required",
+      "links": {
+        "self": "/security/control.audit_event_log",
+        "collection": "/security",
+        "schema": "contracts/fate/security/schemas/security-control.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/main.py",
+        "threatModel": "记录接口和报告任务关键动作缺少可审计事件，无法追踪敏感资源访问",
+        "failureMode": "记录读写/删除和报告 job 提交/取消必须输出脱敏 audit_event",
+        "releaseImpact": "本地回归和 quick CI 阻断",
+        "risk": "当前只输出本地结构化日志，不接入外部 SIEM、不可变审计存储或生产日志保留平台。"
+      }
+    },
+    {
+      "resourceType": "SecurityControl",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.report_job_webhook_signature",
+      "name": "Report job webhook signature and privacy boundary",
+      "controlType": "webhook_signature",
+      "status": "available",
+      "scope": "report job terminal webhook callback",
+      "envVars": [
+        "FATE_REPORT_JOB_WEBHOOKS_ENABLED",
+        "FATE_WEBHOOK_TIMEOUT_SECONDS",
+        "FATE_WEBHOOK_ALLOWED_HOSTS",
+        "FATE_WEBHOOK_ALLOW_HTTP"
+      ],
+      "implementationRefs": [
+        "domains/experience-delivery/services/fatecat-delivery/src/webhook_callbacks.py::HttpWebhookDispatcher",
+        "domains/experience-delivery/services/fatecat-delivery/src/webhook_callbacks.py::sign_webhook_body",
+        "domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py::ReportJobManager._dispatch_terminal_webhook",
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::_webhook_config_from_headers"
+      ],
+      "localVerification": [
+        "bash scripts/webhook-smoke.sh",
+        ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k webhook"
+      ],
+      "privacyBoundary": "webhook terminal event 不发送 Markdown 正文、姓名、出生地区、请求体或 webhook secret；API 响应和 audit_event 只暴露 enabled/signature 状态。",
+      "externalConnectivity": "external_connectivity_pending",
+      "links": {
+        "self": "/security/control.report_job_webhook_signature",
+        "collection": "/security",
+        "schema": "contracts/fate/security/schemas/security-control.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/webhook_callbacks.py",
+        "threatModel": "异步报告完成事件需要可验证来源，同时避免 SSRF、secret 泄露和报告正文外发",
+        "failureMode": "未显式启用时提供 webhook URL 必须拒绝；启用时 payload 必须签名且不得包含报告正文或用户输入",
+        "releaseImpact": "report job webhook 发布前必须通过本地 smoke；真实接收端连通仍需生产实测",
+        "risk": "当前是本地可验证 callback baseline，不含持久重试队列、外部任务系统、真实接收端 SLA 或公网 webhook live smoke。"
+      }
+    },
+    {
+      "resourceType": "SecurityControl",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.retention_policy",
+      "name": "Data retention policy baseline",
+      "controlType": "retention",
+      "status": "available",
+      "scope": "report job TTL/store, audit event retention metadata and user-managed records",
+      "envVars": [
+        "FATE_REPORT_JOB_TTL_SECONDS",
+        "FATE_REPORT_JOB_STORE",
+        "FATE_REPORT_JOB_DB_PATH",
+        "FATE_AUDIT_EVENT_RETENTION_DAYS",
+        "FATE_RECORD_RETENTION_DAYS"
+      ],
+      "implementationRefs": [
+        "domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py::ReportJobManager.cleanup_expired",
+        "domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py::SQLiteReportJobStore",
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::AUDIT_EVENT_RETENTION_DAYS",
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::RECORD_RETENTION_DAYS",
+        "domains/experience-delivery/services/fatecat-delivery/src/main.py::delete_record"
+      ],
+      "localVerification": [
+        ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k 'audit_event or retention'"
+      ],
+      "privacyBoundary": "retention policy 只登记 TTL/显式删除口径，不保存用户数据、请求体、报告正文或 secret。",
+      "externalConnectivity": "not_required",
+      "links": {
+        "self": "/security/control.retention_policy",
+        "collection": "/security",
+        "schema": "contracts/fate/security/schemas/security-control.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/main.py",
+        "threatModel": "报告任务、审计事件和用户记录缺少可见保留边界",
+        "failureMode": "job TTL、job store backend、audit retention days、record retention mode 必须在 registry 或 audit_event 中可复核",
+        "releaseImpact": "本地回归阻断；公网生产仍需外部日志/数据库 retention 方案",
+        "risk": "SQLite job store 只适合单副本本地持久化；当前记录数据默认是显式删除模式，自动按年龄清理记录、外部日志 retention 和多副本任务系统仍需后续生产化。"
+      }
+    },
+    {
+      "resourceType": "SecurityControl",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.production_identity_oidc",
+      "name": "Production external identity and OIDC admission",
+      "controlType": "identity",
+      "status": "manual",
+      "scope": "public multi-tenant API identity boundary",
+      "envVars": [
+        "FATE_PUBLIC_MULTI_TENANT",
+        "FATE_OIDC_ISSUER",
+        "FATE_OIDC_AUDIENCE",
+        "FATE_OIDC_JWKS_URL",
+        "FATE_OIDC_REQUIRED_SCOPES"
+      ],
+      "implementationRefs": [
+        "contracts/fate/security/production-security-policy.json",
+        "scripts/production-security-gate.sh",
+        "scripts/production-readiness.sh"
+      ],
+      "localVerification": ["bash scripts/production-security-gate.sh"],
+      "privacyBoundary": "身份准入 contract 只登记 OIDC/IdP 配置变量名和边界，不保存真实 issuer token、JWKS 内容、用户身份声明或 secret。",
+      "externalConnectivity": "external_connectivity_pending",
+      "links": {
+        "self": "/security/control.production_identity_oidc",
+        "collection": "/security",
+        "schema": "contracts/fate/security/schemas/security-control.schema.json"
+      },
+      "metadata": {
+        "owner": "contracts/fate/security/production-security-policy.json",
+        "threatModel": "共享 token 或本地 scoped token 被误当作公网多租户生产 IAM",
+        "failureMode": "公网多租户发布必须接入外部 OIDC/IdP 或明确标注外部连通验证待执行",
+        "releaseImpact": "公网多租户生产发布前人工/外部环境阻断",
+        "risk": "当前仓库只有 scoped token RBAC baseline；OAuth/OIDC、外部 IdP、JWKS 校验、组织级多租户权限和真实身份会话仍待生产环境实现与验证。",
+        "baselineMode": "scoped_token_rbac",
+        "targetMode": "external_oidc_or_idp"
+      }
+    },
+    {
+      "resourceType": "SecurityControl",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.external_siem_immutable_audit",
+      "name": "External SIEM and immutable audit storage admission",
+      "controlType": "siem",
+      "status": "manual",
+      "scope": "audit_event export, immutable audit storage and production log retention",
+      "envVars": [
+        "FATE_AUDIT_SIEM_EXPORT_ENABLED",
+        "FATE_AUDIT_SIEM_ENDPOINT",
+        "FATE_AUDIT_SIEM_DESTINATION",
+        "FATE_AUDIT_IMMUTABILITY_MODE"
+      ],
+      "implementationRefs": [
+        "contracts/fate/security/production-security-policy.json",
+        "scripts/production-security-gate.sh",
+        "scripts/production-readiness.sh"
+      ],
+      "localVerification": ["bash scripts/production-security-gate.sh"],
+      "privacyBoundary": "SIEM 准入 contract 不保存真实 endpoint、token、日志 payload、请求体、报告正文、姓名、出生地区、recordId、jobId 或 userId 原文。",
+      "externalConnectivity": "external_connectivity_pending",
+      "links": {
+        "self": "/security/control.external_siem_immutable_audit",
+        "collection": "/security",
+        "schema": "contracts/fate/security/schemas/security-control.schema.json"
+      },
+      "metadata": {
+        "owner": "contracts/fate/security/production-security-policy.json",
+        "threatModel": "本地结构化 audit_event 未进入外部不可变审计存储，生产事故后无法追溯或防篡改",
+        "failureMode": "生产记录接口或报告任务开启时必须声明 SIEM/export/immutability 策略，真实连通需外部证据",
+        "releaseImpact": "生产发布前人工/外部环境阻断",
+        "risk": "当前只做本地 audit_event 日志和 SIEM contract，不接真实 SIEM、WORM 存储、云日志或不可变审计平台。",
+        "allowedImmutabilityModes": ["append_only", "worm", "external_siem"]
+      }
+    },
+    {
+      "resourceType": "SecurityControl",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.retention_cleanup_plan",
+      "name": "Time-based retention cleanup admission",
+      "controlType": "retention",
+      "status": "manual",
+      "scope": "record, report job and audit retention cleanup lifecycle",
+      "envVars": [
+        "FATE_RECORD_RETENTION_DAYS",
+        "FATE_RECORD_RETENTION_AUTO_CLEANUP_ENABLED",
+        "FATE_RECORD_RETENTION_DELETE_MODE",
+        "FATE_AUDIT_EVENT_RETENTION_DAYS",
+        "FATE_REPORT_JOB_TTL_SECONDS"
+      ],
+      "implementationRefs": [
+        "contracts/fate/security/production-security-policy.json",
+        "scripts/production-security-gate.sh",
+        "scripts/production-readiness.sh",
+        "domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py::ReportJobManager.cleanup_expired"
+      ],
+      "localVerification": ["bash scripts/production-security-gate.sh"],
+      "privacyBoundary": "retention cleanup contract 只登记保留天数、删除模式和审计要求，不保存用户记录、请求体、报告正文或 secret。",
+      "externalConnectivity": "external_connectivity_pending",
+      "links": {
+        "self": "/security/control.retention_cleanup_plan",
+        "collection": "/security",
+        "schema": "contracts/fate/security/schemas/security-control.schema.json"
+      },
+      "metadata": {
+        "owner": "contracts/fate/security/production-security-policy.json",
+        "threatModel": "记录、报告任务和审计事件长期保留，缺少按时间清理、审计和删除模式约束",
+        "failureMode": "声明按年龄自动清理时必须具备清理器、回归测试和审计事件；否则只能标注显式删除 baseline",
+        "releaseImpact": "生产持久记录能力发布前人工/外部环境阻断",
+        "risk": "当前记录数据默认显式删除；time-based record cleanup scheduler、外部日志 retention 和删除审计仍待后续实现。",
+        "currentRecordMode": "explicit_delete",
+        "targetRecordMode": "time_based_cleanup_with_audit"
+      }
+    },
+    {
+      "resourceType": "SecurityControl",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.owasp_api_security_regression",
+      "name": "OWASP API Security Top 10 regression pack",
+      "controlType": "owasp_api_regression",
+      "status": "available",
+      "scope": "local API security regression inventory and release gate",
+      "envVars": [],
+      "implementationRefs": [
+        "contracts/fate/security/production-security-policy.json",
+        "scripts/production-security-gate.py",
+        "scripts/production-security-gate.sh",
+        "tests/regression/test_production_security_gate.py"
+      ],
+      "localVerification": ["bash scripts/production-security-gate.sh"],
+      "privacyBoundary": "OWASP regression gate 只输出风险项 ID、覆盖状态和脱敏摘要，不输出请求体、用户输入、报告正文或 secret。",
+      "externalConnectivity": "not_required",
+      "links": {
+        "self": "/security/control.owasp_api_security_regression",
+        "collection": "/security",
+        "schema": "contracts/fate/security/schemas/security-control.schema.json"
+      },
+      "metadata": {
+        "owner": "scripts/production-security-gate.py",
+        "threatModel": "API 安全回归只覆盖零散测试，缺少 OWASP API Security Top 10 风险项映射",
+        "failureMode": "10 个 OWASP API Security Top 10 2023 风险项必须都有本地覆盖映射或明确外部待验证项",
+        "releaseImpact": "quick CI 阻断",
+        "risk": "本地 OWASP 映射是 release gate 基线，不替代第三方渗透测试、真实 WAF/网关策略或生产安全评估。",
+        "owaspVersion": "API Security Top 10 2023"
+      }
+    },
+    {
+      "resourceType": "SecurityControl",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.privacy_fixture_policy",
+      "name": "Privacy fixture allowlist",
+      "controlType": "privacy",
+      "status": "available",
+      "scope": "first-party docs, tests and UI examples",
+      "envVars": [],
+      "implementationRefs": ["scripts/check-privacy-fixtures.sh"],
+      "localVerification": ["bash scripts/check-privacy-fixtures.sh"],
+      "privacyBoundary": "公开 Web 示例和用户界面不得展示北京以外的真实地区名称或真实感个人姓名。",
+      "externalConnectivity": "not_required",
+      "links": {
+        "self": "/security/control.privacy_fixture_policy",
+        "collection": "/security",
+        "schema": "contracts/fate/security/schemas/security-control.schema.json"
+      },
+      "metadata": {
+        "owner": "scripts/check-privacy-fixtures.sh",
+        "threatModel": "示例数据泄露真实用户或真实感地点",
+        "failureMode": "一线代码、文档或测试出现非白名单姓名/地区时门禁失败",
+        "releaseImpact": "quick CI 阻断",
+        "risk": "第三方 vendor 历史示例只做隔离登记，不作为生产入口使用。"
+      }
+    },
+    {
+      "resourceType": "SecurityControl",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.source_hygiene_gate",
+      "name": "Source hygiene gate",
+      "controlType": "source_hygiene",
+      "status": "available",
+      "scope": "tracked repository files",
+      "envVars": [],
+      "implementationRefs": ["scripts/check-source-hygiene.sh"],
+      "localVerification": ["bash scripts/check-source-hygiene.sh"],
+      "privacyBoundary": "扫描个人绝对路径、账号痕迹、raw、运行态、缓存、数据库和日志误入 Git。",
+      "externalConnectivity": "not_required",
+      "links": {
+        "self": "/security/control.source_hygiene_gate",
+        "collection": "/security",
+        "schema": "contracts/fate/security/schemas/security-control.schema.json"
+      },
+      "metadata": {
+        "owner": "scripts/check-source-hygiene.sh",
+        "threatModel": "本机路径、raw 数据、运行态文件或数据库误提交",
+        "failureMode": "发现违规 tracked file 或个人路径痕迹时门禁失败",
+        "releaseImpact": "quick CI 阻断",
+        "risk": "该门禁只覆盖路径、raw、运行态和个人路径卫生；真实密钥风险由 control.secret_scan_gate 独立扫描。"
+      }
+    },
+    {
+      "resourceType": "SecurityControl",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.secret_scan_gate",
+      "name": "Secret scan gate",
+      "controlType": "secret_scan",
+      "status": "available",
+      "scope": "tracked and untracked non-ignored first-party text files",
+      "envVars": [],
+      "implementationRefs": [
+        "scripts/secret-scan.py",
+        "scripts/secret-scan.sh",
+        "contracts/fate/security/secret-scan-allowlist.json"
+      ],
+      "localVerification": ["bash scripts/secret-scan.sh --output-json /tmp/fatecat-secret-scan.json"],
+      "privacyBoundary": "扫描结果不得输出疑似密钥原文；只输出路径、行号、规则、severity、短指纹和脱敏长度。",
+      "externalConnectivity": "not_required",
+      "links": {
+        "self": "/security/control.secret_scan_gate",
+        "collection": "/security",
+        "schema": "contracts/fate/security/schemas/security-control.schema.json"
+      },
+      "metadata": {
+        "owner": "scripts/secret-scan.py",
+        "threatModel": "真实 token、API key、私钥、证书、DSN 或 webhook 误提交到仓库",
+        "failureMode": "发现高置信疑似真实 secret 时门禁失败并输出脱敏 finding summary",
+        "releaseImpact": "quick CI 阻断",
+        "risk": "本地启发式扫描不能替代人工复核、云端 secret scanning 或真实生产凭证审计；reference repos 和 archive 默认排除。"
+      }
+    },
+    {
+      "resourceType": "SecurityControl",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.public_release_policy",
+      "name": "Public release policy gate",
+      "controlType": "release_gate",
+      "status": "available",
+      "scope": "public release workflow and HF deployment defaults",
+      "envVars": [],
+      "implementationRefs": ["scripts/check-public-release-policy.sh", "scripts/public-release-gate.sh"],
+      "localVerification": ["bash scripts/check-public-release-policy.sh"],
+      "privacyBoundary": "检查发布文档和默认配置，不读取真实 token 或用户数据。",
+      "externalConnectivity": "not_required",
+      "links": {
+        "self": "/security/control.public_release_policy",
+        "collection": "/security",
+        "schema": "contracts/fate/security/schemas/security-control.schema.json"
+      },
+      "metadata": {
+        "owner": "scripts/check-public-release-policy.sh",
+        "threatModel": "公开 release 自动触发、默认保存用户记录或缺少隐私边界说明",
+        "failureMode": "workflow 非手动触发、HF 默认未关闭记录或 README 缺隐私说明时门禁失败",
+        "releaseImpact": "public release 阻断",
+        "risk": "只覆盖仓库策略文件，不证明线上 Space 配置已按策略部署。"
+      }
+    },
+    {
+      "resourceType": "SecurityControl",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.production_readiness_external",
+      "name": "Production readiness and live smoke",
+      "controlType": "production_readiness",
+      "status": "manual",
+      "scope": "real API domain, CORS, token and Bot live smoke",
+      "envVars": [
+        "FATE_CORS_ALLOW_ORIGINS",
+        "FATE_API_TOKEN",
+        "FATE_API_ADMIN_TOKEN",
+        "FATE_API_USER_TOKENS",
+        "FATE_BOT_TOKEN",
+        "FATE_RATE_LIMIT_BACKEND"
+      ],
+      "implementationRefs": ["scripts/production-readiness.sh", "scripts/live-bot-smoke.sh"],
+      "localVerification": [
+        "bash scripts/production-readiness.sh --api-url <真实域名> --require-live-bot"
+      ],
+      "privacyBoundary": "门禁只检查凭证是否存在且不是占位值；不得输出真实 token 内容。",
+      "externalConnectivity": "external_connectivity_pending",
+      "links": {
+        "self": "/security/control.production_readiness_external",
+        "collection": "/security",
+        "schema": "contracts/fate/security/schemas/security-control.schema.json"
+      },
+      "metadata": {
+        "owner": "scripts/production-readiness.sh",
+        "threatModel": "仓库内测试通过但真实域名、CORS、token、Bot 或生产监控未验证",
+        "failureMode": "缺真实域名、真实 token 或 live Bot 权限时必须标注外部连通验证待执行",
+        "releaseImpact": "生产发布前人工/外部环境阻断",
+        "risk": "当前仓库不能伪造外部连通结果；需要运维人员用真实权限执行。"
+      }
+    }
+  ],
+  "metadata": {
+    "resourceType": "SecurityRegistry",
+    "externalConnectivity": "外部连通验证待执行",
+    "policy": "registry 只声明 controls、验证命令和边界；真实生产域名、真实 token、Bot live smoke 和云端权限必须来自外部验证证据。",
+    "defaultResponseRule": "API 只返回安全控制契约，不返回真实 secret、生产凭证、用户数据或扫描命中值。",
+    "smokeCommand": "bash scripts/security-smoke.sh",
+    "smokeOutput": "infra/runtime/local-state/exports/security/smoke.json",
+    "smokeScope": "本地 TestClient 验证记录接口 token/owner 边界、响应安全头、请求体限制、限流和 registry metadata；同时可串联 privacy/source/public-release 文件门禁。不伪造真实生产域名、真实 token 或 Bot live smoke。",
+    "secretScanCommand": "bash scripts/secret-scan.sh --output-json infra/runtime/local-state/exports/security/secret-scan.json",
+    "secretScanScope": "扫描 tracked 和未跟踪但未被 gitignore 排除的一线文本文件；排除 reference repos、archive 和二进制/大文件；不输出疑似密钥原文。",
+    "productionSecurityGateCommand": "bash scripts/production-security-gate.sh",
+    "productionSecurityGateScope": "本地验证生产身份外部化、OIDC/IdP 准入、SIEM/不可变审计存储、retention 自动清理计划和 OWASP API Security Top 10 回归包 contract；不连接真实 OIDC、SIEM、生产日志平台或外部账号。"
+  }
+}

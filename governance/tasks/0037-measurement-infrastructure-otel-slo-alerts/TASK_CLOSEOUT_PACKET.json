@@ -1,0 +1,122 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-02T13:09:34+08:00",
+  "task": {
+    "task_id": "0037",
+    "slug": "measurement-infrastructure-otel-slo-alerts",
+    "task_dir": "governance/tasks/0037-measurement-infrastructure-otel-slo-alerts",
+    "detected_phase": "closeout",
+    "overall_status": "Done"
+  },
+  "source_refs": {
+    "task_context_packet": null,
+    "task_package_set": null,
+    "git_delivery_evidence": null
+  },
+  "closeout_gate": {
+    "ready": true,
+    "failures": []
+  },
+  "summary": {
+    "leaf_total": 9,
+    "leaf_done": 9,
+    "todo_total": 9,
+    "todo_checked": 9,
+    "blocker_count": 0
+  },
+  "leaves": [
+    {
+      "id": "TP-01.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "已盘点 observability registry、runtime smoke、quick CI 和 D7 roadmap",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-02.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`domains/fate-analysis/services/fate-core/src/fate_core/observability.py` added",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-02.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "HTTP/capability/provider/report/web report span 已接入",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`contracts/fate/observability/slo-policy.json` 和 `alert-rules.json` added",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "observability registry and contract tests updated",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-04.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "SLO gate 和 trace SLO smoke passed",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-04.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "regression tests and quick CI passed",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-05.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "API docs、roadmap、AGENTS synced",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-05.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "task docs validated and closeout packet generated",
+      "blocker": "-",
+      "unblock_needed": "-"
+    }
+  ],
+  "git_delivery": null,
+  "recommended_asset_handoff": {
+    "source_refs": [],
+    "artifacts": [
+      "task-closeout-packet.json"
+    ]
+  },
+  "upstream_packets": {
+    "task_context_packet_loaded": false,
+    "task_package_set_loaded": false,
+    "git_delivery_evidence_loaded": false
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-02T14:19:14+08:00",
+  "task": {
+    "task_id": "0041",
+    "slug": "measurement-infrastructure-local-ci-evidence-gate",
+    "task_dir": "governance/tasks/0041-measurement-infrastructure-local-ci-evidence-gate",
+    "detected_phase": "closeout",
+    "overall_status": "Done"
+  },
+  "source_refs": {
+    "task_context_packet": null,
+    "task_package_set": null,
+    "git_delivery_evidence": null
+  },
+  "closeout_gate": {
+    "ready": true,
+    "failures": []
+  },
+  "summary": {
+    "leaf_total": 5,
+    "leaf_done": 5,
+    "todo_total": 5,
+    "todo_checked": 5,
+    "blocker_count": 0
+  },
+  "leaves": [
+    {
+      "id": "TP-01.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`rg local_ci_summary` 和脚本阅读确认缺口",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-02.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`/tmp/fatecat-local-ci-0041/summary.json` 生成，`status=passed`；`/tmp/fatecat-local-ci-fail-0041/summary.json` 生成，`status=failed`",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-03.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`tests/regression/test_live_release_gate.py` 6 passed；手工 live gate `passed=3,pending=7`",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-04.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "public-release 默认路径最终 live gate `passed=3,pending=7`",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-05.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`TASK_CLOSEOUT_PACKET.json` 已生成，任务文档 closeout 校验通过",
+      "blocker": "无",
+      "unblock_needed": "无"
+    }
+  ],
+  "git_delivery": null,
+  "recommended_asset_handoff": {
+    "source_refs": [],
+    "artifacts": [
+      "task-closeout-packet.json"
+    ]
+  },
+  "upstream_packets": {
+    "task_context_packet_loaded": false,
+    "task_package_set_loaded": false,
+    "git_delivery_evidence_loaded": false
+  }
+}

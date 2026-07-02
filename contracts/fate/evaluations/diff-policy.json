@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "version": "evaluation-diff-policy.v1",
+  "description": "FateCat 本地 EvaluationRun summary diff 门禁策略。该策略只判断本地评测结果是否退化，不保存长期历史数据库。",
+  "thresholds": {
+    "maxNewFailedRuns": 0,
+    "maxMissingRuns": 0,
+    "maxFailedCommands": 0
+  },
+  "regressionRules": [
+    "baseline status=passed 的 run 在 current 中不得退化为 failed、skipped 或 planned",
+    "baseline 中存在的 run 不得从 current summary 中消失",
+    "current summary 中不得出现失败命令"
+  ],
+  "scope": {
+    "covered": "本地 runner 生成的 EvaluationRun summary JSON",
+    "notCovered": "dashboard、nightly、远端 CI、外部模型 eval、跨仓库长期趋势"
+  },
+  "privacyBoundary": "diff 只比较 runId、状态、exitCode 和摘要字段；不得解析或保存用户输入、benchmark 标准答案、token、secret 或 DSN。"
+}

@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import json
 import logging
 import os
@@ -9,8 +10,9 @@ import uuid
 from collections import defaultdict, deque
 from contextlib import contextmanager
 from contextvars import ContextVar
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
 from threading import BoundedSemaphore, Lock
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -21,7 +23,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response
 
-from _paths import FATE_CORE_SRC_DIR, get_env_file
+from _paths import ASSETS_DIR, FATE_CORE_SRC_DIR, RUNTIME_DATABASE_DIR, get_env_file
 from branding import attach_branding, get_branding_payload, get_disclaimer_payload
 from service_config import cors_allow_origins, env_flag, env_int
 from utils.timezone import now_cn
@@ -44,12 +46,43 @@ MAX_INFLIGHT_CALCULATIONS = env_int("FATE_MAX_INFLIGHT_CALCULATIONS", 2, minimum
 REPORT_JOB_QUEUE_SIZE = env_int("FATE_REPORT_JOB_QUEUE_SIZE", 20, minimum=1)
 REPORT_JOB_WORKERS = env_int("FATE_REPORT_JOB_WORKERS", 1, minimum=1)
 REPORT_JOB_TTL_SECONDS = env_int("FATE_REPORT_JOB_TTL_SECONDS", 1800, minimum=60)
+REPORT_JOB_STORE = os.getenv("FATE_REPORT_JOB_STORE", "memory").strip().lower() or "memory"
+REPORT_JOB_DB_PATH = os.getenv(
+    "FATE_REPORT_JOB_DB_PATH",
+    str(RUNTIME_DATABASE_DIR / "report_jobs.sqlite"),
+).strip()
+REPORT_JOB_WEBHOOKS_ENABLED = env_flag("FATE_REPORT_JOB_WEBHOOKS_ENABLED")
+WEBHOOK_TIMEOUT_SECONDS = env_int("FATE_WEBHOOK_TIMEOUT_SECONDS", 5, minimum=1)
+WEBHOOK_ALLOWED_HOSTS = os.getenv("FATE_WEBHOOK_ALLOWED_HOSTS", "").strip()
+WEBHOOK_ALLOW_HTTP = env_flag("FATE_WEBHOOK_ALLOW_HTTP")
+AUDIT_LOG_ENABLED = os.getenv("FATE_AUDIT_LOG_ENABLED", "1").strip().lower() not in {"0", "false", "no", "off"}
+AUDIT_EVENT_RETENTION_DAYS = env_int("FATE_AUDIT_EVENT_RETENTION_DAYS", 30, minimum=1)
+RECORD_RETENTION_DAYS = env_int("FATE_RECORD_RETENTION_DAYS", 0, minimum=0)
 TRUST_PROXY_HEADERS = env_flag("FATE_TRUST_PROXY_HEADERS")
 ENABLE_HSTS = env_flag("FATE_ENABLE_HSTS")
 
 import db_v2 as db  # noqa: E402
 from calculation_service import calculate_delivery_result  # noqa: E402
-from fate_core.capabilities import CapabilityExecutor, CapabilityInput, list_capabilities  # noqa: E402
+from fate_core.capabilities import (  # noqa: E402
+    CapabilityExecutor,
+    CapabilityInput,
+    build_markdown_report_policy_gate,
+    build_markdown_snapshot_gate,
+    build_report_policy_gate,
+    get_capability,
+    get_provider,
+    get_provider_for_capability,
+    list_capabilities,
+    list_providers,
+)
+from fate_core.observability import (  # noqa: E402
+    current_trace_id,
+    current_traceparent,
+    reset_trace_context,
+    set_trace_context,
+    trace_context_from_traceparent,
+    trace_span,
+)
 from fate_core.usecases import PureAnalysisInput, calculate_pure_analysis  # noqa: E402
 from liuyao_factors import generate_factor  # noqa: E402
 from models import (  # noqa: E402
@@ -70,10 +103,17 @@ from report_generator import (  # noqa: E402
     normalize_report_system,
     public_birth_place,
 )
-from report_jobs import ReportJobManager, ReportJobNotFound, ReportJobQueueFull, ReportJobSnapshot  # noqa: E402
+from report_jobs import (  # noqa: E402
+    ReportJobManager,
+    ReportJobNotFound,
+    ReportJobQueueFull,
+    ReportJobSnapshot,
+    SQLiteReportJobStore,
+)
 from web_forms import WebReportForm, WebReportJobView, WebReportResult  # noqa: E402
 from web_report_service import build_web_report_result, validate_web_report_form  # noqa: E402
 from web_ui import render_web_report_page  # noqa: E402
+from webhook_callbacks import HttpWebhookDispatcher, WebhookConfig, parse_allowed_hosts  # noqa: E402
 
 logger = logging.getLogger(__name__)
 _request_id_context: ContextVar[str | None] = ContextVar("fatecat_request_id", default=None)
@@ -91,11 +131,27 @@ _rate_limit_windows: dict[str, deque[float]] = defaultdict(deque)
 _RATE_LIMIT_EXEMPT_PATHS = {"/health", "/live", "/ready", "/metrics"}
 _REQUEST_LATENCY_BUCKETS = (0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0)
 _BODY_LIMIT_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
-report_job_manager = ReportJobManager(
-    max_workers=REPORT_JOB_WORKERS,
-    queue_size=REPORT_JOB_QUEUE_SIZE,
-    ttl_seconds=REPORT_JOB_TTL_SECONDS,
-)
+
+
+def _build_report_job_manager() -> ReportJobManager:
+    store = None
+    if REPORT_JOB_STORE == "sqlite":
+        db_path = Path(REPORT_JOB_DB_PATH)
+        if not db_path.is_absolute():
+            db_path = RUNTIME_DATABASE_DIR / db_path
+        store = SQLiteReportJobStore(db_path)
+    elif REPORT_JOB_STORE != "memory":
+        raise RuntimeError("FATE_REPORT_JOB_STORE 只支持 memory 或 sqlite")
+    return ReportJobManager(
+        max_workers=REPORT_JOB_WORKERS,
+        queue_size=REPORT_JOB_QUEUE_SIZE,
+        ttl_seconds=REPORT_JOB_TTL_SECONDS,
+        store=store,
+        webhook_dispatcher=HttpWebhookDispatcher(timeout_seconds=WEBHOOK_TIMEOUT_SECONDS).deliver,
+    )
+
+
+report_job_manager = _build_report_job_manager()
 
 
 def _records_enabled() -> bool:
@@ -106,14 +162,34 @@ if _records_enabled():
     db.ensure_db()
 
 
+RECORD_SCOPE_READ = "record.read"
+RECORD_SCOPE_LIST = "record.list"
+RECORD_SCOPE_WRITE = "record.write"
+RECORD_SCOPE_DELETE = "record.delete"
+RECORD_SCOPES = frozenset(
+    {
+        RECORD_SCOPE_READ,
+        RECORD_SCOPE_LIST,
+        RECORD_SCOPE_WRITE,
+        RECORD_SCOPE_DELETE,
+    }
+)
+ADMIN_RECORD_SCOPES = RECORD_SCOPES
+DEFAULT_USER_RECORD_SCOPES = RECORD_SCOPES
+
+
 @dataclass(frozen=True)
 class ApiPrincipal:
     role: str
     user_id: str | None = None
+    scopes: frozenset[str] = field(default_factory=frozenset)
 
     @property
     def is_admin(self) -> bool:
         return self.role == "admin"
+
+    def has_scope(self, scope: str) -> bool:
+        return scope in self.scopes
 
 
 class RequestBodyLimitMiddleware:
@@ -210,36 +286,52 @@ def _admin_tokens() -> list[str]:
     return [token for token in dict.fromkeys(tokens) if token]
 
 
-def _user_tokens() -> dict[str, str]:
+def _parse_record_scope_list(raw: str) -> frozenset[str]:
+    requested = {item.strip() for item in raw.split("|") if item.strip()}
+    return frozenset(scope for scope in requested if scope in RECORD_SCOPES)
+
+
+def _user_token_principals() -> list[tuple[str, ApiPrincipal]]:
     raw = os.getenv("FATE_API_USER_TOKENS", "").strip()
     if not raw:
-        return {}
+        return []
 
-    mapping: dict[str, str] = {}
+    principals: list[tuple[str, ApiPrincipal]] = []
     for item in raw.split(","):
-        user_id, sep, token = item.strip().partition(":")
-        if sep and user_id.strip() and token.strip():
-            mapping[user_id.strip()] = token.strip()
-    return mapping
+        parts = item.strip().split(":", 2)
+        if len(parts) < 2:
+            continue
+        user_id = parts[0].strip()
+        token = parts[1].strip()
+        scopes = _parse_record_scope_list(parts[2]) if len(parts) == 3 else DEFAULT_USER_RECORD_SCOPES
+        if user_id and token:
+            principals.append((token, ApiPrincipal(role="user", user_id=user_id, scopes=scopes)))
+    return principals
 
 
 def _require_record_access(x_api_key: str | None, authorization: str | None) -> ApiPrincipal:
     if not _records_enabled():
         raise HTTPException(status_code=403, detail="记录接口未启用")
     admin_tokens = _admin_tokens()
-    user_tokens = _user_tokens()
-    if not admin_tokens and not user_tokens:
+    user_principals = _user_token_principals()
+    if not admin_tokens and not user_principals:
         raise HTTPException(status_code=403, detail="记录接口未启用")
     supplied = _extract_auth_token(x_api_key, authorization)
     if not supplied:
         raise HTTPException(status_code=403, detail="未授权")
     for token in admin_tokens:
         if secrets.compare_digest(supplied, token):
-            return ApiPrincipal(role="admin")
-    for user_id, token in user_tokens.items():
+            return ApiPrincipal(role="admin", scopes=ADMIN_RECORD_SCOPES)
+    for token, principal in user_principals:
         if secrets.compare_digest(supplied, token):
-            return ApiPrincipal(role="user", user_id=user_id)
+            return principal
     raise HTTPException(status_code=403, detail="未授权")
+
+
+def _require_scope(principal: ApiPrincipal, scope: str) -> None:
+    if principal.has_scope(scope):
+        return
+    raise HTTPException(status_code=403, detail="权限不足")
 
 
 def _require_owner_or_admin(principal: ApiPrincipal, user_id: str) -> None:
@@ -363,6 +455,46 @@ def _log_structured(level: str, payload: dict[str, Any]) -> None:
     getattr(logger, level)(message)
 
 
+def _audit_hash(value: Any) -> str:
+    return hashlib.sha256(str(value).encode("utf-8", errors="ignore")).hexdigest()[:16]
+
+
+def _audit_principal_payload(principal: ApiPrincipal | None) -> dict[str, Any]:
+    if principal is None:
+        return {"actorRole": "anonymous"}
+    payload: dict[str, Any] = {"actorRole": principal.role, "scopeCount": len(principal.scopes)}
+    if principal.user_id:
+        payload["actorUserHash"] = _audit_hash(principal.user_id)
+    return payload
+
+
+def _log_audit_event(
+    action: str,
+    *,
+    principal: ApiPrincipal | None = None,
+    target_type: str,
+    target_id: Any | None = None,
+    outcome: str = "success",
+    metadata: dict[str, Any] | None = None,
+) -> None:
+    if not AUDIT_LOG_ENABLED:
+        return
+    payload: dict[str, Any] = {
+        "event": "audit_event",
+        "requestId": _current_request_id(),
+        "action": action,
+        "targetType": target_type,
+        "outcome": outcome,
+        "auditRetentionDays": AUDIT_EVENT_RETENTION_DAYS,
+    }
+    payload.update(_audit_principal_payload(principal))
+    if target_id is not None:
+        payload["targetIdHash"] = _audit_hash(target_id)
+    if metadata:
+        payload["metadata"] = metadata
+    _log_structured("info", payload)
+
+
 def _log_business_exception(message: str, *, error_type: str | None = None) -> None:
     payload = {
         "event": "business_error",
@@ -425,10 +557,14 @@ def _web_job_view(snapshot: ReportJobSnapshot) -> WebReportJobView:
 
 def _report_job_payload(snapshot: ReportJobSnapshot, *, include_result: bool) -> dict[str, Any]:
     payload: dict[str, Any] = {
+        "resourceType": "CalculationJob",
+        "apiVersion": "fatecat.tradecatlabs/v1",
         "jobId": snapshot.job_id,
+        "id": snapshot.job_id,
         "kind": snapshot.kind,
         "status": snapshot.status,
         "reportSystem": snapshot.report_system,
+        "idempotencyKey": snapshot.idempotency_key,
         "queuePosition": snapshot.queue_position,
         "createdAt": snapshot.created_at,
         "startedAt": snapshot.started_at,
@@ -436,6 +572,17 @@ def _report_job_payload(snapshot: ReportJobSnapshot, *, include_result: bool) ->
         "expiresAt": snapshot.expires_at,
         "error": snapshot.error,
         "statusUrl": f"/api/v1/report/jobs/{snapshot.job_id}",
+        "cancelUrl": f"/api/v1/report/jobs/{snapshot.job_id}/cancel",
+        "webhook": {
+            "enabled": snapshot.webhook_enabled,
+            "signature": snapshot.webhook_signature,
+        },
+        "links": {
+            "self": f"/api/v1/report/jobs/{snapshot.job_id}",
+            "cancel": f"/api/v1/report/jobs/{snapshot.job_id}/cancel",
+            "reports": "/reports",
+            "errors": "/errors",
+        },
         "input": snapshot.input_summary,
     }
     if include_result and snapshot.status == "succeeded":
@@ -449,6 +596,8 @@ def _serialize_report_job_result(result: Any) -> dict[str, Any] | None:
             "reportSystem": result.report_system,
             "reportSystemLabel": result.report_system_label,
             "markdown": result.markdown,
+            "policyGate": result.policy_gate,
+            "snapshotGate": result.snapshot_gate,
             "input": result.input_payload,
         }
     if isinstance(result, dict):
@@ -486,12 +635,323 @@ def _capability_item_payload(item: Any, markdown_enabled_ids: set[str]) -> dict[
         "evidencePolicy": item.evidence_policy,
         "testGate": item.test_gate,
         "riskLevel": item.risk_level,
+        "provider": _capability_provider_payload(item),
     }
+
+
+def _capability_provider_payload(item: Any) -> dict[str, Any]:
+    if item.status != "production":
+        return {
+            "providerId": item.provider,
+            "engineVersion": item.engine_version,
+            "health": {
+                "status": "blocked",
+                "checks": {
+                    "reason": "planned capability",
+                    "executable": False,
+                },
+            },
+        }
+    provider = get_provider_for_capability(item)
+    return {
+        **provider.metadata().as_dict(),
+        "health": provider.health().as_dict(),
+    }
+
+
+def _capability_schema_refs() -> dict[str, str]:
+    return {
+        "capability": "contracts/fate/capabilities/schemas/capability.schema.json",
+        "provider": "contracts/fate/capabilities/schemas/provider.schema.json",
+        "report": "contracts/fate/capabilities/schemas/report.schema.json",
+        "resource": "contracts/fate/capabilities/schemas/resource.schema.json",
+        "input": "contracts/fate/capabilities/schemas/input.schema.json",
+        "output": "contracts/fate/capabilities/schemas/output.schema.json",
+        "evidence": "contracts/fate/capabilities/schemas/evidence.schema.json",
+        "error": "contracts/fate/capabilities/schemas/error.schema.json",
+    }
+
+
+def _capability_resource_payload(item: Any) -> dict[str, Any]:
+    markdown_enabled_ids = set(enabled_report_system_ids())
+    payload = _capability_item_payload(item, markdown_enabled_ids)
+    executable = item.status == "production"
+    payload.update(
+        {
+            "resourceType": "Capability",
+            "apiVersion": "fatecat.tradecatlabs/v1",
+            "id": item.capability_id,
+            "description": item.description,
+            "input": {
+                "required": list(item.input_required),
+                "optional": list(item.input_optional),
+            },
+            "report": {
+                "profile": item.report_profile,
+                "markdownDefault": item.markdown_default,
+                "markdownEnabled": item.capability_id in markdown_enabled_ids,
+            },
+            "risk": {
+                "riskLevel": item.risk_level,
+                "disclaimerRequired": item.disclaimer_required,
+                "forbiddenClaims": list(item.forbidden_claims),
+            },
+            "schemas": _capability_schema_refs(),
+            "links": {
+                "self": f"/capabilities/{item.capability_id}",
+                "collection": "/capabilities",
+                "calculate": f"/capabilities/{item.capability_id}/calculate",
+                "provider": f"/providers/{item.provider}",
+                "errors": "/errors",
+            },
+            "admission": {
+                "executable": executable,
+                "reason": "production capability" if executable else "能力尚未生产化，当前只允许发现和审计",
+            },
+        }
+    )
+    return payload
 
 
 def _capabilities_payload() -> dict[str, Any]:
     markdown_enabled_ids = set(enabled_report_system_ids())
     return {"capabilities": [_capability_item_payload(item, markdown_enabled_ids) for item in list_capabilities()]}
+
+
+def _provider_resource_payload(provider: Any) -> dict[str, Any]:
+    metadata = provider.metadata().as_dict()
+    provider_id = metadata["providerId"]
+    return {
+        "resourceType": "Provider",
+        "apiVersion": "fatecat.tradecatlabs/v1",
+        "id": provider_id,
+        **metadata,
+        "health": provider.health().as_dict(),
+        "links": {
+            "self": f"/providers/{provider_id}",
+            "collection": "/providers",
+            "capabilities": "/capabilities",
+            "errors": "/errors",
+        },
+        "metadata": {
+            "interfaceVersion": metadata["interfaceVersion"],
+            "adapterType": metadata["adapterType"],
+            "healthScope": "in-process",
+            "externalConnectivity": "外部连通验证待执行",
+        },
+    }
+
+
+def _providers_payload() -> dict[str, Any]:
+    return {"providers": [_provider_resource_payload(provider) for provider in list_providers()]}
+
+
+def _report_sections_from_data(data: dict[str, Any]) -> list[dict[str, Any]]:
+    sections: list[dict[str, Any]] = []
+    for key in data:
+        if key == "analysisEvidence":
+            continue
+        sections.append(
+            {
+                "id": str(key),
+                "type": "jsonField",
+                "source": f"data.{key}",
+            }
+        )
+    return sections
+
+
+def _evidence_refs_from_evidence(evidence: dict[str, Any]) -> list[dict[str, Any]]:
+    refs: list[dict[str, Any]] = []
+    default_source = str(evidence.get("source", "") or "analysisEvidence")
+    root_rule_ids = evidence.get("ruleIds")
+    if isinstance(root_rule_ids, list) and root_rule_ids:
+        refs.append(
+            {
+                "id": "root",
+                "source": default_source,
+                "ruleIds": [str(item) for item in root_rule_ids],
+            }
+        )
+
+    items = evidence.get("items")
+    if isinstance(items, dict):
+        for item_id, item in items.items():
+            if not isinstance(item, dict):
+                continue
+            rule_ids = item.get("ruleIds")
+            normalized_rule_ids = [str(rule_id) for rule_id in rule_ids] if isinstance(rule_ids, list) else []
+            refs.append(
+                {
+                    "id": str(item_id),
+                    "source": str(item.get("source", default_source) or default_source),
+                    "ruleIds": normalized_rule_ids,
+                    "risk": item.get("risk"),
+                    "confidence": item.get("confidence"),
+                }
+            )
+    return refs
+
+
+def _capability_report_payload(result: Any) -> dict[str, Any]:
+    capability = get_capability(result.capability_id)
+    provider_id = str(result.metadata.get("engine", {}).get("provider", capability.provider))
+    report_id = f"{result.capability_id}:{result.report_profile}:json"
+    report = {
+        "resourceType": "Report",
+        "apiVersion": "fatecat.tradecatlabs/v1",
+        "id": report_id,
+        "capabilityId": result.capability_id,
+        "profile": result.report_profile,
+        "formats": ["json"],
+        "defaultFormat": "json",
+        "markdownDefault": capability.markdown_default,
+        "sections": _report_sections_from_data(result.data),
+        "evidenceRefs": _evidence_refs_from_evidence(result.evidence),
+        "risk": result.risk,
+        "links": {
+            "capability": f"/capabilities/{result.capability_id}",
+            "provider": f"/providers/{provider_id}",
+            "schemas": _capability_schema_refs(),
+            "errors": "/errors",
+        },
+        "metadata": {
+            "source": "capability-executor",
+            "dataRule": "data 保存结构化结果，不直接拼 Markdown。",
+            "evidenceRefsRule": "evidenceRefs 是 best-effort 引用索引，原始 evidence 仍完整返回。",
+            "snapshotGate": "后续切片实现完整 report snapshot gate。",
+        },
+    }
+    report["policyGate"] = build_report_policy_gate(
+        content={
+            "sections": report["sections"],
+            "metadata": report["metadata"],
+        },
+        forbidden_claims=result.risk.get("forbiddenClaims", []),
+        checked_fields=["report.sections", "report.metadata"],
+        excluded_fields=[
+            "report.risk.forbiddenClaims",
+            "risk.forbiddenClaims",
+            "report.policyGate",
+        ],
+        scope="capability-report-envelope",
+        content_coverage="Capability API 的 Report envelope 摘要字段；完整 Markdown snapshot gate 后续单独实现。",
+        policy_source="result.risk.forbiddenClaims",
+    )
+    return report
+
+
+def _markdown_report_gates(*, report_system: str, markdown: str) -> dict[str, Any]:
+    capability = get_capability(report_system)
+    return {
+        "policyGate": build_markdown_report_policy_gate(
+            markdown=markdown,
+            forbidden_claims=capability.forbidden_claims,
+            report_system=report_system,
+        ),
+        "snapshotGate": build_markdown_snapshot_gate(markdown=markdown, report_system=report_system),
+    }
+
+
+def _error_catalog_payload() -> dict[str, Any]:
+    path = ASSETS_DIR / "capabilities" / "errors.json"
+    with path.open("r", encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def _evaluation_registry_payload() -> dict[str, Any]:
+    path = ASSETS_DIR / "evaluations" / "registry.json"
+    with path.open("r", encoding="utf-8") as fh:
+        registry = json.load(fh)
+    return {
+        "schemaVersion": registry["schemaVersion"],
+        "resources": registry["resources"],
+        "schemas": registry["schemas"],
+        "metadata": registry["metadata"],
+    }
+
+
+def _evaluation_resource_payload(evaluation_id: str) -> dict[str, Any]:
+    for item in _evaluation_registry_payload()["resources"]:
+        if item["id"] == evaluation_id:
+            return item
+    raise ValueError(f"未找到评测资源: {evaluation_id}")
+
+
+def _observability_registry_payload() -> dict[str, Any]:
+    path = ASSETS_DIR / "observability" / "registry.json"
+    with path.open("r", encoding="utf-8") as fh:
+        registry = json.load(fh)
+    return {
+        "schemaVersion": registry["schemaVersion"],
+        "signals": registry["signals"],
+        "schemas": registry["schemas"],
+        "metadata": registry["metadata"],
+    }
+
+
+def _observability_signal_payload(signal_id: str) -> dict[str, Any]:
+    for item in _observability_registry_payload()["signals"]:
+        if item["id"] == signal_id:
+            return item
+    raise ValueError(f"未找到观测信号: {signal_id}")
+
+
+def _security_registry_payload() -> dict[str, Any]:
+    path = ASSETS_DIR / "security" / "registry.json"
+    with path.open("r", encoding="utf-8") as fh:
+        registry = json.load(fh)
+    return {
+        "schemaVersion": registry["schemaVersion"],
+        "controls": registry["controls"],
+        "schemas": registry["schemas"],
+        "metadata": registry["metadata"],
+    }
+
+
+def _security_control_payload(control_id: str) -> dict[str, Any]:
+    for item in _security_registry_payload()["controls"]:
+        if item["id"] == control_id:
+            return item
+    raise ValueError(f"未找到安全控制: {control_id}")
+
+
+def _delivery_surface_registry_payload() -> dict[str, Any]:
+    path = ASSETS_DIR / "delivery" / "registry.json"
+    with path.open("r", encoding="utf-8") as fh:
+        registry = json.load(fh)
+    return {
+        "schemaVersion": registry["schemaVersion"],
+        "surfaces": registry["surfaces"],
+        "schemas": registry["schemas"],
+        "releaseGate": registry["releaseGate"],
+        "metadata": registry["metadata"],
+    }
+
+
+def _delivery_surface_payload(surface_id: str) -> dict[str, Any]:
+    for item in _delivery_surface_registry_payload()["surfaces"]:
+        if item["id"] == surface_id:
+            return item
+    raise ValueError(f"未找到交付面: {surface_id}")
+
+
+def _webhook_config_from_headers(webhook_url: str | None, webhook_secret: str | None) -> WebhookConfig | None:
+    if not webhook_url:
+        if webhook_secret:
+            raise HTTPException(status_code=422, detail="X-FateCat-Webhook-Secret 需要同时提供 webhook URL")
+        return None
+    if not REPORT_JOB_WEBHOOKS_ENABLED:
+        raise HTTPException(status_code=403, detail="报告任务 webhook callback 未启用")
+    try:
+        return WebhookConfig(
+            url=webhook_url,
+            secret=webhook_secret,
+            allowed_hosts=parse_allowed_hosts(WEBHOOK_ALLOWED_HOSTS),
+            allow_http=WEBHOOK_ALLOW_HTTP,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 def _submit_report_job(
@@ -500,20 +960,62 @@ def _submit_report_job(
     report_system: str,
     task,
     input_summary: dict[str, Any],
+    idempotency_key: str | None = None,
+    webhook_config: WebhookConfig | None = None,
 ) -> ReportJobSnapshot:
     try:
-        return report_job_manager.submit(
-            kind=kind,
-            report_system=report_system,
-            task=task,
-            input_summary=input_summary,
+        with trace_span(
+            "report_job.submit",
+            attributes={
+                "kind": kind,
+                "reportSystem": report_system,
+                "webhookEnabled": webhook_config is not None,
+            },
+        ):
+            snapshot = report_job_manager.submit(
+                kind=kind,
+                report_system=report_system,
+                task=task,
+                input_summary=input_summary,
+                idempotency_key=idempotency_key,
+                webhook_config=webhook_config,
+            )
+        _log_audit_event(
+            "report_job.submit",
+            target_type="CalculationJob",
+            target_id=snapshot.job_id,
+            metadata={
+                "kind": kind,
+                "reportSystem": report_system,
+                "idempotencyKeyProvided": bool(idempotency_key),
+                "webhookProvided": webhook_config is not None,
+                "webhookSignature": webhook_config.signature_mode if webhook_config else "none",
+                "status": snapshot.status,
+                "ttlSeconds": REPORT_JOB_TTL_SECONDS,
+            },
         )
+        return snapshot
     except ReportJobQueueFull as exc:
+        _log_audit_event(
+            "report_job.submit",
+            target_type="CalculationJob",
+            outcome="rejected",
+            metadata={
+                "kind": kind,
+                "reportSystem": report_system,
+                "webhookProvided": webhook_config is not None,
+                "reason": "queue_full",
+            },
+        )
         raise HTTPException(status_code=429, detail=str(exc)) from exc
 
 
 def _apply_public_response_headers(response: Response, request_id: str) -> Response:
     response.headers["X-Request-ID"] = request_id
+    traceparent = current_traceparent()
+    if traceparent:
+        response.headers["Traceparent"] = traceparent
+        response.headers["X-Trace-ID"] = current_trace_id()
     response.headers.setdefault("X-Content-Type-Options", "nosniff")
     response.headers.setdefault("X-Frame-Options", "DENY")
     response.headers.setdefault("Referrer-Policy", "no-referrer")
@@ -554,6 +1056,7 @@ def _log_request(
     payload = {
         "event": "http_request",
         "requestId": request_id,
+        "traceId": current_trace_id(),
         "method": request.method,
         "route": route,
         "status": status_code,
@@ -576,38 +1079,47 @@ async def production_guardrails(request: Request, call_next):
     request_id = request.headers.get("x-request-id") or uuid.uuid4().hex
     request.state.request_id = request_id
     request_id_token = _request_id_context.set(request_id)
+    trace_context = trace_context_from_traceparent(request.headers.get("traceparent"))
+    request.state.trace_id = trace_context.trace_id
+    trace_token = set_trace_context(trace_context)
     started = time.perf_counter()
     try:
-        allowed, retry_after = _check_rate_limit(request)
-        if not allowed:
-            response = _json_error(429, "请求过于频繁")
-            response.headers["Retry-After"] = str(retry_after)
-            return _finalize_early_response(request, response, request_id, 429, started, "rate_limited")
+        with trace_span(
+            "http.request",
+            span_kind="server",
+            attributes={"http.method": request.method, "http.route": _route_label(request)},
+        ):
+            allowed, retry_after = _check_rate_limit(request)
+            if not allowed:
+                response = _json_error(429, "请求过于频繁")
+                response.headers["Retry-After"] = str(retry_after)
+                return _finalize_early_response(request, response, request_id, 429, started, "rate_limited")
 
-        global _inflight_requests
-        with _metrics_lock:
-            _inflight_requests += 1
-
-        status_code = 500
-        error_class: str | None = None
-        try:
-            response = await asyncio.wait_for(call_next(request), timeout=REQUEST_TIMEOUT_SECONDS)
-            status_code = response.status_code
-            error_class = _classify_error(status_code)
-        except TimeoutError:
-            response = _json_error(504, "请求处理超时")
-            status_code = 504
-            error_class = "timeout"
-        finally:
-            elapsed = time.perf_counter() - started
-            route = _route_label(request)
-            _record_request_metric(request.method, route, status_code, elapsed, error_class=error_class)
-            _log_request(request, request_id, route, status_code, elapsed, error_class=error_class)
+            global _inflight_requests
             with _metrics_lock:
-                _inflight_requests -= 1
+                _inflight_requests += 1
 
-        return _apply_public_response_headers(response, request_id)
+            status_code = 500
+            error_class: str | None = None
+            try:
+                response = await asyncio.wait_for(call_next(request), timeout=REQUEST_TIMEOUT_SECONDS)
+                status_code = response.status_code
+                error_class = _classify_error(status_code)
+            except TimeoutError:
+                response = _json_error(504, "请求处理超时")
+                status_code = 504
+                error_class = "timeout"
+            finally:
+                elapsed = time.perf_counter() - started
+                route = _route_label(request)
+                _record_request_metric(request.method, route, status_code, elapsed, error_class=error_class)
+                _log_request(request, request_id, route, status_code, elapsed, error_class=error_class)
+                with _metrics_lock:
+                    _inflight_requests -= 1
+
+            return _apply_public_response_headers(response, request_id)
     finally:
+        reset_trace_context(trace_token)
         _request_id_context.reset(request_id_token)
 
 
@@ -770,7 +1282,10 @@ def metrics():
             "# HELP fatecat_calculation_slots_max Configured synchronous calculation slot ceiling.",
             "# TYPE fatecat_calculation_slots_max gauge",
             f"fatecat_calculation_slots_max {MAX_INFLIGHT_CALCULATIONS}",
-            "# HELP fatecat_report_job_queue_size Current Web/API report jobs waiting in memory queue.",
+            "# HELP fatecat_report_job_store_backend_info Configured report job store backend.",
+            "# TYPE fatecat_report_job_store_backend_info gauge",
+            f'fatecat_report_job_store_backend_info{{backend="{_escape_metric_label(report_job_manager.backend_name)}"}} 1',
+            "# HELP fatecat_report_job_queue_size Current Web/API report jobs waiting in report job queue.",
             "# TYPE fatecat_report_job_queue_size gauge",
             f"fatecat_report_job_queue_size {report_job_status['queue_size']}",
             "# HELP fatecat_report_job_queue_max Configured Web/API report job queue capacity.",
@@ -786,6 +1301,7 @@ def metrics():
             f'fatecat_report_jobs{{status="succeeded"}} {report_job_status["succeeded"]}',
             f'fatecat_report_jobs{{status="failed"}} {report_job_status["failed"]}',
             f'fatecat_report_jobs{{status="expired"}} {report_job_status["expired"]}',
+            f'fatecat_report_jobs{{status="cancelled"}} {report_job_status["cancelled"]}',
         ]
     )
     lines.extend(
@@ -857,13 +1373,19 @@ def web_report(
 
 
 @app.post("/api/v1/report/jobs/web")
-def create_web_report_job(payload: dict[str, Any]):
+def create_web_report_job(
+    payload: dict[str, Any],
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+    webhook_url: str | None = Header(default=None, alias="X-FateCat-Webhook-Url"),
+    webhook_secret: str | None = Header(default=None, alias="X-FateCat-Webhook-Secret"),
+):
     """提交 Web 表单报告任务；公开工作台默认使用该异步入口。"""
     form = _web_form_from_payload(payload)
     try:
         validated = validate_web_report_form(form)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    webhook_config = _webhook_config_from_headers(webhook_url, webhook_secret)
     snapshot = _submit_report_job(
         kind="web",
         report_system=validated.report_system,
@@ -875,6 +1397,8 @@ def create_web_report_job(payload: dict[str, Any]):
             "name": form.name,
         },
         task=lambda: _run_with_calculation_slot(lambda: build_web_report_result(form)),
+        idempotency_key=idempotency_key,
+        webhook_config=webhook_config,
     )
     return JSONResponse(
         status_code=202,
@@ -906,6 +1430,48 @@ def list_measurement_capabilities():
     return list_prediction_capabilities()
 
 
+@app.get("/api/v1/capabilities/{capability_id}")
+def get_prediction_capability(capability_id: str):
+    """读取单个 capability 资源详情。"""
+    try:
+        return attach_branding({"success": True, "data": _capability_resource_payload(get_capability(capability_id))})
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@app.get("/capabilities/{capability_id}")
+def get_measurement_capability(capability_id: str):
+    """基础设施口径 capability 资源详情别名。"""
+    return get_prediction_capability(capability_id)
+
+
+@app.get("/api/v1/providers")
+def list_prediction_providers():
+    """列出 production provider 资源注册表。"""
+    return attach_branding({"success": True, "data": _providers_payload()})
+
+
+@app.get("/providers")
+def list_measurement_providers():
+    """基础设施口径 provider 注册表别名。"""
+    return list_prediction_providers()
+
+
+@app.get("/api/v1/providers/{provider_id}")
+def get_prediction_provider(provider_id: str):
+    """读取单个 provider 资源详情。"""
+    try:
+        return attach_branding({"success": True, "data": _provider_resource_payload(get_provider(provider_id))})
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@app.get("/providers/{provider_id}")
+def get_measurement_provider(provider_id: str):
+    """基础设施口径 provider 资源详情别名。"""
+    return get_prediction_provider(provider_id)
+
+
 @app.post("/api/v1/capabilities/{capability_id}")
 def execute_prediction_capability(capability_id: str, payload: dict[str, Any]):
     """执行已生产化的独立 capability。"""
@@ -923,6 +1489,7 @@ def execute_prediction_capability(capability_id: str, payload: dict[str, Any]):
                 "evidence": result.evidence,
                 "risk": result.risk,
                 "metadata": result.metadata,
+                "report": _capability_report_payload(result),
                 "meta": {"calculatedAt": now_cn().isoformat()},
             }
         )
@@ -936,6 +1503,126 @@ def calculate_measurement_capability(capability_id: str, payload: dict[str, Any]
     return execute_prediction_capability(capability_id, payload)
 
 
+@app.get("/api/v1/errors")
+def list_error_catalog():
+    """列出测算基础设施标准错误码。"""
+    return attach_branding({"success": True, "data": _error_catalog_payload()})
+
+
+@app.get("/errors")
+def list_measurement_errors():
+    """基础设施口径标准错误码别名。"""
+    return list_error_catalog()
+
+
+@app.get("/api/v1/evaluations")
+def list_prediction_evaluations():
+    """列出 Dataset 与 EvaluationRun 评测资源注册表。"""
+    return attach_branding({"success": True, "data": _evaluation_registry_payload()})
+
+
+@app.get("/evaluations")
+def list_measurement_evaluations():
+    """基础设施口径评测资源注册表别名。"""
+    return list_prediction_evaluations()
+
+
+@app.get("/api/v1/evaluations/{evaluation_id}")
+def get_prediction_evaluation(evaluation_id: str):
+    """读取单个 Dataset 或 EvaluationRun 资源详情。"""
+    try:
+        return attach_branding({"success": True, "data": _evaluation_resource_payload(evaluation_id)})
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@app.get("/evaluations/{evaluation_id}")
+def get_measurement_evaluation(evaluation_id: str):
+    """基础设施口径评测资源详情别名。"""
+    return get_prediction_evaluation(evaluation_id)
+
+
+@app.get("/api/v1/observability")
+def list_prediction_observability():
+    """列出 health、ready、metrics、logs 与 planned trace/SLO 观测资源。"""
+    return attach_branding({"success": True, "data": _observability_registry_payload()})
+
+
+@app.get("/observability")
+def list_measurement_observability():
+    """基础设施口径观测资源注册表别名。"""
+    return list_prediction_observability()
+
+
+@app.get("/api/v1/observability/{signal_id}")
+def get_prediction_observability_signal(signal_id: str):
+    """读取单个 ObservabilitySignal 资源详情。"""
+    try:
+        return attach_branding({"success": True, "data": _observability_signal_payload(signal_id)})
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@app.get("/observability/{signal_id}")
+def get_measurement_observability_signal(signal_id: str):
+    """基础设施口径观测资源详情别名。"""
+    return get_prediction_observability_signal(signal_id)
+
+
+@app.get("/api/v1/security")
+def list_prediction_security_controls():
+    """列出安全、隐私与发布门禁 SecurityControl 资源注册表。"""
+    return attach_branding({"success": True, "data": _security_registry_payload()})
+
+
+@app.get("/security")
+def list_measurement_security_controls():
+    """基础设施口径安全控制资源注册表别名。"""
+    return list_prediction_security_controls()
+
+
+@app.get("/api/v1/security/{control_id}")
+def get_prediction_security_control(control_id: str):
+    """读取单个 SecurityControl 资源详情。"""
+    try:
+        return attach_branding({"success": True, "data": _security_control_payload(control_id)})
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@app.get("/security/{control_id}")
+def get_measurement_security_control(control_id: str):
+    """基础设施口径安全控制资源详情别名。"""
+    return get_prediction_security_control(control_id)
+
+
+@app.get("/api/v1/surfaces")
+def list_prediction_delivery_surfaces():
+    """列出 Web、API、Bot、CLI、Skill 和托管 Web 交付面资源注册表。"""
+    return attach_branding({"success": True, "data": _delivery_surface_registry_payload()})
+
+
+@app.get("/surfaces")
+def list_measurement_delivery_surfaces():
+    """基础设施口径交付面资源注册表别名。"""
+    return list_prediction_delivery_surfaces()
+
+
+@app.get("/api/v1/surfaces/{surface_id}")
+def get_prediction_delivery_surface(surface_id: str):
+    """读取单个 DeliverySurface 资源详情。"""
+    try:
+        return attach_branding({"success": True, "data": _delivery_surface_payload(surface_id)})
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@app.get("/surfaces/{surface_id}")
+def get_measurement_delivery_surface(surface_id: str):
+    """基础设施口径交付面资源详情别名。"""
+    return get_prediction_delivery_surface(surface_id)
+
+
 @app.get("/reports")
 def list_report_infrastructure():
     """列出报告交付入口和可见 profile。"""
@@ -946,8 +1633,11 @@ def list_report_infrastructure():
                 "profiles": prediction_systems_payload(),
                 "jobEndpoint": "/api/v1/report/jobs",
                 "markdownEndpoint": "/api/v1/report/markdown",
+                "reportSchema": "contracts/fate/capabilities/schemas/report.schema.json",
                 "webJobEndpoint": "/api/v1/report/jobs/web",
                 "statusEndpoint": "/api/v1/report/jobs/{job_id}",
+                "cancelEndpoint": "/api/v1/report/jobs/{job_id}/cancel",
+                "idempotencyHeader": "Idempotency-Key",
             },
         }
     )
@@ -967,6 +1657,11 @@ def service_metadata():
                     "defaultCapability": "bazi",
                     "registryEndpoint": "/capabilities",
                     "calculateEndpoint": "/capabilities/{capability_id}/calculate",
+                    "providerRegistryEndpoint": "/providers",
+                    "evaluationRegistryEndpoint": "/evaluations",
+                    "observabilityRegistryEndpoint": "/observability",
+                    "securityRegistryEndpoint": "/security",
+                    "surfaceRegistryEndpoint": "/surfaces",
                 },
                 "developer": {
                     "openapi": "/openapi.json",
@@ -974,8 +1669,20 @@ def service_metadata():
                     "redoc": "/redoc",
                     "apiGuide": "docs/reference-materials/operations/测算基础设施 API 接入.md",
                     "capabilityList": "/capabilities",
+                    "capabilityDetail": "/capabilities/{capability_id}",
                     "capabilityCalculate": "/capabilities/{capability_id}/calculate",
+                    "providerList": "/providers",
+                    "providerDetail": "/providers/{provider_id}",
+                    "evaluationList": "/evaluations",
+                    "evaluationDetail": "/evaluations/{evaluation_id}",
+                    "observabilityList": "/observability",
+                    "observabilityDetail": "/observability/{signal_id}",
+                    "securityList": "/security",
+                    "securityDetail": "/security/{control_id}",
+                    "surfaceList": "/surfaces",
+                    "surfaceDetail": "/surfaces/{surface_id}",
                     "reports": "/reports",
+                    "errors": "/errors",
                 },
                 "surfaces": ["CLI", "Web", "FastAPI", "Telegram", "Agent Skill"],
                 "quality": {
@@ -985,11 +1692,12 @@ def service_metadata():
                     "rateLimitPerMinute": RATE_LIMIT_PER_MINUTE,
                     "maxInflightCalculations": MAX_INFLIGHT_CALCULATIONS,
                     "reportJobQueueSize": REPORT_JOB_QUEUE_SIZE,
+                    "reportJobStore": report_job_manager.backend_name,
                 },
                 "privacy": {
                     "birthPlaceDisplayPolicy": "公开 Web 示例和用户界面不得展示北京以外的真实地区名称。",
                     "recordsEnabled": _records_enabled(),
-                    "recordAccess": "记录接口需要 FATE_API_TOKEN、FATE_API_ADMIN_TOKEN 或 FATE_API_USER_TOKENS。",
+                    "recordAccess": "记录接口需要 FATE_API_TOKEN、FATE_API_ADMIN_TOKEN 或 FATE_API_USER_TOKENS；用户 token 支持 user_id:token 与 user_id:token:record.read|record.list scoped 格式。",
                     "sensitiveValuePolicy": "响应、文档和日志不得输出真实 token、secret、DSN 或私钥内容。",
                 },
                 "productionGate": {
@@ -1145,8 +1853,10 @@ def calculate_bazi(
 ):
     """计算八字排盘"""
     try:
+        principal: ApiPrincipal | None = None
         if user_id:
             principal = _require_record_access(x_fatecat_api_key, authorization)
+            _require_scope(principal, RECORD_SCOPE_WRITE)
             _require_owner_or_admin(principal, user_id)
         result, calculator, birth_dt = _run_with_calculation_slot(
             lambda: _calculate_bazi_raw(req, report_system="bazi")
@@ -1183,6 +1893,17 @@ def calculate_bazi(
                     "result": result,
                 },
             )
+            _log_audit_event(
+                "record.create",
+                principal=principal,
+                target_type="UserRecord",
+                target_id=record_id,
+                metadata={
+                    "bizType": "bazi",
+                    "recordRetentionDays": RECORD_RETENTION_DAYS,
+                    "retentionMode": "explicit_delete" if RECORD_RETENTION_DAYS == 0 else "time_bound",
+                },
+            )
 
         return BaziResponse(
             disclaimer=_disclaimer_model(),
@@ -1200,34 +1921,44 @@ def calculate_bazi(
 
 def _build_markdown_report_payload(req: BaziRequest) -> dict[str, Any]:
     birth_dt, longitude, latitude = _parse_bazi_request(req)
-    calculation = _run_with_calculation_slot(
-        lambda: calculate_delivery_result(
-            birth_dt=birth_dt,
-            gender=req.gender,
-            longitude=longitude,
-            latitude=latitude,
-            birth_place=req.birthPlace.name,
-            name=req.name,
-            report_system=req.options.reportSystem,
-            use_true_solar_time=req.options.useTrueSolarTime,
+    attributes = {"reportSystem": normalize_report_system(req.options.reportSystem), "reportFormat": "markdown"}
+    with trace_span("report.calculate", attributes=attributes):
+        calculation = _run_with_calculation_slot(
+            lambda: calculate_delivery_result(
+                birth_dt=birth_dt,
+                gender=req.gender,
+                longitude=longitude,
+                latitude=latitude,
+                birth_place=req.birthPlace.name,
+                name=req.name,
+                report_system=req.options.reportSystem,
+                use_true_solar_time=req.options.useTrueSolarTime,
+            )
         )
-    )
-    markdown = generate_full_report(
-        calculation.data,
-        hide=calculation.report_hide,
-        report_system=calculation.report_system,
-    )
+    with trace_span("report.render_markdown", attributes=attributes):
+        markdown = generate_full_report(
+            calculation.data,
+            hide=calculation.report_hide,
+            report_system=calculation.report_system,
+        )
     return {
         "reportSystem": calculation.report_system,
         "markdown": markdown,
+        **_markdown_report_gates(report_system=calculation.report_system, markdown=markdown),
     }
 
 
 @app.post("/api/v1/report/jobs")
-def create_markdown_report_job(req: BaziRequest):
+def create_markdown_report_job(
+    req: BaziRequest,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+    webhook_url: str | None = Header(default=None, alias="X-FateCat-Webhook-Url"),
+    webhook_secret: str | None = Header(default=None, alias="X-FateCat-Webhook-Secret"),
+):
     """提交标准 Markdown 报告生成任务。"""
     report_system = normalize_report_system(req.options.reportSystem)
     birth_place = public_birth_place(req.birthPlace.name) if req.birthPlace else ""
+    webhook_config = _webhook_config_from_headers(webhook_url, webhook_secret)
     snapshot = _submit_report_job(
         kind="markdown",
         report_system=report_system,
@@ -1239,6 +1970,8 @@ def create_markdown_report_job(req: BaziRequest):
             "name": req.name,
         },
         task=lambda: _build_markdown_report_payload(req),
+        idempotency_key=idempotency_key,
+        webhook_config=webhook_config,
     )
     return JSONResponse(
         status_code=202,
@@ -1264,6 +1997,28 @@ def get_report_job(job_id: str):
             "success": True,
             "data": _report_job_payload(snapshot, include_result=True),
             "meta": {"checkedAt": now_cn().isoformat()},
+        }
+    )
+
+
+@app.post("/api/v1/report/jobs/{job_id}/cancel")
+def cancel_report_job(job_id: str):
+    """取消报告任务；running 任务无法强杀线程，但完成后会丢弃结果。"""
+    try:
+        snapshot = report_job_manager.cancel(job_id)
+    except ReportJobNotFound as exc:
+        raise HTTPException(status_code=404, detail="报告任务不存在或已过期") from exc
+    _log_audit_event(
+        "report_job.cancel",
+        target_type="CalculationJob",
+        target_id=job_id,
+        metadata={"status": snapshot.status, "ttlSeconds": REPORT_JOB_TTL_SECONDS},
+    )
+    return attach_branding(
+        {
+            "success": True,
+            "data": _report_job_payload(snapshot, include_result=False),
+            "meta": {"cancelledAt": now_cn().isoformat()},
         }
     )
 
@@ -1320,10 +2075,18 @@ def get_record(
 ):
     """获取记录"""
     principal = _require_record_access(x_fatecat_api_key, authorization)
+    _require_scope(principal, RECORD_SCOPE_READ)
     record = db.get_record(record_id)
     if not record:
         raise HTTPException(status_code=404, detail="Not found")
     _require_owner_or_admin(principal, str(record["userId"]))
+    _log_audit_event(
+        "record.read",
+        principal=principal,
+        target_type="UserRecord",
+        target_id=record_id,
+        metadata={"bizType": record.get("bizType"), "recordRetentionDays": RECORD_RETENTION_DAYS},
+    )
     return attach_branding({"success": True, "data": record})
 
 
@@ -1337,8 +2100,21 @@ def get_user_records(
 ):
     """获取用户记录"""
     principal = _require_record_access(x_fatecat_api_key, authorization)
+    _require_scope(principal, RECORD_SCOPE_LIST)
     _require_owner_or_admin(principal, user_id)
     records = db.get_user_records(user_id, biz_type, limit)
+    _log_audit_event(
+        "record.list",
+        principal=principal,
+        target_type="UserRecord",
+        target_id=user_id,
+        metadata={
+            "bizType": biz_type or "all",
+            "limit": limit,
+            "recordCount": len(records),
+            "recordRetentionDays": RECORD_RETENTION_DAYS,
+        },
+    )
     return attach_branding({"success": True, "data": records, "total": len(records)})
 
 
@@ -1350,11 +2126,19 @@ def delete_record(
 ):
     """删除记录"""
     principal = _require_record_access(x_fatecat_api_key, authorization)
+    _require_scope(principal, RECORD_SCOPE_DELETE)
     record = db.get_record(record_id)
     if not record:
         raise HTTPException(status_code=404, detail="Not found")
     _require_owner_or_admin(principal, str(record["userId"]))
     if db.delete_record(record_id):
+        _log_audit_event(
+            "record.delete",
+            principal=principal,
+            target_type="UserRecord",
+            target_id=record_id,
+            metadata={"bizType": record.get("bizType"), "retentionMode": "explicit_delete"},
+        )
         return attach_branding({"success": True})
     raise HTTPException(status_code=404, detail="Not found")
 

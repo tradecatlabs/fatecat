@@ -1,0 +1,23 @@
+{
+  "tool": "fatecat.capabilities.calculate",
+  "arguments": {
+    "baseUrl": "http://127.0.0.1:8001",
+    "capabilityId": "almanac",
+    "input": {
+      "dateRange": {
+        "start": "2026-05-08",
+        "end": "2026-05-08"
+      },
+      "eventType": "出行",
+      "place": "北京"
+    }
+  },
+  "expectedResultShape": {
+    "success": true,
+    "capabilityId": "almanac",
+    "reportProfile": "almanac",
+    "report": {
+      "resourceType": "Report"
+    }
+  }
+}

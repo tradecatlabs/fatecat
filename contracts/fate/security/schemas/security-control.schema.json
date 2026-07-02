@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "description": "测算基础设施 SecurityControl 资源契约。SecurityControl 用于登记 API 鉴权、CORS、限流、请求体限制、响应安全头、隐私扫描、source hygiene、release gate 和 production readiness 等安全与交付门禁；登记不等于外部生产验证已完成。",
+  "requiredSecurityControlFields": [
+    "resourceType",
+    "apiVersion",
+    "id",
+    "name",
+    "controlType",
+    "status",
+    "scope",
+    "envVars",
+    "implementationRefs",
+    "localVerification",
+    "privacyBoundary",
+    "externalConnectivity",
+    "links",
+    "metadata"
+  ],
+  "requiredMetadataFields": [
+    "owner",
+    "threatModel",
+    "failureMode",
+    "releaseImpact",
+    "risk"
+  ],
+  "allowedControlType": [
+    "audit_log",
+    "auth",
+    "cors",
+    "rate_limit",
+    "request_limit",
+    "headers",
+    "identity",
+    "siem",
+    "owasp_api_regression",
+    "privacy",
+    "rbac",
+    "retention",
+    "webhook_signature",
+    "source_hygiene",
+    "secret_scan",
+    "release_gate",
+    "production_readiness"
+  ],
+  "allowedStatus": ["available", "planned", "blocked", "manual"],
+  "allowedExternalConnectivity": [
+    "not_required",
+    "external_connectivity_pending",
+    "requires_real_domain",
+    "requires_real_credentials",
+    "requires_human_review"
+  ],
+  "invariants": [
+    "SecurityControl resource 只登记控制契约，不保存真实 token、secret、DSN、私钥、证书或 webhook 地址",
+    "available 控制必须有本地验证命令或对应实现引用",
+    "production_readiness 控制涉及真实域名、真实 token 或 Bot live smoke 时必须标记 externalConnectivity=external_connectivity_pending",
+    "privacy 控制不得把用户真实姓名、出生地区、报告正文或第三方原始占位数据作为默认示例输出",
+    "release_gate 不得伪造当前 commit 的远端 CI、live smoke 或外部生产验证结果"
+    ,
+    "audit_log 控制不得记录真实 token、请求体、报告正文、姓名或出生地区",
+    "rbac 控制必须显式声明角色、scope 和 owner 边界，不能把共享 token 模式伪装成 OAuth/OIDC 或外部 IdP",
+    "retention 控制必须明确哪些数据当前只支持显式删除或 TTL，不能把策略登记伪装成完整自动清理",
+    "identity 控制必须明确 scoped token 只是本地 baseline，不能把它伪装成 OAuth/OIDC、外部 IdP 或生产 IAM",
+    "siem 控制必须标记真实外部凭证或连通验证待执行，不得输出真实 SIEM endpoint、token 或日志 payload",
+    "owasp_api_regression 控制必须映射 OWASP API Security Top 10 2023 的 10 个风险项到本地检查或明确外部待验证项"
+  ]
+}

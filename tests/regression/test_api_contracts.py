@@ -6,8 +6,9 @@ import logging
 import sys
 import time
 from pathlib import Path
-from threading import BoundedSemaphore
+from threading import BoundedSemaphore, Event
 
+import pytest
 from fastapi.testclient import TestClient
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -21,7 +22,8 @@ if str(FATE_CORE_SRC) not in sys.path:
 
 import main  # noqa: E402
 from main import app  # noqa: E402
-from report_jobs import ReportJobQueueFull  # noqa: E402
+from report_jobs import ReportJobManager, ReportJobQueueFull, SQLiteReportJobStore  # noqa: E402
+from webhook_callbacks import HttpWebhookDispatcher, WebhookConfig  # noqa: E402
 
 
 def _payload() -> dict:
@@ -45,6 +47,13 @@ def _payload() -> dict:
     }
 
 
+@pytest.fixture(autouse=True)
+def _reset_rate_limit_windows():
+    main._rate_limit_windows.clear()
+    yield
+    main._rate_limit_windows.clear()
+
+
 def _wait_for_report_job(client: TestClient, job_id: str, *, timeout_seconds: float = 8.0) -> dict:
     deadline = time.monotonic() + timeout_seconds
     last_body = {}
@@ -57,6 +66,29 @@ def _wait_for_report_job(client: TestClient, job_id: str, *, timeout_seconds: fl
             return last_body
         time.sleep(0.05)
     raise AssertionError(f"report job did not finish: {last_body}")
+
+
+def _wait_for_manager_job(manager: ReportJobManager, job_id: str, *, timeout_seconds: float = 4.0):
+    deadline = time.monotonic() + timeout_seconds
+    last_snapshot = None
+    while time.monotonic() < deadline:
+        last_snapshot = manager.get(job_id)
+        if last_snapshot.status in {"succeeded", "failed", "expired", "cancelled"}:
+            return last_snapshot
+        time.sleep(0.05)
+    raise AssertionError(f"report manager job did not finish: {last_snapshot}")
+
+
+def _audit_events(caplog) -> list[dict]:
+    events = []
+    for record in caplog.records:
+        try:
+            payload = json.loads(record.getMessage())
+        except json.JSONDecodeError:
+            continue
+        if payload.get("event") == "audit_event":
+            events.append(payload)
+    return events
 
 
 def test_pure_analysis_api_returns_success():
@@ -197,6 +229,7 @@ def test_ready_and_metrics_endpoints_are_available():
     assert "fatecat_report_job_queue_size" in metrics_response.text
     assert "fatecat_report_job_queue_max" in metrics_response.text
     assert "fatecat_report_jobs" in metrics_response.text
+    assert 'fatecat_report_job_store_backend_info{backend="memory"} 1' in metrics_response.text
     assert "fatecat_bot_queue_size" in metrics_response.text
     assert 'fatecat_bot_queue_scope_info{backend="memory",scope="single_process"} 1' in metrics_response.text
     assert "fatecat_bot_queue_max_size" in metrics_response.text
@@ -543,7 +576,74 @@ def test_user_token_cannot_read_other_user_record(monkeypatch):
     assert response.json()["error"] == "无权访问该记录"
 
 
-def test_admin_token_can_read_any_record(monkeypatch):
+def test_scoped_user_token_can_read_and_list_but_cannot_write_record(monkeypatch):
+    monkeypatch.setattr(main, "API_TOKEN", "")
+    monkeypatch.setenv("FATE_API_USER_TOKENS", "u1:read-token:record.read|record.list")
+    monkeypatch.setattr(
+        "main.db.get_record",
+        lambda _record_id: {
+            "id": 1,
+            "userId": "u1",
+            "bizType": "bazi",
+            "input": {},
+            "bizData": {},
+            "createdAt": "2026-05-06T00:00:00+08:00",
+        },
+    )
+    monkeypatch.setattr("main.db.get_user_records", lambda _user_id, _biz_type, _limit: [])
+    client = TestClient(app)
+
+    read_response = client.get("/api/v1/records/1", headers={"X-FateCat-API-Key": "read-token"})
+    list_response = client.get("/api/v1/user/u1/records", headers={"X-FateCat-API-Key": "read-token"})
+    write_response = client.post(
+        "/api/v1/bazi/calculate?user_id=u1",
+        json=_payload(),
+        headers={"X-FateCat-API-Key": "read-token"},
+    )
+
+    assert read_response.status_code == 200
+    assert list_response.status_code == 200
+    assert write_response.status_code == 403
+    assert write_response.json()["error"] == "权限不足"
+
+
+def test_scoped_user_token_requires_delete_scope(monkeypatch):
+    deleted = []
+
+    monkeypatch.setattr(main, "API_TOKEN", "")
+    monkeypatch.setenv(
+        "FATE_API_USER_TOKENS",
+        "u1:read-token:record.read,u1:delete-token:record.delete",
+    )
+    monkeypatch.setattr(
+        "main.db.get_record",
+        lambda _record_id: {
+            "id": 1,
+            "userId": "u1",
+            "bizType": "bazi",
+            "input": {},
+            "bizData": {},
+            "createdAt": "2026-05-06T00:00:00+08:00",
+        },
+    )
+
+    def fake_delete_record(record_id):
+        deleted.append(record_id)
+        return True
+
+    monkeypatch.setattr("main.db.delete_record", fake_delete_record)
+    client = TestClient(app)
+
+    read_only_response = client.delete("/api/v1/records/1", headers={"X-FateCat-API-Key": "read-token"})
+    delete_response = client.delete("/api/v1/records/1", headers={"X-FateCat-API-Key": "delete-token"})
+
+    assert read_only_response.status_code == 403
+    assert read_only_response.json()["error"] == "权限不足"
+    assert delete_response.status_code == 200
+    assert deleted == [1]
+
+
+def test_admin_token_can_read_any_record(monkeypatch, caplog):
     monkeypatch.setattr(main, "API_TOKEN", "admin-token")
     monkeypatch.setattr(
         "main.db.get_record",
@@ -556,11 +656,22 @@ def test_admin_token_can_read_any_record(monkeypatch):
             "createdAt": "2026-05-06T00:00:00+08:00",
         },
     )
+    caplog.set_level(logging.INFO, logger="main")
 
     response = TestClient(app).get("/api/v1/records/1", headers={"Authorization": "Bearer admin-token"})
 
     assert response.status_code == 200
     assert response.json()["data"]["userId"] == "u2"
+    audit = next(item for item in _audit_events(caplog) if item["action"] == "record.read")
+    audit_text = json.dumps(audit, ensure_ascii=False)
+    assert audit["actorRole"] == "admin"
+    assert audit["scopeCount"] == len(main.RECORD_SCOPES)
+    assert audit["targetType"] == "UserRecord"
+    assert audit["targetIdHash"]
+    assert audit["metadata"]["bizType"] == "bazi"
+    assert audit["metadata"]["recordRetentionDays"] == main.RECORD_RETENTION_DAYS
+    assert "admin-token" not in audit_text
+    assert "u2" not in audit_text
 
 
 def test_user_records_limit_is_bounded(monkeypatch):
@@ -622,7 +733,7 @@ def test_system_optimization_report_does_not_advertise_unimplemented_routes_as_e
     assert "/graphql" in report["apiEnhancements"]["plannedNotAdvertisedAsEnabled"]
 
 
-def test_markdown_report_api_selects_ziwei_without_bazi_blocks():
+def test_markdown_report_api_gate_selects_ziwei_without_bazi_blocks():
     payload = _payload()
     payload["options"]["reportSystem"] = "ziwei"
 
@@ -632,6 +743,12 @@ def test_markdown_report_api_selects_ziwei_without_bazi_blocks():
     body = response.json()
     markdown = body["data"]["markdown"]
     assert body["data"]["reportSystem"] == "ziwei"
+    assert body["data"]["policyGate"]["status"] == "pass"
+    assert body["data"]["policyGate"]["scope"] == "markdown-report:ziwei"
+    assert body["data"]["policyGate"]["checkedFields"] == ["report.markdown"]
+    assert body["data"]["snapshotGate"]["status"] == "pass"
+    assert body["data"]["snapshotGate"]["reportSystem"] == "ziwei"
+    assert "### 大限/流年联动" in body["data"]["snapshotGate"]["requiredHeadings"]
     assert "# 紫微斗数报告：测试样本" in markdown
     assert "## 紫微斗数" in markdown
     assert "### 入盘依据" in markdown
@@ -645,7 +762,7 @@ def test_markdown_report_api_selects_ziwei_without_bazi_blocks():
     assert "## 八字排盘详情" not in markdown
 
 
-def test_markdown_report_job_api_returns_status_then_result():
+def test_markdown_report_job_gate_api_returns_status_then_result():
     client = TestClient(app)
     response = client.post("/api/v1/report/jobs", json=_payload())
 
@@ -653,16 +770,327 @@ def test_markdown_report_job_api_returns_status_then_result():
     body = response.json()
     assert body["success"] is True
     assert body["data"]["status"] in {"queued", "running"}
+    assert body["data"]["resourceType"] == "CalculationJob"
+    assert body["data"]["apiVersion"] == "fatecat.tradecatlabs/v1"
     assert body["data"]["jobId"]
+    assert body["data"]["id"] == body["data"]["jobId"]
     assert body["data"]["statusUrl"] == f"/api/v1/report/jobs/{body['data']['jobId']}"
+    assert body["data"]["cancelUrl"] == f"/api/v1/report/jobs/{body['data']['jobId']}/cancel"
+    assert body["data"]["links"]["self"] == f"/api/v1/report/jobs/{body['data']['jobId']}"
+    assert body["data"]["links"]["cancel"] == f"/api/v1/report/jobs/{body['data']['jobId']}/cancel"
 
     final_body = _wait_for_report_job(client, body["data"]["jobId"])
     assert final_body["data"]["status"] == "succeeded"
     assert final_body["data"]["result"]["reportSystem"] == "bazi"
+    assert final_body["data"]["result"]["policyGate"]["status"] == "pass"
+    assert final_body["data"]["result"]["snapshotGate"]["status"] == "pass"
+    assert final_body["data"]["result"]["snapshotGate"]["reportSystem"] == "bazi"
     assert "# 命理排盘报告：测试样本" in final_body["data"]["result"]["markdown"]
 
 
-def test_markdown_report_jobs_do_not_write_records(monkeypatch):
+def test_report_job_webhook_dispatcher_sends_signed_terminal_event():
+    captured: dict[str, object] = {}
+
+    def capture_transport(url: str, body: bytes, headers: dict[str, str], timeout_seconds: int) -> int:
+        captured["url"] = url
+        captured["body"] = body
+        captured["headers"] = dict(headers)
+        captured["timeoutSeconds"] = timeout_seconds
+        return 204
+
+    dispatcher = HttpWebhookDispatcher(timeout_seconds=3, transport=capture_transport)
+    manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        webhook_dispatcher=dispatcher.deliver,
+    )
+    created = manager.submit(
+        kind="markdown",
+        report_system="bazi",
+        input_summary={"name": "测试样本", "birthPlace": "北京"},
+        webhook_config=WebhookConfig(url="https://callback.example/webhook", secret="test-secret"),
+        task=lambda: {"reportSystem": "bazi", "markdown": "# 命理排盘报告：测试样本"},
+    )
+
+    final_snapshot = _wait_for_manager_job(manager, created.job_id)
+    assert final_snapshot.status == "succeeded"
+    assert captured["url"] == "https://callback.example/webhook"
+    assert captured["timeoutSeconds"] == 3
+    body_text = captured["body"].decode("utf-8")  # type: ignore[union-attr]
+    headers = captured["headers"]  # type: ignore[assignment]
+    assert '"eventType":"report_job.terminal"' in body_text
+    assert f'"jobId":"{created.job_id}"' in body_text
+    assert '"status":"succeeded"' in body_text
+    assert '"markdown":' not in body_text
+    assert "# 命理排盘报告" not in body_text
+    assert "测试样本" not in body_text
+    assert "北京" not in body_text
+    assert headers["X-FateCat-Webhook-Event"] == "report_job.terminal"
+    assert str(headers["X-FateCat-Webhook-Signature"]).startswith("sha256=")
+    assert "test-secret" not in body_text
+    assert "test-secret" not in json.dumps(headers, ensure_ascii=False)
+
+
+def test_report_job_webhook_dispatches_cancelled_terminal_event():
+    started = Event()
+    release = Event()
+    statuses: list[str] = []
+
+    def blocking_task():
+        started.set()
+        release.wait(timeout=2)
+        return {"reportSystem": "bazi", "markdown": "discarded"}
+
+    def capture_dispatch(snapshot, _config):
+        statuses.append(snapshot.status)
+
+    manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        webhook_dispatcher=capture_dispatch,
+    )
+    created = manager.submit(
+        kind="markdown",
+        report_system="bazi",
+        task=blocking_task,
+        webhook_config=WebhookConfig(url="https://callback.example/webhook"),
+    )
+    started.wait(timeout=2)
+    cancelled = manager.cancel(created.job_id)
+    release.set()
+
+    assert cancelled.status == "cancelled"
+    assert statuses == ["cancelled"]
+
+
+def test_markdown_report_job_idempotency_key_returns_existing_job():
+    client = TestClient(app)
+    headers = {"Idempotency-Key": "job-idempotency-regression"}
+    first = client.post("/api/v1/report/jobs", json=_payload(), headers=headers)
+    second = client.post("/api/v1/report/jobs", json=_payload(), headers=headers)
+
+    assert first.status_code == 202
+    assert second.status_code == 202
+    first_data = first.json()["data"]
+    second_data = second.json()["data"]
+    assert first_data["jobId"] == second_data["jobId"]
+    assert first_data["idempotencyKey"] == "job-idempotency-regression"
+    assert second_data["idempotencyKey"] == "job-idempotency-regression"
+
+
+def test_report_job_api_rejects_webhook_header_when_disabled():
+    response = TestClient(app).post(
+        "/api/v1/report/jobs",
+        json=_payload(),
+        headers={"X-FateCat-Webhook-Url": "https://callback.example/webhook"},
+    )
+
+    assert response.status_code == 403
+    assert response.json()["error"] == "报告任务 webhook callback 未启用"
+
+
+def test_report_job_api_accepts_webhook_headers_without_echoing_secret(monkeypatch, caplog):
+    captured: list[tuple[object, object]] = []
+
+    def capture_dispatch(snapshot, config):
+        captured.append((snapshot, config))
+
+    monkeypatch.setattr(main, "REPORT_JOB_WEBHOOKS_ENABLED", True)
+    monkeypatch.setattr(main.report_job_manager, "webhook_dispatcher", capture_dispatch)
+    caplog.set_level(logging.INFO, logger="main")
+    response = TestClient(app).post(
+        "/api/v1/report/jobs",
+        json=_payload(),
+        headers={
+            "X-FateCat-Webhook-Url": "https://callback.example/webhook",
+            "X-FateCat-Webhook-Secret": "api-secret-value",
+        },
+    )
+
+    assert response.status_code == 202
+    body = response.json()
+    body_text = json.dumps(body, ensure_ascii=False)
+    assert body["data"]["webhook"] == {"enabled": True, "signature": "hmac-sha256"}
+    assert "api-secret-value" not in body_text
+    final_body = _wait_for_report_job(TestClient(app), body["data"]["jobId"])
+    assert final_body["data"]["webhook"] == {"enabled": True, "signature": "hmac-sha256"}
+    assert "api-secret-value" not in json.dumps(final_body, ensure_ascii=False)
+    assert captured
+    assert captured[0][1].secret == "api-secret-value"
+    events = _audit_events(caplog)
+    submit_event = next(item for item in events if item["action"] == "report_job.submit")
+    audit_text = json.dumps(submit_event, ensure_ascii=False)
+    assert submit_event["metadata"]["webhookProvided"] is True
+    assert submit_event["metadata"]["webhookSignature"] == "hmac-sha256"
+    assert "api-secret-value" not in audit_text
+    assert "callback.example" not in audit_text
+
+
+def test_report_job_api_rejects_invalid_webhook_url_when_enabled(monkeypatch):
+    monkeypatch.setattr(main, "REPORT_JOB_WEBHOOKS_ENABLED", True)
+    response = TestClient(app).post(
+        "/api/v1/report/jobs",
+        json=_payload(),
+        headers={"X-FateCat-Webhook-Url": "http://127.0.0.1/internal"},
+    )
+
+    assert response.status_code == 422
+    assert "webhook URL" in response.json()["error"]
+
+
+def test_sqlite_report_job_store_persists_finished_jobs_and_idempotency(tmp_path):
+    db_path = tmp_path / "report-jobs.sqlite"
+    manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path),
+    )
+    created = manager.submit(
+        kind="markdown",
+        report_system="bazi",
+        input_summary={"name": "测试样本"},
+        idempotency_key="sqlite-persist-regression",
+        task=lambda: {"reportSystem": "bazi", "markdown": "persisted"},
+    )
+
+    final_snapshot = _wait_for_manager_job(manager, created.job_id)
+    assert final_snapshot.status == "succeeded"
+    assert final_snapshot.result == {"reportSystem": "bazi", "markdown": "persisted"}
+
+    rebuilt = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path),
+    )
+    loaded = rebuilt.get(created.job_id)
+    assert loaded.status == "succeeded"
+    assert loaded.result == {"reportSystem": "bazi", "markdown": "persisted"}
+    assert loaded.input_summary == {"name": "测试样本"}
+    assert loaded.idempotency_key == "sqlite-persist-regression"
+
+    duplicate = rebuilt.submit(
+        kind="markdown",
+        report_system="bazi",
+        input_summary={"name": "另一个样本"},
+        idempotency_key="sqlite-persist-regression",
+        task=lambda: {"reportSystem": "bazi", "markdown": "must not run"},
+    )
+    assert duplicate.job_id == created.job_id
+    assert duplicate.status == "succeeded"
+    assert duplicate.result == {"reportSystem": "bazi", "markdown": "persisted"}
+
+
+def test_sqlite_report_job_store_persists_cancelled_jobs(tmp_path):
+    release = Event()
+    db_path = tmp_path / "report-jobs.sqlite"
+    manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path),
+    )
+    created = manager.submit(
+        kind="markdown",
+        report_system="bazi",
+        input_summary={"name": "测试样本"},
+        idempotency_key="sqlite-cancel-regression",
+        task=lambda: release.wait(timeout=2) or {"reportSystem": "bazi", "markdown": "discarded"},
+    )
+    deadline = time.monotonic() + 2
+    while manager.get(created.job_id).status != "running" and time.monotonic() < deadline:
+        time.sleep(0.05)
+
+    cancelled = manager.cancel(created.job_id)
+    release.set()
+    assert cancelled.status == "cancelled"
+
+    rebuilt = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path),
+    )
+    loaded = rebuilt.get(created.job_id)
+    assert loaded.status == "cancelled"
+    assert loaded.result is None
+    assert loaded.idempotency_key == "sqlite-cancel-regression"
+
+
+def test_sqlite_report_job_store_marks_active_jobs_failed_after_rebuild(tmp_path):
+    release = Event()
+    db_path = tmp_path / "report-jobs.sqlite"
+    manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path),
+    )
+    created = manager.submit(
+        kind="markdown",
+        report_system="bazi",
+        input_summary={"name": "测试样本"},
+        idempotency_key="sqlite-rebuild-regression",
+        task=lambda: release.wait(timeout=2) or {"reportSystem": "bazi", "markdown": "late"},
+    )
+    deadline = time.monotonic() + 2
+    while manager.get(created.job_id).status != "running" and time.monotonic() < deadline:
+        time.sleep(0.05)
+
+    rebuilt = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path),
+    )
+    loaded = rebuilt.get(created.job_id)
+    release.set()
+    assert loaded.status == "failed"
+    assert loaded.error == "任务执行器已重启，未完成任务已终止"
+
+
+def test_markdown_report_job_can_be_cancelled(monkeypatch, caplog):
+    started = Event()
+    release = Event()
+
+    def blocking_report(_req):
+        started.set()
+        release.wait(timeout=2)
+        return {"reportSystem": "bazi", "markdown": "should be discarded"}
+
+    monkeypatch.setattr(main, "_build_markdown_report_payload", blocking_report)
+    caplog.set_level(logging.INFO, logger="main")
+    client = TestClient(app)
+    response = client.post("/api/v1/report/jobs", json=_payload(), headers={"Idempotency-Key": "cancel-regression"})
+
+    assert response.status_code == 202
+    job_id = response.json()["data"]["jobId"]
+    started.wait(timeout=2)
+    cancel_response = client.post(f"/api/v1/report/jobs/{job_id}/cancel")
+    release.set()
+
+    assert cancel_response.status_code == 200
+    assert cancel_response.json()["data"]["status"] == "cancelled"
+    status_response = client.get(f"/api/v1/report/jobs/{job_id}")
+    assert status_response.status_code == 200
+    assert status_response.json()["data"]["status"] == "cancelled"
+    assert "result" not in status_response.json()["data"]
+    events = _audit_events(caplog)
+    submit_event = next(item for item in events if item["action"] == "report_job.submit")
+    cancel_event = next(item for item in events if item["action"] == "report_job.cancel")
+    audit_text = json.dumps([submit_event, cancel_event], ensure_ascii=False)
+    assert submit_event["targetType"] == "CalculationJob"
+    assert submit_event["metadata"]["idempotencyKeyProvided"] is True
+    assert cancel_event["targetType"] == "CalculationJob"
+    assert cancel_event["metadata"]["status"] == "cancelled"
+    assert job_id not in audit_text
+    assert "cancel-regression" not in audit_text
+
+
+def test_markdown_and_web_report_jobs_return_gates_and_do_not_write_records(monkeypatch):
     def fail_save_record(**_kwargs):
         raise AssertionError("report job must not write record storage")
 
@@ -689,6 +1117,10 @@ def test_markdown_report_jobs_do_not_write_records(monkeypatch):
 
     assert standard_final["data"]["status"] == "succeeded"
     assert web_final["data"]["status"] == "succeeded"
+    assert standard_final["data"]["result"]["policyGate"]["status"] == "pass"
+    assert standard_final["data"]["result"]["snapshotGate"]["status"] == "pass"
+    assert web_final["data"]["result"]["policyGate"]["status"] == "pass"
+    assert web_final["data"]["result"]["snapshotGate"]["status"] == "pass"
     assert "# 命理排盘报告：测试样本" in standard_final["data"]["result"]["markdown"]
     assert "# 命理排盘报告：测试样本" in web_final["data"]["result"]["markdown"]
 
@@ -788,6 +1220,8 @@ def test_capabilities_api_lists_almanac_as_standalone_production():
     assert capabilities["bazi"]["maturity"]["level"] == "L4"
     assert capabilities["bazi"]["engine"]["provider"] == "fate_core.usecases.calculate_pure_analysis"
     assert capabilities["bazi"]["engine"]["engineVersion"] == "fate-core-bazi-v1"
+    assert capabilities["bazi"]["provider"]["providerId"] == "fate_core.usecases.calculate_pure_analysis"
+    assert capabilities["bazi"]["provider"]["health"]["status"] == "ready"
     assert capabilities["bazi"]["evidencePolicy"]["ruleIdRequired"] is True
     assert capabilities["bazi"]["testGate"]["status"] == "passing"
     assert capabilities["almanac"]["status"] == "production"
@@ -813,6 +1247,7 @@ def test_capabilities_api_lists_almanac_as_standalone_production():
     assert capabilities["meihua"]["markdownReportEnabled"] is False
     assert capabilities["liuyao"]["maturity"]["level"] == "L0"
     assert capabilities["liuyao"]["testGate"]["status"] == "blocked"
+    assert capabilities["liuyao"]["provider"]["health"]["status"] == "blocked"
 
 
 def test_measurement_infrastructure_capabilities_alias_matches_v1_contract():
@@ -847,6 +1282,23 @@ def test_capability_api_executes_almanac_without_enabling_markdown_system():
     assert body["evidence"]["source"] == "lunar-python"
     assert body["metadata"]["maturity"]["level"] == "L3"
     assert body["metadata"]["engine"]["engineVersion"] == "fate-core-almanac-v1"
+    assert body["metadata"]["provider"]["providerId"] == "fate_core.usecases.calculate_almanac"
+    assert body["metadata"]["provider"]["health"]["status"] == "ready"
+    assert body["report"]["resourceType"] == "Report"
+    assert body["report"]["capabilityId"] == "almanac"
+    assert body["report"]["profile"] == "almanac"
+    assert body["report"]["formats"] == ["json"]
+    assert body["report"]["defaultFormat"] == "json"
+    assert body["report"]["links"]["capability"] == "/capabilities/almanac"
+    assert body["report"]["links"]["schemas"]["report"] == "contracts/fate/capabilities/schemas/report.schema.json"
+    assert {section["id"] for section in body["report"]["sections"]} >= {"dateRange", "days"}
+    assert body["report"]["evidenceRefs"]
+    assert body["report"]["policyGate"]["status"] == "pass"
+    assert body["report"]["policyGate"]["engine"] == "literal-substring-v1"
+    assert body["report"]["policyGate"]["policySource"] == "result.risk.forbiddenClaims"
+    assert body["report"]["policyGate"]["matches"] == []
+    assert "report.risk.forbiddenClaims" in body["report"]["policyGate"]["excludedFields"]
+    assert body["report"]["metadata"]["snapshotGate"] == "后续切片实现完整 report snapshot gate。"
 
 
 def test_measurement_capability_calculate_alias_executes_same_executor():
@@ -865,6 +1317,11 @@ def test_measurement_capability_calculate_alias_executes_same_executor():
     assert body["capabilityId"] == "meihua"
     assert body["data"]["hexagrams"]["movingLine"] == 5
     assert body["metadata"]["maturity"]["level"] == "L3"
+    assert body["metadata"]["provider"]["providerId"] == "fate_core.usecases.calculate_meihua"
+    assert body["report"]["resourceType"] == "Report"
+    assert body["report"]["profile"] == "meihua"
+    assert body["report"]["policyGate"]["status"] == "pass"
+    assert {section["id"] for section in body["report"]["sections"]} >= {"hexagrams", "bodyUse"}
 
 
 def test_capability_api_executes_meihua_without_enabling_markdown_system():
@@ -885,6 +1342,7 @@ def test_capability_api_executes_meihua_without_enabling_markdown_system():
     assert body["data"]["hexagrams"]["movingLine"] == 5
     assert body["evidence"]["items"]["cast"]["ruleIds"] == ["meihua.number_cast"]
     assert body["metadata"]["engine"]["provider"] == "fate_core.usecases.calculate_meihua"
+    assert body["metadata"]["provider"]["health"]["checks"]["scope"] == "in-process"
 
 
 def test_measurement_infrastructure_metadata_and_reports_are_available():
@@ -897,11 +1355,29 @@ def test_measurement_infrastructure_metadata_and_reports_are_available():
     assert metadata["service"] == "FateCat"
     assert metadata["positioning"] == "面向 Agent 与应用开发者的测算基础设施"
     assert metadata["capabilityProtocol"]["registryEndpoint"] == "/capabilities"
+    assert metadata["capabilityProtocol"]["providerRegistryEndpoint"] == "/providers"
+    assert metadata["capabilityProtocol"]["evaluationRegistryEndpoint"] == "/evaluations"
+    assert metadata["capabilityProtocol"]["observabilityRegistryEndpoint"] == "/observability"
+    assert metadata["capabilityProtocol"]["securityRegistryEndpoint"] == "/security"
+    assert metadata["capabilityProtocol"]["surfaceRegistryEndpoint"] == "/surfaces"
     assert metadata["developer"]["openapi"] == "/openapi.json"
+    assert metadata["developer"]["capabilityDetail"] == "/capabilities/{capability_id}"
     assert metadata["developer"]["capabilityCalculate"] == "/capabilities/{capability_id}/calculate"
+    assert metadata["developer"]["providerList"] == "/providers"
+    assert metadata["developer"]["providerDetail"] == "/providers/{provider_id}"
+    assert metadata["developer"]["evaluationList"] == "/evaluations"
+    assert metadata["developer"]["evaluationDetail"] == "/evaluations/{evaluation_id}"
+    assert metadata["developer"]["observabilityList"] == "/observability"
+    assert metadata["developer"]["observabilityDetail"] == "/observability/{signal_id}"
+    assert metadata["developer"]["securityList"] == "/security"
+    assert metadata["developer"]["securityDetail"] == "/security/{control_id}"
+    assert metadata["developer"]["surfaceList"] == "/surfaces"
+    assert metadata["developer"]["surfaceDetail"] == "/surfaces/{surface_id}"
     assert metadata["developer"]["apiGuide"] == "docs/reference-materials/operations/测算基础设施 API 接入.md"
+    assert metadata["developer"]["errors"] == "/errors"
     assert metadata["quality"]["health"] == "/health"
     assert metadata["quality"]["metrics"] == "/metrics"
+    assert metadata["quality"]["reportJobStore"] == "memory"
     assert metadata["privacy"]["birthPlaceDisplayPolicy"] == "公开 Web 示例和用户界面不得展示北京以外的真实地区名称。"
     assert metadata["productionGate"]["externalConnectivity"] == "外部连通验证待执行"
 
@@ -909,7 +1385,399 @@ def test_measurement_infrastructure_metadata_and_reports_are_available():
     reports = reports_response.json()["data"]
     assert reports["jobEndpoint"] == "/api/v1/report/jobs"
     assert reports["markdownEndpoint"] == "/api/v1/report/markdown"
+    assert reports["reportSchema"] == "contracts/fate/capabilities/schemas/report.schema.json"
+    assert reports["cancelEndpoint"] == "/api/v1/report/jobs/{job_id}/cancel"
+    assert reports["idempotencyHeader"] == "Idempotency-Key"
     assert {item["id"] for item in reports["profiles"]} >= {"bazi", "ziwei", "meihua"}
+
+
+def test_measurement_capability_detail_exposes_resource_contract():
+    response = TestClient(app).get("/capabilities/bazi")
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["resourceType"] == "Capability"
+    assert data["apiVersion"] == "fatecat.tradecatlabs/v1"
+    assert data["id"] == "bazi"
+    assert data["capabilityId"] == "bazi"
+    assert data["admission"] == {"executable": True, "reason": "production capability"}
+    assert data["input"]["required"] == ["birthDateTime", "gender", "longitude", "latitude"]
+    assert data["links"]["self"] == "/capabilities/bazi"
+    assert data["links"]["calculate"] == "/capabilities/bazi/calculate"
+    assert data["links"]["provider"] == "/providers/fate_core.usecases.calculate_pure_analysis"
+    assert data["links"]["errors"] == "/errors"
+    assert data["schemas"]["resource"] == "contracts/fate/capabilities/schemas/resource.schema.json"
+    assert data["schemas"]["provider"] == "contracts/fate/capabilities/schemas/provider.schema.json"
+    assert data["schemas"]["report"] == "contracts/fate/capabilities/schemas/report.schema.json"
+    assert data["schemas"]["error"] == "contracts/fate/capabilities/schemas/error.schema.json"
+    assert data["provider"]["providerId"] == "fate_core.usecases.calculate_pure_analysis"
+    assert data["provider"]["interfaceVersion"] == "provider-protocol-v1"
+    assert data["provider"]["health"]["status"] == "ready"
+    assert data["risk"]["disclaimerRequired"] is True
+    assert "替代医疗法律金融判断" in data["risk"]["forbiddenClaims"]
+
+
+def test_planned_capability_detail_is_discoverable_but_not_executable():
+    response = TestClient(app).get("/api/v1/capabilities/liuyao")
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["resourceType"] == "Capability"
+    assert data["capabilityId"] == "liuyao"
+    assert data["status"] == "planned"
+    assert data["admission"]["executable"] is False
+    assert data["admission"]["reason"] == "能力尚未生产化，当前只允许发现和审计"
+    assert data["engine"]["provider"] == "planned.liuyao"
+    assert data["provider"]["providerId"] == "planned.liuyao"
+    assert data["provider"]["health"]["status"] == "blocked"
+    assert data["testGate"]["status"] == "blocked"
+
+
+def test_provider_resources_are_discoverable_and_linked_to_capabilities():
+    client = TestClient(app)
+    canonical = client.get("/api/v1/providers")
+    alias = client.get("/providers")
+
+    assert canonical.status_code == 200
+    assert alias.status_code == 200
+    assert alias.json()["data"] == canonical.json()["data"]
+
+    providers = {item["providerId"]: item for item in canonical.json()["data"]["providers"]}
+    assert set(providers) == {
+        "fate_core.usecases.calculate_pure_analysis",
+        "fate_core.usecases.calculate_almanac",
+        "fate_core.usecases.calculate_ziwei",
+        "fate_core.usecases.calculate_meihua",
+    }
+    assert "planned.liuyao" not in providers
+
+    bazi_provider = providers["fate_core.usecases.calculate_pure_analysis"]
+    assert bazi_provider["resourceType"] == "Provider"
+    assert bazi_provider["apiVersion"] == "fatecat.tradecatlabs/v1"
+    assert bazi_provider["id"] == "fate_core.usecases.calculate_pure_analysis"
+    assert bazi_provider["engineVersion"] == "fate-core-bazi-v1"
+    assert bazi_provider["capabilities"] == ["bazi"]
+    assert bazi_provider["interfaceVersion"] == "provider-protocol-v1"
+    assert bazi_provider["versionLock"]["engineVersion"] == "fate-core-bazi-v1"
+    assert bazi_provider["lifecycle"]["status"] == "active"
+    assert bazi_provider["sourcePolicy"]["supplyChainRefs"] == [
+        "tools/reference-repos/vendor_sources.json#lunar-python"
+    ]
+    assert bazi_provider["licensePolicy"]["productionUseAllowed"] is True
+    assert "tests/regression/test_capability_protocol.py" in bazi_provider["resourceManifest"]["testRefs"]
+    assert bazi_provider["promotionGate"]["status"] == "passing"
+    assert bazi_provider["deprecation"]["status"] == "active"
+    assert bazi_provider["health"]["status"] == "ready"
+    assert bazi_provider["metadata"]["externalConnectivity"] == "外部连通验证待执行"
+    assert bazi_provider["links"]["self"] == "/providers/fate_core.usecases.calculate_pure_analysis"
+
+    detail = client.get("/providers/fate_core.usecases.calculate_pure_analysis")
+    assert detail.status_code == 200
+    assert detail.json()["data"] == bazi_provider
+
+
+def test_measurement_error_catalog_is_discoverable_and_versioned():
+    client = TestClient(app)
+    canonical = client.get("/api/v1/errors")
+    alias = client.get("/errors")
+
+    assert canonical.status_code == 200
+    assert alias.status_code == 200
+    assert alias.json()["data"] == canonical.json()["data"]
+    catalog = canonical.json()["data"]
+    assert catalog["schemaVersion"] == 1
+    errors = {item["code"]: item for item in catalog["errors"]}
+    assert errors["FC_CAPABILITY_NOT_FOUND"]["httpStatus"] == 400
+    assert errors["FC_CAPABILITY_NOT_PRODUCTION"]["category"] == "capability"
+    assert errors["FC_RATE_LIMITED"]["retryable"] is True
+    assert errors["FC_TIMEOUT"]["httpStatus"] == 504
+
+
+def test_evaluation_resources_are_discoverable_and_linked():
+    client = TestClient(app)
+    canonical = client.get("/api/v1/evaluations")
+    alias = client.get("/evaluations")
+
+    assert canonical.status_code == 200
+    assert alias.status_code == 200
+    assert alias.json()["data"] == canonical.json()["data"]
+
+    payload = canonical.json()["data"]
+    assert payload["schemaVersion"] == 1
+    assert payload["schemas"]["dataset"] == "contracts/fate/evaluations/schemas/dataset.schema.json"
+    assert payload["schemas"]["evaluationRun"] == "contracts/fate/evaluations/schemas/evaluation-run.schema.json"
+    assert payload["metadata"]["runner"]["command"] == "bash scripts/run-evaluations.sh"
+    assert payload["metadata"]["runner"]["defaultMode"] == "all-local-required"
+    assert payload["metadata"]["diffPolicy"] == "contracts/fate/evaluations/diff-policy.json"
+    resources = {item["id"]: item for item in payload["resources"]}
+    assert {
+        "dataset.solar_terms_1900_2030",
+        "dataset.bazi_golden_matrix",
+        "dataset.ziwei_golden_cases",
+        "dataset.mingli_bench_offline",
+        "run.local_ci_quick",
+        "run.solar_terms_golden",
+        "run.evaluation_dashboard_smoke",
+        "run.mingli_bench_offline",
+    } <= set(resources)
+
+    solar_terms = resources["dataset.solar_terms_1900_2030"]
+    assert solar_terms["resourceType"] == "Dataset"
+    assert solar_terms["usageRole"] == "evaluation_only"
+    assert solar_terms["localAvailability"] == "tracked_in_repo"
+    assert solar_terms["links"]["self"] == "/evaluations/dataset.solar_terms_1900_2030"
+
+    mingli = resources["dataset.mingli_bench_offline"]
+    assert mingli["status"] == "requires_reference_repo"
+    assert mingli["metadata"]["releaseGate"] == "optional"
+    assert "标准答案不得进入 production provider" in mingli["metadata"]["risk"]
+
+    local_ci = resources["run.local_ci_quick"]
+    assert local_ci["resourceType"] == "EvaluationRun"
+    assert local_ci["releaseRequired"] is True
+    assert local_ci["datasetIds"] == [
+        "dataset.solar_terms_1900_2030",
+        "dataset.bazi_golden_matrix",
+        "dataset.ziwei_golden_cases",
+    ]
+    assert local_ci["lastKnownStatusPolicy"] == "tracked_by_task_evidence"
+
+    detail = client.get("/evaluations/run.solar_terms_golden")
+    assert detail.status_code == 200
+    assert detail.json()["data"] == resources["run.solar_terms_golden"]
+
+    unknown = client.get("/api/v1/evaluations/not-found")
+    assert unknown.status_code == 400
+
+
+def test_observability_signals_are_discoverable_and_linked():
+    client = TestClient(app)
+    canonical = client.get("/api/v1/observability")
+    alias = client.get("/observability")
+
+    assert canonical.status_code == 200
+    assert alias.status_code == 200
+    assert alias.json()["data"] == canonical.json()["data"]
+
+    payload = canonical.json()["data"]
+    assert payload["schemaVersion"] == 1
+    assert payload["schemas"]["observabilitySignal"] == (
+        "contracts/fate/observability/schemas/observability-signal.schema.json"
+    )
+    assert payload["metadata"]["smokeCommand"] == "bash scripts/observability-smoke.sh"
+    assert "TestClient" in payload["metadata"]["smokeScope"]
+    assert payload["metadata"]["traceSloSmokeCommand"] == "bash scripts/observability-trace-slo-smoke.sh"
+    assert payload["metadata"]["sloGateCommand"] == "bash scripts/observability-slo-gate.sh"
+    signals = {item["id"]: item for item in payload["signals"]}
+    assert {
+        "signal.health",
+        "signal.readiness",
+        "signal.http_request_metrics",
+        "signal.job_and_queue_metrics",
+        "signal.request_id_and_structured_logs",
+        "signal.provider_report_traces",
+        "signal.slo_and_alerts",
+    } <= set(signals)
+
+    health = signals["signal.health"]
+    assert health["resourceType"] == "ObservabilitySignal"
+    assert health["status"] == "available"
+    assert health["endpoint"] == "/health"
+    assert health["externalConnectivity"] == "not_required"
+
+    metrics_signal = signals["signal.http_request_metrics"]
+    assert metrics_signal["signalType"] == "metric"
+    assert "fatecat_requests_total" in metrics_signal["fields"]
+    assert "不得包含用户姓名" in metrics_signal["privacyBoundary"]
+
+    traces = signals["signal.provider_report_traces"]
+    assert traces["signalType"] == "trace"
+    assert traces["status"] == "available"
+    assert traces["endpoint"] == "application logs"
+    assert traces["localVerification"]
+    assert traces["externalConnectivity"] == "external_connectivity_pending"
+
+    slo_alerts = signals["signal.slo_and_alerts"]
+    assert slo_alerts["signalType"] == "slo"
+    assert slo_alerts["status"] == "available"
+    assert "alert-rules.json" in slo_alerts["endpoint"]
+
+    detail = client.get("/observability/signal.http_request_metrics")
+    assert detail.status_code == 200
+    assert detail.json()["data"] == metrics_signal
+
+    unknown = client.get("/api/v1/observability/not-found")
+    assert unknown.status_code == 400
+
+
+def test_security_controls_are_discoverable_and_linked():
+    client = TestClient(app)
+    canonical = client.get("/api/v1/security")
+    alias = client.get("/security")
+
+    assert canonical.status_code == 200
+    assert alias.status_code == 200
+    assert alias.json()["data"] == canonical.json()["data"]
+
+    payload = canonical.json()["data"]
+    assert payload["schemaVersion"] == 1
+    assert payload["schemas"]["securityControl"] == "contracts/fate/security/schemas/security-control.schema.json"
+    assert payload["metadata"]["smokeCommand"] == "bash scripts/security-smoke.sh"
+    assert "TestClient" in payload["metadata"]["smokeScope"]
+    controls = {item["id"]: item for item in payload["controls"]}
+    assert {
+        "control.record_token_access",
+        "control.cors_allowlist",
+        "control.rate_limit",
+        "control.request_body_limit",
+        "control.response_security_headers",
+        "control.rbac_policy",
+        "control.production_identity_oidc",
+        "control.external_siem_immutable_audit",
+        "control.retention_cleanup_plan",
+        "control.owasp_api_security_regression",
+        "control.audit_event_log",
+        "control.retention_policy",
+        "control.privacy_fixture_policy",
+        "control.source_hygiene_gate",
+        "control.secret_scan_gate",
+        "control.public_release_policy",
+        "control.production_readiness_external",
+    } <= set(controls)
+
+    auth = controls["control.record_token_access"]
+    assert auth["resourceType"] == "SecurityControl"
+    assert auth["controlType"] == "auth"
+    assert auth["status"] == "available"
+    assert "FATE_API_USER_TOKENS" in auth["envVars"]
+    assert auth["externalConnectivity"] == "not_required"
+    assert auth["links"]["self"] == "/security/control.record_token_access"
+
+    rbac = controls["control.rbac_policy"]
+    assert rbac["resourceType"] == "SecurityControl"
+    assert rbac["controlType"] == "rbac"
+    assert rbac["status"] == "available"
+    assert "FATE_API_USER_TOKENS" in rbac["envVars"]
+    assert "record.read" in rbac["metadata"]["recordScopes"]
+    assert "OAuth/OIDC" in rbac["metadata"]["risk"]
+
+    identity = controls["control.production_identity_oidc"]
+    assert identity["controlType"] == "identity"
+    assert identity["status"] == "manual"
+    assert "FATE_OIDC_JWKS_URL" in identity["envVars"]
+    assert identity["externalConnectivity"] == "external_connectivity_pending"
+
+    siem = controls["control.external_siem_immutable_audit"]
+    assert siem["controlType"] == "siem"
+    assert siem["status"] == "manual"
+    assert "FATE_AUDIT_IMMUTABILITY_MODE" in siem["envVars"]
+
+    cleanup = controls["control.retention_cleanup_plan"]
+    assert cleanup["controlType"] == "retention"
+    assert cleanup["status"] == "manual"
+    assert "FATE_RECORD_RETENTION_AUTO_CLEANUP_ENABLED" in cleanup["envVars"]
+
+    owasp = controls["control.owasp_api_security_regression"]
+    assert owasp["controlType"] == "owasp_api_regression"
+    assert owasp["status"] == "available"
+    assert "bash scripts/production-security-gate.sh" in owasp["localVerification"]
+
+    privacy = controls["control.privacy_fixture_policy"]
+    assert privacy["controlType"] == "privacy"
+    assert "北京以外" in privacy["privacyBoundary"]
+    assert privacy["localVerification"] == ["bash scripts/check-privacy-fixtures.sh"]
+
+    secret_scan = controls["control.secret_scan_gate"]
+    assert secret_scan["controlType"] == "secret_scan"
+    assert secret_scan["status"] == "available"
+    assert "scripts/secret-scan.sh" in secret_scan["implementationRefs"]
+    assert "疑似密钥原文" in secret_scan["privacyBoundary"]
+    assert payload["metadata"]["secretScanCommand"].startswith("bash scripts/secret-scan.sh")
+
+    audit_log = controls["control.audit_event_log"]
+    assert audit_log["controlType"] == "audit_log"
+    assert audit_log["status"] == "available"
+    assert "FATE_AUDIT_EVENT_RETENTION_DAYS" in audit_log["envVars"]
+    assert "recordId" in audit_log["privacyBoundary"]
+
+    retention = controls["control.retention_policy"]
+    assert retention["controlType"] == "retention"
+    assert "FATE_REPORT_JOB_TTL_SECONDS" in retention["envVars"]
+    assert "显式删除" in retention["metadata"]["risk"]
+
+    readiness = controls["control.production_readiness_external"]
+    assert readiness["controlType"] == "production_readiness"
+    assert readiness["status"] == "manual"
+    assert readiness["externalConnectivity"] == "external_connectivity_pending"
+    assert "FATE_BOT_TOKEN" in readiness["envVars"]
+
+    detail = client.get("/security/control.source_hygiene_gate")
+    assert detail.status_code == 200
+    assert detail.json()["data"] == controls["control.source_hygiene_gate"]
+
+    unknown = client.get("/api/v1/security/not-found")
+    assert unknown.status_code == 400
+
+
+def test_delivery_surfaces_are_discoverable_and_linked():
+    client = TestClient(app)
+    canonical = client.get("/api/v1/surfaces")
+    alias = client.get("/surfaces")
+
+    assert canonical.status_code == 200
+    assert alias.status_code == 200
+    assert alias.json()["data"] == canonical.json()["data"]
+
+    payload = canonical.json()["data"]
+    assert payload["schemaVersion"] == 1
+    assert payload["schemas"]["deliverySurface"] == "contracts/fate/delivery/schemas/delivery-surface.schema.json"
+    assert payload["schemas"]["releaseGate"] == "contracts/fate/delivery/schemas/release-gate.schema.json"
+    assert payload["releaseGate"]["id"] == "gate.live_release"
+    assert payload["releaseGate"]["shipGateStatus"] == "blocked"
+    surfaces = {item["id"]: item for item in payload["surfaces"]}
+    assert {
+        "surface.fastapi",
+        "surface.web",
+        "surface.telegram_bot",
+        "surface.cli",
+        "surface.agent_skill",
+        "surface.huggingface_space",
+    } <= set(surfaces)
+
+    api_surface = surfaces["surface.fastapi"]
+    assert api_surface["resourceType"] == "DeliverySurface"
+    assert api_surface["surfaceType"] == "api"
+    assert api_surface["status"] == "available"
+    assert "/api/v1/report/markdown" in api_surface["entrypoints"]
+    assert "markdown" in api_surface["supportedOutputs"]
+    assert "calculate_delivery_result" in " ".join(api_surface["canonicalChain"])
+
+    web_surface = surfaces["surface.web"]
+    assert web_surface["surfaceType"] == "web"
+    assert "/web" in web_surface["entrypoints"]
+    assert "build_web_report_result" in " ".join(web_surface["canonicalChain"])
+    assert "不得由前端自行拼装核心报告" in web_surface["privacyBoundary"]
+
+    bot_surface = surfaces["surface.telegram_bot"]
+    assert bot_surface["surfaceType"] == "bot"
+    assert bot_surface["externalConnectivity"] == "requires_real_credentials"
+    assert "live token" in bot_surface["metadata"]["sameSourceScope"]
+
+    cli_surface = surfaces["surface.cli"]
+    assert cli_surface["status"] == "partial"
+    assert cli_surface["supportedOutputs"] == ["json"]
+    assert "不生成标准 Markdown" in cli_surface["metadata"]["sameSourceScope"]
+
+    hosted = surfaces["surface.huggingface_space"]
+    assert hosted["status"] == "manual"
+    assert hosted["externalConnectivity"] == "requires_hosted_platform"
+
+    detail = client.get("/surfaces/surface.web")
+    assert detail.status_code == 200
+    assert detail.json()["data"] == web_surface
+
+    unknown = client.get("/api/v1/surfaces/not-found")
+    assert unknown.status_code == 400
 
 
 def test_measurement_infrastructure_openapi_exposes_developer_entrypoints():
@@ -919,7 +1787,20 @@ def test_measurement_infrastructure_openapi_exposes_developer_entrypoints():
     paths = response.json()["paths"]
     assert "/metadata" in paths
     assert "/capabilities" in paths
+    assert "/capabilities/{capability_id}" in paths
     assert "/capabilities/{capability_id}/calculate" in paths
+    assert "/providers" in paths
+    assert "/providers/{provider_id}" in paths
+    assert "/errors" in paths
+    assert "/evaluations" in paths
+    assert "/evaluations/{evaluation_id}" in paths
+    assert "/observability" in paths
+    assert "/observability/{signal_id}" in paths
+    assert "/security" in paths
+    assert "/security/{control_id}" in paths
+    assert "/surfaces" in paths
+    assert "/surfaces/{surface_id}" in paths
+    assert "/api/v1/report/jobs/{job_id}/cancel" in paths
     assert "/reports" in paths
 
 

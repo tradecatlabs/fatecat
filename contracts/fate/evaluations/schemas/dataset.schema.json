@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "description": "测算基础设施 Dataset 资源契约。Dataset 用于登记历法、golden、benchmark、典籍、规则和供应链数据资产；登记不等于生产运行依赖。",
+  "requiredDatasetFields": [
+    "resourceType",
+    "apiVersion",
+    "id",
+    "name",
+    "domain",
+    "datasetType",
+    "usageRole",
+    "status",
+    "localAvailability",
+    "privacyClass",
+    "sourceRef",
+    "paths",
+    "commands",
+    "links",
+    "metadata"
+  ],
+  "requiredSourceRefFields": ["type", "path"],
+  "requiredMetadataFields": [
+    "owner",
+    "verificationScope",
+    "releaseGate",
+    "externalConnectivity",
+    "risk"
+  ],
+  "allowedDatasetType": [
+    "calendar_golden",
+    "bazi_golden",
+    "ziwei_golden",
+    "benchmark",
+    "classics",
+    "rule_registry",
+    "supply_chain"
+  ],
+  "allowedUsageRole": ["production_input", "evaluation_only", "research_reference"],
+  "allowedStatus": ["available", "requires_reference_repo", "requires_private_raw", "blocked"],
+  "allowedLocalAvailability": [
+    "tracked_in_repo",
+    "requires_reference_repo",
+    "requires_private_raw",
+    "external_connectivity_required"
+  ],
+  "allowedPrivacyClass": ["non_personal", "anonymous_fixture", "public_text", "review_required"],
+  "invariants": [
+    "Dataset resource 只登记数据资产，不复制大文件内容",
+    "evaluation_only Dataset 不得被 production provider 读取作为业务输入",
+    "benchmark Dataset 不得把标准答案注入生产推理路径",
+    "requires_reference_repo 或 requires_private_raw 不能声明为默认 release 必跑门禁",
+    "所有 Dataset 必须说明本地可验证性、隐私边界和外部连通状态"
+  ]
+}

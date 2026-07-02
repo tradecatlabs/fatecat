@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "description": "测算基础设施 Report 资源契约。Report envelope 用于描述 capability 执行结果如何交付、引用哪些 evidence，并不替代原始 data/evidence。",
+  "requiredReportFields": [
+    "resourceType",
+    "apiVersion",
+    "id",
+    "capabilityId",
+    "profile",
+    "formats",
+    "defaultFormat",
+    "sections",
+    "evidenceRefs",
+    "policyGate",
+    "risk",
+    "links",
+    "metadata"
+  ],
+  "requiredSectionFields": ["id", "type", "source"],
+  "requiredEvidenceRefFields": ["id", "source", "ruleIds"],
+  "requiredMarkdownResultFields": ["reportSystem", "markdown", "policyGate", "snapshotGate"],
+  "requiredPolicyGateFields": [
+    "version",
+    "status",
+    "engine",
+    "scope",
+    "contentCoverage",
+    "checkedFields",
+    "excludedFields",
+    "policySource",
+    "forbiddenClaimsCount",
+    "checkedTextCount",
+    "matches"
+  ],
+  "requiredSnapshotGateFields": [
+    "version",
+    "status",
+    "scope",
+    "contentCoverage",
+    "reportSystem",
+    "requiredHeadings",
+    "missingHeadings",
+    "headingCount",
+    "headings"
+  ],
+  "allowedPolicyGateStatus": ["pass", "fail"],
+  "allowedSnapshotGateStatus": ["pass", "fail"],
+  "allowedFormats": ["json", "markdown"],
+  "invariants": [
+    "Report envelope 只保存交付摘要和引用，不复制完整 data",
+    "原始 data/evidence/risk/metadata 必须继续保留在 capability response 中",
+    "默认 Markdown 仍必须且只能来自 bazi",
+    "evidenceRefs 是 best-effort 引用索引，不替代原始 evidence",
+    "policyGate 必须排除 risk.forbiddenClaims，避免风险清单自触发",
+    "capability Report envelope policyGate 只覆盖摘要字段",
+    "Markdown report policyGate 必须扫描用户可见 Markdown 正文",
+    "snapshotGate 当前只锁 Markdown heading structure；完整正文 golden diff 属后续发布门禁"
+  ]
+}

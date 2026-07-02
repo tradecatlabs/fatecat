@@ -11,6 +11,8 @@ from datetime import datetime
 from typing import Any
 
 from calculation_service import calculate_delivery_result
+from fate_core.capabilities import build_markdown_report_policy_gate, build_markdown_snapshot_gate, get_capability
+from fate_core.observability import trace_span
 from location import get as get_location
 from prediction_systems import report_system_allowed_text
 from report_generator import REPORT_SYSTEM_LABELS, generate_full_report, public_birth_place
@@ -65,22 +67,32 @@ def validate_web_report_form(form: WebReportForm) -> ValidatedWebReportInput:
 def build_web_report_result(form: WebReportForm) -> WebReportResult:
     """生成 Web 工作台使用的 Markdown 报告与结构化工作台数据。"""
     validated = validate_web_report_form(form)
-    calculation = calculate_delivery_result(
-        birth_dt=validated.birth_dt,
-        gender=validated.gender,
-        longitude=validated.longitude,
-        latitude=validated.latitude,
-        birth_place=validated.display_birth_place,
-        name=form.name,
-        report_system=validated.report_system,
-        use_true_solar_time=True,
-        bazi_engine="capability",
-    )
-    markdown = generate_full_report(
-        calculation.data,
-        hide=calculation.report_hide,
+    attributes = {"reportSystem": validated.report_system, "reportFormat": "markdown", "surface": "web"}
+    with trace_span("web_report.calculate", attributes=attributes):
+        calculation = calculate_delivery_result(
+            birth_dt=validated.birth_dt,
+            gender=validated.gender,
+            longitude=validated.longitude,
+            latitude=validated.latitude,
+            birth_place=validated.display_birth_place,
+            name=form.name,
+            report_system=validated.report_system,
+            use_true_solar_time=True,
+            bazi_engine="capability",
+        )
+    with trace_span("web_report.render_markdown", attributes=attributes):
+        markdown = generate_full_report(
+            calculation.data,
+            hide=calculation.report_hide,
+            report_system=calculation.report_system,
+        )
+    capability = get_capability(calculation.report_system)
+    policy_gate = build_markdown_report_policy_gate(
+        markdown=markdown,
+        forbidden_claims=capability.forbidden_claims,
         report_system=calculation.report_system,
     )
+    snapshot_gate = build_markdown_snapshot_gate(markdown=markdown, report_system=calculation.report_system)
     payload = {
         "birthDate": form.birth_date,
         "birthTime": validated.normalized_time,
@@ -95,6 +107,8 @@ def build_web_report_result(form: WebReportForm) -> WebReportResult:
     }
     return WebReportResult(
         markdown=markdown,
+        policy_gate=policy_gate,
+        snapshot_gate=snapshot_gate,
         resolved_longitude=validated.longitude,
         resolved_latitude=validated.latitude,
         normalized_time=validated.normalized_time,

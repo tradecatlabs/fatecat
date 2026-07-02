@@ -36,6 +36,7 @@ domains/fate-analysis/data-products/
 - `classics/copyright_review.tsv`：标记典籍、外部分发包、案例和知识图谱的版权/隐私/发布可用性。
 - `calendar/solar_terms/golden/`：从 raw 表提炼的轻量回归 fixture，用于锁定节气、月令、立春年界与起运边界。
 - `source_manifest.tsv`：记录来源文件名、大小、哈希、体系归属与来源路径，便于审计和后续清洗。
+- `contracts/fate/data-supply-chain/registry.json`：跨数据产品、vendor 和 benchmark 的供应链注册表；`scripts/data-supply-chain-gate.sh` 会校验 canonical TXT 是否同时具备 source manifest、copyright review 和 hash。
 
 ## 开发规则
 
@@ -45,3 +46,4 @@ domains/fate-analysis/data-products/
 - `copyright_review.tsv` 标记为 `blocked` 或 `review_required` 的资产不得被运行时代码直接依赖。
 - 业务代码不得直接依赖 `raw/` 路径；运行期只能依赖已整理的轻量数据或显式配置的数据源。
 - golden fixture 只允许测试读取，不能替换生产期 `lunar-python` 历法计算。
+- 新增、删除或重命名 `classics/*.txt` 时，必须同步 `source_manifest.tsv`、`copyright_review.tsv` 并运行 `bash scripts/data-supply-chain-gate.sh`。

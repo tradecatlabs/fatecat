@@ -1,0 +1,12 @@
+# Execution Checklist
+[x] TP-01.01 | P0 | 定义 Markdown gate 范围 | Verify: `rg -n "Markdown.*policyGate|snapshotGate" governance/tasks/0016-measurement-infrastructure-wave2-markdown-report-gates` | Gate: scope 明确覆盖同步、标准异步、Web 异步。 | Parallelizable: No
+[x] TP-01.02 | P0 | 更新 report schema 口径 | Verify: `.venv/bin/python -m pytest -q tests/regression/test_capability_protocol.py -k 'policy or snapshot or report'` | Gate: schema 说明 policyGate/snapshotGate 对 Markdown 的覆盖范围。 | Parallelizable: No
+[x] TP-02.01 | P0 | 增加 Markdown policyGate helper | Verify: `.venv/bin/python -m pytest -q tests/regression/test_capability_protocol.py -k 'policy'` | Gate: 正文违规样本 fail，正常样本 pass。 | Parallelizable: No
+[x] TP-02.02 | P0 | 增加 Markdown snapshotGate helper | Verify: `.venv/bin/python -m pytest -q tests/regression/test_capability_protocol.py -k 'snapshot'` | Gate: bazi/ziwei 核心 heading 缺失返回 fail。 | Parallelizable: No
+[x] TP-03.01 | P0 | 同步 Markdown API 接入 gate | Verify: `.venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k 'markdown and gate'` | Gate: `/api/v1/report/markdown` 返回 gate。 | Parallelizable: No
+[x] TP-03.02 | P0 | 标准异步 job 接入 gate | Verify: `.venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k 'job and gate'` | Gate: `/api/v1/report/jobs/{job_id}` result 返回 gate。 | Parallelizable: No
+[x] TP-03.03 | P0 | Web 异步 job 接入 gate | Verify: `.venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k 'web and gate'` | Gate: Web job result 返回 gate。 | Parallelizable: No
+[x] TP-04.01 | P0 | 增加回归测试 | Verify: `.venv/bin/python -m pytest -q tests/regression/test_api_contracts.py tests/regression/test_capability_protocol.py -k 'policy or snapshot or report or markdown or job or web'` | Gate: 组合回归通过。 | Parallelizable: No
+[x] TP-04.02 | P1 | 更新文档和路线图 | Verify: `rg -n "policyGate|snapshotGate|Markdown 正文" docs/reference-materials contracts/fate/capabilities governance/tasks/0016-measurement-infrastructure-wave2-markdown-report-gates` | Gate: 文档说明本轮 gate 边界。 | Parallelizable: No
+[x] TP-05.01 | P0 | 运行本地门禁 | Verify: `bash scripts/local-ci.sh --profile quick && python3 governance/tools/validate_governance_package.py --project-root . --strict && git diff --check` | Gate: quick CI、governance strict、diff check 通过。 | Parallelizable: No
+[x] TP-05.02 | P0 | 收口任务文档 | Verify: `validate_task_docs.py --phase closeout && validate_tasks_tree.py --phase auto` | Gate: 0016 closeout 无占位符，任务树全量有效。 | Parallelizable: No

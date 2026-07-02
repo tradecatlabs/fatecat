@@ -72,10 +72,10 @@
       "retrievedAt": "unknown",
       "revisionStatus": "legacy_snapshot_no_git_metadata",
       "snapshotSha256": "195f863dd4c66f3925a757ea0c23255803ac0a27aa831500bafefd87064370be",
-      "usageRole": "future_candidate",
-      "productionUseAllowed": false,
+      "usageRole": "production_dependency",
+      "productionUseAllowed": true,
       "licenseEvidence": "tools/reference-repos/github/iztro-main/LICENSE",
-      "riskNote": "MIT 快照；当前不作为 FateCat 主生产八字链路，启用紫微生产能力前需单独架构与验收。"
+      "riskNote": "MIT 快照；当前作为紫微斗数 production provider 的登记供应链依赖，构建产物只允许写入 infra/runtime/local-state/vendor-build，不得污染 vendor 快照。"
     },
     {
       "id": "paipan",

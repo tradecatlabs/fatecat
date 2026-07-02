@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "description": "FateCat developer sandbox fixtures. These fixtures are local, deterministic, privacy-safe examples for docs smoke and SDK samples; they do not represent a live hosted sandbox token service.",
+  "privacyBoundary": "Sandbox fixtures must use 北京 and 测试样本 only. Do not store real names, non-Beijing real places, tokens, secrets, report bodies or production URLs.",
+  "fixtures": [
+    {
+      "id": "sandbox.almanac.travel.beijing.2026-05-08",
+      "capabilityId": "almanac",
+      "method": "POST",
+      "endpoint": "/capabilities/almanac/calculate",
+      "summary": "黄历择日 sandbox：北京、出行、单日。",
+      "request": {
+        "dateRange": {
+          "start": "2026-05-08",
+          "end": "2026-05-08"
+        },
+        "eventType": "出行",
+        "place": "北京"
+      },
+      "expected": {
+        "httpStatus": 200,
+        "success": true,
+        "capabilityId": "almanac",
+        "reportProfile": "almanac",
+        "dataChecks": {
+          "dateRangeDays": 1,
+          "timeSlotCount": 12
+        }
+      }
+    },
+    {
+      "id": "sandbox.meihua.number.beijing.test",
+      "capabilityId": "meihua",
+      "method": "POST",
+      "endpoint": "/capabilities/meihua/calculate",
+      "summary": "梅花易数 sandbox：测试问题、数字起卦。",
+      "request": {
+        "question": "测试问题能否推进",
+        "castMethod": "number",
+        "castValue": "3,8,6"
+      },
+      "expected": {
+        "httpStatus": 200,
+        "success": true,
+        "capabilityId": "meihua",
+        "reportProfile": "meihua"
+      }
+    }
+  ],
+  "docs": {
+    "examplesPath": "docs/reference-materials/developer/examples",
+    "smokeCommand": "bash scripts/developer-docs-smoke.sh",
+    "openapiExportCommand": "bash scripts/export-openapi.sh --output infra/runtime/local-state/exports/developer/openapi.json"
+  }
+}

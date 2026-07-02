@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "description": "测算基础设施 ReleaseGate 资源契约。ReleaseGate 用于把本地发布门禁、真实外部 live smoke、远端 CI、托管平台、容器 digest、SBOM/provenance 与回滚演练统一成可审计证据包。",
+  "requiredReleaseGateFields": [
+    "resourceType",
+    "apiVersion",
+    "id",
+    "name",
+    "status",
+    "scope",
+    "requiredEvidence",
+    "localVerification",
+    "externalVerification",
+    "shipGate",
+    "links",
+    "metadata"
+  ],
+  "requiredEvidenceFields": [
+    "id",
+    "name",
+    "category",
+    "requiredForLiveRelease",
+    "acceptedEvidence",
+    "externalConnectivity",
+    "privacyBoundary"
+  ],
+  "requiredCheckFields": [
+    "id",
+    "name",
+    "category",
+    "status",
+    "requiredForLiveRelease",
+    "evidence",
+    "externalConnectivity"
+  ],
+  "requiredShipGateFields": ["status", "blockingItems", "policy"],
+  "allowedStatus": ["available", "manual", "blocked"],
+  "allowedCheckStatus": ["pass", "pending", "fail"],
+  "allowedShipGateStatus": ["pass", "blocked", "fail"],
+  "allowedEvidenceCategory": [
+    "local_ci",
+    "remote_ci",
+    "api_live",
+    "hf_space_live",
+    "bot_live",
+    "container",
+    "sbom",
+    "provenance",
+    "rollback",
+    "git"
+  ],
+  "allowedExternalConnectivity": [
+    "not_required",
+    "external_connectivity_pending",
+    "requires_real_domain",
+    "requires_real_credentials",
+    "requires_hosted_platform",
+    "requires_ci_run",
+    "requires_registry",
+    "requires_release_artifact",
+    "requires_operator_evidence"
+  ],
+  "invariants": [
+    "ReleaseGate 只输出证据摘要、路径、URL 类型和哈希，不输出真实 token、secret、DSN、私钥、Bot token 或生产日志正文",
+    "本地门禁通过不等于 live release 可发布；shipGate 必须单独表达真实外部证据是否齐全",
+    "远端 CI 必须指向当前 commit 的 GitHub Actions run；没有 run URL 时只能标记 externalConnectivity_pending",
+    "生产 API live 必须验证真实 HTTPS 域名的 /health、/ready 和 /metrics，不得用 localhost 代替",
+    "Hugging Face Space live 必须验证真实 *.hf.space URL，不得用仓库文档链接代替",
+    "Bot live 必须使用真实 FATE_BOT_TOKEN 调用 Telegram get_me；delivery dry-run 不能代替 live smoke",
+    "container digest 必须是 sha256:<64 hex> 形式；image tag 不能代替 digest",
+    "SBOM/provenance 必须有可读取 artifact 路径或外部 artifact URL；缺失时不得宣称供应链发布已完成",
+    "当前 worktree 不干净时 shipGate 必须 blocked，除非该 gate 仅用于本地开发预检且明确不发布"
+  ]
+}

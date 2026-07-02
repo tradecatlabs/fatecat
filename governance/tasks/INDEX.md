@@ -18,3 +18,78 @@
 | 0007 | measurement-infrastructure-foundation | Done | P0 | 把 FateCat 从命理工具集合升级为面向 Agent 与应用开发者的测算基础设施基线：统一能力协议、可复现计算核心、证据化解释层、多端交付接口、能力成熟度和生产门禁。 | 0007-measurement-infrastructure-foundation/ |
 
 | 0008 | measurement-infrastructure-hardening | Done | P0 | 继续把 FateCat 测算基础设施从协议骨架推进到开发者可接入、能力准入可拒绝、隐私与生产门禁可审计的基础设施硬化状态。 | 0008-measurement-infrastructure-hardening/ |
+
+| 0009 | measurement-infrastructure-100-plan | Done | P0 | 基于成熟基础设施官方资料调研，制定 FateCat 达到 100% 测算基础设施所需的完整实现计划、递归任务树、验收门禁和分阶段执行路线。 | 0009-measurement-infrastructure-100-plan/ |
+
+| 0010 | measurement-infrastructure-wave1-resources | Done | P0 | 执行测算基础设施 100% 实现计划 Wave 1 的首批切片：补资源 schema、capability 详情 API、标准错误码入口、API contract tests，并保持任务树和文档可验收。 | 0010-measurement-infrastructure-wave1-resources/ |
+
+| 0011 | measurement-infrastructure-wave1-jobs | Done | P0 | 执行测算基础设施 100% 实现计划 Wave 1 的第二个切片：在现有报告任务队列上补 Idempotency-Key、cancelled 状态、取消 API、job resource links 和对应回归测试。 | 0011-measurement-infrastructure-wave1-jobs/ |
+
+| 0012 | measurement-infrastructure-wave2-provider-protocol | Done | P0 | 执行测算基础设施 100% 实现计划 Wave 2 的第一个切片：把 CapabilityExecutor 从散落函数路由提升为统一 ProviderProtocol / provider registry，先接入 bazi、ziwei、almanac、meihua 四个生产 capability，并暴露 provider metadata、health 与标准错误归一化边界。 | 0012-measurement-infrastructure-wave2-provider-protocol/ |
+
+| 0013 | measurement-infrastructure-wave2-provider-resources | Done | P0 | 执行测算基础设施 100% 实现计划 Wave 2 的第二个切片：把已落地的 production provider registry 资源化，新增 Provider schema、/providers 与 /providers/{provider_id} 发现入口、metadata 链接、API 回归测试和文档说明。 | 0013-measurement-infrastructure-wave2-provider-resources/ |
+
+| 0014 | measurement-infrastructure-wave2-report-evidence-envelope | Done | P0 | 执行测算基础设施 100% 实现计划 IMP-05 的第一个切片：新增 Report schema 和 evidence reference 契约，并让 capability 执行响应携带统一 Report resource envelope，包含 profile、format、sections、evidenceRefs、links 与风险边界；不重写 Markdown 生成器或具体算法。 | 0014-measurement-infrastructure-wave2-report-evidence-envelope/ |
+
+| 0015 | measurement-infrastructure-wave2-report-policy-gate | Done | P0 | 实现 Report policyGate 与 forbidden claims scanner，把 capability 报告交付结果纳入最小风险断语门禁。 | 0015-measurement-infrastructure-wave2-report-policy-gate/ |
+| 0016 | measurement-infrastructure-wave2-markdown-report-gates | Done | P0 | 把 Markdown 同步报告、异步报告任务和 Web 报告结果接入统一 policyGate 与 snapshotGate，补齐多端报告正文最小发布门禁。 | 0016-measurement-infrastructure-wave2-markdown-report-gates/ |
+
+| 0017 | measurement-infrastructure-wave3-evaluation-resources | Done | P0 | 把已有 golden、benchmark 与评测入口资源化为 Dataset / EvaluationRun 发现层，提供 schema、registry、API 入口、文档和回归测试。 | 0017-measurement-infrastructure-wave3-evaluation-resources/ |
+
+| 0018 | measurement-infrastructure-wave5-observability-resources | Done | P0 | 把现有 health、ready、metrics、requestId 和结构化日志能力资源化为 Observability 发现层，提供 schema、registry、API 入口、文档和回归测试。 | 0018-measurement-infrastructure-wave5-observability-resources/ |
+
+| 0019 | measurement-infrastructure-wave5-security-privacy-resources | Done | P0 | 把现有 token 权限、CORS、限流、请求体限制、响应安全头、隐私示例、source hygiene、public release policy 和 production readiness 门禁资源化为 SecurityControl 发现层，提供 schema、registry、API 入口、文档和回归测试。 | 0019-measurement-infrastructure-wave5-security-privacy-resources/ |
+
+| 0020 | measurement-infrastructure-wave6-delivery-surface-contracts | Done | P0 | 把 Web、FastAPI、Telegram Bot、CLI、Agent Skill 等交付面资源化为 DeliverySurface 发现层，明确每个入口的同源计算链路、输出契约、验证命令、隐私边界和外部连通状态，补 schema、registry、API、文档和回归测试。 | 0020-measurement-infrastructure-wave6-delivery-surface-contracts/ |
+
+| 0021 | measurement-infrastructure-wave4-evaluation-runner | Done | P0 | 把 EvaluationRun 从资源发现推进到本地可执行 runner：读取 contracts/fate/evaluations/registry.json，按 run id 或本地必跑集合执行安全白名单命令，输出机器可读 summary JSON，并补测试、文档、路线图和任务 closeout。 | 0021-measurement-infrastructure-wave4-evaluation-runner/ |
+
+| 0022 | measurement-infrastructure-wave4-evaluation-history-diff | Done | P0 | 把本地 EvaluationRun runner 进一步推进为可审计质量闭环：支持本地结果历史留痕、latest 指针、summary diff、diff policy 阈值判定和回归测试；不实现 dashboard/nightly/远端 CI。 | 0022-measurement-infrastructure-wave4-evaluation-history-diff/ |
+
+| 0023 | measurement-infrastructure-wave5-observability-runtime-smoke | Done | P0 | 把 ObservabilitySignal 从资源发现推进到本地可执行观测 smoke：用 TestClient 验证 health、ready、metrics、request-id、结构化 http_request log 和 registry metadata，输出机器可读 summary JSON；不接入 OpenTelemetry collector、dashboard 或生产监控平台。 | 0023-measurement-infrastructure-wave5-observability-runtime-smoke/ |
+
+| 0024 | measurement-infrastructure-wave5-security-runtime-smoke | Done | P0 | 把 SecurityControl 从资源发现推进到本地可执行安全 smoke：用 TestClient 验证记录接口 token/owner 边界、响应安全头、请求体限制、限流，并串联 privacy/source/public-release 本地门禁，输出机器可读 summary JSON；不伪造真实生产域名、真实 token 或 Bot live smoke。 | 0024-measurement-infrastructure-wave5-security-runtime-smoke/ |
+
+| 0025 | measurement-infrastructure-wave5-secret-scan-gate | Done | P0 | 把 SecurityControl 的专用 secret scanner 从后续缺口推进到本地可执行门禁：扫描 tracked first-party 文件中的真实密钥、高熵 token、私钥/证书、DSN 和 webhook 风险，输出机器可读 summary JSON，接入 security registry、quick CI、回归测试和文档；不读取真实 .env、不输出密钥原文、不替代真实生产凭证审计。 | 0025-measurement-infrastructure-wave5-secret-scan-gate/ |
+
+| 0026 | measurement-infrastructure-wave5-audit-retention-policy | Done | P0 | 把 SecurityControl 的审计日志与 retention policy 从后续缺口推进到本地可验证基线：为记录读写/删除、报告 job 提交/取消等关键动作输出脱敏结构化 audit_event，登记 retention policy 和 audit log SecurityControl，补回归测试、quick CI、文档和任务 closeout；不接入外部 SIEM、不保存真实请求体、不伪造生产审计平台。 | 0026-measurement-infrastructure-wave5-audit-retention-policy/ |
+
+| 0027 | measurement-infrastructure-100-research-plan-refresh | Done | P0 | 基于成熟基础设施官方资料与当前 FateCat worktree 事实，刷新测算基础设施 100% 完整实现计划：建立外部同构调研矩阵、当前能力差距、剩余任务树、执行波次、验收门禁与不可伪造证据口径；本任务只落盘计划与任务容器，不实现业务功能。 | 0027-measurement-infrastructure-100-research-plan-refresh/ |
+
+| 0028 | measurement-infrastructure-rbac-policy | Done | P0 | 把记录接口的隐含 admin/user/owner 权限边界推进为本地可验证 RBAC baseline：显式 record scopes、兼容旧 user token、支持 scoped FATE_API_USER_TOKENS、登记 control.rbac_policy，补回归测试、生产预检兼容、文档和 closeout；不实现 OAuth/OIDC、外部 IdP 或多租户身份系统。 | 0028-measurement-infrastructure-rbac-policy/ |
+
+| 0029 | measurement-infrastructure-openapi-sdk-sandbox | Done | P0 | 把开发者接入面推进为本地可验证 baseline：提供 OpenAPI 导出脚本、developer docs smoke、sandbox fixture、curl/Python/Node/Agent 示例，接入 quick CI，并回填任务包与 closeout；不实现公网 SDK 发布、真实 sandbox token 服务或远端开发者门户。 | 0029-measurement-infrastructure-openapi-sdk-sandbox/ |
+
+| 0030 | measurement-infrastructure-durable-job-store | Done | P0 | 把报告任务运行面从纯内存队列推进为本地可验证持久 job store baseline：新增 ReportJobStore 抽象与 SQLite backend，保持默认内存模式兼容，支持任务元数据、状态、结果、幂等键、取消和 TTL 过期跨 manager 重建可查询；补环境变量、文档、回归测试、任务 closeout。不实现 webhook、retry policy、分布式 worker、外部队列或生产多副本锁。 | 0030-measurement-infrastructure-durable-job-store/ |
+
+| 0031 | measurement-infrastructure-webhook-callbacks | Done | P0 | 把异步报告任务推进为本地可验证 webhook callback baseline：定义 webhook callback 契约、HMAC-SHA256 签名、终态事件 payload、可插拔 dispatcher 和本地 simulator/smoke，接入 report job succeeded/failed/cancelled 终态；保留默认无 webhook、且不做真实公网连通、持久重试队列、分布式 worker 或外部任务系统。 | 0031-measurement-infrastructure-webhook-callbacks/ |
+
+| 0032 | measurement-infrastructure-provider-lifecycle-gates | Done | P0 | 把 production provider 生命周期从基础 metadata 推进为本地可验证 gate：为 provider 增加 version lock、source/license/resource manifest、lifecycle/deprecation/promotion policy 和 health gate，新增 provider lifecycle smoke/check 脚本并接入 quick CI；不实现真实外部依赖探测、trace span、供应链许可证人工审计或新 provider。 | 0032-measurement-infrastructure-provider-lifecycle-gates/ |
+
+| 0033 | measurement-infrastructure-provider-dependency-smoke | Done | P0 | 把 provider health 从静态 in-process metadata 推进为本地可执行 dependency smoke baseline：为每个 production capability 准备固定脱敏样例，通过统一 CapabilityExecutor 执行 provider validate/calculate，输出机器可读 provider dependency smoke summary，接入 quick CI、API 文档、roadmap 和任务 closeout；不做真实公网外部依赖、OpenTelemetry trace span、SBOM、法律审计或新 provider。 | 0033-measurement-infrastructure-provider-dependency-smoke/ |
+
+| 0034 | bazi-ziwei-l4-golden-evidence | Done | P0 | 把八字/紫微两个核心 production capability 推进为本地可验证 L4 golden/evidence baseline：复用现有匿名 golden fixture，新增 bazi/ziwei L4 golden smoke，统一验证八字节气/真太阳时/起运代表边界、格局/用神/调候/evidence coverage、紫微十二宫/星曜/四化/运限 golden、Markdown profile snapshot gate、冲突解释和反证说明，并接入 quick CI、文档、roadmap 与任务 closeout；不新增真实命例、不做全文断语 golden、不声明专业能力 100%。 | 0034-bazi-ziwei-l4-golden-evidence/ |
+
+| 0035 | measurement-infrastructure-data-supply-chain | Done | P0 | 把数据、典籍、vendor、benchmark 供应链从散落 source_manifest/copyright_review/vendor_sources/evaluation registry 推进为本地可验证 DataSupplyChain baseline：新增统一 data supply chain manifest 和 schema，登记 raw/canonical/derived/export/runtime 分层、来源 hash、许可/版权状态、usageRole、productionEligibility、exportPolicy 与 verification commands；新增 data-supply-chain-gate 脚本和回归测试，接入 quick CI、API 文档、roadmap、data-products AGENTS 和任务 closeout；不引入新外部资料、不做法律意见、不生成 SBOM/provenance、不改变 production provider 算法。 | 0035-measurement-infrastructure-data-supply-chain/ |
+
+| 0036 | measurement-infrastructure-eval-dashboard-nightly | Done | P0 | 把 EvaluationRun runner/history/diff 从 JSON 证据推进为本地可读评测 dashboard 与 nightly baseline：新增 evaluation dashboard renderer、dry-run dashboard smoke、nightly wrapper 和 GitHub scheduled workflow artifact，接入 quick CI、文档、roadmap 与任务 closeout；不接外部监控平台、不调用外部模型 API、不把 benchmark 标准答案注入生产路径。 | 0036-measurement-infrastructure-eval-dashboard-nightly/ |
+
+| 0037 | measurement-infrastructure-otel-slo-alerts | Done | P0 | 把 D7 SRE/可观测从 health/ready/metrics/requestId/structured log baseline 推进为本地可验证 trace/SLO/alert baseline：新增 W3C traceparent/OpenTelemetry 语义兼容 span 日志、API/provider/report 本地 trace smoke、SLO policy、alert rules、observability gate，并接入 quick CI、observability registry、API 文档、roadmap 与任务 closeout；不接外部 collector、不引入未锁定依赖、不声称生产监控已完成。 | 0037-measurement-infrastructure-otel-slo-alerts/ |
+
+| 0038 | measurement-infrastructure-production-identity-siem-retention | Done | P0 | 把 D8 安全/隐私从 scoped RBAC、secret scan、audit_event 和 retention baseline 推进为本地可验证的生产身份/SIEM/retention 准入基线：新增生产身份外部化策略、OIDC/IdP 准入 contract、SIEM/不可变审计存储 contract、retention 自动清理计划 contract、OWASP API security regression pack gate，并接入 security registry、production-readiness、quick CI、API 文档、roadmap 与任务 closeout；不接真实 OIDC/外部 SIEM、不删除真实数据、不伪造生产 live 证据。 | 0038-measurement-infrastructure-production-identity-siem-retention/ |
+
+| 0039 | measurement-infrastructure-live-release-gate | Done | P0 | 把测算基础设施最后一段发布准入收束为可审计的 live release gate：新增 release evidence 契约、live release gate 脚本、外部证据 JSON 输出、真实 API/HF Space/Bot/远端 CI/container digest/SBOM-provenance 的机器可读验收口径，并接入 public-release/local-ci、delivery registry、roadmap、AGENTS 与任务 closeout；没有真实外部域名、token、HF/CI 权限时只标注外部连通验证待执行，不伪造 live 通过。 | 0039-measurement-infrastructure-live-release-gate/ |
+
+| 0040 | measurement-infrastructure-release-artifacts | Done | P0 | 把 0039 live release gate 中的 SBOM/provenance 从纯 pending 推进为本地可生成、可校验、可交给发布门禁消费的 release artifacts baseline：新增 release artifact 生成脚本，基于 pyproject、requirements lock、Dockerfile、关键 contracts/scripts 生成 CycloneDX 兼容 SBOM、SLSA/in-toto 风格 provenance 和 manifest，接入 live-release/public-release/local-ci、回归测试、文档、roadmap 和任务 closeout；不推送 registry、不声明远端 CI attestation、不伪造 container digest 或真实生产发布。 | 0040-measurement-infrastructure-release-artifacts/ |
+
+| 0041 | measurement-infrastructure-local-ci-evidence-gate | Done | P0 | 把 live release gate 中的 evidence.local_ci_quick 从仅检查 summary 文件存在推进为可校验的本地 quick CI 证据：让 local-ci 生成机器可读 summary JSON，记录 profile、status、commit、startedAt/finishedAt、关键 artifact 路径和 live gate summary；让 live-release-gate 校验 summary 内容必须证明 profile=quick 且 status=passed 且 commit 匹配当前 HEAD；让 public-release-gate 在执行 local-ci quick 时把该 summary 传给 live gate；补回归测试、任务文档和 closeout。范围不包含远端 CI、真实生产 API/HF/Bot、container digest、rollback drill 或清理当前脏工作树。 | 0041-measurement-infrastructure-local-ci-evidence-gate/ |
+
+| 0042 | measurement-infrastructure-rollback-drill-evidence | Done | P0 | 把 live release gate 中的 evidence.rollback_drill 从纯路径存在推进为本地可生成、可校验、可交给发布门禁消费的 rollback drill evidence baseline：新增 rollback-drill 脚本，dry-run 校验回滚前置条件、候选回滚命令、相关 runbook/部署文档、release artifacts 和 delivery smoke 证据，输出机器可读 rollback-drill.json；让 live-release-gate 校验 rollback drill JSON 内容；让 public-release-gate 生成并传递该 evidence；补回归测试、文档、任务 closeout。范围不包含真实生产流量切换、真实 registry rollback、真实 HF/Bot 外部回滚或改写 Git 历史。 | 0042-measurement-infrastructure-rollback-drill-evidence/ |
+
+| 0043 | measurement-infrastructure-container-release-evidence | Done | P0 | 把 live release gate 中的 evidence.container_digest 从裸 sha256 字符串推进为本地可生成、可校验、可交给发布门禁消费的 container release evidence baseline：新增 container-release-evidence 脚本，复用既有 container-build/container-smoke，记录 image、imageId sha256、RepoDigests、build/smoke status、pushExecuted=false、commit 和限制说明；让 live-release-gate 校验 container evidence JSON 内容，同时保留 --container-digest 作为真实 registry digest 输入；让 public-release-gate 可生成并传递本地 container evidence；补回归测试、文档、任务 closeout。范围不包含真实 registry push、GHCR RepoDigest、远端 CI 或清理当前脏工作树。 | 0043-measurement-infrastructure-container-release-evidence/ |
+
+| 0044 | measurement-infrastructure-public-hf-api-live-evidence | Done | P0 | 把 live release gate 中已可通过的公开 Hugging Face Space/API 外部连通证据落成任务树 closeout：使用现有 live-release-gate 以 https://tradecatlabs-fatecat.hf.space 同时验证 production_api_live 与 hf_space_live，结合本地 local_ci、container、SBOM、provenance、rollback 证据，输出机器可读 gate JSON；记录 passed=7、pending=3 的真实结果，更新 roadmap 剩余缺口。范围不包含 Telegram Bot token、远端 GitHub Actions 当前 commit、clean git/提交推送或生产私有域名。 | 0044-measurement-infrastructure-public-hf-api-live-evidence/ |
+
+| 0045 | measurement-infrastructure-100-final-plan-refresh | Done | P0 | 基于成熟基础设施官方资料、当前 0009-0044 任务事实和 live release gate 现状，刷新 FateCat 达到 100% 测算基础设施所需的完整实现计划、剩余任务树、验收证据和不可伪造外部验证口径；本任务只落盘规划，不实现业务功能。 | 0045-measurement-infrastructure-100-final-plan-refresh/ |
+
+| 0046 | measurement-infrastructure-release-clean-ci | In Progress | P0 | 把当前本地测算基础设施改动收口为可发布交付状态：审计并归类未提交改动，运行本地发布门禁，按清晰边界提交并推送当前 main，获取远端 GitHub Actions 当前 commit 证据，最终让 clean git state 和 remote_ci_current_commit 进入 live release gate；不伪造 Bot token、registry signature 或外部生产平台证据。 | 0046-measurement-infrastructure-release-clean-ci/ |

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "description": "测算基础设施标准错误契约。",
+  "requiredErrorFields": ["code", "httpStatus", "category", "message", "retryable", "description"],
+  "categories": [
+    "capability",
+    "input",
+    "provider",
+    "evidence",
+    "auth",
+    "rate_limit",
+    "job",
+    "system"
+  ],
+  "invariants": [
+    "错误码必须稳定，不能把自然语言 detail 当成唯一机器契约",
+    "4xx 默认 retryable=false，429/503/504 可按策略 retryable=true",
+    "错误响应不得输出真实 token、secret、DSN 或私钥内容"
+  ]
+}

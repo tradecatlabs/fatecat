@@ -1,0 +1,149 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-02T08:58:11+08:00",
+  "task": {
+    "task_id": "0021",
+    "slug": "measurement-infrastructure-wave4-evaluation-runner",
+    "task_dir": "governance/tasks/0021-measurement-infrastructure-wave4-evaluation-runner",
+    "detected_phase": "closeout",
+    "overall_status": "Done"
+  },
+  "source_refs": {
+    "task_context_packet": null,
+    "task_package_set": null,
+    "git_delivery_evidence": null
+  },
+  "closeout_gate": {
+    "ready": true,
+    "failures": []
+  },
+  "summary": {
+    "leaf_total": 12,
+    "leaf_done": 12,
+    "todo_total": 12,
+    "todo_checked": 12,
+    "blocker_count": 0
+  },
+  "leaves": [
+    {
+      "id": "TP-01.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "已确认 registry 与现有 scripts/tests。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-01.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "任务文档已回填，validator 已通过。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-02.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`scripts/run-evaluations.py` 与 `.sh` 已新增。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-02.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "选择器、白名单、dry-run、summary JSON 已实现。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-02.03",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "registry/schema/AGENTS 已同步 runner 边界。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`test_evaluation_runner.py` 已新增并通过。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "capability/API contract tests 已更新并通过。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03.03",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`scripts/local-ci.sh` 已纳入 runner focused test。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-04.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "API 接入文档已新增 runner 命令。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-04.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "100% 路线图区分最小集与扩展集。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-05.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "runner 实跑通过；quick CI 77 passed。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-05.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "closeout validator、全任务树 validator 和 closeout packet 已通过。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    }
+  ],
+  "git_delivery": null,
+  "recommended_asset_handoff": {
+    "source_refs": [],
+    "artifacts": [
+      "task-closeout-packet.json"
+    ]
+  },
+  "upstream_packets": {
+    "task_context_packet_loaded": false,
+    "task_package_set_loaded": false,
+    "git_delivery_evidence_loaded": false
+  }
+}

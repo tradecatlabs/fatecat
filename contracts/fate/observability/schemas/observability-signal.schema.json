@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "description": "测算基础设施 ObservabilitySignal 资源契约。ObservabilitySignal 用于登记 health、readiness、metrics、logs、traces、SLO 和 alerts 等观测信号；登记不等于外部监控平台已接入。",
+  "requiredObservabilitySignalFields": [
+    "resourceType",
+    "apiVersion",
+    "id",
+    "name",
+    "signalType",
+    "status",
+    "endpoint",
+    "fields",
+    "localVerification",
+    "privacyBoundary",
+    "externalConnectivity",
+    "links",
+    "metadata"
+  ],
+  "requiredMetadataFields": [
+    "owner",
+    "verificationScope",
+    "storage",
+    "runtimeImpact",
+    "risk"
+  ],
+  "allowedSignalType": ["health", "readiness", "metric", "log", "trace", "slo", "alert"],
+  "allowedStatus": ["available", "planned", "blocked"],
+  "allowedExternalConnectivity": [
+    "not_required",
+    "external_connectivity_pending",
+    "requires_collector",
+    "requires_production_traffic"
+  ],
+  "invariants": [
+    "ObservabilitySignal resource 只登记信号契约，不保存运行时观测数据",
+    "available 信号必须有本地验证命令或可访问端点",
+    "planned 信号不得写成生产已验证能力",
+    "日志类信号不得记录真实 token、secret、DSN、私钥或用户隐私样例",
+    "SLO、alert 和 trace backend 未接入真实外部系统前必须标记 externalConnectivity=external_connectivity_pending"
+  ]
+}

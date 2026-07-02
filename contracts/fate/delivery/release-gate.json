@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 1,
+  "resourceType": "ReleaseGate",
+  "apiVersion": "fatecat.tradecatlabs/v1",
+  "id": "gate.live_release",
+  "name": "FateCat live release evidence gate",
+  "status": "available",
+  "scope": [
+    "local quick CI evidence",
+    "remote GitHub Actions evidence for current commit",
+    "production API live health/ready/metrics",
+    "Hugging Face Space hosted Web live smoke",
+    "Telegram Bot live smoke",
+    "container digest",
+    "SBOM and provenance artifacts",
+    "rollback drill evidence",
+    "clean release git state"
+  ],
+  "requiredEvidence": [
+    {
+      "id": "evidence.local_ci_quick",
+      "name": "Local quick CI summary",
+      "category": "local_ci",
+      "requiredForLiveRelease": true,
+      "acceptedEvidence": [
+        "scripts/local-ci.sh --profile quick output summary.json",
+        "summary kind=fatecat.local_ci_summary",
+        "summary profile=quick",
+        "summary status=passed",
+        "summary commit equals current HEAD",
+        "public-release-gate passes --local-ci-summary"
+      ],
+      "externalConnectivity": "not_required",
+      "privacyBoundary": "只记录命令、路径、commit 和摘要，不复制测试日志全文或用户报告"
+    },
+    {
+      "id": "evidence.remote_ci_current_commit",
+      "name": "Remote GitHub Actions run for current commit",
+      "category": "remote_ci",
+      "requiredForLiveRelease": true,
+      "acceptedEvidence": ["GitHub Actions run URL", "run head SHA equals current commit"],
+      "externalConnectivity": "requires_ci_run",
+      "privacyBoundary": "只记录 run URL 和 commit，不读取 GitHub secrets"
+    },
+    {
+      "id": "evidence.production_api_live",
+      "name": "Production API live smoke",
+      "category": "api_live",
+      "requiredForLiveRelease": true,
+      "acceptedEvidence": ["HTTPS API URL", "/health 2xx", "/ready 2xx", "/metrics contains fatecat_requests_total"],
+      "externalConnectivity": "requires_real_domain",
+      "privacyBoundary": "只请求健康检查和指标入口，不提交用户出生信息或报告正文"
+    },
+    {
+      "id": "evidence.hf_space_live",
+      "name": "Hugging Face Space live smoke",
+      "category": "hf_space_live",
+      "requiredForLiveRelease": true,
+      "acceptedEvidence": ["https://<owner>-<space>.hf.space/web returns 2xx and contains FateCat/Web form marker"],
+      "externalConnectivity": "requires_hosted_platform",
+      "privacyBoundary": "只请求公开 /web，不提交用户输入"
+    },
+    {
+      "id": "evidence.telegram_bot_live",
+      "name": "Telegram Bot live smoke",
+      "category": "bot_live",
+      "requiredForLiveRelease": true,
+      "acceptedEvidence": ["scripts/live-bot-smoke.sh with real FATE_BOT_TOKEN", "Telegram get_me returns bot id"],
+      "externalConnectivity": "requires_real_credentials",
+      "privacyBoundary": "不输出 Bot token，只输出 Telegram 返回的非敏感 bot id/username"
+    },
+    {
+      "id": "evidence.container_digest",
+      "name": "Container release digest",
+      "category": "container",
+      "requiredForLiveRelease": true,
+      "acceptedEvidence": [
+        "scripts/container-release-evidence.sh --output-json <path>",
+        "container evidence kind=fatecat.container_release_evidence",
+        "container evidence imageId=sha256:<64 hex>",
+        "container evidence smokeStatus=passed",
+        "container evidence pushExecuted=false for local baseline",
+        "sha256:<64 hex> registry image digest for true production release"
+      ],
+      "externalConnectivity": "requires_registry",
+      "privacyBoundary": "只记录 image digest，不记录 registry token"
+    },
+    {
+      "id": "evidence.sbom_artifact",
+      "name": "SBOM artifact",
+      "category": "sbom",
+      "requiredForLiveRelease": true,
+      "acceptedEvidence": ["CycloneDX/SPDX SBOM file path", "artifact URL from CI/release"],
+      "externalConnectivity": "requires_release_artifact",
+      "privacyBoundary": "SBOM 不得包含 secret；gate 只验证 artifact 存在或 URL 形态"
+    },
+    {
+      "id": "evidence.provenance_artifact",
+      "name": "Release provenance artifact",
+      "category": "provenance",
+      "requiredForLiveRelease": true,
+      "acceptedEvidence": ["SLSA/in-toto provenance file path", "artifact URL from CI/release"],
+      "externalConnectivity": "requires_release_artifact",
+      "privacyBoundary": "provenance 只记录构建来源、commit 和 artifact digest，不记录 secret"
+    },
+    {
+      "id": "evidence.rollback_drill",
+      "name": "Rollback drill evidence",
+      "category": "rollback",
+      "requiredForLiveRelease": true,
+      "acceptedEvidence": [
+        "scripts/rollback-drill.sh --output-json <path>",
+        "rollback drill kind=fatecat.rollback_drill_evidence",
+        "rollback drill status=passed",
+        "rollback drill mode=dry-run for local baseline",
+        "productionRollbackExecuted=false for local baseline",
+        "operator-signed runbook evidence for true production rollback drill"
+      ],
+      "externalConnectivity": "requires_operator_evidence",
+      "privacyBoundary": "回滚演练证据不得包含生产用户输入、token 或私有日志"
+    },
+    {
+      "id": "evidence.clean_git_state",
+      "name": "Clean release git state",
+      "category": "git",
+      "requiredForLiveRelease": true,
+      "acceptedEvidence": ["git status --short --branch shows clean release commit"],
+      "externalConnectivity": "not_required",
+      "privacyBoundary": "只记录分支、commit、dirty/untracked 数量"
+    }
+  ],
+  "localVerification": [
+    "bash scripts/local-ci.sh --profile quick --output <dir>",
+    "bash scripts/live-release-gate.sh --local-ci-summary <dir>/summary.json --output-json <path>",
+    "bash scripts/release-artifacts.sh --output-dir <dir>",
+    "bash scripts/rollback-drill.sh --output-json <path>",
+    "bash scripts/container-release-evidence.sh --output-json <path>",
+    "bash scripts/live-release-gate.sh --output-json <path>",
+    "bash scripts/public-release-gate.sh --output <dir>"
+  ],
+  "externalVerification": [
+    "bash scripts/live-release-gate.sh --require-live --api-url <真实API域名> --hf-space-url <真实HF Space URL> --run-live-bot --output-json <path>",
+    "bash scripts/production-readiness.sh --api-url <真实API域名> --require-live-bot"
+  ],
+  "shipGate": {
+    "status": "blocked",
+    "blockingItems": [
+      "远端 GitHub Actions 当前 commit 证据待执行",
+      "真实生产 API /health /ready /metrics 待执行",
+      "真实 Hugging Face Space /web 待执行",
+      "真实 Telegram Bot live smoke 待执行",
+      "container digest、SBOM、provenance 和 rollback drill artifact 待提供",
+      "当前 worktree 未提交前不得宣称可发布"
+    ],
+    "policy": "本地 gate 可证明发布准入口径完整；只有全部 requiredEvidence 为 pass 且 git clean 时，live release shipGate 才能 pass。"
+  },
+  "links": {
+    "schema": "contracts/fate/delivery/schemas/release-gate.schema.json",
+    "deliveryRegistry": "contracts/fate/delivery/registry.json",
+    "script": "scripts/live-release-gate.sh"
+  },
+  "metadata": {
+    "owner": "scripts/live-release-gate.py",
+    "task": "governance/tasks/0039-measurement-infrastructure-live-release-gate",
+    "externalConnectivity": "外部连通验证待执行",
+    "policy": "不伪造 live evidence；无真实外部资源时输出 pending/blocked，而不是通过。",
+    "privacy": "ReleaseGate 不输出真实 token、secret、DSN、私钥、用户出生资料、报告正文或生产日志正文。"
+  }
+}

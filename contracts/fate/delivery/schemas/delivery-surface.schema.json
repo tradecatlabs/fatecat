@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "description": "测算基础设施 DeliverySurface 资源契约。DeliverySurface 用于登记 FastAPI、Web、Telegram Bot、CLI、Agent Skill、Hosted Web 等交付入口，并声明其同源计算链路、输出契约、验证命令和外部连通边界。",
+  "requiredDeliverySurfaceFields": [
+    "resourceType",
+    "apiVersion",
+    "id",
+    "name",
+    "surfaceType",
+    "status",
+    "entrypoints",
+    "supportedOutputs",
+    "supportedReportSystems",
+    "canonicalChain",
+    "outputContracts",
+    "localVerification",
+    "privacyBoundary",
+    "externalConnectivity",
+    "links",
+    "metadata"
+  ],
+  "requiredMetadataFields": [
+    "owner",
+    "sameSourceScope",
+    "failureMode",
+    "releaseImpact",
+    "risk"
+  ],
+  "allowedSurfaceType": ["api", "web", "bot", "cli", "skill", "hosted_web"],
+  "allowedStatus": ["available", "partial", "manual", "planned", "blocked"],
+  "allowedExternalConnectivity": [
+    "not_required",
+    "external_connectivity_pending",
+    "requires_real_credentials",
+    "requires_real_domain",
+    "requires_hosted_platform"
+  ],
+  "invariants": [
+    "DeliverySurface resource 只登记交付入口契约，不保存用户输入、报告正文、真实 token、secret、DSN、私钥或生产日志",
+    "available surface 必须有本地验证命令，并声明 canonicalChain",
+    "partial surface 必须在 metadata.sameSourceScope 中说明未覆盖的输出边界",
+    "Bot live、Hosted Web、真实 API 域名或外部平台部署必须标记 externalConnectivity=external_connectivity_pending 或对应 requires_*",
+    "Web/API/Bot 的 Markdown 报告不得绕过 calculation_service.calculate_delivery_result 和 report_generator.generate_full_report"
+  ]
+}

@@ -11,6 +11,7 @@ docs/reference-materials/
 ├── AGENTS.md
 ├── README.md
 ├── architecture/
+├── developer/
 ├── operations/
 ├── prompts/
 ├── reference/
@@ -23,6 +24,7 @@ docs/reference-materials/
 ## 职责边界
 
 - `architecture/`：架构图、序列图和目录结构说明。
+- `developer/`：OpenAPI、sandbox fixture、curl/Python/Node/Agent 示例和本地 docs smoke 说明；只承载开发者接入文档，不保存真实凭证或生产报告。
 - `operations/`：部署、启动、重启和运维说明。
 - `reference/`：功能清单、能力协议、基线矩阵和规则扩展资料。
 - `roadmap/`：后续补齐计划和性能路线图。

@@ -1,0 +1,113 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-02T13:59:44+08:00",
+  "task": {
+    "task_id": "0040",
+    "slug": "measurement-infrastructure-release-artifacts",
+    "task_dir": "governance/tasks/0040-measurement-infrastructure-release-artifacts",
+    "detected_phase": "closeout",
+    "overall_status": "Done"
+  },
+  "source_refs": {
+    "task_context_packet": null,
+    "task_package_set": null,
+    "git_delivery_evidence": null
+  },
+  "closeout_gate": {
+    "ready": true,
+    "failures": []
+  },
+  "summary": {
+    "leaf_total": 8,
+    "leaf_done": 8,
+    "todo_total": 8,
+    "todo_checked": 8,
+    "blocker_count": 0
+  },
+  "leaves": [
+    {
+      "id": "TP-01.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "已盘点 0039 release gate、lockfile、Dockerfile 和供应链文档",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-02.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "新增 `scripts/release-artifacts.py` 与 `scripts/release-artifacts.sh`",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-02.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`bash scripts/release-artifacts.sh --output-dir /tmp/fatecat-release-artifacts-0040` -> PASS，artifacts=2",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-03.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`scripts/public-release-gate.sh` 与 `scripts/local-ci.sh` 已接入 release artifacts",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-03.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`live-release-gate` 对 `evidence.sbom_artifact` 和 `evidence.provenance_artifact` 返回 `pass`，`shipGate` 仍 blocked",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-04.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`tests/regression/test_release_artifacts.py` 通过",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-04.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "release gate contract、registry、AGENTS、API 文档、roadmap 已同步",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-05.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`bash scripts/local-ci.sh --profile quick --output /tmp/fatecat-local-ci-0040` -> PASS，`123 passed in 76.14s`；`FATECAT_PUBLIC_RELEASE_SMOKE_PORT=8018 bash scripts/public-release-gate.sh --output /tmp/fatecat-public-release-0040 --skip-local-ci` -> PASS；closeout ready",
+      "blocker": "无",
+      "unblock_needed": "无"
+    }
+  ],
+  "git_delivery": null,
+  "recommended_asset_handoff": {
+    "source_refs": [],
+    "artifacts": [
+      "task-closeout-packet.json"
+    ]
+  },
+  "upstream_packets": {
+    "task_context_packet_loaded": false,
+    "task_package_set_loaded": false,
+    "git_delivery_evidence_loaded": false
+  }
+}

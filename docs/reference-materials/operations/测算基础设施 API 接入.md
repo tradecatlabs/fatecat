@@ -10,16 +10,80 @@
 | `/openapi.json` | GET | FastAPI OpenAPI 机器契约 |
 | `/docs` | GET | 本地交互式 API 文档 |
 | `/capabilities` | GET | 统一 capability 注册表 |
+| `/capabilities/{capability_id}` | GET | 单个 capability 资源详情、schema、links、准入状态 |
+| `/capabilities/{capability_id}/calculate` | POST | 执行生产化 capability |
+| `/providers` | GET | production provider 资源注册表 |
+| `/providers/{provider_id}` | GET | 单个 Provider resource 详情、metadata、health、links |
+| `/evaluations` | GET | Dataset 与 EvaluationRun 评测资源注册表 |
+| `/evaluations/{evaluation_id}` | GET | 单个 Dataset 或 EvaluationRun 资源详情 |
+| `/observability` | GET | health、ready、metrics、logs、planned trace/SLO 观测资源注册表 |
+| `/observability/{signal_id}` | GET | 单个 ObservabilitySignal 资源详情 |
+| `/security` | GET | token、CORS、限流、隐私、source hygiene、release gate、production readiness 安全控制注册表 |
+| `/security/{control_id}` | GET | 单个 SecurityControl 资源详情 |
+| `/surfaces` | GET | Web、FastAPI、Telegram Bot、CLI、Agent Skill、托管 Web 交付面注册表 |
+| `/surfaces/{surface_id}` | GET | 单个 DeliverySurface 资源详情 |
 | `/reports` | GET | 报告 profile、Markdown、异步 job 入口 |
+| `/api/v1/report/jobs` | POST | 提交异步 Markdown 报告任务，支持 `Idempotency-Key` |
+| `/api/v1/report/jobs/{job_id}` | GET | 查询异步报告任务状态 |
+| `/api/v1/report/jobs/{job_id}/cancel` | POST | 取消异步报告任务 |
+| `/errors` | GET | 标准错误码字典 |
 | `/health` | GET | 存活检查 |
 | `/ready` | GET | 数据库与 capability registry 就绪检查 |
 | `/metrics` | GET | Prometheus 文本指标 |
+
+## 开发者 OpenAPI 与 Sandbox
+
+本地 OpenAPI 导出：
+
+```bash
+bash scripts/export-openapi.sh \
+  --output infra/runtime/local-state/exports/developer/openapi.json
+```
+
+开发者 sandbox fixture 位于：
+
+```text
+contracts/fate/developer/sandbox.json
+```
+
+当前 sandbox 只提供本地、确定性、隐私安全的北京/测试样本，用于 docs smoke 与 SDK 示例，不代表已经存在公网 sandbox token 服务。
+
+本地开发者文档 smoke：
+
+```bash
+bash scripts/developer-docs-smoke.sh \
+  --output-json infra/runtime/local-state/exports/developer/docs-smoke.json \
+  --openapi-json infra/runtime/local-state/exports/developer/openapi.json
+```
+
+SDK 与 Agent 示例位于：
+
+```text
+docs/reference-materials/developer/examples/
+```
+
+示例只使用 `http://127.0.0.1:8001`、北京和测试样本；不得写入真实 token、生产 URL、真实用户输入或报告正文。
 
 ## Capability 调用
 
 ```bash
 curl -sS http://127.0.0.1:8001/capabilities \
   | jq '.data.capabilities[] | {capabilityId,status,defaultVisibility,maturity,testGate}'
+```
+
+```bash
+curl -sS http://127.0.0.1:8001/capabilities/bazi \
+  | jq '.data | {resourceType,capabilityId,status,admission,provider,schemas,links}'
+```
+
+```bash
+curl -sS http://127.0.0.1:8001/providers \
+  | jq '.data.providers[] | {providerId,engineVersion,capabilities,health}'
+```
+
+```bash
+curl -sS http://127.0.0.1:8001/providers/fate_core.usecases.calculate_pure_analysis \
+  | jq '.data | {resourceType,providerId,engineVersion,interfaceVersion,health,links}'
 ```
 
 ```bash
@@ -38,7 +102,421 @@ curl -sS -X POST http://127.0.0.1:8001/capabilities/almanac/calculate \
 | `data` | 盘面或计算结果 |
 | `evidence` | 证据字段与规则 ID |
 | `risk` | 免责声明和禁止断语边界 |
-| `metadata` | maturity、engine、evidencePolicy、testGate |
+| `metadata` | maturity、engine、provider、evidencePolicy、testGate |
+| `report` | Report resource envelope，包含 profile、formats、sections、evidenceRefs、policyGate、links |
+
+生产 capability 的 `provider` / `metadata.provider` 固定包含 `providerId`、`engineVersion`、`deterministic`、`interfaceVersion`、`adapterType`、`versionLock`、`lifecycle`、`sourcePolicy`、`licensePolicy`、`resourceManifest`、`promotionGate`、`deprecation` 与进程内 `health`。当前 provider health 只代表本地 usecase adapter 可用，不代表真实外部域名、token、Bot、webhook 或第三方外部依赖连通验证完成。
+
+`/providers` 只列 production provider registry 中的 provider；planned capability 的 `planned.*` provider 只在 capability registry 中作为未来能力登记，不会出现在 production Provider resource 集合。
+
+Provider lifecycle gate：
+
+```bash
+bash scripts/provider-lifecycle-gate.sh \
+  --output-json infra/runtime/local-state/exports/providers/lifecycle-gate.json
+```
+
+该 gate 会验证：
+
+| 检查 | 含义 |
+| --- | --- |
+| production provider coverage | 每个 `production` capability 必须有且只能有一个 production provider。 |
+| versionLock | `engineVersion`、`interfaceVersion`、`deterministic` 必须与 provider resource 一致。 |
+| sourcePolicy | provider 必须声明 source refs 与 supply-chain refs，自研代码只能作为 adapter/usecase 编排。 |
+| licensePolicy | provider 必须声明许可证、生产使用许可、分发许可和证据路径。 |
+| resourceManifest | provider 必须登记 runtime、contract、test 和供应链引用。 |
+| promotionGate | provider 必须声明本地 promotion 验证命令，且 status 为 `passing`。 |
+| deprecation | provider 必须有 active/deprecated 策略；deprecated 时必须有 replacement 或 removal window。 |
+
+Provider dependency smoke：
+
+```bash
+bash scripts/provider-dependency-smoke.sh \
+  --output-json infra/runtime/local-state/exports/providers/dependency-smoke.json
+```
+
+该 smoke 通过统一 `CapabilityExecutor` 和脱敏固定样例执行每个 production capability 的 `validate/calculate` 链路，验证 provider 的本地依赖、样例输入、输出关键字段和 evidence 最小结构。它不访问公网、不读取真实 `.env`、token、secret、DSN 或生产账号。
+
+当前已完成本地 provider lifecycle baseline 和本地 dependency smoke baseline；真实公网外部依赖 live smoke、provider trace span、许可证人工法律复核和跨版本升级策略仍是后续任务。
+
+## 数据供应链门禁
+
+数据、典籍、vendor、benchmark 与导出边界的机器契约位于：
+
+```text
+contracts/fate/data-supply-chain/registry.json
+contracts/fate/data-supply-chain/schemas/data-supply-chain.schema.json
+```
+
+本地供应链门禁：
+
+```bash
+bash scripts/data-supply-chain-gate.sh \
+  --output-json infra/runtime/local-state/exports/supply-chain/data-supply-chain-gate.json
+```
+
+该 gate 会验证：
+
+| 检查 | 含义 |
+| --- | --- |
+| registry assets | 每个资产必须声明 raw/canonical/derived/reference/runtime/export 分层、usageRole、状态、隐私边界、生产资格和导出策略。 |
+| canonical classics | `classics/*.txt` 必须同时进入 `source_manifest.tsv` 与 `copyright_review.tsv`，并且 bytes / sha256 与文件一致。 |
+| solar terms source manifest | 原始交节时间表只通过 source manifest 追溯，不读取私有 raw 文件。 |
+| vendor production dependency | `vendor_sources.json` 中 production dependency 必须是 SPDX license 且 `productionUseAllowed=true`。 |
+
+该 gate 不提供法律意见，不生成 SBOM/provenance，不证明外部 raw 资料可公开分发，也不改变 production provider 算法或运行时依赖。
+
+八字/紫微 L4 golden evidence smoke：
+
+```bash
+bash scripts/bazi-ziwei-l4-golden-smoke.sh \
+  --profile quick \
+  --output-json infra/runtime/local-state/exports/golden/bazi-ziwei-l4.json
+```
+
+该 smoke 复用仓库内匿名北京/测试 fixture，通过统一 `CapabilityExecutor` 和 Markdown API 同时验证：
+
+| 检查 | 含义 |
+| --- | --- |
+| 八字矩阵代表样本 | 覆盖节气边界、早晚子时代表样本、起运日期、规则深度字段。 |
+| 八字规则深度 | 验证格局、强弱、规则 ID、组合主题、冲突解释和反证字段。 |
+| 八字断语样本 | 验证默认综合八字关键 evidence rules 不断链。 |
+| 紫微 golden | 验证十二宫、命身宫、四化、运限链接和规则 ID。 |
+| 紫微规则深度 | 验证星曜组合、四化/运限主题、冲突解释和反证字段。 |
+| Markdown profile gate | 验证 `bazi` 与 `ziwei` Markdown 的 `policyGate` 与 `snapshotGate`。 |
+
+`--profile quick` 只执行代表样本，进入本地 quick CI；`--profile full` 执行当前 fixture 全量样本，适合作为发布前加严检查。该 smoke 不读取真实用户、不新增真实命例、不锁定全文断语正文、不宣称八字/紫微专业能力 100%。
+
+`report.evidenceRefs` 是从原始 `evidence` 中抽取的可跳转引用摘要；它不替代完整 `evidence`。
+
+`report.policyGate` 是当前 capability Report envelope 的最小禁止性断语门禁：它使用 `risk.forbiddenClaims` 作为策略来源，扫描 `report.sections` 和 `report.metadata` 摘要字段，并显式排除 `risk.forbiddenClaims` 清单自身，避免风险清单自触发。Markdown 成功结果另有正文 `policyGate` 与 heading `snapshotGate`；完整全文 golden diff、阈值和人工审核仍属于后续发布门禁。
+
+## 评测资源入口
+
+```bash
+curl -sS http://127.0.0.1:8001/evaluations \
+  | jq '.data.resources[] | {id,resourceType,localAvailability,metadata}'
+```
+
+```bash
+curl -sS http://127.0.0.1:8001/evaluations/run.local_ci_quick \
+  | jq '.data | {resourceType,id,runType,gateType,datasetIds,commands,releaseRequired,lastKnownStatusPolicy}'
+```
+
+`/evaluations` 当前只做资源发现和审计说明，不启动评测任务，不内联大型 golden 文件，也不返回 benchmark 标准答案。核心字段：
+
+| 字段 | 含义 |
+| --- | --- |
+| `Dataset` | 历法、八字、紫微、benchmark 等评测数据资产索引 |
+| `EvaluationRun` | 本地回归、golden、benchmark 或 release gate 的可复现运行入口 |
+| `usageRole` | 当前均为 `evaluation_only`，不得作为 production provider 业务输入 |
+| `localAvailability` | `tracked_in_repo` 可本地直接验证；`requires_reference_repo` 依赖本地参考仓 |
+| `lastKnownStatusPolicy` | registry 不伪造当前 commit 运行结果，真实结果来自任务 evidence、CI 或本地命令 |
+
+本地执行入口由 runner 负责，不通过 API 启动：
+
+```bash
+bash scripts/run-evaluations.sh \
+  --run-id run.solar_terms_golden \
+  --output-json infra/runtime/local-state/exports/evaluations/solar-terms-summary.json
+```
+
+```bash
+bash scripts/run-evaluations.sh \
+  --all-local-required \
+  --output-json infra/runtime/local-state/exports/evaluations/local-required-summary.json
+```
+
+runner 默认选择 `releaseRequired=true` 且 `localAvailability=tracked_in_repo` 的本地必跑集合，输出 summary JSON。它只白名单执行 `bash scripts/*.sh` 和 `python -m pytest`，不使用 `shell=True`；`requires_reference_repo` 的可选 benchmark 必须显式追加 `--allow-reference-repo`。
+
+如需把本地结果留痕并更新 latest 指针：
+
+```bash
+bash scripts/run-evaluations.sh \
+  --run-id run.solar_terms_golden \
+  --record-history \
+  --output-json infra/runtime/local-state/exports/evaluations/solar-terms-summary.json
+```
+
+如需比较两次本地结果并按 policy 判定是否回归：
+
+```bash
+bash scripts/compare-evaluations.sh \
+  --baseline-json infra/runtime/local-state/exports/evaluations/history/latest.json \
+  --current-json infra/runtime/local-state/exports/evaluations/solar-terms-summary.json \
+  --output-json infra/runtime/local-state/exports/evaluations/diff.json
+```
+
+diff policy 位于 `contracts/fate/evaluations/diff-policy.json`。当前策略只允许 0 个新增失败、0 个缺失 run、0 个失败命令；它只比较 run 状态与命令 exit code，不解析 benchmark 标准答案。
+
+如需生成本地静态 HTML dashboard：
+
+```bash
+bash scripts/evaluation-dashboard.sh \
+  --summary-json infra/runtime/local-state/exports/evaluations/local-required-summary.json \
+  --output-html infra/runtime/local-state/exports/evaluations/dashboard/index.html
+```
+
+如需执行本地 nightly baseline、保留 history/latest、生成 diff 和 dashboard artifact：
+
+```bash
+bash scripts/evaluation-nightly.sh \
+  --output-dir infra/runtime/local-state/exports/evaluations/nightly/manual
+```
+
+dashboard 只展示 summary、run、命令、exit code、duration 和 diff 摘要；不展示 stdout/stderr tail、benchmark 标准答案、报告正文、真实 token、secret、DSN 或真实用户输入。GitHub 定时入口为 `.github/workflows/evaluation-nightly.yml`，仅上传 artifact，不自动部署，不访问真实生产凭证。
+
+MingLi-Bench 被登记为 offline/evaluation_only benchmark：`bash scripts/run-mingli-bench.sh --stats` 不联网；完整 predictions 评测依赖本地 reference repo 和显式生成命令，不属于默认 production release 必跑门禁。
+
+## 观测资源入口
+
+```bash
+curl -sS http://127.0.0.1:8001/observability \
+  | jq '.data.signals[] | {id,signalType,status,endpoint,externalConnectivity}'
+```
+
+```bash
+curl -sS http://127.0.0.1:8001/observability/signal.http_request_metrics \
+  | jq '.data | {resourceType,id,fields,privacyBoundary,localVerification}'
+```
+
+`/observability` 当前只做观测信号发现和审计说明，不返回真实日志、指标快照、请求体、用户输入或 trace 数据。核心字段：
+
+| 字段 | 含义 |
+| --- | --- |
+| `ObservabilitySignal` | health、readiness、metric、log、trace、SLO、alert 等观测信号 |
+| `signalType` | `health` / `readiness` / `metric` / `log` / `trace` / `slo` / `alert` |
+| `status` | `available` 表示本地已有端点或验证命令；`planned` 表示只做路线登记 |
+| `fields` | 当前信号暴露的字段或指标名 |
+| `privacyBoundary` | 该信号不得包含的敏感内容边界 |
+| `externalConnectivity` | 是否需要 collector、生产流量或外部监控平台 |
+
+当前 available signals 包括 `/health`、`/ready`、HTTP 请求指标、report job/Bot 队列指标、`X-Request-ID`、`traceparent` / `X-Trace-ID`、结构化 JSON 日志字段、本地 API/provider/report span 日志、SLO policy 和 alert rules。外部 OpenTelemetry exporter/collector、trace backend、Prometheus/Alertmanager、生产监控平台和真实生产流量 error budget 仍是外部连通验证待执行。
+
+本地观测 smoke：
+
+```bash
+bash scripts/observability-smoke.sh \
+  --output-json infra/runtime/local-state/exports/observability/smoke.json
+```
+
+该 smoke 使用 FastAPI `TestClient` 验证 `/health`、`/ready`、`/metrics`、`X-Request-ID` 回传、结构化 `http_request` 日志字段、`traceId` 字段和 `/observability` registry metadata。它不接入 OpenTelemetry collector、dashboard、生产监控平台，也不保存真实日志、请求体或用户数据。
+
+本地 trace/SLO/alert smoke：
+
+```bash
+bash scripts/observability-trace-slo-smoke.sh \
+  --output-json infra/runtime/local-state/exports/observability/trace-slo-smoke.json
+```
+
+本地 SLO/alert policy gate：
+
+```bash
+bash scripts/observability-slo-gate.sh \
+  --output-json infra/runtime/local-state/exports/observability/slo-gate.json
+```
+
+当前 trace baseline 使用 W3C `traceparent` 和 OpenTelemetry 语义兼容的本地结构化 span 日志，覆盖 `http.request`、`capability.execute`、`provider.validate`、`provider.calculate`、`report.calculate` 和 `report.render_markdown`。Span 只允许记录 trace/span ID、span 名称、耗时、状态、错误类别和白名单聚合属性；不得记录用户出生信息、报告正文、token、secret 或 DSN。
+
+## 安全控制资源入口
+
+```bash
+curl -sS http://127.0.0.1:8001/security \
+  | jq '.data.controls[] | {id,controlType,status,externalConnectivity}'
+```
+
+```bash
+curl -sS http://127.0.0.1:8001/security/control.production_readiness_external \
+  | jq '.data | {resourceType,id,status,envVars,localVerification,externalConnectivity}'
+```
+
+`/security` 当前只做安全、隐私与发布门禁发现和审计说明，不返回真实 token、secret、DSN、私钥、证书、webhook、用户输入或生产验证结果。核心字段：
+
+| 字段 | 含义 |
+| --- | --- |
+| `SecurityControl` | token 权限、scoped RBAC、生产身份/OIDC 准入、CORS、限流、请求体限制、响应安全头、隐私扫描、source hygiene、secret scan、audit log、SIEM、retention、OWASP API 回归包、release gate、production readiness 等控制资源 |
+| `controlType` | `audit_log` / `auth` / `cors` / `rate_limit` / `request_limit` / `headers` / `identity` / `siem` / `owasp_api_regression` / `privacy` / `rbac` / `retention` / `source_hygiene` / `secret_scan` / `release_gate` / `production_readiness` |
+| `status` | `available` 表示仓库内已有实现和本地验证命令；`manual` 表示必须由真实外部环境执行 |
+| `envVars` | 控制相关环境变量名，只列变量名，不列真实值 |
+| `implementationRefs` | 代码或脚本入口 |
+| `localVerification` | 可复现本地验证命令；涉及真实域名或真实 Bot 时只登记命令口径 |
+| `privacyBoundary` | 该控制不得泄露的内容边界 |
+| `externalConnectivity` | 是否需要真实域名、真实凭证、人工权限或外部生产验证 |
+
+当前 available controls 包括记录接口 token、scoped RBAC、CORS allowlist、限流、请求体大小限制、响应安全头、结构化 audit_event、retention policy baseline、OWASP API security regression gate、隐私示例扫描、source hygiene、secret scan 和 public release policy。`control.production_identity_oidc`、`control.external_siem_immutable_audit`、`control.retention_cleanup_plan` 和 `control.production_readiness_external` 是 manual controls：必须使用真实 OIDC/IdP、真实 SIEM/不可变审计存储、真实 retention 清理实现、真实 API 域名、真实 token、真实 Bot 权限执行外部验证，否则只能标注外部连通验证待执行。
+
+本地 RBAC baseline：
+
+- admin token：`FATE_API_TOKEN` 或 `FATE_API_ADMIN_TOKEN`，拥有 `record.read`、`record.list`、`record.write`、`record.delete`。
+- 兼容 user token：`FATE_API_USER_TOKENS` 的值可使用 `用户ID:占位令牌` 形态，默认拥有全部 record scopes，但仍只能访问自己的记录。
+- scoped user token：`FATE_API_USER_TOKENS` 的值可使用 `用户ID:占位令牌:record.read|record.list` 形态，只拥有声明的 record scopes，且仍受 owner 边界限制。
+- 缺少对应 scope 时返回 403 `权限不足`；跨 owner 访问返回 403 `无权访问该记录`。
+- 这只是本地 scoped token RBAC baseline，不是 OAuth/OIDC、外部 IdP、组织级多租户权限或生产 IAM。
+
+生产身份 / SIEM / retention / OWASP API regression contract：
+
+```bash
+bash scripts/production-security-gate.sh \
+  --output-json infra/runtime/local-state/exports/security/production-security-gate.json
+```
+
+该 gate 验证 `contracts/fate/security/production-security-policy.json` 与 `/security` registry 是否一致，覆盖：
+
+- `control.production_identity_oidc`：公网多租户身份必须外部化到 OIDC/IdP；当前 scoped token 只是本地 baseline。
+- `control.external_siem_immutable_audit`：生产审计需要外部 SIEM 或不可变审计存储；当前不连接真实 SIEM。
+- `control.retention_cleanup_plan`：记录按年龄自动清理需要独立清理器、回归测试和审计事件；当前记录默认显式删除。
+- `control.owasp_api_security_regression`：把 OWASP API Security Top 10 2023 的 10 个风险项映射到本地检查或明确外部待验证项。
+
+gate output 只保存检查名、状态和摘要，不输出真实 token、secret、DSN、SIEM endpoint、请求体、用户输入或报告正文。
+
+本地安全 smoke：
+
+```bash
+bash scripts/security-smoke.sh \
+  --output-json infra/runtime/local-state/exports/security/smoke.json
+```
+
+该 smoke 使用 FastAPI `TestClient` 验证记录接口 token/owner 边界、响应安全头、请求体限制、限流和 `/security` registry metadata，并串联 privacy/source/public-release 本地文件门禁。它不会输出真实 token、secret、DSN、请求体、用户输入或报告正文，也不伪造真实生产域名、真实 token 或 Bot live smoke。
+
+本地 secret scan：
+
+```bash
+bash scripts/secret-scan.sh \
+  --output-json infra/runtime/local-state/exports/security/secret-scan.json
+```
+
+该 scanner 扫描 tracked 与未跟踪但未被 gitignore 排除的一线文本文件，排除 reference repos、archive 和二进制/大文件。输出 JSON 只包含路径、行号、规则、severity、短指纹和脱敏长度，不输出疑似密钥原文；发现高置信疑似真实 token、API key、私钥、DSN 或 webhook 时返回失败。
+
+本地 webhook callback smoke：
+
+```bash
+bash scripts/webhook-smoke.sh \
+  --output-json infra/runtime/local-state/exports/webhook/smoke.json
+```
+
+该 smoke 使用可注入 transport 模拟 report job 终态 callback，不访问公网；验证 `WebhookEvent` payload、`X-FateCat-Webhook-Signature: sha256=...`、终态状态，以及 payload 不包含 Markdown 正文、姓名、出生地区或 webhook secret。
+
+本地 audit / retention baseline：
+
+- 记录创建、读取、列表、删除，以及报告 job 提交、取消，会输出结构化 `audit_event` 日志。
+- `audit_event` 只记录 action、actor role、短哈希 target、outcome、requestId 和安全 metadata；不得记录真实 token、请求体、报告正文、姓名、出生地区、recordId、jobId 或 userId 原文。
+- `FATE_REPORT_JOB_TTL_SECONDS` 控制报告 job TTL；`FATE_REPORT_JOB_STORE=memory|sqlite` 控制 report job store backend；`FATE_REPORT_JOB_DB_PATH` 仅在 `sqlite` backend 下生效。
+- `FATE_AUDIT_EVENT_RETENTION_DAYS` 只登记审计事件留存口径；`FATE_RECORD_RETENTION_DAYS=0` 表示记录当前默认显式删除模式。
+- 外部 SIEM、不可变审计存储、生产日志留存平台和记录按年龄自动清理已有本地准入 contract 和 gate；真实平台连通、清理器实现和生产 live evidence 仍属于外部连通验证待执行。
+
+## 交付面资源入口
+
+```bash
+curl -sS http://127.0.0.1:8001/surfaces \
+  | jq '.data.surfaces[] | {id,surfaceType,status,externalConnectivity}'
+```
+
+```bash
+curl -sS http://127.0.0.1:8001/surfaces/surface.web \
+  | jq '.data | {resourceType,id,entrypoints,supportedOutputs,canonicalChain,localVerification}'
+```
+
+`/surfaces` 当前只做交付面发现和审计说明，不返回用户输入、报告正文、真实 token、运行时日志或生产任务状态。核心字段：
+
+| 字段 | 含义 |
+| --- | --- |
+| `DeliverySurface` | FastAPI、Web、Telegram Bot、CLI、Agent Skill、Hosted Web 等交付入口 |
+| `surfaceType` | `api` / `web` / `bot` / `cli` / `skill` / `hosted_web` |
+| `status` | `available` 表示本地已有入口和验证命令；`partial` 表示只覆盖部分输出契约；`manual` 表示必须由真实外部环境验证 |
+| `entrypoints` | 人类或程序调用入口 |
+| `supportedOutputs` | JSON、Markdown、report job、document 等输出形态 |
+| `supportedReportSystems` | 当前交付面支持的报告体系或 capability |
+| `canonicalChain` | 同源计算链路；Web/API/Bot 的 Markdown 必须经过 `calculate_delivery_result` 与 `generate_full_report` |
+| `outputContracts` | 输出契约、文档或测试入口 |
+| `localVerification` | 仓库内可执行验证命令 |
+| `externalConnectivity` | 是否需要真实 Bot token、真实域名或托管平台 |
+
+当前 `surface.fastapi`、`surface.web`、`surface.telegram_bot` 是可用交付面，其中 Bot live 仍需要真实 Telegram token。`surface.cli` 和 `surface.agent_skill` 是 partial：它们是本地 JSON/capability 或安装运行入口，不承诺直接生成标准 Markdown。`surface.huggingface_space` 是 manual：必须有真实 Space URL 和外部生产验证证据。
+
+发布准入证据由 `releaseGate` 单独声明，不混进某个交付面：
+
+```bash
+bash scripts/live-release-gate.sh \
+  --output-json infra/runtime/local-state/exports/release/live-release-gate.json
+```
+
+默认模式只验证本地 release gate 契约，并把真实 API、HF Space、Bot、远端 CI、container digest、SBOM/provenance、rollback drill 和 clean release git state 标为 `pending` 或 `blocked`。真实发布前必须使用：
+
+本地 quick CI 会生成可交给 release gate 校验的 summary：
+
+```bash
+bash scripts/local-ci.sh \
+  --profile quick \
+  --output infra/runtime/local-state/exports/release/local-ci-quick
+```
+
+该命令成功或失败都会写 `summary.json`。只有当 `summary.json` 中 `kind=fatecat.local_ci_summary`、`profile=quick`、`status=passed` 且 `commit` 等于当前 `HEAD` 时，`live-release-gate` 才会把 `evidence.local_ci_quick` 判为 `pass`：
+
+```bash
+bash scripts/live-release-gate.sh \
+  --local-ci-summary infra/runtime/local-state/exports/release/local-ci-quick/summary.json \
+  --output-json infra/runtime/local-state/exports/release/live-release-gate.json
+```
+
+这只证明本地 quick CI，不代表远端 GitHub Actions 当前 commit 已通过。
+
+本地可先生成 SBOM/provenance baseline：
+
+```bash
+bash scripts/release-artifacts.sh \
+  --output-dir infra/runtime/local-state/exports/release/artifacts \
+  --summary-json infra/runtime/local-state/exports/release/release-artifacts-summary.json
+```
+
+该脚本会生成 `sbom.cyclonedx.json`、`provenance.slsa.json` 和 `release-artifacts-manifest.json`。这些文件可以让 `evidence.sbom_artifact` 和 `evidence.provenance_artifact` 在本地 release gate 中通过；它们不是远端 CI attestation，也不包含 container registry digest 或签名。
+
+本地还可以生成 dry-run rollback drill evidence：
+
+```bash
+bash scripts/rollback-drill.sh \
+  --release-artifacts-dir infra/runtime/local-state/exports/release/artifacts \
+  --local-ci-summary infra/runtime/local-state/exports/release/local-ci-quick/summary.json \
+  --output-json infra/runtime/local-state/exports/release/rollback-drill.json
+```
+
+该 evidence 必须满足 `kind=fatecat.rollback_drill_evidence`、`status=passed`、`mode=dry-run`、`productionRollbackExecuted=false`。它只证明回滚路径、候选命令和必需文档可审计，不代表真实生产流量已经回滚。
+
+如果本机具备 Docker，也可以生成本地 container release evidence：
+
+```bash
+bash scripts/container-release-evidence.sh \
+  --image fatecat-delivery:release-local \
+  --port 8021 \
+  --output-json infra/runtime/local-state/exports/release/container-release-evidence.json
+```
+
+该 evidence 必须满足 `kind=fatecat.container_release_evidence`、`status=passed`、`imageId=sha256:<64 hex>`、`smokeStatus=passed`。它只证明本地镜像构建和烟雾验证，不代表 GHCR/registry digest 已推送。
+
+```bash
+bash scripts/live-release-gate.sh \
+  --require-live \
+  --api-url https://your-domain.example \
+  --hf-space-url https://your-space.hf.space \
+  --github-run-url https://github.com/<owner>/<repo>/actions/runs/<run-id> \
+  --github-commit <current-commit-sha> \
+  --container-digest sha256:<64-hex> \
+  --container-evidence-path <container-release-evidence.json> \
+  --local-ci-summary <local-ci-summary.json> \
+  --sbom-path <sbom-file-or-https-url> \
+  --provenance-path <provenance-file-or-https-url> \
+  --rollback-evidence-path <rollback-evidence-file-or-https-url> \
+  --run-live-bot \
+  --output-json <release-evidence.json>
+```
+
+没有真实外部证据时，`shipGate.status` 必须保持 `blocked`；仓库内不得把本地 gate 通过写成 live release 已通过。
+
+## 错误码字典
+
+```bash
+curl -sS http://127.0.0.1:8001/errors \
+  | jq '.data.errors[] | {code,httpStatus,category,retryable}'
+```
 
 ## 报告入口
 
@@ -57,13 +535,75 @@ curl -sS -X POST http://127.0.0.1:8001/api/v1/report/markdown \
   }'
 ```
 
+同步 Markdown、标准异步报告任务和 Web 异步报告任务的成功结果固定包含：
+
+| 字段 | 含义 |
+| --- | --- |
+| `reportSystem` | 当前报告体系，现阶段可用 `bazi` / `ziwei` |
+| `markdown` | 用户可复制的 Markdown 正文 |
+| `policyGate` | Markdown 正文禁止性断语扫描结果，扫描 `report.markdown` |
+| `snapshotGate` | Markdown heading 结构快照门禁，当前锁核心标题，不做全文 hash diff |
+
+`policyGate` 会允许风险边界里的否定上下文，例如“不输出确定未来”，但正文直接断言禁止词时会返回 `fail`。`snapshotGate` 当前只验证核心 heading 是否存在，完整正文 golden diff、阈值和人工审核仍是后续门禁。
+
 Web 异步报告：
 
 ```bash
 curl -sS -X POST http://127.0.0.1:8001/api/v1/report/jobs/web \
+  -H 'Idempotency-Key: demo-web-report-001' \
   -H 'Content-Type: application/json' \
   -d '{"birthDate":"1990-01-01","birthTime":"08:00:00","birthPlace":"北京","gender":"male","name":"测试样本","reportSystem":"bazi"}'
 ```
+
+取消任务：
+
+```bash
+curl -sS -X POST http://127.0.0.1:8001/api/v1/report/jobs/<job_id>/cancel
+```
+
+任务状态固定为：`queued`、`running`、`succeeded`、`failed`、`expired`、`cancelled`。
+
+Report job store：
+
+| 后端 | 配置 | 能力边界 |
+| --- | --- | --- |
+| `memory` | `FATE_REPORT_JOB_STORE=memory` | 默认后端；只在当前进程 TTL 生命周期内保留任务状态和幂等键。 |
+| `sqlite` | `FATE_REPORT_JOB_STORE=sqlite`，`FATE_REPORT_JOB_DB_PATH=infra/runtime/local-state/database/report_jobs.sqlite` | 单副本本地持久化；可在 manager 重建后查询已完成、失败、取消和过期任务，并保留幂等键。 |
+
+`running` 任务取消后不能强杀线程，但完成后会丢弃结果并保持 `cancelled`。如果 SQLite backend 在 manager 重建时发现旧 `queued` / `running` 任务，会标记为 `failed` 并保留错误原因；这不是跨进程继续执行能力。多副本生产不能使用本地 `memory` / `sqlite` job store 假装分布式任务系统，后续需要外部队列或数据库任务系统。
+
+Report job webhook callback：
+
+| 项 | 说明 |
+| --- | --- |
+| 开关 | `FATE_REPORT_JOB_WEBHOOKS_ENABLED=1` 后，异步报告任务才接受 callback URL；默认关闭。 |
+| 请求头 | `X-FateCat-Webhook-Url`，可选 `X-FateCat-Webhook-Secret`。 |
+| URL 边界 | 默认只允许 `https`；`http` 仅在 `FATE_WEBHOOK_ALLOW_HTTP=1` 时用于本地调试。内网、本机、保留地址和带用户名/密码的 URL 会被拒绝。 |
+| allowlist | `FATE_WEBHOOK_ALLOWED_HOSTS=callback.example,*.partner.example` 可限制接收端 host。 |
+| 签名 | 如果提供 secret，发送 `X-FateCat-Webhook-Signature: sha256=<hmac>`，HMAC 输入是排序后的 JSON body。 |
+| 事件 | 只在 `succeeded` / `failed` / `cancelled` 终态发送 `report_job.terminal`。 |
+| 隐私 | webhook payload 不包含 Markdown 正文、姓名、出生地区、请求体或 secret；只包含 jobId、状态、时间戳、statusUrl/cancelUrl 和 `resultAvailable`。 |
+
+示例：
+
+```bash
+# 服务启动前配置：FATE_REPORT_JOB_WEBHOOKS_ENABLED=1
+curl -sS -X POST http://127.0.0.1:8001/api/v1/report/jobs \
+  -H 'Idempotency-Key: demo-webhook-report-001' \
+  -H 'X-FateCat-Webhook-Url: https://callback.example/webhook' \
+  -H 'X-FateCat-Webhook-Secret: 占位示例值-请勿提交真实密钥' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name":"测试样本",
+    "gender":"male",
+    "birthDate":"1990-01-01",
+    "birthTime":"08:00:00",
+    "birthPlace":{"name":"北京市","longitude":116.4074,"latitude":39.9042,"timezone":"Asia/Shanghai"},
+    "options":{"useTrueSolarTime":true,"daylightSaving":"auto","midnightMode":"early","calendarType":"solar"}
+  }'
+```
+
+当前 webhook 是本地可验证 callback baseline，不包含持久重试队列、接收端 SLA、外部任务系统或真实公网 callback live smoke；这些仍是外部连通验证待执行。
 
 ## 准入规则
 
@@ -87,7 +627,7 @@ curl -sS -X POST http://127.0.0.1:8001/api/v1/report/jobs/web \
 ## 安全与隐私
 
 - 公开 Web 示例和用户界面不得展示北京以外的真实地区名称。
-- 记录接口需要 `FATE_API_TOKEN`、`FATE_API_ADMIN_TOKEN` 或 `FATE_API_USER_TOKENS`；禁用时返回 403。
+- 记录接口需要 `FATE_API_TOKEN`、`FATE_API_ADMIN_TOKEN` 或 `FATE_API_USER_TOKENS`；`FATE_API_USER_TOKENS` 支持 `用户ID:占位令牌` 和 `用户ID:占位令牌:record.read|record.list` 两类值形态；禁用时返回 403。
 - 文档、响应样例和日志不得输出真实 token、secret、DSN、私钥或服务账号内容。
 - 外部 API 域名、真实 token、Bot webhook、远程服务器和生产数据库均属于：外部连通验证待执行。
 

@@ -1,0 +1,501 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": "fatecat.tradecatlabs/v1",
+  "description": "FateCat 数据供应链注册表。登记数据产品、典籍语料、vendor 快照、benchmark 与导出边界；不保存原始大文件、真实用户数据或运行态输出。",
+  "schemas": {
+    "dataSupplyChain": "contracts/fate/data-supply-chain/schemas/data-supply-chain.schema.json",
+    "dataset": "contracts/fate/evaluations/schemas/dataset.schema.json",
+    "resource": "contracts/fate/capabilities/schemas/resource.schema.json"
+  },
+  "policies": {
+    "rawPolicy": "raw 私有资料只可由 source_manifest 追溯，不得进入 public export 或 production runtime。",
+    "canonicalPolicy": "canonical 数据进入仓库前必须有 source manifest、hash、用途和版权/许可状态。",
+    "derivedPolicy": "golden、benchmark、规则索引等派生资产只能按 usageRole 使用，不得混入生产输入。",
+    "vendorPolicy": "vendor 快照以 vendor_sources.json 为真相源，production_dependency 必须 spdx 且 productionUseAllowed=true。",
+    "exportPolicy": "public export 只允许 included 或 manifest_only 且通过 gate 的资产；review_required/blocked 不得作为默认公开分发承诺。"
+  },
+  "assets": [
+    {
+      "resourceType": "DataSupplyChainAsset",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "asset.coordinates.china",
+      "name": "中国行政区经纬度表",
+      "assetType": "coordinate_table",
+      "domain": "location",
+      "lifecycleLayer": "canonical",
+      "usageRole": "production_input",
+      "status": "available",
+      "privacyClass": "non_personal",
+      "source": {
+        "type": "tracked_data_product",
+        "owner": "domains/fate-analysis/data-products"
+      },
+      "paths": [
+        {
+          "path": "domains/fate-analysis/data-products/china_coordinates.csv",
+          "role": "runtime_input",
+          "required": true,
+          "sha256": "4d791614971d1bc316bb8f0a178087b0bb936064d73f2a8352ddaffdbea899b1"
+        }
+      ],
+      "manifests": [],
+      "hashPolicy": "path_sha256",
+      "licensePolicy": {
+        "licenseStatus": "not_applicable",
+        "auditRequired": false,
+        "productionUseAllowed": true,
+        "distributionAllowed": true,
+        "evidencePaths": [
+          "domains/fate-analysis/data-products/README.md"
+        ]
+      },
+      "exportPolicy": {
+        "status": "included",
+        "allowedInPublicExport": true,
+        "reason": "生产地点解析静态数据，不含用户输入。"
+      },
+      "productionEligibility": {
+        "status": "allowed",
+        "reason": "当前 production runtime 需要该表做地区经纬度解析。"
+      },
+      "verification": {
+        "commands": [
+          "bash scripts/data-supply-chain-gate.sh"
+        ],
+        "externalConnectivity": "not_required"
+      },
+      "metadata": {
+        "owner": "domains/fate-analysis/data-products",
+        "risk": "不应在前端示例中暴露真实非北京地区；该表仅作坐标解析。"
+      }
+    },
+    {
+      "resourceType": "DataSupplyChainAsset",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "asset.classics.canonical_bazi_texts",
+      "name": "八字 canonical 典籍 TXT 语料",
+      "assetType": "classics_corpus",
+      "domain": "bazi",
+      "lifecycleLayer": "canonical",
+      "usageRole": "rule_index_seed",
+      "status": "review_required",
+      "privacyClass": "public_text",
+      "source": {
+        "type": "canonical_text_corpus",
+        "owner": "domains/fate-analysis/data-products/classics",
+        "sourceManifest": "domains/fate-analysis/data-products/classics/source_manifest.tsv",
+        "copyrightReview": "domains/fate-analysis/data-products/classics/copyright_review.tsv"
+      },
+      "paths": [
+        {
+          "path": "domains/fate-analysis/data-products/classics",
+          "role": "canonical_corpus_dir",
+          "required": true
+        }
+      ],
+      "manifests": [
+        "domains/fate-analysis/data-products/classics/source_manifest.tsv",
+        "domains/fate-analysis/data-products/classics/copyright_review.tsv"
+      ],
+      "hashPolicy": "source_manifest_tsv",
+      "licensePolicy": {
+        "licenseStatus": "review_required",
+        "auditRequired": true,
+        "productionUseAllowed": false,
+        "distributionAllowed": false,
+        "evidencePaths": [
+          "domains/fate-analysis/data-products/classics/copyright_review.tsv"
+        ]
+      },
+      "exportPolicy": {
+        "status": "manual_review_required",
+        "allowedInPublicExport": false,
+        "reason": "典籍 TXT 可作规则提炼种子，但不得默认作为公开导出承诺或报告原文。"
+      },
+      "productionEligibility": {
+        "status": "review_required",
+        "reason": "只允许提炼短规则摘要和来源索引；直接生产运行或公开分发前需要人工版权/版本复核。"
+      },
+      "verification": {
+        "commands": [
+          "bash scripts/data-supply-chain-gate.sh"
+        ],
+        "externalConnectivity": "not_required"
+      },
+      "metadata": {
+        "owner": "domains/fate-analysis/data-products/classics",
+        "risk": "不得复制大段原文进报告，不得把 review_required 语料声明为生产依赖。"
+      }
+    },
+    {
+      "resourceType": "DataSupplyChainAsset",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "asset.solar_terms.golden_1900_2030",
+      "name": "1900-2030 节气 golden fixture",
+      "assetType": "golden_fixture",
+      "domain": "calendar",
+      "lifecycleLayer": "derived",
+      "usageRole": "evaluation_only",
+      "status": "available",
+      "privacyClass": "non_personal",
+      "source": {
+        "type": "derived_from_private_raw",
+        "sourceManifest": "domains/fate-analysis/data-products/calendar/solar_terms/source_manifest.tsv"
+      },
+      "paths": [
+        {
+          "path": "domains/fate-analysis/data-products/calendar/solar_terms/golden/solar_terms_1900_2030.json",
+          "role": "golden_fixture",
+          "required": true,
+          "sha256": "ea6fbd48ff2fd4424c692f2ae047a6968acd16b5a4e68baf59233e5625aa13ec"
+        }
+      ],
+      "manifests": [
+        "domains/fate-analysis/data-products/calendar/solar_terms/source_manifest.tsv"
+      ],
+      "hashPolicy": "path_sha256_and_source_manifest_tsv",
+      "licensePolicy": {
+        "licenseStatus": "review_required",
+        "auditRequired": true,
+        "productionUseAllowed": false,
+        "distributionAllowed": false,
+        "evidencePaths": [
+          "domains/fate-analysis/data-products/calendar/solar_terms/source_manifest.tsv"
+        ]
+      },
+      "exportPolicy": {
+        "status": "included",
+        "allowedInPublicExport": true,
+        "reason": "轻量 derived fixture，不包含私有 raw 原表；只用于测试。"
+      },
+      "productionEligibility": {
+        "status": "evaluation_only",
+        "reason": "golden fixture 只锁回归边界，生产仍调用成熟历法库。"
+      },
+      "verification": {
+        "commands": [
+          ".venv/bin/python -m pytest -q tests/regression/test_solar_terms_golden.py",
+          "bash scripts/data-supply-chain-gate.sh"
+        ],
+        "externalConnectivity": "not_required"
+      },
+      "metadata": {
+        "owner": "domains/fate-analysis/data-products/calendar/solar_terms",
+        "risk": "不等于外部天文历法全量认证。"
+      }
+    },
+    {
+      "resourceType": "DataSupplyChainAsset",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "asset.bazi.golden_matrix",
+      "name": "综合八字 golden 覆盖矩阵",
+      "assetType": "golden_fixture",
+      "domain": "bazi",
+      "lifecycleLayer": "derived",
+      "usageRole": "evaluation_only",
+      "status": "available",
+      "privacyClass": "anonymous_fixture",
+      "source": {
+        "type": "synthetic_anonymous_fixture",
+        "owner": "domains/fate-analysis/data-products/bazi/golden"
+      },
+      "paths": [
+        {
+          "path": "domains/fate-analysis/data-products/bazi/golden/coverage_matrix_cases.json",
+          "role": "golden_fixture",
+          "required": true,
+          "sha256": "bb446f8e01ec92ebb035d123ad5397c4f3369ee718fbd5f3f08efa1281ce3603"
+        },
+        {
+          "path": "domains/fate-analysis/data-products/bazi/golden/rule_depth_cases.json",
+          "role": "golden_fixture",
+          "required": true
+        },
+        {
+          "path": "domains/fate-analysis/data-products/bazi/golden/statement_cases.json",
+          "role": "golden_fixture",
+          "required": true
+        }
+      ],
+      "manifests": [],
+      "hashPolicy": "tracked_fixture_schema_and_selected_sha256",
+      "licensePolicy": {
+        "licenseStatus": "not_applicable",
+        "auditRequired": false,
+        "productionUseAllowed": false,
+        "distributionAllowed": true,
+        "evidencePaths": [
+          "domains/fate-analysis/data-products/README.md"
+        ]
+      },
+      "exportPolicy": {
+        "status": "included",
+        "allowedInPublicExport": true,
+        "reason": "匿名 synthetic fixture，只用于工程回归。"
+      },
+      "productionEligibility": {
+        "status": "evaluation_only",
+        "reason": "不得作为真实用户命例库或确定性断语依据。"
+      },
+      "verification": {
+        "commands": [
+          "bash scripts/bazi-ziwei-l4-golden-smoke.sh --profile quick",
+          "bash scripts/data-supply-chain-gate.sh"
+        ],
+        "externalConnectivity": "not_required"
+      },
+      "metadata": {
+        "owner": "domains/fate-analysis/data-products/bazi/golden",
+        "risk": "工程回归样本，不代表真实命例大 corpus。"
+      }
+    },
+    {
+      "resourceType": "DataSupplyChainAsset",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "asset.ziwei.golden_cases",
+      "name": "紫微斗数 golden cases",
+      "assetType": "golden_fixture",
+      "domain": "ziwei",
+      "lifecycleLayer": "derived",
+      "usageRole": "evaluation_only",
+      "status": "available",
+      "privacyClass": "anonymous_fixture",
+      "source": {
+        "type": "synthetic_anonymous_fixture",
+        "owner": "domains/fate-analysis/data-products/ziwei/golden"
+      },
+      "paths": [
+        {
+          "path": "domains/fate-analysis/data-products/ziwei/golden/cases.json",
+          "role": "golden_fixture",
+          "required": true,
+          "sha256": "b22f394ddd29e0e4b04506594c355eb1d46048c9bd962636ec6ce628dff70258"
+        },
+        {
+          "path": "domains/fate-analysis/data-products/ziwei/golden/rule_depth_cases.json",
+          "role": "golden_fixture",
+          "required": true
+        }
+      ],
+      "manifests": [],
+      "hashPolicy": "tracked_fixture_schema_and_selected_sha256",
+      "licensePolicy": {
+        "licenseStatus": "not_applicable",
+        "auditRequired": false,
+        "productionUseAllowed": false,
+        "distributionAllowed": true,
+        "evidencePaths": [
+          "domains/fate-analysis/data-products/README.md"
+        ]
+      },
+      "exportPolicy": {
+        "status": "included",
+        "allowedInPublicExport": true,
+        "reason": "匿名 synthetic fixture，只用于工程回归。"
+      },
+      "productionEligibility": {
+        "status": "evaluation_only",
+        "reason": "不得作为完整紫微流派评测或生产输入。"
+      },
+      "verification": {
+        "commands": [
+          "bash scripts/bazi-ziwei-l4-golden-smoke.sh --profile quick",
+          "bash scripts/data-supply-chain-gate.sh"
+        ],
+        "externalConnectivity": "not_required"
+      },
+      "metadata": {
+        "owner": "domains/fate-analysis/data-products/ziwei/golden",
+        "risk": "当前只是代表 fixture，不是完整紫微命例库。"
+      }
+    },
+    {
+      "resourceType": "DataSupplyChainAsset",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "asset.vendor.reference_repos",
+      "name": "reference repo vendor 快照 manifest",
+      "assetType": "vendor_manifest",
+      "domain": "supply_chain",
+      "lifecycleLayer": "reference",
+      "usageRole": "research_reference",
+      "status": "review_required",
+      "privacyClass": "non_personal",
+      "source": {
+        "type": "vendor_sources",
+        "path": "tools/reference-repos/vendor_sources.json"
+      },
+      "paths": [
+        {
+          "path": "tools/reference-repos/vendor_sources.json",
+          "role": "vendor_manifest",
+          "required": true,
+          "sha256": "8f3a521ee96a8e0f4d686aeb0c2268bed8b98fab657e025fbe3824fbffe9a802"
+        },
+        {
+          "path": "tools/reference-repos/github",
+          "role": "vendor_snapshots",
+          "required": true
+        }
+      ],
+      "manifests": [
+        "tools/reference-repos/vendor_sources.json"
+      ],
+      "hashPolicy": "vendor_sources_snapshot_sha256",
+      "licensePolicy": {
+        "licenseStatus": "mixed",
+        "auditRequired": true,
+        "productionUseAllowed": false,
+        "distributionAllowed": false,
+        "evidencePaths": [
+          "tools/reference-repos/vendor_sources.json"
+        ]
+      },
+      "exportPolicy": {
+        "status": "manifest_only",
+        "allowedInPublicExport": false,
+        "reason": "vendor 快照默认不进入 lite export；只登记 manifest 和 gate 证据。"
+      },
+      "productionEligibility": {
+        "status": "reference_only",
+        "reason": "具体条目是否可生产由 vendor_sources.json 的 usageRole、licenseStatus 和 productionUseAllowed 决定。"
+      },
+      "verification": {
+        "commands": [
+          "bash scripts/vendor-health.sh",
+          "bash scripts/data-supply-chain-gate.sh"
+        ],
+        "externalConnectivity": "not_required"
+      },
+      "metadata": {
+        "owner": "tools/reference-repos",
+        "risk": "缺 license 或 legacy snapshot 只能参考，不得扩散为生产依赖。"
+      }
+    },
+    {
+      "resourceType": "DataSupplyChainAsset",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "asset.mingli_bench.offline",
+      "name": "MingLi-Bench 离线 benchmark",
+      "assetType": "benchmark",
+      "domain": "evaluation",
+      "lifecycleLayer": "reference",
+      "usageRole": "evaluation_only",
+      "status": "requires_reference_repo",
+      "privacyClass": "review_required",
+      "source": {
+        "type": "reference_repo",
+        "path": "tools/reference-repos/github/MingLi-Bench-main",
+        "upstream": "https://github.com/DestinyLinker/MingLi-Bench"
+      },
+      "paths": [
+        {
+          "path": "tools/reference-repos/github/MingLi-Bench-main",
+          "role": "benchmark_repo",
+          "required": true
+        },
+        {
+          "path": "contracts/fate/evaluations/registry.json",
+          "role": "evaluation_registry",
+          "required": true,
+          "sha256": "a56447bd82464454f2cd17c72de55c7fe19c4acf24e70cc842c123a8b8cd9696"
+        }
+      ],
+      "manifests": [
+        "tools/reference-repos/vendor_sources.json",
+        "contracts/fate/evaluations/registry.json"
+      ],
+      "hashPolicy": "vendor_sources_entry_and_evaluation_registry",
+      "licensePolicy": {
+        "licenseStatus": "spdx",
+        "auditRequired": false,
+        "productionUseAllowed": false,
+        "distributionAllowed": true,
+        "evidencePaths": [
+          "tools/reference-repos/github/MingLi-Bench-main/LICENSE",
+          "tools/reference-repos/vendor_sources.json"
+        ]
+      },
+      "exportPolicy": {
+        "status": "manifest_only",
+        "allowedInPublicExport": false,
+        "reason": "benchmark 只作为 offline evaluation，不进入 production provider 或 lite export。"
+      },
+      "productionEligibility": {
+        "status": "evaluation_only",
+        "reason": "标准答案和评测题库不得注入生产推理路径。"
+      },
+      "verification": {
+        "commands": [
+          "bash scripts/run-mingli-bench.sh --stats",
+          "bash scripts/data-supply-chain-gate.sh"
+        ],
+        "externalConnectivity": "not_required_for_offline_stats"
+      },
+      "metadata": {
+        "owner": "tools/reference-repos",
+        "risk": "评测题库和答案只服务评测，不作为生产知识源。"
+      }
+    },
+    {
+      "resourceType": "DataSupplyChainAsset",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "asset.external.bazi_ziwei_skill_archive",
+      "name": "bazi-ziwei 外部分发包归档记录",
+      "assetType": "external_archive",
+      "domain": "source_archive",
+      "lifecycleLayer": "raw",
+      "usageRole": "source_archive_only",
+      "status": "review_required",
+      "privacyClass": "review_required",
+      "source": {
+        "type": "external_archive_manifest",
+        "sourceManifest": "domains/fate-analysis/data-products/classics/source_manifest.tsv"
+      },
+      "paths": [
+        {
+          "path": "domains/fate-analysis/data-products/classics/source_manifest.tsv",
+          "role": "source_manifest",
+          "required": true
+        },
+        {
+          "path": "domains/fate-analysis/data-products/classics/copyright_review.tsv",
+          "role": "copyright_review",
+          "required": true
+        }
+      ],
+      "manifests": [
+        "domains/fate-analysis/data-products/classics/source_manifest.tsv",
+        "domains/fate-analysis/data-products/classics/copyright_review.tsv"
+      ],
+      "hashPolicy": "source_manifest_only",
+      "licensePolicy": {
+        "licenseStatus": "review_required",
+        "auditRequired": true,
+        "productionUseAllowed": false,
+        "distributionAllowed": false,
+        "evidencePaths": [
+          "domains/fate-analysis/data-products/classics/copyright_review.tsv"
+        ]
+      },
+      "exportPolicy": {
+        "status": "excluded",
+        "allowedInPublicExport": false,
+        "reason": "外部分发包只作来源归档和方法论参考，不进入生产依赖或 public export。"
+      },
+      "productionEligibility": {
+        "status": "blocked",
+        "reason": "未完成安全、版权、隐私和供应链复核前不得作为生产依赖。"
+      },
+      "verification": {
+        "commands": [
+          "bash scripts/data-supply-chain-gate.sh"
+        ],
+        "externalConnectivity": "not_required"
+      },
+      "metadata": {
+        "owner": "domains/fate-analysis/data-products/classics",
+        "risk": "不得执行外部分发包脚本，不得复制其中未知授权内容到生产输出。"
+      }
+    }
+  ]
+}

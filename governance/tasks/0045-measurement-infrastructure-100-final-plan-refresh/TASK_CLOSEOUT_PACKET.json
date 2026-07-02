@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-02T14:58:32+08:00",
+  "task": {
+    "task_id": "0045",
+    "slug": "measurement-infrastructure-100-final-plan-refresh",
+    "task_dir": "governance/tasks/0045-measurement-infrastructure-100-final-plan-refresh",
+    "detected_phase": "closeout",
+    "overall_status": "Done"
+  },
+  "source_refs": {
+    "task_context_packet": null,
+    "task_package_set": null,
+    "git_delivery_evidence": null
+  },
+  "closeout_gate": {
+    "ready": true,
+    "failures": []
+  },
+  "summary": {
+    "leaf_total": 4,
+    "leaf_done": 4,
+    "todo_total": 4,
+    "todo_checked": 4,
+    "blocker_count": 0
+  },
+  "leaves": [
+    {
+      "id": "TP-01.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "roadmap 调研矩阵",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-02.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "当前 live gate 剩余 pending 3 项已记录",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-03.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "0046+ 任务序列已记录",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-04.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "closeout 校验完成",
+      "blocker": "无",
+      "unblock_needed": "无"
+    }
+  ],
+  "git_delivery": null,
+  "recommended_asset_handoff": {
+    "source_refs": [],
+    "artifacts": [
+      "task-closeout-packet.json"
+    ]
+  },
+  "upstream_packets": {
+    "task_context_packet_loaded": false,
+    "task_package_set_loaded": false,
+    "git_delivery_evidence_loaded": false
+  }
+}

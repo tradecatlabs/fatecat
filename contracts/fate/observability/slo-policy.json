@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": "fatecat.tradecatlabs/v1",
+  "description": "FateCat 本地 SLO/error budget baseline。这里定义生产前可审计的目标口径，不保存真实生产指标。",
+  "service": "fatecat-delivery",
+  "window": {
+    "default": "30d",
+    "burnRateWindows": ["5m", "1h", "6h", "24h"]
+  },
+  "objectives": [
+    {
+      "id": "slo.availability",
+      "name": "HTTP availability",
+      "target": 0.995,
+      "goodEvents": "HTTP status < 500",
+      "totalEvents": "all HTTP requests",
+      "metricSource": "fatecat_requests_total",
+      "errorMetric": "fatecat_request_errors_total",
+      "releaseGate": "required"
+    },
+    {
+      "id": "slo.latency_p95",
+      "name": "HTTP p95 latency",
+      "targetSeconds": 2.5,
+      "goodEvents": "request latency <= 2.5s",
+      "totalEvents": "all HTTP requests",
+      "metricSource": "fatecat_request_latency_seconds_bucket",
+      "releaseGate": "required"
+    },
+    {
+      "id": "slo.report_job_success",
+      "name": "Report job success",
+      "target": 0.99,
+      "goodEvents": "report job status succeeded",
+      "totalEvents": "terminal report jobs",
+      "metricSource": "fatecat_report_jobs",
+      "releaseGate": "required"
+    },
+    {
+      "id": "slo.provider_success",
+      "name": "Provider success",
+      "target": 0.995,
+      "goodEvents": "provider span status ok",
+      "totalEvents": "provider.calculate spans",
+      "metricSource": "trace_span event status",
+      "releaseGate": "required"
+    }
+  ],
+  "privacyBoundary": "SLO policy 只引用指标名、span 状态和聚合窗口，不包含用户输入、姓名、出生地区、报告正文、token、secret、DSN 或 trace 原始日志。",
+  "externalConnectivity": "external_connectivity_pending",
+  "metadata": {
+    "owner": "contracts/fate/observability",
+    "storage": "policy_only",
+    "risk": "这是本地 SLO 口径 baseline，不代表生产流量已接入监控平台，也不代表 error budget 已真实计算。"
+  }
+}
