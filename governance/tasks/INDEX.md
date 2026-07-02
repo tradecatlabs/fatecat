@@ -97,3 +97,5 @@
 | 0047 | measurement-infrastructure-100-post-0046-implementation-plan | Done | P0 | 基于当前 main、0009-0046 任务事实、远端 CI 状态和外部基础设施一手资料，刷新 FateCat 达到 100% 测算基础设施所需的完整实现计划、post-0046 剩余任务树和不可伪造证据口径。 | 0047-measurement-infrastructure-100-post-0046-implementation-plan/ |
 
 | 0048 | measurement-infrastructure-telegram-bot-live-smoke | Blocked | P0 | 执行 MI-NEXT-01 Telegram Bot live smoke，用真实 FATE_BOT_TOKEN 调用 Telegram get_me()；当前环境缺少真实 token，任务保持 Blocked，不伪造 live 通过。 | 0048-measurement-infrastructure-telegram-bot-live-smoke/ |
+
+| 0049 | measurement-infrastructure-100-deep-research-implementation-plan | Done | P0 | 基于当前 main worktree 和外部基础设施一手资料，补强 FateCat 达到 100% 测算基础设施所需的完整实现计划、资源模型、实现波次和不可伪造验收口径。 | 0049-measurement-infrastructure-100-deep-research-implementation-plan/ |
