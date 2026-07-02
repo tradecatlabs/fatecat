@@ -46,6 +46,8 @@ scripts/
 ├── production-security-gate.sh
 ├── production-security-gate.py
 ├── public-release-gate.sh
+├── report-job-replayable-recovery-smoke.sh
+├── report-job-replayable-recovery-smoke.py
 ├── release-artifacts.sh
 ├── release-artifacts.py
 ├── secret-scan.sh
@@ -94,6 +96,7 @@ scripts/
 - `security-smoke.sh` / `security-smoke.py` 是本地安全 smoke；验证 token/owner 边界、响应安全头、请求体限制、限流、registry metadata，并可串联 privacy/source/public-release 文件门禁。
 - `webhook-smoke.sh` / `webhook-smoke.py` 是 report job webhook 本地模拟器；使用可注入 transport 验证终态事件、HMAC 签名和正文/secret 不外发，不访问公网。
 - `webhook-outbox-smoke.sh` / `webhook-outbox-smoke.py` 是 report job webhook SQLite outbox 本地 smoke；验证 success/failure outbox record、attempts、manager 重建可读和 summary 脱敏边界，不证明公网 live callback、跨进程自动重投或 external backend。
+- `report-job-replayable-recovery-smoke.sh` / `report-job-replayable-recovery-smoke.py` 是 report job SQLite 可重建执行本地 smoke；验证带 `task_payload` 和 factory 的 active 任务重建后重新入队成功，无 payload 任务仍安全失败；不证明 external backend、分布式 worker lease、多副本锁或 exactly-once。
 - `report-job-restart-recovery-smoke.sh` / `report-job-restart-recovery-smoke.py` 是 report job SQLite 重建恢复本地 smoke；验证旧 `queued` / `running` 任务被安全标记为 failed、写入 `job.recovered_failed`、保留幂等键且 summary 不泄露报告正文、姓名、出生地区或 secret；不证明跨进程继续执行、external backend 或多副本 worker。
 - `common.sh` 负责解析 runtime root；只允许已就绪的企业根作为运行根。
 - `run-evaluations.sh` / `run-evaluations.py` 是 `contracts/fate/evaluations/registry.json` 的本地 EvaluationRun 执行器；默认跑本地必跑评测，输出 summary JSON，只允许白名单命令。

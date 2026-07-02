@@ -131,6 +131,7 @@ class ReportJobSnapshot:
 
 
 ReportJobWebhookDispatcher = Callable[[ReportJobSnapshot, Any], Any]
+ReportJobTaskFactory = Callable[[dict[str, Any]], Callable[[], Any]]
 
 
 @dataclass
@@ -156,6 +157,7 @@ class _ReportJob:
     attempt_timeout_seconds: float | None = None
     retry_backoff_seconds: float = 0.0
     non_retryable_exceptions: tuple[type[BaseException], ...] = (ReportJobNonRetryableError,)
+    task_payload: dict[str, Any] | None = None
 
 
 class ReportJobStore:
@@ -222,7 +224,7 @@ class SQLiteReportJobStore(ReportJobStore):
                 SELECT job_id, kind, status, report_system, created_at, expires_at,
                        started_at, finished_at, error, result_json, input_summary_json,
                        idempotency_key, attempts, max_attempts, attempt_timeout_seconds,
-                       retry_backoff_seconds
+                       retry_backoff_seconds, task_payload_json
                 FROM report_jobs
                 ORDER BY created_at ASC
                 """
@@ -236,10 +238,10 @@ class SQLiteReportJobStore(ReportJobStore):
                 INSERT INTO report_jobs (
                     job_id, kind, status, report_system, created_at, expires_at,
                     started_at, finished_at, error, result_json, input_summary_json,
-                    idempotency_key, attempts, max_attempts, attempt_timeout_seconds,
-                    retry_backoff_seconds, updated_at
+                    task_payload_json, idempotency_key, attempts, max_attempts,
+                    attempt_timeout_seconds, retry_backoff_seconds, updated_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(job_id) DO UPDATE SET
                     kind=excluded.kind,
                     status=excluded.status,
@@ -251,6 +253,7 @@ class SQLiteReportJobStore(ReportJobStore):
                     error=excluded.error,
                     result_json=excluded.result_json,
                     input_summary_json=excluded.input_summary_json,
+                    task_payload_json=excluded.task_payload_json,
                     idempotency_key=excluded.idempotency_key,
                     attempts=excluded.attempts,
                     max_attempts=excluded.max_attempts,
@@ -270,6 +273,7 @@ class SQLiteReportJobStore(ReportJobStore):
                     job.error,
                     _json_dumps(job.result),
                     _json_dumps(job.input_summary),
+                    _json_dumps(job.task_payload),
                     job.idempotency_key,
                     job.attempts,
                     job.max_attempts,
@@ -406,6 +410,7 @@ class SQLiteReportJobStore(ReportJobStore):
             self._ensure_column(conn, "report_jobs", "max_attempts", "INTEGER NOT NULL DEFAULT 1")
             self._ensure_column(conn, "report_jobs", "attempt_timeout_seconds", "REAL")
             self._ensure_column(conn, "report_jobs", "retry_backoff_seconds", "REAL NOT NULL DEFAULT 0")
+            self._ensure_column(conn, "report_jobs", "task_payload_json", "TEXT")
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS report_job_events (
@@ -463,6 +468,7 @@ class SQLiteReportJobStore(ReportJobStore):
             status=_coerce_status(str(row["status"])),
             report_system=str(row["report_system"]),
             task=None,
+            task_payload=_coerce_task_payload(_json_loads(row["task_payload_json"])),
             input_summary=_json_loads(row["input_summary_json"]) or {},
             idempotency_key=row["idempotency_key"],
             webhook_config=None,
@@ -531,6 +537,7 @@ class ReportJobManager:
         webhook_dispatcher: ReportJobWebhookDispatcher | None = None,
         execution_policy: ReportJobExecutionPolicy | None = None,
         callback_policy: ReportJobWebhookPolicy | None = None,
+        task_factories: dict[str, ReportJobTaskFactory] | None = None,
     ) -> None:
         self.max_workers = max(1, max_workers)
         self.queue_size = max(1, queue_size)
@@ -539,12 +546,16 @@ class ReportJobManager:
         self.webhook_dispatcher = webhook_dispatcher
         self.execution_policy = (execution_policy or ReportJobExecutionPolicy()).normalized()
         self.callback_policy = (callback_policy or ReportJobWebhookPolicy()).normalized()
+        self.task_factories = dict(task_factories or {})
         self._queue: Queue[str] = Queue(maxsize=self.queue_size)
         self._jobs: dict[str, _ReportJob] = {}
         self._idempotency_index: dict[str, str] = {}
         self._lock = Lock()
         self._started = False
+        self._recovered_requeued_count = 0
         self._load_persisted_jobs()
+        if self._recovered_requeued_count:
+            self.start()
 
     @property
     def backend_name(self) -> str:
@@ -566,6 +577,7 @@ class ReportJobManager:
         kind: str,
         report_system: str,
         task: Callable[[], Any],
+        task_payload: dict[str, Any] | None = None,
         input_summary: dict[str, Any] | None = None,
         idempotency_key: str | None = None,
         webhook_config: Any | None = None,
@@ -592,6 +604,7 @@ class ReportJobManager:
             kind=kind,
             report_system=report_system,
             task=task,
+            task_payload=_coerce_task_payload(task_payload),
             input_summary=dict(input_summary or {}),
             idempotency_key=normalized_idempotency_key,
             webhook_config=webhook_config,
@@ -690,20 +703,68 @@ class ReportJobManager:
         for job in recovered:
             job.task = None
             if job.status in {"queued", "running"}:
-                job.status = "failed"
-                job.error = job.error or "任务执行器已重启，未完成任务已终止"
-                job.finished_at = job.finished_at or now_cn().isoformat()
-                self.store.save_job(job)
-                self._append_event_locked(
-                    job,
-                    "job.recovered_failed",
-                    "任务执行器重启后将未完成任务标记为失败",
-                    {"reason": "manager_rebuild"},
-                )
+                if self._try_requeue_recovered_job(job):
+                    self._jobs[job.job_id] = job
+                    if job.idempotency_key:
+                        self._idempotency_index[job.idempotency_key] = job.job_id
+                    continue
+                self._mark_recovered_job_failed(job, reason="manager_rebuild")
             self._jobs[job.job_id] = job
             if job.idempotency_key:
                 self._idempotency_index[job.idempotency_key] = job.job_id
         self.cleanup_expired()
+
+    def _try_requeue_recovered_job(self, job: _ReportJob) -> bool:
+        task = self._build_task_from_payload(job)
+        if task is None:
+            return False
+        was_running = job.status == "running"
+        job.task = task
+        job.status = "queued"
+        job.started_at = None
+        job.error = None
+        job.finished_at = None
+        if was_running and job.attempts > 0:
+            job.attempts -= 1
+        self.store.save_job(job)
+        try:
+            self._queue.put_nowait(job.job_id)
+        except Full:
+            job.task = None
+            self._mark_recovered_job_failed(job, reason="recovery_queue_full")
+            return True
+        self._recovered_requeued_count += 1
+        self._append_event_locked(
+            job,
+            "job.recovered_requeued",
+            "任务执行器重启后根据持久任务 payload 重新入队",
+            {
+                "reason": "manager_rebuild",
+                "taskPayload": True,
+                "taskFactory": job.kind,
+            },
+        )
+        return True
+
+    def _build_task_from_payload(self, job: _ReportJob) -> Callable[[], Any] | None:
+        if not job.task_payload:
+            return None
+        factory = self.task_factories.get(job.kind)
+        if not factory:
+            return None
+        return factory(dict(job.task_payload))
+
+    def _mark_recovered_job_failed(self, job: _ReportJob, *, reason: str) -> None:
+        job.status = "failed"
+        job.error = job.error or "任务执行器已重启，未完成任务已终止"
+        job.finished_at = job.finished_at or now_cn().isoformat()
+        self.store.save_job(job)
+        self._append_event_locked(
+            job,
+            "job.recovered_failed",
+            "任务执行器重启后将未完成任务标记为失败",
+            {"reason": reason},
+        )
 
     def _worker_loop(self) -> None:
         while True:
@@ -1094,6 +1155,13 @@ def _coerce_webhook_outbox_status(value: str) -> ReportJobWebhookOutboxStatus:
     if value in allowed:
         return value  # type: ignore[return-value]
     return "failed"
+
+
+def _coerce_task_payload(value: Any) -> dict[str, Any] | None:
+    if value is None or not isinstance(value, dict):
+        return None
+    payload = _to_json_payload(value)
+    return payload if isinstance(payload, dict) else None
 
 
 def _webhook_outbox_id(snapshot: ReportJobSnapshot) -> str:

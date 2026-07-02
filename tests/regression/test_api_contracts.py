@@ -1135,6 +1135,57 @@ def test_sqlite_webhook_outbox_persists_success_and_failure_records(tmp_path):
     assert "北京" not in failure_text
 
 
+def test_sqlite_replayable_report_job_requeues_after_manager_rebuild(tmp_path):
+    db_path = tmp_path / "report-jobs-replayable.sqlite"
+    first_manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path),
+    )
+    original_blocker = Event()
+    created = first_manager.submit(
+        kind="markdown",
+        report_system="bazi",
+        input_summary={"case": "replayable"},
+        task=lambda: original_blocker.wait(),
+        task_payload={"fixture": "replayable"},
+        idempotency_key="replayable-manager-rebuild",
+    )
+    deadline = time.monotonic() + 4.0
+    while first_manager.get(created.job_id).status != "running" and time.monotonic() < deadline:
+        time.sleep(0.01)
+
+    def factory(payload):
+        return lambda: {"reportSystem": "bazi", "markdown": f"# recovered {payload['fixture']}"}
+
+    rebuilt = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path),
+        task_factories={"markdown": factory},
+    )
+    recovered = _wait_for_manager_job(rebuilt, created.job_id)
+    event_types = [event.event_type for event in recovered.events]
+
+    assert recovered.status == "succeeded"
+    assert recovered.attempts == 1
+    assert recovered.result["markdown"] == "# recovered replayable"
+    assert "job.recovered_requeued" in event_types
+    assert "job.recovered_failed" not in event_types
+    duplicate = rebuilt.submit(
+        kind="markdown",
+        report_system="bazi",
+        input_summary={"case": "replayable"},
+        task=lambda: {"reportSystem": "bazi", "markdown": "# duplicate"},
+        task_payload={"fixture": "duplicate"},
+        idempotency_key="replayable-manager-rebuild",
+    )
+    assert duplicate.job_id == created.job_id
+    assert duplicate.status == "succeeded"
+
+
 def test_markdown_report_job_idempotency_key_returns_existing_job():
     client = TestClient(app)
     headers = {"Idempotency-Key": "job-idempotency-regression"}

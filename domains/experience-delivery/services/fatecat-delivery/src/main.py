@@ -166,10 +166,8 @@ def _build_report_job_manager() -> ReportJobManager:
             max_attempts=WEBHOOK_MAX_ATTEMPTS,
             retry_backoff_seconds=WEBHOOK_RETRY_BACKOFF_SECONDS,
         ),
+        task_factories=_report_job_task_factories(),
     )
-
-
-report_job_manager = _build_report_job_manager()
 
 
 def _records_enabled() -> bool:
@@ -1022,6 +1020,7 @@ def _submit_report_job(
     report_system: str,
     task,
     input_summary: dict[str, Any],
+    task_payload: dict[str, Any] | None = None,
     idempotency_key: str | None = None,
     webhook_config: WebhookConfig | None = None,
 ) -> ReportJobSnapshot:
@@ -1038,6 +1037,7 @@ def _submit_report_job(
                 kind=kind,
                 report_system=report_system,
                 task=task,
+                task_payload=task_payload,
                 input_summary=input_summary,
                 idempotency_key=idempotency_key,
                 webhook_config=webhook_config,
@@ -1459,6 +1459,7 @@ def create_web_report_job(
             "name": form.name,
         },
         task=lambda: _run_with_calculation_slot(lambda: build_web_report_result(form)),
+        task_payload=_web_report_task_payload(form),
         idempotency_key=idempotency_key,
         webhook_config=webhook_config,
     )
@@ -2010,6 +2011,41 @@ def _build_markdown_report_payload(req: BaziRequest) -> dict[str, Any]:
     }
 
 
+def _web_report_task_payload(form: WebReportForm) -> dict[str, Any]:
+    return {
+        "birthDate": form.birth_date,
+        "birthTime": form.birth_time,
+        "birthPlace": form.birth_place,
+        "gender": form.gender,
+        "name": form.name,
+        "reportSystem": form.report_system,
+    }
+
+
+def _web_report_task_from_payload(payload: dict[str, Any]):
+    form = _web_form_from_payload(payload)
+    return lambda: _run_with_calculation_slot(lambda: build_web_report_result(form))
+
+
+def _markdown_report_task_payload(req: BaziRequest) -> dict[str, Any]:
+    return req.model_dump(mode="json")
+
+
+def _markdown_report_task_from_payload(payload: dict[str, Any]):
+    req = BaziRequest.model_validate(payload)
+    return lambda: _build_markdown_report_payload(req)
+
+
+def _report_job_task_factories():
+    return {
+        "web": _web_report_task_from_payload,
+        "markdown": _markdown_report_task_from_payload,
+    }
+
+
+report_job_manager = _build_report_job_manager()
+
+
 @app.post("/api/v1/report/jobs")
 def create_markdown_report_job(
     req: BaziRequest,
@@ -2032,6 +2068,7 @@ def create_markdown_report_job(
             "name": req.name,
         },
         task=lambda: _build_markdown_report_payload(req),
+        task_payload=_markdown_report_task_payload(req),
         idempotency_key=idempotency_key,
         webhook_config=webhook_config,
     )

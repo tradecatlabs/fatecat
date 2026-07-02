@@ -583,9 +583,9 @@ Report job store：
 | 后端 | 配置 | 能力边界 |
 | --- | --- | --- |
 | `memory` | `FATE_REPORT_JOB_STORE=memory` | 默认后端；只在当前进程 TTL 生命周期内保留任务状态和幂等键。 |
-| `sqlite` | `FATE_REPORT_JOB_STORE=sqlite`，`FATE_REPORT_JOB_DB_PATH=infra/runtime/local-state/database/report_jobs.sqlite` | 单副本本地持久化；可在 manager 重建后查询已完成、失败、取消和过期任务，并保留幂等键。 |
+| `sqlite` | `FATE_REPORT_JOB_STORE=sqlite`，`FATE_REPORT_JOB_DB_PATH=infra/runtime/local-state/database/report_jobs.sqlite` | 单副本本地持久化；可在 manager 重建后查询已完成、失败、取消和过期任务，并保留幂等键。带 `task_payload` 且存在注册 factory 的 Web/Markdown 报告任务可在本地重新入队执行。 |
 
-`running` 任务取消后不能强杀线程，但完成后会丢弃结果并保持 `cancelled`。如果 SQLite backend 在 manager 重建时发现旧 `queued` / `running` 任务，会标记为 `failed`、写入 `job.recovered_failed` 并保留错误原因；这不是跨进程继续执行能力。多副本生产不能使用本地 `memory` / `sqlite` job store 假装分布式任务系统，后续需要外部队列或数据库任务系统。
+`running` 任务取消后不能强杀线程，但完成后会丢弃结果并保持 `cancelled`。如果 SQLite backend 在 manager 重建时发现旧 `queued` / `running` 任务：带 `task_payload` 且存在注册 factory 的任务会标记为 `queued`、写入 `job.recovered_requeued` 并重新入队；无 payload 或无 factory 的任务会标记为 `failed`、写入 `job.recovered_failed` 并保留错误原因。该能力只是本地可重建执行 baseline，不是 external backend、分布式 worker、生产多副本锁或 exactly-once。多副本生产不能使用本地 `memory` / `sqlite` job store 假装分布式任务系统，后续需要外部队列或数据库任务系统。
 
 本地 restart recovery smoke：
 
@@ -596,6 +596,15 @@ bash scripts/report-job-restart-recovery-smoke.sh \
 
 该 smoke 使用临时 SQLite 和固定脱敏样例，只证明 manager 重建后旧 `queued` / `running` 任务会安全失败、保留幂等键并产生 `job.recovered_failed` 事件；不证明任务跨进程继续执行、external backend、多副本 worker 或生产队列恢复。
 
+本地 replayable recovery smoke：
+
+```bash
+bash scripts/report-job-replayable-recovery-smoke.sh \
+  --output-json infra/runtime/local-state/exports/report-jobs/replayable-recovery-smoke.json
+```
+
+该 smoke 使用临时 SQLite 和固定脱敏样例，证明带 `task_payload` 和 factory 的 active 任务在 manager 重建后可重新入队并成功完成；同时证明无 payload 的 active 任务仍安全失败。它不证明 external backend、分布式 worker lease、多副本锁、真实公网 webhook live smoke 或 exactly-once。
+
 Report job event history：
 
 | 项 | 说明 |
@@ -603,9 +612,9 @@ Report job event history：
 | API 字段 | `/api/v1/report/jobs/{job_id}` 返回的 `CalculationJob.data.events[]`。 |
 | 事件资源 | 每项为 `CalculationJobEvent`，包含 `eventId`、`jobId`、`eventType`、`status`、`createdAt`、`message`、`metadata`。 |
 | 本地持久化 | `memory` 后端保留当前进程内事件；`sqlite` 后端写入 `report_job_events` 并按写入顺序返回。 |
-| 当前事件 | `job.queued`、`job.running`、`job.succeeded`、`job.failed`、`job.cancelled`、`job.expired`、`job.recovered_failed`、`job.attempt_failed`、`job.attempt_timed_out`、`job.retry_scheduled`、`webhook.delivery_attempt_failed`、`webhook.delivery_retry_scheduled`、`webhook.delivery_succeeded`、`webhook.delivery_failed`。 |
+| 当前事件 | `job.queued`、`job.running`、`job.succeeded`、`job.failed`、`job.cancelled`、`job.expired`、`job.recovered_failed`、`job.recovered_requeued`、`job.attempt_failed`、`job.attempt_timed_out`、`job.retry_scheduled`、`webhook.delivery_attempt_failed`、`webhook.delivery_retry_scheduled`、`webhook.delivery_succeeded`、`webhook.delivery_failed`。 |
 | 隐私 | event metadata 不包含 Markdown 正文、姓名、出生地区、请求体、webhook URL、webhook secret 或原始异常文本。 |
-| 边界 | 事件历史只证明任务生命周期可审计；本地 webhook retry/outbox trail、SQLite persistent outbox record baseline 与 restart-safe failure smoke 已有，external backend、跨进程继续执行、跨进程自动重投或真实公网 webhook live smoke 仍未完成。 |
+| 边界 | 事件历史只证明任务生命周期可审计；本地 webhook retry/outbox trail、SQLite persistent outbox record baseline、restart-safe failure smoke 与 replayable recovery smoke 已有，external backend、生产级分布式 worker lease、跨进程 webhook 自动重投或真实公网 webhook live smoke 仍未完成。 |
 
 Report job retry / timeout policy：
 
