@@ -21,6 +21,9 @@ contracts/fate/
 │   ├── registry.json
 │   └── schemas/
 ├── developer/
+│   ├── api-changelog.json
+│   ├── developer-platform.json
+│   ├── sandbox-token-contract.json
 │   ├── sandbox.json
 │   └── AGENTS.md
 ├── evaluations/
@@ -50,7 +53,10 @@ contracts/fate/
 - `data-supply-chain/registry.json`：登记 raw/canonical/derived/reference/runtime/export 分层资产；`review_required`、`source_archive_only`、`evaluation_only` 和 `reference_only` 不得被文档写成默认生产输入。
 - `delivery/`：多端交付资源注册表，登记 DeliverySurface，只做 FastAPI/Web/Bot/CLI/Skill/HF Space 的入口、同源链路、输出契约和验证边界说明，不保存用户输入或运行态报告。
 - `delivery/registry.json`：登记 available/partial/manual surfaces；partial surface 必须说明同源范围和未覆盖输出边界。
-- `developer/`：开发者接入契约与 sandbox fixture；只保存本地可验证的北京/测试样本，不保存真实 token、生产 URL、报告正文或真实用户数据。
+- `developer/`：开发者接入契约、SDK/package baseline、sandbox fixture、sandbox token contract 与 API changelog；只保存本地可验证的北京/测试样本和发布边界，不保存真实 token、生产 URL、报告正文或真实用户数据。
+- `developer/developer-platform.json`：开发者平台机器真相源；登记 OpenAPI、SDK/package baseline、sandbox、API changelog 与 validation gate，不代表 SDK 已发布。
+- `developer/api-changelog.json`：API 兼容策略和变更记录；公开 breaking change 必须登记迁移说明和兼容窗口。
+- `developer/sandbox-token-contract.json`：未来公网 sandbox token 的 claim/scope/rate-limit/revocation contract；当前不发行真实 token。
 - `developer/sandbox.json`：开发者文档 smoke 与 SDK 示例的固定输入源；它不是公网 sandbox token 服务。
 - `evaluations/`：评测资源注册表，登记 Dataset 与 EvaluationRun，只做发现、审计和发布门禁说明，不保存运行时评测结果库。
 - `evaluations/registry.json`：登记 golden fixture、benchmark 和本地评测运行入口；evaluation-only 数据不得被 production provider 当成业务输入。

@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.api_changelog",
+  "description": "Machine-readable API changelog and compatibility policy for FateCat developer platform baseline.",
+  "currentApiVersion": "v1",
+  "compatibilityPolicy": {
+    "stability": "baseline",
+    "breakingChangePolicy": "Breaking changes require a changelog entry, migration note, compatibility window and release gate evidence before public release.",
+    "deprecationPolicy": "Deprecated paths or fields must remain discoverable with replacement guidance until their removal window closes.",
+    "versioning": "HTTP paths currently use /api/v1 aliases and stable root aliases; future public releases must pin compatibility notes here."
+  },
+  "humanGuide": "docs/reference-materials/developer/API_CHANGELOG.md",
+  "entries": [
+    {
+      "id": "api-changelog.0029.developer-openapi-sandbox",
+      "date": "2026-07-02",
+      "apiVersion": "v1",
+      "changeType": "baseline",
+      "summary": "Added local OpenAPI export, sandbox fixture, curl/Python/Node/Agent examples and developer docs smoke baseline.",
+      "compatibility": "backward_compatible",
+      "migrationRequired": false,
+      "evidence": [
+        "contracts/fate/developer/sandbox.json",
+        "scripts/export-openapi.sh",
+        "scripts/developer-docs-smoke.sh",
+        "docs/reference-materials/developer/examples"
+      ]
+    },
+    {
+      "id": "api-changelog.0067.developer-platform-contract",
+      "date": "2026-07-02",
+      "apiVersion": "v1",
+      "changeType": "contract_baseline",
+      "summary": "Added developer platform machine contract, SDK/package baseline, sandbox token contract, API changelog and developer platform gate.",
+      "compatibility": "backward_compatible",
+      "migrationRequired": false,
+      "evidence": [
+        "contracts/fate/developer/developer-platform.json",
+        "contracts/fate/developer/sandbox-token-contract.json",
+        "contracts/fate/developer/api-changelog.json",
+        "scripts/developer-platform-gate.sh"
+      ]
+    }
+  ],
+  "limitations": [
+    "This changelog is a local baseline and does not prove an external developer portal is live.",
+    "This changelog does not prove a published SDK package exists.",
+    "This changelog does not store production credentials or user payloads."
+  ]
+}

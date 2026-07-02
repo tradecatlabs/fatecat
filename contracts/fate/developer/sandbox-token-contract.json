@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.sandbox_token_contract",
+  "description": "Contract for a future public developer sandbox token. The current repository only defines the contract and local checks; it does not store or issue real sandbox tokens.",
+  "status": "contract_only",
+  "liveServiceStatus": "not_implemented",
+  "tokenMaterialPolicy": "no_real_tokens_in_repo",
+  "privacyBoundary": "Do not store real token values, secrets, account identifiers, production URLs, webhook secrets, DSNs or user data in this repository.",
+  "authorizationHeaderShape": "Authorization: Bearer <sandbox-token>",
+  "tokenClaims": {
+    "required": ["iss", "sub", "aud", "exp", "iat", "scope", "sandbox"],
+    "sandboxClaim": {
+      "name": "sandbox",
+      "requiredValue": true
+    },
+    "forbidden": ["production_access", "admin", "billing", "secret_material"]
+  },
+  "scopes": [
+    {
+      "scope": "capability:calculate:almanac",
+      "capabilityId": "almanac",
+      "allowedEndpoint": "/capabilities/almanac/calculate",
+      "sandboxFixtureId": "sandbox.almanac.travel.beijing.2026-05-08"
+    },
+    {
+      "scope": "capability:calculate:meihua",
+      "capabilityId": "meihua",
+      "allowedEndpoint": "/capabilities/meihua/calculate",
+      "sandboxFixtureId": "sandbox.meihua.number.beijing.test"
+    }
+  ],
+  "rateLimitPolicy": {
+    "status": "planned",
+    "defaultRequestsPerMinute": 60,
+    "defaultBurst": 10,
+    "evidenceRequiredBeforeLive": "external sandbox gateway or API rate-limit smoke"
+  },
+  "revocationPolicy": {
+    "status": "planned",
+    "evidenceRequiredBeforeLive": "sandbox token revocation smoke"
+  },
+  "evidenceRequiredBeforeLive": [
+    "external token issuer or gateway",
+    "sandbox-only scope enforcement smoke",
+    "rate limit smoke",
+    "revocation smoke",
+    "no production data access proof"
+  ],
+  "negativeRules": [
+    "Local FATE_API_TOKEN or scoped user token cannot be used as sandbox token live evidence.",
+    "Placeholder token strings cannot be committed as proof.",
+    "Docs smoke cannot be reported as token issuance evidence."
+  ]
+}

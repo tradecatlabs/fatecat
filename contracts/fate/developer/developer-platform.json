@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.developer_platform",
+  "description": "FateCat developer platform baseline. This contract registers OpenAPI, SDK/package baseline, sandbox fixtures, sandbox token contract, API changelog and validation gates without claiming a published SDK or live public sandbox token service.",
+  "owner": "contracts/fate/developer",
+  "status": "baseline",
+  "privacyBoundary": "Developer platform contracts and examples must not store real tokens, secrets, production URLs, real users, non-Beijing real places or report bodies.",
+  "developerEntryPoints": {
+    "openapi": "/openapi.json",
+    "metadata": "/metadata",
+    "capabilities": "/capabilities",
+    "providers": "/providers",
+    "evaluations": "/evaluations",
+    "observability": "/observability",
+    "security": "/security",
+    "surfaces": "/surfaces",
+    "errors": "/errors"
+  },
+  "sdkPackageBaseline": {
+    "releaseStatus": "baseline_not_published",
+    "packageRegistryStatus": "not_published",
+    "notPublishedBoundary": "Current SDK assets are installable examples and package baseline metadata only; this is not a released PyPI/npm package.",
+    "packageCandidates": [
+      {
+        "language": "python",
+        "candidateName": "fatecat-python",
+        "status": "installable_example",
+        "sourcePath": "docs/reference-materials/developer/examples/python-client.py",
+        "packageManager": "pip",
+        "publishEvidence": null
+      },
+      {
+        "language": "node",
+        "candidateName": "fatecat-js",
+        "status": "installable_example",
+        "sourcePath": "docs/reference-materials/developer/examples/node-client.mjs",
+        "packageManager": "npm",
+        "publishEvidence": null
+      },
+      {
+        "language": "shell",
+        "candidateName": "fatecat-curl-examples",
+        "status": "installable_example",
+        "sourcePath": "docs/reference-materials/developer/examples/curl-sandbox.sh",
+        "packageManager": "none",
+        "publishEvidence": null
+      },
+      {
+        "language": "agent",
+        "candidateName": "fatecat-agent-tool-call",
+        "status": "installable_example",
+        "sourcePath": "docs/reference-materials/developer/examples/agent-tool-call.json",
+        "packageManager": "none",
+        "publishEvidence": null
+      }
+    ],
+    "humanGuide": "docs/reference-materials/developer/SDK_PACKAGE_BASELINE.md",
+    "smokeCommand": "bash scripts/developer-docs-smoke.sh"
+  },
+  "sandbox": {
+    "fixtureContract": "contracts/fate/developer/sandbox.json",
+    "tokenContract": "contracts/fate/developer/sandbox-token-contract.json",
+    "fixedOutputSnapshotStatus": "future",
+    "livePublicSandboxStatus": "not_implemented"
+  },
+  "apiChangelog": {
+    "machineContract": "contracts/fate/developer/api-changelog.json",
+    "humanGuide": "docs/reference-materials/developer/API_CHANGELOG.md"
+  },
+  "validation": {
+    "gateCommand": "bash scripts/developer-platform-gate.sh",
+    "docsSmokeCommand": "bash scripts/developer-docs-smoke.sh",
+    "openapiExportCommand": "bash scripts/export-openapi.sh --output infra/runtime/local-state/exports/developer/openapi.json",
+    "localCiArtifact": "developer-platform-gate.json"
+  },
+  "limitations": [
+    "Does not prove PyPI/npm SDK publication.",
+    "Does not provide a live public sandbox token service.",
+    "Does not prove external developer portal availability.",
+    "Does not store real credentials or production URLs."
+  ]
+}

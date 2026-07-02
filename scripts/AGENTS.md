@@ -24,6 +24,8 @@ scripts/
 ├── event-contract-gate.py
 ├── developer-docs-smoke.sh
 ├── developer-docs-smoke.py
+├── developer-platform-gate.sh
+├── developer-platform-gate.py
 ├── export-openapi.sh
 ├── export-openapi.py
 ├── evaluation-dashboard.sh
@@ -95,6 +97,7 @@ scripts/
 - `runtime-backend-gate.sh` / `runtime-backend-gate.py` 是 durable runtime 后端 contract gate；校验 RuntimeBackend registry、memory/sqlite 本地边界、Postgres external backend 候选、Temporal future orchestrator、Redis queue 非 source-of-truth 约束和隐私边界，不连接真实数据库或服务。
 - `export-openapi.sh` / `export-openapi.py`：导出本地 OpenAPI JSON，并校验开发者接入必备路径。
 - `developer-docs-smoke.sh` / `developer-docs-smoke.py`：执行开发者 OpenAPI、sandbox fixture 和 SDK 示例 smoke；只保存检查摘要，不保存报告正文或真实凭证。
+- `developer-platform-gate.sh` / `developer-platform-gate.py`：校验 developer platform contract、SDK/package baseline、sandbox token contract 与 API changelog；只证明本地契约和示例自洽，不证明 PyPI/npm SDK 发布或公网 token 服务上线。
 - `check-public-release-policy.sh`：检查公开 Web 工作台发布策略，防止 GitHub 自动验收回潮、HF 免费 Space 误开记录存储、container workflow 丢失 registry digest/attestation verify 或文档口径缺失。
 - `hf-space-deploy.sh`：生成 Hugging Face Docker Space 分发包，并通过 `hf` CLI 上传到指定 Space；默认目标 `tradecatlabs/fatecat`，默认拒绝非 `tradecatlabs` 认证。
 - `local-ci.sh`：本地 CI/CD 调度入口；只编排本仓脚本，不调用 GitHub Actions；成功或失败都会写 `summary.txt` 与机器可读 `summary.json`，其中 `summary.json` 是 live release gate 的 `evidence.local_ci_quick` 输入。
@@ -150,4 +153,5 @@ scripts/
 - `scripts/live-release-gate.py -> contracts/fate/delivery/release-gate.json + contracts/fate/delivery/registry.json + .github/workflows`
 - `scripts/release-artifacts.py -> pyproject.toml + requirements.lock.txt + requirements-dev.lock.txt + infra/docker + contracts/fate/delivery`
 - `scripts/developer-docs-smoke.py -> contracts/fate/developer + docs/reference-materials/developer + FastAPI TestClient`
+- `scripts/developer-platform-gate.py -> contracts/fate/developer + docs/reference-materials/developer`
 - 禁止脚本直接隐藏 secret、运行态或旧路径 fallback。

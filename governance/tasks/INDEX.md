@@ -129,3 +129,5 @@
 | 0065 | measurement-infrastructure-security-externalization-gate | Done | P0 | 执行 0061 后续任务树的 Security externalization P0 切片：新增 OIDC/SIEM/retention cleaner 外部化证据契约、反伪造 gate、回归测试、quick CI 接线和文档 closeout；本任务不接入真实 IdP、SIEM、不可变审计平台或真实数据清理器，不把本地 scoped token 写成生产身份。 | 0065-measurement-infrastructure-security-externalization-gate/ |
 
 | 0066 | measurement-infrastructure-core-quality-corpus | Done | P0 | 执行 0061 后续任务树的 core quality corpus expansion 切片：新增八字/紫微核心质量语料 manifest、完整报告 diff 策略、语料门禁和匿名紫微样本扩容，并接入 quick CI；不使用真实用户隐私样例，不把 evaluation fixture 变成生产输入。 | 0066-measurement-infrastructure-core-quality-corpus/ |
+
+| 0067 | measurement-infrastructure-developer-platform-baseline | Done | P0 | 执行 0061 后续任务树的 developer platform 切片：新增 SDK/package baseline、sandbox token contract、API changelog 与开发者平台 gate，并接入 docs smoke/local-ci；不把本地 docs smoke 伪装成已发布 SDK，不声明公网 sandbox token 服务已上线。 | 0067-measurement-infrastructure-developer-platform-baseline/ |

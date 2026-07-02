@@ -48,12 +48,36 @@ contracts/fate/developer/sandbox.json
 
 当前 sandbox 只提供本地、确定性、隐私安全的北京/测试样本，用于 docs smoke 与 SDK 示例，不代表已经存在公网 sandbox token 服务。
 
+开发者平台机器契约：
+
+```text
+contracts/fate/developer/developer-platform.json
+```
+
+SDK/package baseline、sandbox token contract 与 API changelog：
+
+```text
+docs/reference-materials/developer/SDK_PACKAGE_BASELINE.md
+contracts/fate/developer/sandbox-token-contract.json
+contracts/fate/developer/api-changelog.json
+docs/reference-materials/developer/API_CHANGELOG.md
+```
+
+当前只是本地开发者平台 baseline；不代表 PyPI/npm SDK 已发布，也不代表公网 sandbox token 服务已上线。
+
 本地开发者文档 smoke：
 
 ```bash
 bash scripts/developer-docs-smoke.sh \
   --output-json infra/runtime/local-state/exports/developer/docs-smoke.json \
   --openapi-json infra/runtime/local-state/exports/developer/openapi.json
+```
+
+本地开发者平台 gate：
+
+```bash
+bash scripts/developer-platform-gate.sh \
+  --output-json infra/runtime/local-state/exports/developer/developer-platform-gate.json
 ```
 
 SDK 与 Agent 示例位于：
