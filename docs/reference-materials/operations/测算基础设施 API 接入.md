@@ -378,6 +378,21 @@ bash scripts/production-security-gate.sh \
 
 gate output 只保存检查名、状态和摘要，不输出真实 token、secret、DSN、SIEM endpoint、请求体、用户输入或报告正文。
 
+安全外部化 evidence contract / negative gate：
+
+```bash
+bash scripts/security-externalization-gate.sh \
+  --output-json infra/runtime/local-state/exports/security/security-externalization-gate.json
+```
+
+0065 新增 `contracts/fate/security/externalization-evidence-contract.json`，用于定义 OIDC/IdP、SIEM/不可变审计存储和 retention cleaner 的 live evidence 必备字段、隐私边界和负向伪造样例。该 gate 会先复用 `production-security-gate`，再验证：
+
+- 本地 scoped token、`FATE_API_TOKEN`、`FATE_API_USER_TOKENS` 不能作为 OIDC/IdP live proof。
+- placeholder SIEM、明文 endpoint、日志 payload、请求体或报告正文不能作为不可变审计 evidence。
+- 没有 smoke summary、delete mode 和 audit action 的 retention cleaner 不能写成 live evidence。
+
+默认不提供 `--evidence-json` 时，该 gate 只证明仓库内 contract 和反伪造样例可验证，并输出 `外部连通验证待执行`。真实 OIDC、SIEM、不可变审计存储和 retention cleaner live evidence 必须由外部环境单独提供；仓库内不得用本地 token、策略文件或占位 URL 替代。
+
 本地安全 smoke：
 
 ```bash
@@ -411,7 +426,7 @@ bash scripts/webhook-smoke.sh \
 - `audit_event` 只记录 action、actor role、短哈希 target、outcome、requestId 和安全 metadata；不得记录真实 token、请求体、报告正文、姓名、出生地区、recordId、jobId 或 userId 原文。
 - `FATE_REPORT_JOB_TTL_SECONDS` 控制报告 job TTL；`FATE_REPORT_JOB_STORE=memory|sqlite` 控制 report job store backend；`FATE_REPORT_JOB_DB_PATH` 仅在 `sqlite` backend 下生效；`FATE_REPORT_JOB_MAX_ATTEMPTS`、`FATE_REPORT_JOB_ATTEMPT_TIMEOUT_SECONDS`、`FATE_REPORT_JOB_RETRY_BACKOFF_SECONDS` 控制本地 report job retry/timeout policy；`FATE_WEBHOOK_MAX_ATTEMPTS`、`FATE_WEBHOOK_RETRY_BACKOFF_SECONDS` 控制本地 webhook callback retry policy；`FATE_WEBHOOK_REDELIVERY_LEASE_SECONDS` 控制 SQLite webhook outbox redelivery 的本地 lease TTL；`FATE_WEBHOOK_CONFIG_FERNET_KEYS` 使用 `key-id:<fernet-key>[,next-id:<fernet-key>]` 格式，`FATE_WEBHOOK_CONFIG_ACTIVE_KEY_ID` 使用 `<key-id>`，只在 SQLite backend 下启用本地 encrypted webhook delivery config vault，用于 failed/pending callback 的 URL/secret 加密恢复和 key rotation。
 - `FATE_AUDIT_EVENT_RETENTION_DAYS` 只登记审计事件留存口径；`FATE_RECORD_RETENTION_DAYS=0` 表示记录当前默认显式删除模式。
-- 外部 SIEM、不可变审计存储、生产日志留存平台和记录按年龄自动清理已有本地准入 contract 和 gate；真实平台连通、清理器实现和生产 live evidence 仍属于外部连通验证待执行。
+- 外部 SIEM、不可变审计存储、生产日志留存平台和记录按年龄自动清理已有本地准入 contract、evidence contract 和反伪造 gate；真实平台连通、清理器实现和生产 live evidence 仍属于外部连通验证待执行。
 
 ## 交付面资源入口
 

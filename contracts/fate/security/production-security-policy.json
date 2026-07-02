@@ -128,6 +128,8 @@
   ],
   "releaseGate": {
     "localCommand": "bash scripts/production-security-gate.sh",
+    "externalizationGateCommand": "bash scripts/security-externalization-gate.sh",
+    "externalizationEvidenceContract": "contracts/fate/security/externalization-evidence-contract.json",
     "quickCiRequired": true,
     "blocksPublicReleaseWithoutExternalEvidence": [
       "external_oidc_or_idp",

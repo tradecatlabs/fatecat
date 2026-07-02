@@ -146,6 +146,8 @@ run_quick() {
   run_step "secret scan" bash "${script_dir}/secret-scan.sh" --output-json "${output_dir}/secret-scan.json"
   run_step "production security gate" bash "${script_dir}/production-security-gate.sh" \
     --output-json "${output_dir}/production-security-gate.json"
+  run_step "security externalization gate" bash "${script_dir}/security-externalization-gate.sh" \
+    --output-json "${output_dir}/security-externalization-gate.json"
   run_step "privacy fixtures" bash "${script_dir}/check-privacy-fixtures.sh"
   run_step "public release policy" bash "${script_dir}/check-public-release-policy.sh"
   run_step "developer docs smoke" bash "${script_dir}/developer-docs-smoke.sh" \
@@ -334,6 +336,7 @@ write_summary() {
   FATE_LOCAL_CI_PREFLIGHT_PURE="${output_dir}/preflight-pure.json" \
   FATE_LOCAL_CI_SECRET_SCAN="${output_dir}/secret-scan.json" \
   FATE_LOCAL_CI_PRODUCTION_SECURITY_GATE="${output_dir}/production-security-gate.json" \
+  FATE_LOCAL_CI_SECURITY_EXTERNALIZATION_GATE="${output_dir}/security-externalization-gate.json" \
   FATE_LOCAL_CI_DEVELOPER_DOCS_SMOKE="${output_dir}/developer-docs-smoke.json" \
   FATE_LOCAL_CI_OPENAPI="${output_dir}/openapi.json" \
   FATE_LOCAL_CI_PROVIDER_LIFECYCLE_GATE="${output_dir}/provider-lifecycle-gate.json" \
@@ -386,6 +389,7 @@ payload = {
         "preflightPure": env("FATE_LOCAL_CI_PREFLIGHT_PURE"),
         "secretScan": env("FATE_LOCAL_CI_SECRET_SCAN"),
         "productionSecurityGate": env("FATE_LOCAL_CI_PRODUCTION_SECURITY_GATE"),
+        "securityExternalizationGate": env("FATE_LOCAL_CI_SECURITY_EXTERNALIZATION_GATE"),
         "developerDocsSmoke": env("FATE_LOCAL_CI_DEVELOPER_DOCS_SMOKE"),
         "openapi": env("FATE_LOCAL_CI_OPENAPI"),
         "providerLifecycleGate": env("FATE_LOCAL_CI_PROVIDER_LIFECYCLE_GATE"),

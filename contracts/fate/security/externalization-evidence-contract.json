@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "contractId": "contract.security_externalization_evidence",
+  "description": "OIDC/IdP、SIEM/不可变审计存储和 retention cleaner 的外部化证据契约。本文件只定义证据结构和反伪造边界，不保存真实 issuer、JWKS、SIEM endpoint、token、secret、DSN、日志 payload、用户输入或生产删除结果。",
+  "status": "dry_run_contract",
+  "externalConnectivity": "external_connectivity_pending",
+  "controls": {
+    "identity": {
+      "controlId": "control.production_identity_oidc",
+      "baselineMode": "scoped_token_rbac",
+      "productionTargetMode": "external_oidc_or_idp",
+      "requiredForPublicMultiTenant": true,
+      "dryRunEvidenceChecks": [
+        "SecurityControl status 必须保持 manual / external_connectivity_pending，直到真实 IdP evidence 提供。",
+        "FATE_API_TOKEN、FATE_API_ADMIN_TOKEN、FATE_API_USER_TOKENS 只能作为本地 scoped token baseline。",
+        "任何 live evidence 不得使用 scoped_token_rbac、local_token、shared_token 或 FATE_API_TOKEN 作为 provider/mode/proof。"
+      ],
+      "liveEvidenceSchema": {
+        "requiredFields": [
+          "mode",
+          "provider",
+          "verificationStatus",
+          "issuerProofRef",
+          "jwksVerificationProofRef",
+          "audienceVerificationProofRef",
+          "scopesVerificationProofRef"
+        ],
+        "requiredMode": "external_oidc_or_idp",
+        "requiredVerificationStatus": "passed_external_oidc_check",
+        "forbiddenProviderValues": ["scoped_token_rbac", "local_token", "shared_token", "FATE_API_TOKEN"],
+        "forbiddenProofFragments": [
+          "FATE_API_TOKEN",
+          "FATE_API_ADMIN_TOKEN",
+          "FATE_API_USER_TOKENS",
+          "placeholder",
+          "changeme",
+          "dummy"
+        ]
+      }
+    },
+    "siem": {
+      "controlId": "control.external_siem_immutable_audit",
+      "productionTargetMode": "external_siem_or_immutable_audit_storage",
+      "dryRunEvidenceChecks": [
+        "SecurityControl status 必须保持 manual / external_connectivity_pending，直到真实 SIEM evidence 提供。",
+        "本地 audit_event 日志只能证明结构化审计 baseline，不证明外部 SIEM 或不可变审计存储。",
+        "live evidence 不得包含真实 endpoint、token、日志 payload、请求体、报告正文或用户标识原文。"
+      ],
+      "liveEvidenceSchema": {
+        "requiredFields": [
+          "mode",
+          "verificationStatus",
+          "externalExportProofRef",
+          "immutabilityProofRef",
+          "retentionProofRef",
+          "payloadBoundary"
+        ],
+        "allowedModes": ["append_only", "worm", "external_siem"],
+        "requiredVerificationStatus": "passed_external_siem_check",
+        "requiredPayloadBoundary": "redacted_no_payload",
+        "forbiddenProofFragments": [
+          "http://",
+          "https://",
+          "endpoint=",
+          "token",
+          "secret",
+          "request_body",
+          "report_body",
+          "placeholder"
+        ]
+      }
+    },
+    "retentionCleaner": {
+      "controlId": "control.retention_cleanup_plan",
+      "currentRecordMode": "explicit_delete",
+      "productionTargetMode": "time_based_cleanup_with_audit",
+      "dryRunEvidenceChecks": [
+        "Retention policy 登记不等于自动清理器已实现。",
+        "live evidence 必须提供清理器 smoke summary、删除模式和审计动作。",
+        "任何证据不得表示真实生产数据已经在本地测试中被删除。"
+      ],
+      "liveEvidenceSchema": {
+        "requiredFields": [
+          "mode",
+          "verificationStatus",
+          "smokeSummaryRef",
+          "deleteMode",
+          "auditAction",
+          "dryRun"
+        ],
+        "requiredMode": "time_based_cleanup_with_audit",
+        "requiredVerificationStatus": "passed_retention_cleaner_smoke",
+        "allowedDeleteModes": ["tombstone_then_purge", "hard_delete"],
+        "requiredAuditActions": ["retention.cleanup.dry_run", "retention.cleanup.completed"],
+        "forbiddenProofFragments": ["production_deleted=true", "real_user_data", "report_body", "token", "secret"]
+      }
+    }
+  },
+  "negativeEvidenceCases": [
+    {
+      "id": "fake.local_token_as_oidc",
+      "description": "本地 scoped token 不能伪装成 OIDC/IdP live evidence。",
+      "evidence": {
+        "schemaVersion": 1,
+        "kind": "fatecat.security_externalization_evidence",
+        "status": "external_live_passed",
+        "identity": {
+          "mode": "scoped_token_rbac",
+          "provider": "FATE_API_TOKEN",
+          "verificationStatus": "passed_external_oidc_check",
+          "issuerProofRef": "FATE_API_TOKEN",
+          "jwksVerificationProofRef": "local_token",
+          "audienceVerificationProofRef": "local_token",
+          "scopesVerificationProofRef": "record.read"
+        }
+      },
+      "expectedErrorContains": "identity"
+    },
+    {
+      "id": "fake.placeholder_siem",
+      "description": "占位 SIEM endpoint 或 payload 不能伪装成外部不可变审计 evidence。",
+      "evidence": {
+        "schemaVersion": 1,
+        "kind": "fatecat.security_externalization_evidence",
+        "status": "external_live_passed",
+        "identity": {
+          "mode": "external_oidc_or_idp",
+          "provider": "company-idp",
+          "verificationStatus": "passed_external_oidc_check",
+          "issuerProofRef": "evidence://identity/issuer",
+          "jwksVerificationProofRef": "evidence://identity/jwks",
+          "audienceVerificationProofRef": "evidence://identity/audience",
+          "scopesVerificationProofRef": "evidence://identity/scopes"
+        },
+        "siem": {
+          "mode": "external_siem",
+          "verificationStatus": "passed_external_siem_check",
+          "externalExportProofRef": "https://siem.example/placeholder",
+          "immutabilityProofRef": "evidence://siem/immutability",
+          "retentionProofRef": "evidence://siem/retention",
+          "payloadBoundary": "redacted_no_payload"
+        }
+      },
+      "expectedErrorContains": "siem"
+    },
+    {
+      "id": "fake.retention_without_smoke",
+      "description": "缺少 smoke summary 的 retention cleaner 不能伪装成自动清理 live evidence。",
+      "evidence": {
+        "schemaVersion": 1,
+        "kind": "fatecat.security_externalization_evidence",
+        "status": "external_live_passed",
+        "identity": {
+          "mode": "external_oidc_or_idp",
+          "provider": "company-idp",
+          "verificationStatus": "passed_external_oidc_check",
+          "issuerProofRef": "evidence://identity/issuer",
+          "jwksVerificationProofRef": "evidence://identity/jwks",
+          "audienceVerificationProofRef": "evidence://identity/audience",
+          "scopesVerificationProofRef": "evidence://identity/scopes"
+        },
+        "siem": {
+          "mode": "worm",
+          "verificationStatus": "passed_external_siem_check",
+          "externalExportProofRef": "evidence://siem/export",
+          "immutabilityProofRef": "evidence://siem/immutability",
+          "retentionProofRef": "evidence://siem/retention",
+          "payloadBoundary": "redacted_no_payload"
+        },
+        "retentionCleaner": {
+          "mode": "time_based_cleanup_with_audit",
+          "verificationStatus": "passed_retention_cleaner_smoke",
+          "deleteMode": "tombstone_then_purge",
+          "auditAction": "retention.cleanup.completed",
+          "dryRun": true
+        }
+      },
+      "expectedErrorContains": "retention"
+    }
+  ],
+  "liveEvidenceStatus": "外部连通验证待执行",
+  "privacyBoundary": "证据契约、gate output 和测试 fixture 不得包含真实 token、secret、DSN、私钥、证书、OIDC issuer URL、JWKS 内容、SIEM endpoint、日志 payload、请求体、用户输入、出生地区或报告正文。",
+  "releaseBoundary": "本契约通过只证明仓库能识别和拒绝伪造的安全外部化证据；真实生产发布仍需要外部 IdP、SIEM、不可变审计存储和 retention cleaner live evidence。"
+}

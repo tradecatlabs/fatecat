@@ -125,3 +125,5 @@
 | 0063 | measurement-infrastructure-event-contract-baseline | Done | P0 | 执行 0061 后续任务树的 Event Platform P0 切片：为 job/webhook/evaluation/release 事件新增 CloudEvents envelope 与 AsyncAPI 风格事件契约基线，提供 schema、registry、examples、event contract gate、回归测试和文档 closeout；本任务不实现真实公网 webhook live delivery、不连接外部 broker、不声明事件平台已生产。 | 0063-measurement-infrastructure-event-contract-baseline/ |
 
 | 0064 | measurement-infrastructure-otel-collector-slo-adapter | Done | P0 | 执行 0061 后续任务树的 OTel collector/SLO adapter P0 切片：为 FateCat observability 新增 OpenTelemetry Collector dry-run 配置、SLO evidence contract、collector contract gate、回归测试和文档 closeout；本任务不接入真实 trace backend、不声明生产监控或真实 error budget 已完成。 | 0064-measurement-infrastructure-otel-collector-slo-adapter/ |
+
+| 0065 | measurement-infrastructure-security-externalization-gate | Done | P0 | 执行 0061 后续任务树的 Security externalization P0 切片：新增 OIDC/SIEM/retention cleaner 外部化证据契约、反伪造 gate、回归测试、quick CI 接线和文档 closeout；本任务不接入真实 IdP、SIEM、不可变审计平台或真实数据清理器，不把本地 scoped token 写成生产身份。 | 0065-measurement-infrastructure-security-externalization-gate/ |

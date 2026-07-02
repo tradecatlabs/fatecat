@@ -51,6 +51,16 @@
     "requires_real_credentials",
     "requires_human_review"
   ],
+  "externalizationEvidenceContractFields": [
+    "contractId",
+    "status",
+    "externalConnectivity",
+    "controls",
+    "negativeEvidenceCases",
+    "liveEvidenceStatus",
+    "privacyBoundary",
+    "releaseBoundary"
+  ],
   "invariants": [
     "SecurityControl resource 只登记控制契约，不保存真实 token、secret、DSN、私钥、证书或 webhook 地址",
     "available 控制必须有本地验证命令或对应实现引用",
@@ -64,5 +74,7 @@
     "identity 控制必须明确 scoped token 只是本地 baseline，不能把它伪装成 OAuth/OIDC、外部 IdP 或生产 IAM",
     "siem 控制必须标记真实外部凭证或连通验证待执行，不得输出真实 SIEM endpoint、token 或日志 payload",
     "owasp_api_regression 控制必须映射 OWASP API Security Top 10 2023 的 10 个风险项到本地检查或明确外部待验证项"
+    ,
+    "security externalization evidence contract 必须拒绝 scoped token 伪装 OIDC、placeholder SIEM 伪装不可变审计、缺 smoke 的 retention cleaner 伪装 live evidence"
   ]
 }
