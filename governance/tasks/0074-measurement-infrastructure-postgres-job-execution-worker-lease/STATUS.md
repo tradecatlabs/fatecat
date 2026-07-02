@@ -16,7 +16,7 @@
 | TP-02 | ROOT | 1 | TP-01 | No | Done | `report_jobs.py` 新增 Postgres job claim/release、lease migration/index 和 terminal guard。 | - | - |
 | TP-03 | ROOT | 1 | TP-02 | No | Done | `scripts/postgres-job-worker-lease-smoke.py/.sh` 新增，blocked preflight 和真实 Postgres smoke 已验证。 | - | - |
 | TP-04 | ROOT | 1 | TP-03 | No | Done | runtime backend contract/schema/gate、local-ci、docs、AGENTS、regression tests 已同步。 | - | - |
-| TP-05 | ROOT | 1 | TP-04 | No | Done | ruff、focused tests、real Docker Postgres smoke、quick local-ci 和 task validators 已完成；远端 CI 交付证据在 push 后刷新。 | - | - |
+| TP-05 | ROOT | 1 | TP-04 | No | Done | ruff、focused tests、real Docker Postgres smoke、quick local-ci、task validators 和远端 Acceptance 已完成。 | - | - |
 
 # Blockers
 
@@ -42,3 +42,4 @@
 | `.venv/bin/python -m pytest -q tests/regression/test_postgres_job_worker_lease_smoke.py ...` | 44 focused tests passed |
 | `FATE_REPORT_JOB_DATABASE_URL=... bash scripts/postgres-job-worker-lease-smoke.sh --race-count 6 --output-json /tmp/fatecat-postgres-job-worker-lease-smoke-0074.json` | real Docker Postgres smoke passed: checks=17, duplicateClaimRaceCount=6, duplicateClaimWinnerCount=1 |
 | `bash scripts/local-ci.sh --profile quick --output /tmp/fatecat-local-ci-0074-final` | quick local-ci passed: 201 focused regression tests passed, ruff/mypy/secret scan/source hygiene passed |
+| `gh workflow run "FateCat Acceptance" --ref main` | run 28627056042 passed for commit 2922778c5ae63eeab5f91d145e6a09d3b573f82e: https://github.com/tradecatlabs/fatecat/actions/runs/28627056042 |

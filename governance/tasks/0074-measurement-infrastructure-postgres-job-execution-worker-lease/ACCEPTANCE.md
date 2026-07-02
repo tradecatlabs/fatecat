@@ -40,8 +40,8 @@
 
 # Ship Readiness
 
-- 本地实现和 quick local-ci 通过后可提交。
-- 远端 CI 需要 commit/push 后刷新。
+- 本地实现和 quick local-ci 已通过。
+- 远端 Acceptance 已通过：`https://github.com/tradecatlabs/fatecat/actions/runs/28627056042`。
 - 本任务只关闭 job lease primitive，不使 FateCat 达到 100% 基础设施。
 
 # Task Package Acceptance

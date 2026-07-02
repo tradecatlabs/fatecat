@@ -13,7 +13,7 @@
 | BUILD | Store 接口、Postgres 实现、smoke、wrapper、contract、local-ci、docs 和 tests 完成 | Done |
 | TEST | 语法、blocked preflight、real Postgres smoke、focused tests、local-ci 和 validators 执行 | Done |
 | REVIEW | 确认不泄露 secret、不夸大 production ready、不引入无用抽象 | Done |
-| SHIP | commit/push，刷新远端 CI evidence | Pending |
+| SHIP | commit/push，刷新远端 CI evidence | Done |
 
 # Future-Optimal Contract
 
@@ -56,7 +56,7 @@
 | 2 | TP-02 | 实现 Store/Postgres primitive | Done |
 | 3 | TP-03 | 实现 smoke 工具 | Done |
 | 4 | TP-04 | 接线 contract/docs/tests/local-ci | Done |
-| 5 | TP-05 | 验证和交付 | Pending remote CI evidence |
+| 5 | TP-05 | 验证和交付 | Done |
 
 # Runtime Workflow Contract
 

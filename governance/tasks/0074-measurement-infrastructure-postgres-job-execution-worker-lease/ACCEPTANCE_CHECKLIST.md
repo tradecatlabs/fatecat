@@ -67,4 +67,4 @@ Gate: 本地和远端证据齐全；仍不声明 production ready。
 - [x] focused tests 通过。
 - [x] local-ci quick 通过。
 - [x] task docs closeout validator 通过。
-- [ ] commit/push 和远端 CI evidence 完成。
+- [x] commit/push 和远端 CI evidence 完成。
