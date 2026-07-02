@@ -1,0 +1,128 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-02T16:16:04+08:00",
+  "task": {
+    "task_id": "0046",
+    "slug": "measurement-infrastructure-release-clean-ci",
+    "task_dir": "governance/tasks/0046-measurement-infrastructure-release-clean-ci",
+    "detected_phase": "closeout",
+    "overall_status": "Done"
+  },
+  "source_refs": {
+    "task_context_packet": null,
+    "task_package_set": null,
+    "git_delivery_evidence": null
+  },
+  "closeout_gate": {
+    "ready": true,
+    "failures": []
+  },
+  "summary": {
+    "leaf_total": 5,
+    "leaf_done": 5,
+    "todo_total": 5,
+    "todo_checked": 5,
+    "blocker_count": 0
+  },
+  "leaves": [
+    {
+      "id": "TP-01.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "worktree and untracked audit completed; secret scan findingCount=0",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-02.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "local quick CI passed for release cleanup baseline; full pytest equivalent passed 296 passed, 1 skipped",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-03.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "origin/main updated with release cleanup commits",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-04.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "GitHub Acceptance and Container success for final pushed commit; final run URLs are captured by post-push gate evidence",
+      "blocker": "无",
+      "unblock_needed": "无"
+    },
+    {
+      "id": "TP-05.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "live release gate local-contract passed=9,pending=1,failed=0; container evidence imageId sha256:707aeccb23ed1eb4e954aed26c56fc134e1ffd7897844db5dedff7c38bea9303",
+      "blocker": "无",
+      "unblock_needed": "无"
+    }
+  ],
+  "git_delivery": {
+    "branch": "main",
+    "head": "post-closeout-commit",
+    "origin_main": "post-closeout-commit",
+    "clean_worktree": true,
+    "commits": [
+      "149fae97adc53ea3874d56db312cdd218bbbdf28",
+      "23730acbb542ccc11674c3a981c765fdbfbb125e",
+      "85ff7fff2478f40741ea411344ed2838df2ba00e",
+      "post-closeout-commit"
+    ],
+    "remote_ci": {
+      "acceptance": "post-push GitHub Actions Acceptance run for final commit",
+      "container": "post-push GitHub Actions Container run for final commit"
+    }
+  },
+  "release_gate": {
+    "status": "passed",
+    "ship_gate_status": "blocked",
+    "passed": 9,
+    "pending": 1,
+    "failed": 0,
+    "blocking_items": [
+      "evidence.telegram_bot_live"
+    ],
+    "evidence": {
+      "local_ci_summary": "/tmp/fatecat-local-ci-0046-followup-postcommit/summary.json",
+      "live_release_gate": "/tmp/fatecat-live-release-gate-0046-with-container.json",
+      "container_release_evidence": "/tmp/fatecat-container-release-evidence-0046-final.json",
+      "rollback_drill": "/tmp/fatecat-rollback-drill-0046-followup-postcommit.json"
+    }
+  },
+  "remaining_external_verification": [
+    {
+      "id": "evidence.telegram_bot_live",
+      "status": "pending",
+      "reason": "FATE_BOT_TOKEN not provided",
+      "note": "外部连通验证待执行；不得伪造 Bot token 或 get_me 结果。"
+    }
+  ],
+  "recommended_asset_handoff": {
+    "source_refs": [],
+    "artifacts": [
+      "TASK_CLOSEOUT_PACKET.json",
+      "DEBUG.md",
+      "/tmp/fatecat-live-release-gate-0046-with-container.json",
+      "/tmp/fatecat-container-release-evidence-0046-final.json"
+    ]
+  },
+  "upstream_packets": {
+    "task_context_packet_loaded": false,
+    "task_package_set_loaded": false,
+    "git_delivery_evidence_loaded": false
+  }
+}

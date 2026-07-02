@@ -92,4 +92,4 @@
 
 | 0045 | measurement-infrastructure-100-final-plan-refresh | Done | P0 | 基于成熟基础设施官方资料、当前 0009-0044 任务事实和 live release gate 现状，刷新 FateCat 达到 100% 测算基础设施所需的完整实现计划、剩余任务树、验收证据和不可伪造外部验证口径；本任务只落盘规划，不实现业务功能。 | 0045-measurement-infrastructure-100-final-plan-refresh/ |
 
-| 0046 | measurement-infrastructure-release-clean-ci | In Progress | P0 | 把当前本地测算基础设施改动收口为可发布交付状态：审计并归类未提交改动，运行本地发布门禁，按清晰边界提交并推送当前 main，获取远端 GitHub Actions 当前 commit 证据，最终让 clean git state 和 remote_ci_current_commit 进入 live release gate；不伪造 Bot token、registry signature 或外部生产平台证据。 | 0046-measurement-infrastructure-release-clean-ci/ |
+| 0046 | measurement-infrastructure-release-clean-ci | Done | P0 | 把当前本地测算基础设施改动收口为可发布交付状态：审计并归类未提交改动，运行本地发布门禁，按清晰边界提交并推送当前 main，获取远端 GitHub Actions 当前 commit 证据，最终让 clean git state 和 remote_ci_current_commit 进入 live release gate；不伪造 Bot token、registry signature 或外部生产平台证据。 | 0046-measurement-infrastructure-release-clean-ci/ |

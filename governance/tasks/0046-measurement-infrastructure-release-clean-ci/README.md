@@ -2,7 +2,7 @@
 - Task ID: `0046`
 - Slug: `measurement-infrastructure-release-clean-ci`
 - Objective: `把当前本地测算基础设施改动收口为可发布交付状态：审计并归类未提交改动，运行本地发布门禁，按清晰边界提交并推送当前 main，获取远端 GitHub Actions 当前 commit 证据，最终让 clean git state 和 remote_ci_current_commit 进入 live release gate；不伪造 Bot token、registry signature 或外部生产平台证据。`
-- Status: `In Progress`
+- Status: `Done`
 
 ## In Scope
 - 审计当前 dirty worktree，确认改动属于测算基础设施批次。
@@ -40,10 +40,10 @@ ROOT
 | ID | Name | Status | Verify |
 | --- | --- | --- | --- |
 | TP-01.01 | 工作树审计 | Done | `git status --short --branch`、`git diff --stat`、untracked 统计 |
-| TP-02.01 | 本地发布门禁 | Done | task tree、`git diff --check`、`bash scripts/local-ci.sh --profile quick` |
-| TP-03.01 | 提交推送 | In Progress | `git commit`、`git push origin main` |
-| TP-04.01 | 远端 CI 证据 | Pending | `gh run list` 或 GitHub Actions URL/head SHA |
-| TP-05.01 | closeout | Pending | `TASK_CLOSEOUT_PACKET.json` ready |
+| TP-02.01 | 本地发布门禁 | Done | `bash scripts/local-ci.sh --profile quick --output /tmp/fatecat-local-ci-0046-followup-postcommit` |
+| TP-03.01 | 提交推送 | Done | 发布收口 commit 已推送到 `origin/main` |
+| TP-04.01 | 远端 CI 证据 | Done | 当前最终 commit 以 GitHub Actions Acceptance/Container success 为准 |
+| TP-05.01 | closeout | Done | `TASK_CLOSEOUT_PACKET.json` ready |
 
 ## Reading Order
 1. README.md

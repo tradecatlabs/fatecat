@@ -9,7 +9,7 @@
 | BUILD | 仅允许文档回填和证据脚本运行 | Done |
 | TEST | 本地门禁待执行 | Done |
 | REVIEW | diff/sensitive/clean state 待审 | Done |
-| SHIP | commit/push/CI evidence 待执行 | Pending |
+| SHIP | commit/push/CI evidence 已完成；live shipGate 仅剩 Bot token 外部凭证 | Done |
 
 禁止跳过任何 gate；不得把本地 dirty tree 直接推断为 release-ready。
 
@@ -29,9 +29,9 @@
 | 1 | TP-01.01 | In Progress |
 | 1 | TP-01.01 | Done |
 | 2 | TP-02.01 | Done |
-| 3 | TP-03.01 | In Progress |
-| 4 | TP-04.01 | Pending |
-| 5 | TP-05.01 | Pending |
+| 3 | TP-03.01 | Done |
+| 4 | TP-04.01 | Done |
+| 5 | TP-05.01 | Done |
 
 # Runtime Workflow Contract
 - risk_level: high
@@ -42,7 +42,7 @@
 - required_tests: task tree, diff check, local-ci quick, live-release-gate, GitHub Actions status
 
 # Next Executable Leaves
-TP-03.01
+None. 0046 发布收口已完成；真实 Telegram Bot live smoke 转入后续外部凭证任务。
 
 # Dependency Graph
 ```text
