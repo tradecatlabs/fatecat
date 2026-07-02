@@ -348,8 +348,26 @@ def test_observability_signal_schema_and_registry_define_available_and_planned_b
     assert "TestClient" in registry["metadata"]["smokeScope"]
     assert registry["metadata"]["traceSloSmokeCommand"] == "bash scripts/observability-trace-slo-smoke.sh"
     assert registry["metadata"]["sloGateCommand"] == "bash scripts/observability-slo-gate.sh"
+    assert registry["metadata"]["otelCollectorSloGateCommand"] == "bash scripts/otel-collector-slo-gate.sh"
+    assert registry["metadata"]["otelCollectorConfig"] == "contracts/fate/observability/otel-collector.dry-run.yaml"
+    assert registry["metadata"]["sloEvidenceContract"] == "contracts/fate/observability/slo-evidence-contract.json"
     assert registry["schemas"]["sloPolicy"] == "contracts/fate/observability/slo-policy.json"
     assert registry["schemas"]["alertRules"] == "contracts/fate/observability/alert-rules.json"
+    assert registry["schemas"]["otelCollectorDryRunConfig"] == (
+        "contracts/fate/observability/otel-collector.dry-run.yaml"
+    )
+    assert registry["schemas"]["sloEvidenceContract"] == "contracts/fate/observability/slo-evidence-contract.json"
+    assert schema["otelCollectorAdapterFields"] == [
+        "collectorConfig",
+        "sloEvidenceContract",
+        "dryRunGate",
+        "liveEvidencePolicy",
+        "privacyBoundary",
+    ]
+    assert (
+        "OTel collector dry-run config 不得被解释为真实 collector runtime、trace backend、metrics backend 或 alert live 已完成"
+        in schema["invariants"]
+    )
     assert {
         "signal.health",
         "signal.readiness",
@@ -358,6 +376,8 @@ def test_observability_signal_schema_and_registry_define_available_and_planned_b
         "signal.request_id_and_structured_logs",
         "signal.provider_report_traces",
         "signal.slo_and_alerts",
+        "signal.otel_collector_dry_run",
+        "signal.slo_evidence_contract",
     } <= set(signals)
 
     for item in signals.values():
@@ -392,6 +412,19 @@ def test_observability_signal_schema_and_registry_define_available_and_planned_b
     assert slo_alerts["status"] == "available"
     assert "contracts/fate/observability/slo-policy.json" in slo_alerts["endpoint"]
     assert slo_alerts["externalConnectivity"] == "external_connectivity_pending"
+
+    otel_collector = signals["signal.otel_collector_dry_run"]
+    assert otel_collector["status"] == "available"
+    assert otel_collector["endpoint"] == "contracts/fate/observability/otel-collector.dry-run.yaml"
+    assert "receivers.otlp" in otel_collector["fields"]
+    assert otel_collector["externalConnectivity"] == "external_connectivity_pending"
+    assert "collector runtime" in otel_collector["metadata"]["risk"]
+
+    slo_evidence = signals["signal.slo_evidence_contract"]
+    assert slo_evidence["status"] == "available"
+    assert slo_evidence["endpoint"] == "contracts/fate/observability/slo-evidence-contract.json"
+    assert "liveEvidence.requiredBeforeProduction" in slo_evidence["fields"]
+    assert slo_evidence["externalConnectivity"] == "external_connectivity_pending"
 
 
 def test_security_control_schema_and_registry_define_gate_boundaries():

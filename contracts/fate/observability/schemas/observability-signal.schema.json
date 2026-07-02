@@ -31,11 +31,19 @@
     "requires_collector",
     "requires_production_traffic"
   ],
+  "otelCollectorAdapterFields": [
+    "collectorConfig",
+    "sloEvidenceContract",
+    "dryRunGate",
+    "liveEvidencePolicy",
+    "privacyBoundary"
+  ],
   "invariants": [
     "ObservabilitySignal resource 只登记信号契约，不保存运行时观测数据",
     "available 信号必须有本地验证命令或可访问端点",
     "planned 信号不得写成生产已验证能力",
     "日志类信号不得记录真实 token、secret、DSN、私钥或用户隐私样例",
-    "SLO、alert 和 trace backend 未接入真实外部系统前必须标记 externalConnectivity=external_connectivity_pending"
+    "SLO、alert 和 trace backend 未接入真实外部系统前必须标记 externalConnectivity=external_connectivity_pending",
+    "OTel collector dry-run config 不得被解释为真实 collector runtime、trace backend、metrics backend 或 alert live 已完成"
   ]
 }

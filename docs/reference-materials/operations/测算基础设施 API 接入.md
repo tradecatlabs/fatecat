@@ -318,6 +318,15 @@ bash scripts/observability-slo-gate.sh \
 
 当前 trace baseline 使用 W3C `traceparent` 和 OpenTelemetry 语义兼容的本地结构化 span 日志，覆盖 `http.request`、`capability.execute`、`provider.validate`、`provider.calculate`、`report.calculate` 和 `report.render_markdown`。Span 只允许记录 trace/span ID、span 名称、耗时、状态、错误类别和白名单聚合属性；不得记录用户出生信息、报告正文、token、secret 或 DSN。
 
+OTel collector / SLO adapter dry-run contract gate：
+
+```bash
+bash scripts/otel-collector-slo-gate.sh \
+  --output-json infra/runtime/local-state/exports/observability/otel-collector-slo-gate.json
+```
+
+0064 新增 `contracts/fate/observability/otel-collector.dry-run.yaml` 和 `contracts/fate/observability/slo-evidence-contract.json`，用于描述 OTLP receiver、memory/batch/resource processors、debug/prometheus exporter、traces/metrics/logs pipelines、dry-run evidence 和 live evidence pending 清单。该 gate 只解析本地 YAML/JSON contract，并复用本地 SLO/alert policy gate；它不启动真实 OpenTelemetry Collector，不连接 trace backend、metrics backend、Alertmanager、Grafana、PagerDuty 或云监控，也不证明真实生产流量 error budget 已计算。
+
 ## 安全控制资源入口
 
 ```bash

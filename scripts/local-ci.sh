@@ -159,6 +159,8 @@ run_quick() {
     --output-json "${output_dir}/observability-slo-gate.json"
   run_step "observability trace SLO smoke" bash "${script_dir}/observability-trace-slo-smoke.sh" \
     --output-json "${output_dir}/observability-trace-slo-smoke.json"
+  run_step "OTel collector SLO gate" bash "${script_dir}/otel-collector-slo-gate.sh" \
+    --output-json "${output_dir}/otel-collector-slo-gate.json"
   run_step "bazi ziwei L4 golden smoke" bash "${script_dir}/bazi-ziwei-l4-golden-smoke.sh" \
     --profile quick \
     --output-json "${output_dir}/bazi-ziwei-l4-golden-smoke.json"
@@ -338,6 +340,7 @@ write_summary() {
   FATE_LOCAL_CI_PROVIDER_DEPENDENCY_SMOKE="${output_dir}/provider-dependency-smoke.json" \
   FATE_LOCAL_CI_OBSERVABILITY_SLO_GATE="${output_dir}/observability-slo-gate.json" \
   FATE_LOCAL_CI_OBSERVABILITY_TRACE_SLO_SMOKE="${output_dir}/observability-trace-slo-smoke.json" \
+  FATE_LOCAL_CI_OTEL_COLLECTOR_SLO_GATE="${output_dir}/otel-collector-slo-gate.json" \
   FATE_LOCAL_CI_BAZI_ZIWEI_L4_GOLDEN_SMOKE="${output_dir}/bazi-ziwei-l4-golden-smoke.json" \
   FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE="${output_dir}/data-supply-chain-gate.json" \
   FATE_LOCAL_CI_RUNTIME_BACKEND_GATE="${output_dir}/runtime-backend-gate.json" \
@@ -389,6 +392,7 @@ payload = {
         "providerDependencySmoke": env("FATE_LOCAL_CI_PROVIDER_DEPENDENCY_SMOKE"),
         "observabilitySloGate": env("FATE_LOCAL_CI_OBSERVABILITY_SLO_GATE"),
         "observabilityTraceSloSmoke": env("FATE_LOCAL_CI_OBSERVABILITY_TRACE_SLO_SMOKE"),
+        "otelCollectorSloGate": env("FATE_LOCAL_CI_OTEL_COLLECTOR_SLO_GATE"),
         "baziZiweiL4GoldenSmoke": env("FATE_LOCAL_CI_BAZI_ZIWEI_L4_GOLDEN_SMOKE"),
         "dataSupplyChainGate": env("FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE"),
         "runtimeBackendGate": env("FATE_LOCAL_CI_RUNTIME_BACKEND_GATE"),

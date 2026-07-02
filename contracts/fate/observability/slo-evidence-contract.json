@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": "fatecat.tradecatlabs/v1",
+  "kind": "SloEvidenceContract",
+  "description": "FateCat OTel collector 与 SLO evidence 契约。该契约只定义 dry-run 与 live evidence 的边界，不保存真实生产指标、trace、日志或告警数据。",
+  "collectorConfig": "contracts/fate/observability/otel-collector.dry-run.yaml",
+  "sloPolicy": "contracts/fate/observability/slo-policy.json",
+  "alertRules": "contracts/fate/observability/alert-rules.json",
+  "dryRunEvidence": {
+    "status": "available",
+    "requiredChecks": [
+      {
+        "id": "collector_config_parse",
+        "command": "bash scripts/otel-collector-slo-gate.sh --output-json <path>",
+        "proves": "Collector dry-run config, SLO evidence contract, registry links and privacy boundary are machine-verifiable."
+      },
+      {
+        "id": "local_trace_slo_smoke",
+        "command": "bash scripts/observability-trace-slo-smoke.sh --output-json <path>",
+        "proves": "Local W3C traceparent propagation, provider/report span logs and SLO policy gate can run without an external backend."
+      },
+      {
+        "id": "slo_policy_gate",
+        "command": "bash scripts/observability-slo-gate.sh --output-json <path>",
+        "proves": "SLO objectives and alert rules are structurally valid."
+      }
+    ]
+  },
+  "liveEvidence": {
+    "status": "external_connectivity_pending",
+    "message": "外部连通验证待执行",
+    "requiredBeforeProduction": [
+      {
+        "id": "collector_runtime",
+        "evidence": "Collector process or deployment evidence for the current release commit."
+      },
+      {
+        "id": "trace_backend",
+        "evidence": "Trace backend query URL or exported trace proof with sensitive fields redacted."
+      },
+      {
+        "id": "metrics_backend",
+        "evidence": "Prometheus or equivalent metrics backend scrape/query evidence."
+      },
+      {
+        "id": "alert_platform",
+        "evidence": "Alert routing or dry/live notification evidence from the configured platform."
+      },
+      {
+        "id": "error_budget",
+        "evidence": "Real production traffic window and computed SLO/error-budget evidence."
+      }
+    ]
+  },
+  "forbiddenClaimBoundary": {
+    "mustNotClaim": [
+      "trace backend live",
+      "collector runtime live",
+      "production SLO computed",
+      "alert live",
+      "incident drill completed"
+    ],
+    "allowedClaim": "OTel collector/SLO adapter dry-run contract baseline passed locally."
+  },
+  "privacyBoundary": "Evidence contract must not contain user input, birth place, report body, token, secret, DSN, webhook URL, production logs, metrics snapshot or trace payload.",
+  "externalConnectivity": "external_connectivity_pending",
+  "metadata": {
+    "owner": "contracts/fate/observability",
+    "gate": "bash scripts/otel-collector-slo-gate.sh --output-json <path>",
+    "releaseGate": "required_local_contract",
+    "risk": "本契约不证明真实 collector、trace backend、alert platform 或 production error budget 已完成。"
+  }
+}

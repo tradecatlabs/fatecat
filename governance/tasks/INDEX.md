@@ -123,3 +123,5 @@
 | 0062 | measurement-infrastructure-runtime-backend-contract | Done | P0 | 执行 0061 后续任务树的第一个 P0 切片：为 CalculationJob durable runtime 新增 external backend contract baseline，登记 memory/sqlite/postgres/temporal/redis_queue 的成熟度、生产边界、证据要求和迁移路径，新增 runtime backend gate、回归测试、文档和任务 closeout；本任务不实现真实 Postgres/Temporal adapter、不声明 external backend 已生产。 | 0062-measurement-infrastructure-runtime-backend-contract/ |
 
 | 0063 | measurement-infrastructure-event-contract-baseline | Done | P0 | 执行 0061 后续任务树的 Event Platform P0 切片：为 job/webhook/evaluation/release 事件新增 CloudEvents envelope 与 AsyncAPI 风格事件契约基线，提供 schema、registry、examples、event contract gate、回归测试和文档 closeout；本任务不实现真实公网 webhook live delivery、不连接外部 broker、不声明事件平台已生产。 | 0063-measurement-infrastructure-event-contract-baseline/ |
+
+| 0064 | measurement-infrastructure-otel-collector-slo-adapter | Done | P0 | 执行 0061 后续任务树的 OTel collector/SLO adapter P0 切片：为 FateCat observability 新增 OpenTelemetry Collector dry-run 配置、SLO evidence contract、collector contract gate、回归测试和文档 closeout；本任务不接入真实 trace backend、不声明生产监控或真实 error budget 已完成。 | 0064-measurement-infrastructure-otel-collector-slo-adapter/ |

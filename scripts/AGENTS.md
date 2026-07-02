@@ -38,6 +38,8 @@ scripts/
 ├── observability-slo-gate.py
 ├── observability-trace-slo-smoke.sh
 ├── observability-trace-slo-smoke.py
+├── otel-collector-slo-gate.sh
+├── otel-collector-slo-gate.py
 ├── preflight.sh
 ├── provider-dependency-smoke.sh
 ├── provider-dependency-smoke.py
@@ -97,6 +99,7 @@ scripts/
 - `observability-smoke.sh` / `observability-smoke.py` 是本地观测 smoke；用 TestClient 验证 health、ready、metrics、request-id、结构化日志和 observability registry metadata。
 - `observability-slo-gate.sh` / `observability-slo-gate.py` 是本地 SLO/alert policy gate；校验 observability registry、SLO objectives、alert rules、runbook 引用和隐私边界，不读取真实生产指标或日志。
 - `observability-trace-slo-smoke.sh` / `observability-trace-slo-smoke.py` 是本地 trace/SLO smoke；验证 W3C `traceparent` 传播、OpenTelemetry 语义兼容 span 日志、API/provider/report trace、SLO policy 和 alert rules，不接外部 collector。
+- `otel-collector-slo-gate.sh` / `otel-collector-slo-gate.py` 是 OTel collector/SLO adapter contract gate；校验 dry-run collector config、SLO evidence contract、registry/schema 链接和外部 pending 边界，不启动真实 collector 或访问 trace backend。
 - `provider-dependency-smoke.sh` / `provider-dependency-smoke.py` 是 production provider 本地依赖执行 smoke；通过统一 `CapabilityExecutor` 和脱敏固定样例验证 provider validate/calculate 链路，不访问公网或真实账号。
 - `provider-lifecycle-gate.sh` / `provider-lifecycle-gate.py` 是 production provider 生命周期门禁；校验 versionLock、source/license/resource manifest、promotionGate、deprecation 和 vendor source 生产使用许可。
 - `production-security-gate.sh` / `production-security-gate.py` 是生产安全 contract gate；验证生产身份外部化、OIDC/IdP 准入、SIEM/不可变审计存储、retention 自动清理计划和 OWASP API Security Top 10 回归包，不连接真实外部账号或 SIEM。

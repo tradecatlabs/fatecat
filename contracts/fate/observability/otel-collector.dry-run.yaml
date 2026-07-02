@@ -1,0 +1,69 @@
+schemaVersion: 1
+kind: fatecat.otelCollectorDryRun
+description: >
+  FateCat OpenTelemetry Collector dry-run configuration contract. This file
+  models the intended local collector shape for traces, metrics and logs, but
+  it is not a production collector deployment and does not prove a live trace
+  backend.
+mode: dry-run-contract
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 127.0.0.1:4317
+      http:
+        endpoint: 127.0.0.1:4318
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 256
+    spike_limit_mib: 64
+  batch:
+    timeout: 5s
+    send_batch_size: 512
+  resource:
+    attributes:
+      - key: service.name
+        value: fatecat-delivery
+        action: upsert
+      - key: deployment.environment
+        value: dry-run
+        action: upsert
+exporters:
+  debug:
+    verbosity: basic
+  prometheus:
+    endpoint: 127.0.0.1:9464
+service:
+  telemetry:
+    logs:
+      level: info
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, batch]
+      exporters: [debug]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, batch]
+      exporters: [debug, prometheus]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, batch]
+      exporters: [debug]
+fatecat:
+  localVerification:
+    - bash scripts/otel-collector-slo-gate.sh --output-json infra/runtime/local-state/exports/observability/otel-collector-slo-gate.json
+    - bash scripts/observability-trace-slo-smoke.sh --output-json infra/runtime/local-state/exports/observability/trace-slo-smoke.json
+    - bash scripts/observability-slo-gate.sh --output-json infra/runtime/local-state/exports/observability/slo-gate.json
+  externalConnectivity: external_connectivity_pending
+  liveEvidence: 外部连通验证待执行
+  privacyBoundary: >
+    Dry-run collector config only contains loopback endpoints, pipeline names,
+    local verification commands and policy text. It must not contain user input,
+    birth place, report body, token, secret, DSN, production logs, metrics
+    snapshots or trace payloads.
+  nonProductionClaims:
+    - This dry-run config does not start a collector process.
+    - This dry-run config does not connect to a trace backend.
+    - This dry-run config does not prove Prometheus, Alertmanager, Grafana, PagerDuty or cloud monitoring live status.
