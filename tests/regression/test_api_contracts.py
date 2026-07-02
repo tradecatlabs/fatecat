@@ -781,6 +781,11 @@ def test_markdown_report_job_gate_api_returns_status_then_result():
 
     final_body = _wait_for_report_job(client, body["data"]["jobId"])
     assert final_body["data"]["status"] == "succeeded"
+    event_types = [item["eventType"] for item in final_body["data"]["events"]]
+    assert event_types == ["job.queued", "job.running", "job.succeeded"]
+    event_text = json.dumps(final_body["data"]["events"], ensure_ascii=False)
+    assert "测试样本" not in event_text
+    assert "北京" not in event_text
     assert final_body["data"]["result"]["reportSystem"] == "bazi"
     assert final_body["data"]["result"]["policyGate"]["status"] == "pass"
     assert final_body["data"]["result"]["snapshotGate"]["status"] == "pass"
@@ -958,6 +963,7 @@ def test_sqlite_report_job_store_persists_finished_jobs_and_idempotency(tmp_path
 
     final_snapshot = _wait_for_manager_job(manager, created.job_id)
     assert final_snapshot.status == "succeeded"
+    assert [event.event_type for event in final_snapshot.events] == ["job.queued", "job.running", "job.succeeded"]
     assert final_snapshot.result == {"reportSystem": "bazi", "markdown": "persisted"}
 
     rebuilt = ReportJobManager(
@@ -971,6 +977,7 @@ def test_sqlite_report_job_store_persists_finished_jobs_and_idempotency(tmp_path
     assert loaded.result == {"reportSystem": "bazi", "markdown": "persisted"}
     assert loaded.input_summary == {"name": "测试样本"}
     assert loaded.idempotency_key == "sqlite-persist-regression"
+    assert [event.event_type for event in loaded.events] == ["job.queued", "job.running", "job.succeeded"]
 
     duplicate = rebuilt.submit(
         kind="markdown",
@@ -982,6 +989,7 @@ def test_sqlite_report_job_store_persists_finished_jobs_and_idempotency(tmp_path
     assert duplicate.job_id == created.job_id
     assert duplicate.status == "succeeded"
     assert duplicate.result == {"reportSystem": "bazi", "markdown": "persisted"}
+    assert [event.event_type for event in duplicate.events] == ["job.queued", "job.running", "job.succeeded"]
 
 
 def test_sqlite_report_job_store_persists_cancelled_jobs(tmp_path):
@@ -1050,6 +1058,11 @@ def test_sqlite_report_job_store_marks_active_jobs_failed_after_rebuild(tmp_path
     release.set()
     assert loaded.status == "failed"
     assert loaded.error == "任务执行器已重启，未完成任务已终止"
+    assert [event.event_type for event in loaded.events] == [
+        "job.queued",
+        "job.running",
+        "job.recovered_failed",
+    ]
 
 
 def test_markdown_report_job_can_be_cancelled(monkeypatch, caplog):

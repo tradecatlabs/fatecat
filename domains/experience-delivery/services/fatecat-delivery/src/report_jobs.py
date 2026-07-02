@@ -1,6 +1,6 @@
 """报告生成任务队列。
 
-该模块负责报告任务生命周期：排队、执行、状态查询、TTL 过期、指标和可选持久化。
+该模块负责报告任务生命周期：排队、执行、状态查询、TTL 过期、事件历史、指标和可选持久化。
 默认仍使用单进程内存队列；自部署可以启用 SQLite backend 获得本地跨 manager 查询能力。
 SQLite backend 不是分布式队列，不负责多副本抢任务或跨进程继续执行未完成 callable。
 """
@@ -36,6 +36,17 @@ class ReportJobNotFound(KeyError):
 
 
 @dataclass(frozen=True)
+class ReportJobEvent:
+    event_id: str
+    job_id: str
+    event_type: str
+    status: ReportJobStatus
+    created_at: str
+    message: str | None
+    metadata: dict[str, Any]
+
+
+@dataclass(frozen=True)
 class ReportJobSnapshot:
     job_id: str
     kind: str
@@ -52,6 +63,7 @@ class ReportJobSnapshot:
     idempotency_key: str | None
     webhook_enabled: bool
     webhook_signature: str
+    events: tuple[ReportJobEvent, ...]
 
 
 ReportJobWebhookDispatcher = Callable[[ReportJobSnapshot, Any], Any]
@@ -88,17 +100,35 @@ class ReportJobStore:
     def save_job(self, _job: _ReportJob) -> None:
         return
 
+    def load_job_events(self, _job_id: str) -> list[ReportJobEvent]:
+        return []
+
+    def append_job_event(self, _event: ReportJobEvent) -> None:
+        return
+
 
 class InMemoryReportJobStore(ReportJobStore):
-    """默认空持久化实现；真实状态仍由 manager 内存字典持有。"""
+    """默认单进程事件存储；任务主体状态仍由 manager 内存字典持有。"""
 
     backend_name = "memory"
+
+    def __init__(self) -> None:
+        self._events: dict[str, list[ReportJobEvent]] = {}
+        self._lock = Lock()
+
+    def load_job_events(self, job_id: str) -> list[ReportJobEvent]:
+        with self._lock:
+            return list(self._events.get(job_id, ()))
+
+    def append_job_event(self, event: ReportJobEvent) -> None:
+        with self._lock:
+            self._events.setdefault(event.job_id, []).append(event)
 
 
 class SQLiteReportJobStore(ReportJobStore):
     """SQLite 报告任务状态存储。
 
-    该 backend 只持久化任务状态、结果和幂等索引；callable 不可序列化，因此重建 manager
+    该 backend 只持久化任务状态、结果、幂等索引和事件历史；callable 不可序列化，因此重建 manager
     时会把遗留的 queued/running 任务标记为 failed，避免假装任务仍可继续执行。
     """
 
@@ -164,6 +194,39 @@ class SQLiteReportJobStore(ReportJobStore):
                 ),
             )
 
+    def load_job_events(self, job_id: str) -> list[ReportJobEvent]:
+        with self._lock, self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT event_id, job_id, event_type, status, created_at, message, metadata_json
+                FROM report_job_events
+                WHERE job_id = ?
+                ORDER BY sequence ASC
+                """,
+                (job_id,),
+            ).fetchall()
+        return [self._row_to_event(row) for row in rows]
+
+    def append_job_event(self, event: ReportJobEvent) -> None:
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO report_job_events (
+                    event_id, job_id, event_type, status, created_at, message, metadata_json
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    event.event_id,
+                    event.job_id,
+                    event.event_type,
+                    event.status,
+                    event.created_at,
+                    event.message,
+                    _json_dumps(event.metadata),
+                ),
+            )
+
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
@@ -196,6 +259,23 @@ class SQLiteReportJobStore(ReportJobStore):
             )
             conn.execute("CREATE INDEX IF NOT EXISTS idx_report_jobs_status ON report_jobs(status)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_report_jobs_expires_at ON report_jobs(expires_at)")
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS report_job_events (
+                    sequence INTEGER PRIMARY KEY AUTOINCREMENT,
+                    event_id TEXT NOT NULL UNIQUE,
+                    job_id TEXT NOT NULL,
+                    event_type TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    message TEXT,
+                    metadata_json TEXT NOT NULL
+                )
+                """
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_report_job_events_job_sequence ON report_job_events(job_id, sequence)"
+            )
 
     def _row_to_job(self, row: sqlite3.Row) -> _ReportJob:
         return _ReportJob(
@@ -215,6 +295,18 @@ class SQLiteReportJobStore(ReportJobStore):
             finished_at=row["finished_at"],
             error=row["error"],
             result=_json_loads(row["result_json"]),
+        )
+
+    def _row_to_event(self, row: sqlite3.Row) -> ReportJobEvent:
+        metadata = _json_loads(row["metadata_json"])
+        return ReportJobEvent(
+            event_id=str(row["event_id"]),
+            job_id=str(row["job_id"]),
+            event_type=str(row["event_type"]),
+            status=_coerce_status(str(row["status"])),
+            created_at=str(row["created_at"]),
+            message=row["message"],
+            metadata=metadata if isinstance(metadata, dict) else {},
         )
 
 
@@ -312,6 +404,17 @@ class ReportJobManager:
                     self._idempotency_index.pop(normalized_idempotency_key, None)
                 raise ReportJobQueueFull("报告队列已满，请稍后再试") from exc
             self._persist_locked(job)
+            self._append_event_locked(
+                job,
+                "job.queued",
+                "报告任务已进入队列",
+                {
+                    "kind": kind,
+                    "reportSystem": report_system,
+                    "idempotencyKeyProvided": normalized_idempotency_key is not None,
+                    "webhookEnabled": webhook_config is not None,
+                },
+            )
             return self._snapshot_locked(job)
 
     def get(self, job_id: str) -> ReportJobSnapshot:
@@ -340,6 +443,7 @@ class ReportJobManager:
             job.error = None
             job.finished_at = now_cn().isoformat()
             self._persist_locked(job)
+            self._append_event_locked(job, "job.cancelled", "报告任务已取消")
             callback_snapshot = self._snapshot_locked(job)
             callback_config = job.webhook_config
         self._dispatch_terminal_webhook(callback_snapshot, callback_config)
@@ -358,14 +462,9 @@ class ReportJobManager:
             return counts
 
     def cleanup_expired(self) -> None:
-        now = time.monotonic()
         with self._lock:
             for job in self._jobs.values():
-                if job.status in {"queued", "succeeded", "failed", "cancelled"} and now >= job.expires_monotonic:
-                    job.status = "expired"
-                    job.task = None
-                    job.result = None
-                    self._persist_locked(job)
+                self._expire_job_if_needed_locked(job)
 
     def _load_persisted_jobs(self) -> None:
         recovered = self.store.load_jobs()
@@ -378,6 +477,12 @@ class ReportJobManager:
                 job.error = job.error or "任务执行器已重启，未完成任务已终止"
                 job.finished_at = job.finished_at or now_cn().isoformat()
                 self.store.save_job(job)
+                self._append_event_locked(
+                    job,
+                    "job.recovered_failed",
+                    "任务执行器重启后将未完成任务标记为失败",
+                    {"reason": "manager_rebuild"},
+                )
             self._jobs[job.job_id] = job
             if job.idempotency_key:
                 self._idempotency_index[job.idempotency_key] = job.job_id
@@ -403,6 +508,7 @@ class ReportJobManager:
             job.status = "running"
             job.started_at = now_cn().isoformat()
             self._persist_locked(job)
+            self._append_event_locked(job, "job.running", "报告任务开始执行")
 
         if task is None:
             return
@@ -420,6 +526,12 @@ class ReportJobManager:
                     job.finished_at = now_cn().isoformat()
                     job.task = None
                     self._persist_locked(job)
+                    self._append_event_locked(
+                        job,
+                        "job.failed",
+                        "报告任务执行失败",
+                        {"error": _truncate_event_text(job.error)},
+                    )
                     callback_snapshot = self._snapshot_locked(job)
                     callback_config = job.webhook_config
             self._dispatch_terminal_webhook(callback_snapshot, callback_config)
@@ -441,6 +553,7 @@ class ReportJobManager:
             job.finished_at = now_cn().isoformat()
             job.task = None
             self._persist_locked(job)
+            self._append_event_locked(job, "job.succeeded", "报告任务执行成功")
             callback_snapshot = self._snapshot_locked(job)
             callback_config = job.webhook_config
         self._dispatch_terminal_webhook(callback_snapshot, callback_config)
@@ -451,6 +564,7 @@ class ReportJobManager:
             job.task = None
             job.result = None
             self._persist_locked(job)
+            self._append_event_locked(job, "job.expired", "报告任务已过期")
 
     def _snapshot_locked(self, job: _ReportJob) -> ReportJobSnapshot:
         return ReportJobSnapshot(
@@ -471,10 +585,30 @@ class ReportJobManager:
             webhook_signature=getattr(job.webhook_config, "signature_mode", "none")
             if job.webhook_config is not None
             else "none",
+            events=tuple(self.store.load_job_events(job.job_id)),
         )
 
     def _persist_locked(self, job: _ReportJob) -> None:
         self.store.save_job(job)
+
+    def _append_event_locked(
+        self,
+        job: _ReportJob,
+        event_type: str,
+        message: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> ReportJobEvent:
+        event = ReportJobEvent(
+            event_id=_new_event_id(job.job_id, event_type),
+            job_id=job.job_id,
+            event_type=event_type,
+            status=job.status,
+            created_at=now_cn().isoformat(),
+            message=message,
+            metadata=dict(metadata or {}),
+        )
+        self.store.append_job_event(event)
+        return event
 
     def _dispatch_terminal_webhook(self, snapshot: ReportJobSnapshot | None, webhook_config: Any | None) -> None:
         if not snapshot or not webhook_config or not self.webhook_dispatcher:
@@ -482,9 +616,32 @@ class ReportJobManager:
         if snapshot.status not in {"succeeded", "failed", "cancelled"}:
             return
         try:
-            self.webhook_dispatcher(snapshot, webhook_config)
+            result = self.webhook_dispatcher(snapshot, webhook_config)
         except Exception:  # noqa: BLE001 - webhook 是附属出口，失败不能反向破坏任务终态。
             logger.exception("报告任务 webhook 投递失败 job_id=%s status=%s", snapshot.job_id, snapshot.status)
+            with self._lock:
+                job = self._jobs.get(snapshot.job_id)
+                if job:
+                    self._append_event_locked(
+                        job,
+                        "webhook.delivery_failed",
+                        "报告任务 webhook 投递失败",
+                        {"status": snapshot.status},
+                    )
+            return
+        with self._lock:
+            job = self._jobs.get(snapshot.job_id)
+            if job:
+                self._append_event_locked(
+                    job,
+                    "webhook.delivery_succeeded",
+                    "报告任务 webhook 投递成功",
+                    {
+                        "status": snapshot.status,
+                        "statusCode": getattr(result, "status_code", None),
+                        "eventType": getattr(result, "event_type", None),
+                    },
+                )
 
     def _queue_position_locked(self, job_id: str) -> int | None:
         with self._queue.mutex:
@@ -550,3 +707,14 @@ def _from_json_payload(payload: Any) -> Any:
         except (ImportError, TypeError, ValueError):
             return payload.get("data")
     return payload
+
+
+def _new_event_id(job_id: str, event_type: str) -> str:
+    normalized_type = "".join(ch if ch.isalnum() else "_" for ch in event_type).strip("_") or "event"
+    return f"evt_{job_id}_{normalized_type}_{secrets.token_urlsafe(6)}"
+
+
+def _truncate_event_text(value: str | None) -> str | None:
+    if not value:
+        return None
+    return " ".join(str(value).split())[:240]

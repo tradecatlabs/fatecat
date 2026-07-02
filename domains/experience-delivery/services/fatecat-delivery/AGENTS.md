@@ -35,7 +35,7 @@ fatecat-delivery/
 - `src/web_ui.py` 只负责零美化语义 HTML：服务端直出、原生表单、真实链接、psql ASCII 表格、Markdown 原文和机器可读片段。
 - `src/web_forms.py` 只定义 Web 原生表单输入和服务端报告结果模型，不渲染 HTML、不调用命理计算。
 - `src/web_report_service.py` 只连接 Web 表单、地区解析、capability 执行和 Markdown 生成；不得渲染 HTML 或管理任务生命周期。
-- `src/report_jobs.py` 只承载公开服务报告任务的队列、状态机、TTL、指标和可选 SQLite job store；不得实现命理规则。`memory` 是默认单进程后端，`sqlite` 只提供单副本本地持久状态查询，多副本生产扩容应替换为外部队列或数据库任务系统。
+- `src/report_jobs.py` 只承载公开服务报告任务的队列、状态机、TTL、指标、CalculationJob event history 和可选 SQLite job store；不得实现命理规则。`memory` 是默认单进程后端，`sqlite` 只提供单副本本地持久状态与事件历史查询，多副本生产扩容应替换为外部队列或数据库任务系统。
 - `src/webhook_callbacks.py` 只承载 report job 终态 callback payload、HMAC-SHA256 签名、URL 基础校验和可注入 HTTP dispatcher；不得保存 webhook secret、发送报告正文或实现持久重试队列。
 - `src/report_markdown.py` 只承载 Markdown 表格、转义和行内文本压缩工具；报告层可复用，但不得写入命理规则。
 - `src/main.py` 负责 HTTP requestId、W3C `traceparent` 传播、OpenTelemetry 语义兼容本地 span 日志接入、metrics 和结构化日志；trace context 真相源在 `fate_core.observability`，delivery 不自建第二套 trace 协议。

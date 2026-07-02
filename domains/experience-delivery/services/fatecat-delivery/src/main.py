@@ -104,6 +104,7 @@ from report_generator import (  # noqa: E402
     public_birth_place,
 )
 from report_jobs import (  # noqa: E402
+    ReportJobEvent,
     ReportJobManager,
     ReportJobNotFound,
     ReportJobQueueFull,
@@ -577,6 +578,7 @@ def _report_job_payload(snapshot: ReportJobSnapshot, *, include_result: bool) ->
             "enabled": snapshot.webhook_enabled,
             "signature": snapshot.webhook_signature,
         },
+        "events": [_report_job_event_payload(event) for event in snapshot.events],
         "links": {
             "self": f"/api/v1/report/jobs/{snapshot.job_id}",
             "cancel": f"/api/v1/report/jobs/{snapshot.job_id}/cancel",
@@ -588,6 +590,21 @@ def _report_job_payload(snapshot: ReportJobSnapshot, *, include_result: bool) ->
     if include_result and snapshot.status == "succeeded":
         payload["result"] = _serialize_report_job_result(snapshot.result)
     return payload
+
+
+def _report_job_event_payload(event: ReportJobEvent) -> dict[str, Any]:
+    return {
+        "resourceType": "CalculationJobEvent",
+        "apiVersion": "fatecat.tradecatlabs/v1",
+        "eventId": event.event_id,
+        "id": event.event_id,
+        "jobId": event.job_id,
+        "eventType": event.event_type,
+        "status": event.status,
+        "createdAt": event.created_at,
+        "message": event.message,
+        "metadata": event.metadata,
+    }
 
 
 def _serialize_report_job_result(result: Any) -> dict[str, Any] | None:

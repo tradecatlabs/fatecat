@@ -587,6 +587,17 @@ Report job store：
 
 `running` 任务取消后不能强杀线程，但完成后会丢弃结果并保持 `cancelled`。如果 SQLite backend 在 manager 重建时发现旧 `queued` / `running` 任务，会标记为 `failed` 并保留错误原因；这不是跨进程继续执行能力。多副本生产不能使用本地 `memory` / `sqlite` job store 假装分布式任务系统，后续需要外部队列或数据库任务系统。
 
+Report job event history：
+
+| 项 | 说明 |
+| --- | --- |
+| API 字段 | `/api/v1/report/jobs/{job_id}` 返回的 `CalculationJob.data.events[]`。 |
+| 事件资源 | 每项为 `CalculationJobEvent`，包含 `eventId`、`jobId`、`eventType`、`status`、`createdAt`、`message`、`metadata`。 |
+| 本地持久化 | `memory` 后端保留当前进程内事件；`sqlite` 后端写入 `report_job_events` 并按写入顺序返回。 |
+| 当前事件 | `job.queued`、`job.running`、`job.succeeded`、`job.failed`、`job.cancelled`、`job.expired`、`job.recovered_failed`、`webhook.delivery_succeeded`、`webhook.delivery_failed`。 |
+| 隐私 | event metadata 不包含 Markdown 正文、姓名、出生地区、请求体、webhook URL 或 webhook secret。 |
+| 边界 | 事件历史只证明任务生命周期可审计；不代表 retry/timeout、callback retry/outbox、external backend、跨进程继续执行或真实公网 webhook live smoke 已完成。 |
+
 Report job webhook callback：
 
 | 项 | 说明 |
