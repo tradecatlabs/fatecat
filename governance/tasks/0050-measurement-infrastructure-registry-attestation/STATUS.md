@@ -19,8 +19,8 @@
 | TP-03 | ROOT | 1 | TP-02.01 | No | Done | 门禁、contract、AGENTS、操作文档和 roadmap 已同步。 | 无 | 无 |
 | TP-03.01 | TP-03 | 2 | TP-02.01 | No | Done | `test_container_workflow_attestation.py` 与 `check-public-release-policy.sh` 覆盖关键断言。 | 无 | 无 |
 | TP-03.02 | TP-03 | 2 | TP-02.01 | No | Done | release gate、delivery registry、AGENTS、操作文档和 roadmap 已同步。 | 无 | 无 |
-| TP-04 | ROOT | 1 | TP-03.01, TP-03.02 | No | In Progress | 本地 targeted tests、task docs validation 和 quick CI 已通过，待提交推送和远端 workflow。 | 无 | 无 |
-| TP-04.01 | TP-04 | 2 | TP-03.01, TP-03.02 | No | In Progress | `bash scripts/local-ci.sh --profile quick --output /tmp/fatecat-local-ci-0050-rerun` passed；待提交推送和远端 workflow。 | 无 | 无 |
+| TP-04 | ROOT | 1 | TP-03.01, TP-03.02 | No | In Progress | 本地 targeted tests、task docs validation 和 quick CI 已通过；远端 run `28579776942` digest 解析失败已修复，待提交推送重跑。 | 无 | 无 |
+| TP-04.01 | TP-04 | 2 | TP-03.01, TP-03.02 | No | In Progress | digest 解析修复后 workflow regression、public release policy、YAML parse 和 task docs validation 均通过；待提交推送重跑 workflow。 | 无 | 无 |
 
 # Blockers
 
@@ -48,3 +48,7 @@
 | Task docs validation | `validate_task_docs.py --phase decompose` passed |
 | Task tree validation | `validate_tasks_tree.py --phase auto` passed |
 | Local quick CI | `bash scripts/local-ci.sh --profile quick --output /tmp/fatecat-local-ci-0050-rerun` passed; focused regression `132 passed in 76.62s` |
+| Remote workflow first attempt | `https://github.com/tradecatlabs/fatecat/actions/runs/28579776942` failed at `Push main image`; root cause and fix recorded in `DEBUG.md` |
+| Digest parser fix regression | `.venv/bin/python -m pytest -q tests/regression/test_container_workflow_attestation.py` passed |
+| Digest parser fix policy | `bash scripts/check-public-release-policy.sh` passed |
+| Digest parser fix YAML | `yaml.safe_load(.github/workflows/container.yml)` passed |

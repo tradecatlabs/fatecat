@@ -17,7 +17,8 @@ def test_container_workflow_requires_registry_digest_and_attestation():
     assert "actions/upload-artifact@v4" in workflow
     assert "bash scripts/release-artifacts.sh" in workflow
     assert "docker buildx imagetools inspect" in workflow
-    assert 'digest="$(docker buildx imagetools inspect' in workflow
+    assert "--format '{{json .Manifest}}'" in workflow
+    assert 'json.load(sys.stdin)["digest"]' in workflow
     assert "actions/attest@v4" in workflow
     assert "subject-name: ${{ steps.push_main.outputs.image }}" in workflow
     assert "subject-digest: ${{ steps.push_main.outputs.digest }}" in workflow

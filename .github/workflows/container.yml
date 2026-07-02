@@ -62,7 +62,10 @@ jobs:
           docker tag fatecat-delivery:ci "${image}:${short_sha}"
           docker push "${image}:main"
           docker push "${image}:${short_sha}"
-          digest="$(docker buildx imagetools inspect "${image}:${short_sha}" --format '{{.Digest}}')"
+          digest="$(
+            docker buildx imagetools inspect "${image}:${short_sha}" --format '{{json .Manifest}}' \
+              | python3 -c 'import json, sys; print(json.load(sys.stdin)["digest"])'
+          )"
           if [[ ! "${digest}" =~ ^sha256:[0-9a-f]{64}$ ]]; then
             echo "invalid registry digest: ${digest}" >&2
             exit 1
@@ -97,7 +100,10 @@ jobs:
           version="${GITHUB_REF_NAME}"
           docker tag fatecat-delivery:ci "${image}:${version}"
           docker push "${image}:${version}"
-          digest="$(docker buildx imagetools inspect "${image}:${version}" --format '{{.Digest}}')"
+          digest="$(
+            docker buildx imagetools inspect "${image}:${version}" --format '{{json .Manifest}}' \
+              | python3 -c 'import json, sys; print(json.load(sys.stdin)["digest"])'
+          )"
           if [[ ! "${digest}" =~ ^sha256:[0-9a-f]{64}$ ]]; then
             echo "invalid registry digest: ${digest}" >&2
             exit 1
