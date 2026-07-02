@@ -172,6 +172,21 @@ class ReportJobStore:
     def save_job(self, _job: _ReportJob) -> None:
         return
 
+    def claim_job_for_execution(
+        self,
+        job: _ReportJob,
+        *,
+        lease_owner: str,
+        lease_seconds: float,
+    ) -> _ReportJob | None:
+        owner = str(lease_owner).strip()
+        if not owner or job.status not in {"queued", "running"}:
+            return None
+        return job
+
+    def release_job_execution_lease(self, _job_id: str, *, lease_owner: str) -> None:
+        return
+
     def load_job_events(self, _job_id: str) -> list[ReportJobEvent]:
         return []
 
@@ -260,6 +275,9 @@ POSTGRES_REPORT_JOB_SCHEMA_SQL: tuple[str, ...] = (
         max_attempts INTEGER NOT NULL DEFAULT 1,
         attempt_timeout_seconds DOUBLE PRECISION,
         retry_backoff_seconds DOUBLE PRECISION NOT NULL DEFAULT 0,
+        lease_owner TEXT,
+        lease_acquired_at TEXT,
+        lease_expires_at TEXT,
         updated_at TEXT NOT NULL
     )
     """,
@@ -330,6 +348,38 @@ POSTGRES_REPORT_JOB_SCHEMA_SQL: tuple[str, ...] = (
     """,
 )
 
+POSTGRES_REPORT_JOB_LEASE_MIGRATION_SQL: tuple[str, ...] = (
+    "ALTER TABLE report_jobs ADD COLUMN IF NOT EXISTS lease_owner TEXT",
+    "ALTER TABLE report_jobs ADD COLUMN IF NOT EXISTS lease_acquired_at TEXT",
+    "ALTER TABLE report_jobs ADD COLUMN IF NOT EXISTS lease_expires_at TEXT",
+)
+
+POSTGRES_REPORT_JOB_LEASE_INDEX_SQL = """
+CREATE INDEX IF NOT EXISTS idx_report_jobs_execution_lease
+ON report_jobs(status, lease_expires_at)
+"""
+
+POSTGRES_JOB_EXECUTION_CLAIM_SQL = """
+UPDATE report_jobs
+SET lease_owner = %(lease_owner)s,
+    lease_acquired_at = %(now)s,
+    lease_expires_at = %(lease_expires_at)s,
+    status = CASE WHEN status = 'queued' THEN 'running' ELSE status END,
+    started_at = COALESCE(started_at, %(now)s),
+    updated_at = %(now)s
+WHERE job_id = %(job_id)s
+  AND status IN ('queued', 'running')
+  AND (
+    lease_expires_at IS NULL
+    OR lease_expires_at <= %(now)s
+    OR lease_owner = %(lease_owner)s
+  )
+RETURNING job_id, kind, status, report_system, created_at, expires_at,
+          started_at, finished_at, error, result_json, input_summary_json,
+          idempotency_key, attempts, max_attempts, attempt_timeout_seconds,
+          retry_backoff_seconds, task_payload_json
+"""
+
 POSTGRES_WEBHOOK_OUTBOX_CLAIM_SQL = """
 UPDATE report_job_webhook_outbox
 SET lease_owner = %(lease_owner)s,
@@ -360,6 +410,7 @@ POSTGRES_REPORT_JOB_REQUIRED_INDEXES = (
     "idx_report_jobs_idempotency",
     "idx_report_jobs_status",
     "idx_report_jobs_expires_at",
+    "idx_report_jobs_execution_lease",
     "idx_report_job_events_job_sequence",
     "idx_report_job_webhook_outbox_job",
     "idx_report_job_webhook_outbox_status",
@@ -1031,6 +1082,50 @@ class PostgresReportJobStore(ReportJobStore):
                 },
             )
 
+    def claim_job_for_execution(
+        self,
+        job: _ReportJob,
+        *,
+        lease_owner: str,
+        lease_seconds: float,
+    ) -> _ReportJob | None:
+        owner = str(lease_owner).strip()
+        if not owner:
+            return None
+        now = now_cn()
+        lease_ttl = max(1.0, float(lease_seconds))
+        with self._lock, self._connect() as conn:
+            row = conn.execute(
+                POSTGRES_JOB_EXECUTION_CLAIM_SQL,
+                {
+                    "lease_owner": owner,
+                    "now": now.isoformat(),
+                    "lease_expires_at": (now + timedelta(seconds=lease_ttl)).isoformat(),
+                    "job_id": job.job_id,
+                },
+            ).fetchone()
+        if row is None:
+            return None
+        return self._row_to_job(row)
+
+    def release_job_execution_lease(self, job_id: str, *, lease_owner: str) -> None:
+        owner = str(lease_owner).strip()
+        if not owner:
+            return
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                UPDATE report_jobs
+                SET lease_owner = NULL,
+                    lease_acquired_at = NULL,
+                    lease_expires_at = NULL,
+                    updated_at = %(updated_at)s
+                WHERE job_id = %(job_id)s
+                  AND lease_owner = %(lease_owner)s
+                """,
+                {"job_id": job_id, "lease_owner": owner, "updated_at": now_cn().isoformat()},
+            )
+
     def load_job_events(self, job_id: str) -> list[ReportJobEvent]:
         with self._lock, self._connect() as conn:
             rows = conn.execute(
@@ -1319,6 +1414,9 @@ class PostgresReportJobStore(ReportJobStore):
         with self._lock, self._connect() as conn:
             for statement in POSTGRES_REPORT_JOB_SCHEMA_SQL:
                 conn.execute(statement)
+            for statement in POSTGRES_REPORT_JOB_LEASE_MIGRATION_SQL:
+                conn.execute(statement)
+            conn.execute(POSTGRES_REPORT_JOB_LEASE_INDEX_SQL)
 
     def _row_to_job(self, row: Any) -> _ReportJob:
         return _ReportJob(

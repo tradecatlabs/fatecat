@@ -36,10 +36,17 @@ def _load_report_jobs():
 
 def test_postgres_schema_contains_required_tables_indexes_and_claim_conditions():
     report_jobs = _load_report_jobs()
-    claim_sql = report_jobs.POSTGRES_WEBHOOK_OUTBOX_CLAIM_SQL
+    job_claim_sql = report_jobs.POSTGRES_JOB_EXECUTION_CLAIM_SQL
+    outbox_claim_sql = report_jobs.POSTGRES_WEBHOOK_OUTBOX_CLAIM_SQL
     adapter_source = inspect.getsource(report_jobs.PostgresReportJobStore)
-    schema_text = "\n".join(report_jobs.postgres_report_job_schema_sql())
-    combined = f"{schema_text}\n{claim_sql}\n{adapter_source}".lower()
+    schema_text = "\n".join(
+        (
+            *report_jobs.postgres_report_job_schema_sql(),
+            *report_jobs.POSTGRES_REPORT_JOB_LEASE_MIGRATION_SQL,
+            report_jobs.POSTGRES_REPORT_JOB_LEASE_INDEX_SQL,
+        )
+    )
+    combined = f"{schema_text}\n{job_claim_sql}\n{outbox_claim_sql}\n{adapter_source}".lower()
 
     for table in report_jobs.POSTGRES_REPORT_JOB_REQUIRED_TABLES:
         assert f"create table if not exists {table}" in combined
@@ -47,9 +54,13 @@ def test_postgres_schema_contains_required_tables_indexes_and_claim_conditions()
         assert index.lower() in combined
     assert "on conflict(job_id) do update" in combined
     assert "on conflict(outbox_id) do update" in combined
-    assert "returning outbox_id" in claim_sql.lower()
-    assert "lease_owner = %(lease_owner)s" in claim_sql
-    assert "lease_expires_at <= %(now)s" in claim_sql
+    assert "returning outbox_id" in outbox_claim_sql.lower()
+    assert "returning job_id" in job_claim_sql.lower()
+    assert "lease_owner = %(lease_owner)s" in outbox_claim_sql
+    assert "lease_owner = %(lease_owner)s" in job_claim_sql
+    assert "lease_expires_at <= %(now)s" in outbox_claim_sql
+    assert "lease_expires_at <= %(now)s" in job_claim_sql
+    assert "status in ('queued', 'running')" in job_claim_sql.lower()
     assert not re.search(r"postgres(?:ql)?://|password\s*[:=]|token\s*[:=]|secret\s*[:=]", combined, re.I)
 
 

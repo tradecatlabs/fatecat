@@ -40,8 +40,8 @@ def _append_check(checks: list[dict[str, Any]], check_id: str, ok: bool, details
         raise PostgresJobStoreDryRunError(f"{check_id}: {details}")
 
 
-def _sql_blob(statements: tuple[str, ...], claim_sql: str) -> str:
-    return "\n\n".join((*statements, claim_sql))
+def _sql_blob(statements: tuple[str, ...], *extra_sql: str) -> str:
+    return "\n\n".join((*statements, *extra_sql))
 
 
 def run_dry_run() -> dict[str, Any]:
@@ -50,9 +50,13 @@ def run_dry_run() -> dict[str, Any]:
     checks: list[dict[str, Any]] = []
 
     schema_sql = report_jobs.postgres_report_job_schema_sql()
-    claim_sql = report_jobs.POSTGRES_WEBHOOK_OUTBOX_CLAIM_SQL
+    job_claim_sql = report_jobs.POSTGRES_JOB_EXECUTION_CLAIM_SQL
+    outbox_claim_sql = report_jobs.POSTGRES_WEBHOOK_OUTBOX_CLAIM_SQL
     adapter_source = inspect.getsource(report_jobs.PostgresReportJobStore)
-    sql_text = f"{_sql_blob(schema_sql, claim_sql)}\n\n{adapter_source}"
+    sql_text = (
+        f"{_sql_blob(schema_sql, *report_jobs.POSTGRES_REPORT_JOB_LEASE_MIGRATION_SQL, report_jobs.POSTGRES_REPORT_JOB_LEASE_INDEX_SQL, job_claim_sql, outbox_claim_sql)}"
+        f"\n\n{adapter_source}"
+    )
     sql_lower = sql_text.lower()
     psycopg_available = importlib.util.find_spec("psycopg") is not None
 
@@ -85,21 +89,41 @@ def run_dry_run() -> dict[str, Any]:
     )
     _append_check(
         checks,
-        "claim_returning",
-        "returning outbox_id" in claim_sql.lower(),
-        "claim sql returns claimed row",
+        "outbox_claim_returning",
+        "returning outbox_id" in outbox_claim_sql.lower(),
+        "outbox claim sql returns claimed row",
     )
     _append_check(
         checks,
-        "claim_owner_condition",
-        "lease_owner = %(lease_owner)s" in claim_sql and "or lease_owner = %(lease_owner)s" in claim_sql.lower(),
-        "claim sql is owner-aware",
+        "outbox_claim_owner_condition",
+        "lease_owner = %(lease_owner)s" in outbox_claim_sql
+        and "or lease_owner = %(lease_owner)s" in outbox_claim_sql.lower(),
+        "outbox claim sql is owner-aware",
     )
     _append_check(
         checks,
-        "claim_expiry_condition",
-        "lease_expires_at <= %(now)s" in claim_sql,
-        "claim sql respects lease expiry",
+        "outbox_claim_expiry_condition",
+        "lease_expires_at <= %(now)s" in outbox_claim_sql,
+        "outbox claim sql respects lease expiry",
+    )
+    _append_check(
+        checks,
+        "job_claim_returning",
+        "returning job_id" in job_claim_sql.lower(),
+        "job claim sql returns claimed row",
+    )
+    _append_check(
+        checks,
+        "job_claim_owner_condition",
+        "lease_owner = %(lease_owner)s" in job_claim_sql
+        and "or lease_owner = %(lease_owner)s" in job_claim_sql.lower(),
+        "job claim sql is owner-aware",
+    )
+    _append_check(
+        checks,
+        "job_claim_terminal_guard",
+        "status in ('queued', 'running')" in job_claim_sql.lower(),
+        "job claim guards terminal states",
     )
     _append_check(checks, "privacy:no_sensitive_values", not SENSITIVE_PATTERN.search(sql_text), "no inline DSN/secret")
 
@@ -121,8 +145,10 @@ def run_dry_run() -> dict[str, Any]:
             "statementCount": len(schema_sql),
             "requiredTables": list(report_jobs.POSTGRES_REPORT_JOB_REQUIRED_TABLES),
             "requiredIndexes": list(report_jobs.POSTGRES_REPORT_JOB_REQUIRED_INDEXES),
-            "claimSqlHasReturning": True,
-            "claimSqlHasOwnerAndExpiry": True,
+            "outboxClaimSqlHasReturning": True,
+            "outboxClaimSqlHasOwnerAndExpiry": True,
+            "jobClaimSqlHasReturning": True,
+            "jobClaimSqlHasOwnerAndExpiry": True,
         },
         "checks": checks,
         "shipGate": {
