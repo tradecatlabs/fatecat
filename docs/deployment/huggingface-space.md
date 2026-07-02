@@ -126,6 +126,9 @@ FATE_MAX_INFLIGHT_CALCULATIONS=1
 FATE_REPORT_JOB_QUEUE_SIZE=20
 FATE_REPORT_JOB_WORKERS=1
 FATE_REPORT_JOB_TTL_SECONDS=1800
+FATE_REPORT_JOB_MAX_ATTEMPTS=1
+FATE_REPORT_JOB_ATTEMPT_TIMEOUT_SECONDS=0
+FATE_REPORT_JOB_RETRY_BACKOFF_SECONDS=0
 ```
 
 含义：
@@ -133,6 +136,7 @@ FATE_REPORT_JOB_TTL_SECONDS=1800
 - 不保存用户报告记录到数据库。
 - Web 提交会进入进程内有界队列。
 - 默认 1 个 worker 生成报告。
+- 默认不重试、不启用 attempt timeout；免费 Space 上不要把 timeout 当成可强杀底层计算的生产隔离能力。
 - 最多 20 个等待任务。
 - 结果默认 30 分钟后过期。
 - Space 重启后队列和结果都会消失。
@@ -180,6 +184,7 @@ FATE_REPORT_JOB_TTL_SECONDS=1800
 | 页面长时间冷启动 | 免费 Space 休眠后的正常现象，等待或在 Settings 里手动 Restart |
 | 点击生成后提示队列满 | 稍后重试，或提高 `FATE_REPORT_JOB_QUEUE_SIZE` |
 | 任务提交后结果消失 | 结果 TTL 到期或 Space 重启；重新提交即可 |
+| 任务因 timeout 失败 | 检查 `FATE_REPORT_JOB_ATTEMPT_TIMEOUT_SECONDS` 是否设置过低；默认 `0` 表示关闭 |
 | GitHub Action 报 HF_TOKEN 缺失 | 检查 fork 仓库 `Settings -> Secrets and variables -> Actions` 是否设置 `HF_TOKEN` |
 | Space 创建到错误账号 | 检查 workflow 的 `space_id` 是否为 `你的HF用户名/space名` |
 

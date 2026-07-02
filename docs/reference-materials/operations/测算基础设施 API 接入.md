@@ -400,7 +400,7 @@ bash scripts/webhook-smoke.sh \
 
 - 记录创建、读取、列表、删除，以及报告 job 提交、取消，会输出结构化 `audit_event` 日志。
 - `audit_event` 只记录 action、actor role、短哈希 target、outcome、requestId 和安全 metadata；不得记录真实 token、请求体、报告正文、姓名、出生地区、recordId、jobId 或 userId 原文。
-- `FATE_REPORT_JOB_TTL_SECONDS` 控制报告 job TTL；`FATE_REPORT_JOB_STORE=memory|sqlite` 控制 report job store backend；`FATE_REPORT_JOB_DB_PATH` 仅在 `sqlite` backend 下生效。
+- `FATE_REPORT_JOB_TTL_SECONDS` 控制报告 job TTL；`FATE_REPORT_JOB_STORE=memory|sqlite` 控制 report job store backend；`FATE_REPORT_JOB_DB_PATH` 仅在 `sqlite` backend 下生效；`FATE_REPORT_JOB_MAX_ATTEMPTS`、`FATE_REPORT_JOB_ATTEMPT_TIMEOUT_SECONDS`、`FATE_REPORT_JOB_RETRY_BACKOFF_SECONDS` 控制本地 report job retry/timeout policy。
 - `FATE_AUDIT_EVENT_RETENTION_DAYS` 只登记审计事件留存口径；`FATE_RECORD_RETENTION_DAYS=0` 表示记录当前默认显式删除模式。
 - 外部 SIEM、不可变审计存储、生产日志留存平台和记录按年龄自动清理已有本地准入 contract 和 gate；真实平台连通、清理器实现和生产 live evidence 仍属于外部连通验证待执行。
 
@@ -594,9 +594,20 @@ Report job event history：
 | API 字段 | `/api/v1/report/jobs/{job_id}` 返回的 `CalculationJob.data.events[]`。 |
 | 事件资源 | 每项为 `CalculationJobEvent`，包含 `eventId`、`jobId`、`eventType`、`status`、`createdAt`、`message`、`metadata`。 |
 | 本地持久化 | `memory` 后端保留当前进程内事件；`sqlite` 后端写入 `report_job_events` 并按写入顺序返回。 |
-| 当前事件 | `job.queued`、`job.running`、`job.succeeded`、`job.failed`、`job.cancelled`、`job.expired`、`job.recovered_failed`、`webhook.delivery_succeeded`、`webhook.delivery_failed`。 |
-| 隐私 | event metadata 不包含 Markdown 正文、姓名、出生地区、请求体、webhook URL 或 webhook secret。 |
-| 边界 | 事件历史只证明任务生命周期可审计；不代表 retry/timeout、callback retry/outbox、external backend、跨进程继续执行或真实公网 webhook live smoke 已完成。 |
+| 当前事件 | `job.queued`、`job.running`、`job.succeeded`、`job.failed`、`job.cancelled`、`job.expired`、`job.recovered_failed`、`job.attempt_failed`、`job.attempt_timed_out`、`job.retry_scheduled`、`webhook.delivery_succeeded`、`webhook.delivery_failed`。 |
+| 隐私 | event metadata 不包含 Markdown 正文、姓名、出生地区、请求体、webhook URL、webhook secret 或原始异常文本。 |
+| 边界 | 事件历史只证明任务生命周期可审计；callback retry/outbox、external backend、跨进程继续执行或真实公网 webhook live smoke 仍未完成。 |
+
+Report job retry / timeout policy：
+
+| 项 | 说明 |
+| --- | --- |
+| API 字段 | `CalculationJob.data.attempts`、`maxAttempts`、`attemptTimeoutSeconds`、`retryBackoffSeconds`。 |
+| 默认值 | `FATE_REPORT_JOB_MAX_ATTEMPTS=1`，`FATE_REPORT_JOB_ATTEMPT_TIMEOUT_SECONDS=0`，`FATE_REPORT_JOB_RETRY_BACKOFF_SECONDS=0`；默认不重试、不启用 attempt timeout。 |
+| retry | retryable exception 在 `attempt < maxAttempts` 时重试，并写入 `job.attempt_failed` 与 `job.retry_scheduled`。 |
+| non-retryable | `ReportJobNonRetryableError` 不重试，直接进入 `failed`，事件 metadata 标记 `retryable=false`。 |
+| timeout | `attemptTimeoutSeconds>0` 时，当前进程会把超时 attempt 标记为 `job.attempt_timed_out` 并按 policy 失败或重试。 |
+| 边界 | 当前 timeout 是本地任务状态 baseline，不能保证强杀底层 Python callable；若 timeout 后继续重试，底层 callable 仍需保持幂等；生产硬 timeout、多副本协调和长流程恢复需要 external backend。 |
 
 Report job webhook callback：
 

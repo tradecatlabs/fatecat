@@ -22,7 +22,13 @@ if str(FATE_CORE_SRC) not in sys.path:
 
 import main  # noqa: E402
 from main import app  # noqa: E402
-from report_jobs import ReportJobManager, ReportJobQueueFull, SQLiteReportJobStore  # noqa: E402
+from report_jobs import (  # noqa: E402
+    ReportJobExecutionPolicy,
+    ReportJobManager,
+    ReportJobNonRetryableError,
+    ReportJobQueueFull,
+    SQLiteReportJobStore,
+)
 from webhook_callbacks import HttpWebhookDispatcher, WebhookConfig  # noqa: E402
 
 
@@ -781,6 +787,10 @@ def test_markdown_report_job_gate_api_returns_status_then_result():
 
     final_body = _wait_for_report_job(client, body["data"]["jobId"])
     assert final_body["data"]["status"] == "succeeded"
+    assert final_body["data"]["attempts"] == 1
+    assert final_body["data"]["maxAttempts"] == 1
+    assert final_body["data"]["attemptTimeoutSeconds"] is None
+    assert final_body["data"]["retryBackoffSeconds"] == 0
     event_types = [item["eventType"] for item in final_body["data"]["events"]]
     assert event_types == ["job.queued", "job.running", "job.succeeded"]
     event_text = json.dumps(final_body["data"]["events"], ensure_ascii=False)
@@ -952,6 +962,7 @@ def test_sqlite_report_job_store_persists_finished_jobs_and_idempotency(tmp_path
         queue_size=4,
         ttl_seconds=120,
         store=SQLiteReportJobStore(db_path),
+        execution_policy=ReportJobExecutionPolicy(max_attempts=3, attempt_timeout_seconds=5, retry_backoff_seconds=0),
     )
     created = manager.submit(
         kind="markdown",
@@ -963,6 +974,9 @@ def test_sqlite_report_job_store_persists_finished_jobs_and_idempotency(tmp_path
 
     final_snapshot = _wait_for_manager_job(manager, created.job_id)
     assert final_snapshot.status == "succeeded"
+    assert final_snapshot.attempts == 1
+    assert final_snapshot.max_attempts == 3
+    assert final_snapshot.attempt_timeout_seconds == 5
     assert [event.event_type for event in final_snapshot.events] == ["job.queued", "job.running", "job.succeeded"]
     assert final_snapshot.result == {"reportSystem": "bazi", "markdown": "persisted"}
 
@@ -977,6 +991,10 @@ def test_sqlite_report_job_store_persists_finished_jobs_and_idempotency(tmp_path
     assert loaded.result == {"reportSystem": "bazi", "markdown": "persisted"}
     assert loaded.input_summary == {"name": "测试样本"}
     assert loaded.idempotency_key == "sqlite-persist-regression"
+    assert loaded.attempts == 1
+    assert loaded.max_attempts == 3
+    assert loaded.attempt_timeout_seconds == 5
+    assert loaded.retry_backoff_seconds == 0
     assert [event.event_type for event in loaded.events] == ["job.queued", "job.running", "job.succeeded"]
 
     duplicate = rebuilt.submit(
@@ -989,7 +1007,143 @@ def test_sqlite_report_job_store_persists_finished_jobs_and_idempotency(tmp_path
     assert duplicate.job_id == created.job_id
     assert duplicate.status == "succeeded"
     assert duplicate.result == {"reportSystem": "bazi", "markdown": "persisted"}
+    assert duplicate.max_attempts == 3
     assert [event.event_type for event in duplicate.events] == ["job.queued", "job.running", "job.succeeded"]
+
+
+def test_report_job_retry_policy_retries_retryable_errors():
+    attempts: list[int] = []
+    manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        execution_policy=ReportJobExecutionPolicy(max_attempts=3),
+    )
+
+    def flaky_task():
+        attempts.append(len(attempts) + 1)
+        if len(attempts) == 1:
+            raise RuntimeError("temporary provider failure")
+        return {"reportSystem": "bazi", "markdown": "retried"}
+
+    created = manager.submit(kind="markdown", report_system="bazi", task=flaky_task)
+    final_snapshot = _wait_for_manager_job(manager, created.job_id)
+
+    assert final_snapshot.status == "succeeded"
+    assert final_snapshot.result == {"reportSystem": "bazi", "markdown": "retried"}
+    assert final_snapshot.attempts == 2
+    assert attempts == [1, 2]
+    assert [event.event_type for event in final_snapshot.events] == [
+        "job.queued",
+        "job.running",
+        "job.attempt_failed",
+        "job.retry_scheduled",
+        "job.succeeded",
+    ]
+    failure_event = next(event for event in final_snapshot.events if event.event_type == "job.attempt_failed")
+    assert failure_event.metadata["attempt"] == 1
+    assert failure_event.metadata["retryable"] is True
+    assert failure_event.metadata["willRetry"] is True
+    assert failure_event.metadata["errorType"] == "RuntimeError"
+    assert "error" not in failure_event.metadata
+
+
+def test_report_job_retry_policy_does_not_retry_non_retryable_errors():
+    attempts: list[int] = []
+    manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        execution_policy=ReportJobExecutionPolicy(max_attempts=3),
+    )
+
+    def fatal_task():
+        attempts.append(len(attempts) + 1)
+        raise ReportJobNonRetryableError("invalid request shape")
+
+    created = manager.submit(kind="markdown", report_system="bazi", task=fatal_task)
+    final_snapshot = _wait_for_manager_job(manager, created.job_id)
+
+    assert final_snapshot.status == "failed"
+    assert final_snapshot.attempts == 1
+    assert attempts == [1]
+    assert [event.event_type for event in final_snapshot.events] == [
+        "job.queued",
+        "job.running",
+        "job.attempt_failed",
+        "job.failed",
+    ]
+    failure_event = next(event for event in final_snapshot.events if event.event_type == "job.attempt_failed")
+    assert failure_event.metadata["retryable"] is False
+    assert failure_event.metadata["willRetry"] is False
+    assert failure_event.metadata["errorType"] == "ReportJobNonRetryableError"
+    assert "error" not in failure_event.metadata
+
+
+def test_report_job_per_job_policy_controls_non_retryable_errors():
+    class CustomFatalError(RuntimeError):
+        pass
+
+    attempts: list[int] = []
+    manager = ReportJobManager(max_workers=1, queue_size=4, ttl_seconds=120)
+
+    def fatal_task():
+        attempts.append(len(attempts) + 1)
+        raise CustomFatalError("custom fatal")
+
+    created = manager.submit(
+        kind="markdown",
+        report_system="bazi",
+        task=fatal_task,
+        execution_policy=ReportJobExecutionPolicy(
+            max_attempts=3,
+            non_retryable_exceptions=(CustomFatalError,),
+        ),
+    )
+    final_snapshot = _wait_for_manager_job(manager, created.job_id)
+
+    assert final_snapshot.status == "failed"
+    assert final_snapshot.attempts == 1
+    assert attempts == [1]
+    failure_event = next(event for event in final_snapshot.events if event.event_type == "job.attempt_failed")
+    assert failure_event.metadata["retryable"] is False
+    assert failure_event.metadata["willRetry"] is False
+    assert failure_event.metadata["errorType"] == "CustomFatalError"
+
+
+def test_report_job_timeout_policy_marks_job_failed_without_result():
+    started = Event()
+    release = Event()
+    manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        execution_policy=ReportJobExecutionPolicy(max_attempts=1, attempt_timeout_seconds=0.05),
+    )
+
+    def slow_task():
+        started.set()
+        release.wait(timeout=2)
+        return {"reportSystem": "bazi", "markdown": "late"}
+
+    created = manager.submit(kind="markdown", report_system="bazi", task=slow_task)
+    assert started.wait(timeout=2)
+    final_snapshot = _wait_for_manager_job(manager, created.job_id)
+    release.set()
+
+    assert final_snapshot.status == "failed"
+    assert final_snapshot.result is None
+    assert final_snapshot.attempts == 1
+    assert [event.event_type for event in final_snapshot.events] == [
+        "job.queued",
+        "job.running",
+        "job.attempt_timed_out",
+        "job.failed",
+    ]
+    timeout_event = next(event for event in final_snapshot.events if event.event_type == "job.attempt_timed_out")
+    assert timeout_event.metadata["timeoutSeconds"] == 0.05
+    assert timeout_event.metadata["retryable"] is True
+    assert timeout_event.metadata["willRetry"] is False
 
 
 def test_sqlite_report_job_store_persists_cancelled_jobs(tmp_path):

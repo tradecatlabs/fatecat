@@ -17,7 +17,7 @@ from dataclasses import asdict, dataclass, is_dataclass
 from datetime import datetime
 from pathlib import Path
 from queue import Full, Queue
-from threading import Lock, Thread
+from threading import Event, Lock, Thread
 from typing import Any, Literal
 
 from utils.timezone import now_cn
@@ -33,6 +33,31 @@ class ReportJobQueueFull(RuntimeError):
 
 class ReportJobNotFound(KeyError):
     """报告任务不存在或已清理。"""
+
+
+class ReportJobNonRetryableError(RuntimeError):
+    """报告任务不可重试错误。"""
+
+
+class ReportJobTimeoutError(TimeoutError):
+    """报告任务 attempt 超时。"""
+
+
+@dataclass(frozen=True)
+class ReportJobExecutionPolicy:
+    max_attempts: int = 1
+    attempt_timeout_seconds: float | None = None
+    retry_backoff_seconds: float = 0.0
+    non_retryable_exceptions: tuple[type[BaseException], ...] = (ReportJobNonRetryableError,)
+
+    def normalized(self) -> ReportJobExecutionPolicy:
+        timeout = self.attempt_timeout_seconds
+        return ReportJobExecutionPolicy(
+            max_attempts=max(1, int(self.max_attempts)),
+            attempt_timeout_seconds=float(timeout) if timeout and timeout > 0 else None,
+            retry_backoff_seconds=max(0.0, float(self.retry_backoff_seconds)),
+            non_retryable_exceptions=self.non_retryable_exceptions or (ReportJobNonRetryableError,),
+        )
 
 
 @dataclass(frozen=True)
@@ -63,6 +88,10 @@ class ReportJobSnapshot:
     idempotency_key: str | None
     webhook_enabled: bool
     webhook_signature: str
+    attempts: int
+    max_attempts: int
+    attempt_timeout_seconds: float | None
+    retry_backoff_seconds: float
     events: tuple[ReportJobEvent, ...]
 
 
@@ -87,6 +116,11 @@ class _ReportJob:
     finished_at: str | None = None
     error: str | None = None
     result: Any | None = None
+    attempts: int = 0
+    max_attempts: int = 1
+    attempt_timeout_seconds: float | None = None
+    retry_backoff_seconds: float = 0.0
+    non_retryable_exceptions: tuple[type[BaseException], ...] = (ReportJobNonRetryableError,)
 
 
 class ReportJobStore:
@@ -146,7 +180,8 @@ class SQLiteReportJobStore(ReportJobStore):
                 """
                 SELECT job_id, kind, status, report_system, created_at, expires_at,
                        started_at, finished_at, error, result_json, input_summary_json,
-                       idempotency_key
+                       idempotency_key, attempts, max_attempts, attempt_timeout_seconds,
+                       retry_backoff_seconds
                 FROM report_jobs
                 ORDER BY created_at ASC
                 """
@@ -160,9 +195,10 @@ class SQLiteReportJobStore(ReportJobStore):
                 INSERT INTO report_jobs (
                     job_id, kind, status, report_system, created_at, expires_at,
                     started_at, finished_at, error, result_json, input_summary_json,
-                    idempotency_key, updated_at
+                    idempotency_key, attempts, max_attempts, attempt_timeout_seconds,
+                    retry_backoff_seconds, updated_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(job_id) DO UPDATE SET
                     kind=excluded.kind,
                     status=excluded.status,
@@ -175,6 +211,10 @@ class SQLiteReportJobStore(ReportJobStore):
                     result_json=excluded.result_json,
                     input_summary_json=excluded.input_summary_json,
                     idempotency_key=excluded.idempotency_key,
+                    attempts=excluded.attempts,
+                    max_attempts=excluded.max_attempts,
+                    attempt_timeout_seconds=excluded.attempt_timeout_seconds,
+                    retry_backoff_seconds=excluded.retry_backoff_seconds,
                     updated_at=excluded.updated_at
                 """,
                 (
@@ -190,6 +230,10 @@ class SQLiteReportJobStore(ReportJobStore):
                     _json_dumps(job.result),
                     _json_dumps(job.input_summary),
                     job.idempotency_key,
+                    job.attempts,
+                    job.max_attempts,
+                    job.attempt_timeout_seconds,
+                    job.retry_backoff_seconds,
                     now_cn().isoformat(),
                 ),
             )
@@ -259,6 +303,10 @@ class SQLiteReportJobStore(ReportJobStore):
             )
             conn.execute("CREATE INDEX IF NOT EXISTS idx_report_jobs_status ON report_jobs(status)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_report_jobs_expires_at ON report_jobs(expires_at)")
+            self._ensure_column(conn, "report_jobs", "attempts", "INTEGER NOT NULL DEFAULT 0")
+            self._ensure_column(conn, "report_jobs", "max_attempts", "INTEGER NOT NULL DEFAULT 1")
+            self._ensure_column(conn, "report_jobs", "attempt_timeout_seconds", "REAL")
+            self._ensure_column(conn, "report_jobs", "retry_backoff_seconds", "REAL NOT NULL DEFAULT 0")
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS report_job_events (
@@ -276,6 +324,12 @@ class SQLiteReportJobStore(ReportJobStore):
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_report_job_events_job_sequence ON report_job_events(job_id, sequence)"
             )
+
+    @staticmethod
+    def _ensure_column(conn: sqlite3.Connection, table: str, column: str, definition: str) -> None:
+        columns = {str(row["name"]) for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+        if column not in columns:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
 
     def _row_to_job(self, row: sqlite3.Row) -> _ReportJob:
         return _ReportJob(
@@ -295,6 +349,12 @@ class SQLiteReportJobStore(ReportJobStore):
             finished_at=row["finished_at"],
             error=row["error"],
             result=_json_loads(row["result_json"]),
+            attempts=int(row["attempts"] or 0),
+            max_attempts=max(1, int(row["max_attempts"] or 1)),
+            attempt_timeout_seconds=float(row["attempt_timeout_seconds"])
+            if row["attempt_timeout_seconds"] is not None
+            else None,
+            retry_backoff_seconds=max(0.0, float(row["retry_backoff_seconds"] or 0)),
         )
 
     def _row_to_event(self, row: sqlite3.Row) -> ReportJobEvent:
@@ -314,7 +374,8 @@ class ReportJobManager:
     """有界报告任务队列。
 
     ponytail: 默认内存实现适合单进程免费公开入口；SQLite backend 只提升本地状态
-    可查询性。多副本生产、跨进程继续执行、retry 和 webhook 仍应升级到专用任务系统。
+    可查询性。本地 retry/timeout 已由 execution policy 管理；多副本生产、跨进程继续执行、
+    callback retry/outbox、生产硬 timeout 和 webhook 仍应升级到专用任务系统。
     """
 
     def __init__(
@@ -325,12 +386,14 @@ class ReportJobManager:
         ttl_seconds: int,
         store: ReportJobStore | None = None,
         webhook_dispatcher: ReportJobWebhookDispatcher | None = None,
+        execution_policy: ReportJobExecutionPolicy | None = None,
     ) -> None:
         self.max_workers = max(1, max_workers)
         self.queue_size = max(1, queue_size)
         self.ttl_seconds = max(60, ttl_seconds)
         self.store = store or InMemoryReportJobStore()
         self.webhook_dispatcher = webhook_dispatcher
+        self.execution_policy = (execution_policy or ReportJobExecutionPolicy()).normalized()
         self._queue: Queue[str] = Queue(maxsize=self.queue_size)
         self._jobs: dict[str, _ReportJob] = {}
         self._idempotency_index: dict[str, str] = {}
@@ -361,6 +424,7 @@ class ReportJobManager:
         input_summary: dict[str, Any] | None = None,
         idempotency_key: str | None = None,
         webhook_config: Any | None = None,
+        execution_policy: ReportJobExecutionPolicy | None = None,
     ) -> ReportJobSnapshot:
         self.start()
         self.cleanup_expired()
@@ -377,6 +441,7 @@ class ReportJobManager:
         created = now_cn()
         expires = created.timestamp() + self.ttl_seconds
         now_monotonic = time.monotonic()
+        policy = (execution_policy or self.execution_policy).normalized()
         job = _ReportJob(
             job_id=job_id,
             kind=kind,
@@ -389,6 +454,10 @@ class ReportJobManager:
             expires_monotonic=now_monotonic + self.ttl_seconds,
             created_at=created.isoformat(),
             expires_at=now_cn().fromtimestamp(expires, tz=created.tzinfo).isoformat(),
+            max_attempts=policy.max_attempts,
+            attempt_timeout_seconds=policy.attempt_timeout_seconds,
+            retry_backoff_seconds=policy.retry_backoff_seconds,
+            non_retryable_exceptions=policy.non_retryable_exceptions,
         )
         with self._lock:
             if self._queue.full():
@@ -413,6 +482,9 @@ class ReportJobManager:
                     "reportSystem": report_system,
                     "idempotencyKeyProvided": normalized_idempotency_key is not None,
                     "webhookEnabled": webhook_config is not None,
+                    "maxAttempts": policy.max_attempts,
+                    "attemptTimeoutSeconds": policy.attempt_timeout_seconds,
+                    "retryBackoffSeconds": policy.retry_backoff_seconds,
                 },
             )
             return self._snapshot_locked(job)
@@ -512,31 +584,58 @@ class ReportJobManager:
 
         if task is None:
             return
-        try:
-            result = task()
-        except Exception as exc:  # noqa: BLE001 - 任务边界必须捕获并转成 failed 状态。
-            logger.exception("报告任务执行失败 job_id=%s", job_id)
-            callback_snapshot: ReportJobSnapshot | None = None
-            callback_config: Any | None = None
+
+        while True:
             with self._lock:
                 job = self._jobs.get(job_id)
-                if job and job.status != "cancelled":
-                    job.status = "failed"
-                    job.error = str(exc) or type(exc).__name__
-                    job.finished_at = now_cn().isoformat()
-                    job.task = None
-                    self._persist_locked(job)
-                    self._append_event_locked(
-                        job,
-                        "job.failed",
-                        "报告任务执行失败",
-                        {"error": _truncate_event_text(job.error)},
-                    )
-                    callback_snapshot = self._snapshot_locked(job)
-                    callback_config = job.webhook_config
-            self._dispatch_terminal_webhook(callback_snapshot, callback_config)
+                if not job or job.status == "cancelled":
+                    return
+                if job.status != "running":
+                    return
+                job.attempts += 1
+                attempt = job.attempts
+                max_attempts = job.max_attempts
+                timeout_seconds = job.attempt_timeout_seconds
+                retry_backoff_seconds = job.retry_backoff_seconds
+                self._persist_locked(job)
+
+            outcome = _run_task_attempt(task, timeout_seconds)
+
+            if outcome.timed_out:
+                should_retry = attempt < max_attempts
+                if self._handle_attempt_failure(
+                    job_id,
+                    ReportJobTimeoutError("报告任务执行超时"),
+                    attempt=attempt,
+                    timed_out=True,
+                    should_retry=should_retry,
+                    retryable=True,
+                    timeout_seconds=timeout_seconds,
+                ):
+                    self._sleep_before_retry(retry_backoff_seconds)
+                    continue
+                return
+
+            if outcome.error is not None:
+                non_retryable = isinstance(outcome.error, job.non_retryable_exceptions)
+                should_retry = not non_retryable and attempt < max_attempts
+                if self._handle_attempt_failure(
+                    job_id,
+                    outcome.error,
+                    attempt=attempt,
+                    timed_out=False,
+                    should_retry=should_retry,
+                    retryable=not non_retryable,
+                    timeout_seconds=timeout_seconds,
+                ):
+                    self._sleep_before_retry(retry_backoff_seconds)
+                    continue
+                return
+
+            self._finish_job_success(job_id, outcome.result)
             return
 
+    def _finish_job_success(self, job_id: str, result: Any) -> None:
         callback_snapshot = None
         callback_config = None
         with self._lock:
@@ -553,10 +652,93 @@ class ReportJobManager:
             job.finished_at = now_cn().isoformat()
             job.task = None
             self._persist_locked(job)
-            self._append_event_locked(job, "job.succeeded", "报告任务执行成功")
+            self._append_event_locked(job, "job.succeeded", "报告任务执行成功", {"attempt": job.attempts})
             callback_snapshot = self._snapshot_locked(job)
             callback_config = job.webhook_config
         self._dispatch_terminal_webhook(callback_snapshot, callback_config)
+
+    def _handle_attempt_failure(
+        self,
+        job_id: str,
+        error: BaseException,
+        *,
+        attempt: int,
+        timed_out: bool,
+        should_retry: bool,
+        retryable: bool,
+        timeout_seconds: float | None,
+    ) -> bool:
+        error_type = type(error).__name__
+        logger.warning(
+            "报告任务 attempt 失败 job_id=%s attempt=%s error_type=%s timed_out=%s retryable=%s will_retry=%s",
+            job_id,
+            attempt,
+            error_type,
+            timed_out,
+            retryable,
+            should_retry,
+        )
+        callback_snapshot: ReportJobSnapshot | None = None
+        callback_config: Any | None = None
+        with self._lock:
+            job = self._jobs.get(job_id)
+            if not job or job.status == "cancelled":
+                return False
+            if job.status != "running":
+                return False
+            self._append_event_locked(
+                job,
+                "job.attempt_timed_out" if timed_out else "job.attempt_failed",
+                "报告任务 attempt 超时" if timed_out else "报告任务 attempt 失败",
+                {
+                    "attempt": attempt,
+                    "maxAttempts": job.max_attempts,
+                    "errorType": error_type,
+                    "retryable": retryable,
+                    "willRetry": should_retry,
+                    "timeoutSeconds": timeout_seconds,
+                },
+            )
+            if should_retry:
+                self._append_event_locked(
+                    job,
+                    "job.retry_scheduled",
+                    "报告任务将按 retry policy 重试",
+                    {
+                        "attempt": attempt,
+                        "nextAttempt": attempt + 1,
+                        "maxAttempts": job.max_attempts,
+                        "retryBackoffSeconds": job.retry_backoff_seconds,
+                    },
+                )
+                self._persist_locked(job)
+                return True
+
+            job.status = "failed"
+            job.error = str(error) or error_type
+            job.finished_at = now_cn().isoformat()
+            job.task = None
+            self._persist_locked(job)
+            self._append_event_locked(
+                job,
+                "job.failed",
+                "报告任务执行失败",
+                {
+                    "attempt": attempt,
+                    "maxAttempts": job.max_attempts,
+                    "errorType": error_type,
+                    "retryable": retryable,
+                    "timedOut": timed_out,
+                },
+            )
+            callback_snapshot = self._snapshot_locked(job)
+            callback_config = job.webhook_config
+        self._dispatch_terminal_webhook(callback_snapshot, callback_config)
+        return False
+
+    def _sleep_before_retry(self, retry_backoff_seconds: float) -> None:
+        if retry_backoff_seconds > 0:
+            time.sleep(retry_backoff_seconds)
 
     def _expire_job_if_needed_locked(self, job: _ReportJob) -> None:
         if job.status in {"queued", "succeeded", "failed", "cancelled"} and time.monotonic() >= job.expires_monotonic:
@@ -585,6 +767,10 @@ class ReportJobManager:
             webhook_signature=getattr(job.webhook_config, "signature_mode", "none")
             if job.webhook_config is not None
             else "none",
+            attempts=job.attempts,
+            max_attempts=job.max_attempts,
+            attempt_timeout_seconds=job.attempt_timeout_seconds,
+            retry_backoff_seconds=job.retry_backoff_seconds,
             events=tuple(self.store.load_job_events(job.job_id)),
         )
 
@@ -707,6 +893,41 @@ def _from_json_payload(payload: Any) -> Any:
         except (ImportError, TypeError, ValueError):
             return payload.get("data")
     return payload
+
+
+@dataclass(frozen=True)
+class _TaskAttemptOutcome:
+    result: Any | None = None
+    error: BaseException | None = None
+    timed_out: bool = False
+
+
+def _run_task_attempt(task: Callable[[], Any], timeout_seconds: float | None) -> _TaskAttemptOutcome:
+    if not timeout_seconds:
+        try:
+            return _TaskAttemptOutcome(result=task())
+        except Exception as exc:  # noqa: BLE001 - 任务异常需要转成 job 状态。
+            return _TaskAttemptOutcome(error=exc)
+
+    done = Event()
+    holder: dict[str, Any] = {}
+
+    def run() -> None:
+        try:
+            holder["result"] = task()
+        except Exception as exc:  # noqa: BLE001 - 任务异常需要转成 job 状态。
+            holder["error"] = exc
+        finally:
+            done.set()
+
+    thread = Thread(target=run, name="fatecat-report-attempt", daemon=True)
+    thread.start()
+    if not done.wait(timeout_seconds):
+        return _TaskAttemptOutcome(timed_out=True)
+    error = holder.get("error")
+    if isinstance(error, BaseException):
+        return _TaskAttemptOutcome(error=error)
+    return _TaskAttemptOutcome(result=holder.get("result"))
 
 
 def _new_event_id(job_id: str, event_type: str) -> str:

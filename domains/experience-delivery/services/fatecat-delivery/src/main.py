@@ -46,6 +46,9 @@ MAX_INFLIGHT_CALCULATIONS = env_int("FATE_MAX_INFLIGHT_CALCULATIONS", 2, minimum
 REPORT_JOB_QUEUE_SIZE = env_int("FATE_REPORT_JOB_QUEUE_SIZE", 20, minimum=1)
 REPORT_JOB_WORKERS = env_int("FATE_REPORT_JOB_WORKERS", 1, minimum=1)
 REPORT_JOB_TTL_SECONDS = env_int("FATE_REPORT_JOB_TTL_SECONDS", 1800, minimum=60)
+REPORT_JOB_MAX_ATTEMPTS = env_int("FATE_REPORT_JOB_MAX_ATTEMPTS", 1, minimum=1)
+REPORT_JOB_ATTEMPT_TIMEOUT_SECONDS = env_int("FATE_REPORT_JOB_ATTEMPT_TIMEOUT_SECONDS", 0, minimum=0)
+REPORT_JOB_RETRY_BACKOFF_SECONDS = env_int("FATE_REPORT_JOB_RETRY_BACKOFF_SECONDS", 0, minimum=0)
 REPORT_JOB_STORE = os.getenv("FATE_REPORT_JOB_STORE", "memory").strip().lower() or "memory"
 REPORT_JOB_DB_PATH = os.getenv(
     "FATE_REPORT_JOB_DB_PATH",
@@ -105,6 +108,7 @@ from report_generator import (  # noqa: E402
 )
 from report_jobs import (  # noqa: E402
     ReportJobEvent,
+    ReportJobExecutionPolicy,
     ReportJobManager,
     ReportJobNotFound,
     ReportJobQueueFull,
@@ -149,6 +153,11 @@ def _build_report_job_manager() -> ReportJobManager:
         ttl_seconds=REPORT_JOB_TTL_SECONDS,
         store=store,
         webhook_dispatcher=HttpWebhookDispatcher(timeout_seconds=WEBHOOK_TIMEOUT_SECONDS).deliver,
+        execution_policy=ReportJobExecutionPolicy(
+            max_attempts=REPORT_JOB_MAX_ATTEMPTS,
+            attempt_timeout_seconds=REPORT_JOB_ATTEMPT_TIMEOUT_SECONDS or None,
+            retry_backoff_seconds=REPORT_JOB_RETRY_BACKOFF_SECONDS,
+        ),
     )
 
 
@@ -567,6 +576,10 @@ def _report_job_payload(snapshot: ReportJobSnapshot, *, include_result: bool) ->
         "reportSystem": snapshot.report_system,
         "idempotencyKey": snapshot.idempotency_key,
         "queuePosition": snapshot.queue_position,
+        "attempts": snapshot.attempts,
+        "maxAttempts": snapshot.max_attempts,
+        "attemptTimeoutSeconds": snapshot.attempt_timeout_seconds,
+        "retryBackoffSeconds": snapshot.retry_backoff_seconds,
         "createdAt": snapshot.created_at,
         "startedAt": snapshot.started_at,
         "finishedAt": snapshot.finished_at,

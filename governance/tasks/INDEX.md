@@ -105,3 +105,5 @@
 | 0051 | measurement-infrastructure-100-post-0050-executable-plan | Done | P0 | 基于当前 post-0050 状态和外部基础设施同构资料，制作 FateCat 达到 100% 测算基础设施所需的可执行实现计划、任务树、优先级和失败判定。 | 0051-measurement-infrastructure-100-post-0050-executable-plan/ |
 
 | 0052 | measurement-infrastructure-durable-runtime-event-history | Done | P0 | 执行 MI-NEXT-03 durable runtime 二期首个可验证切片：为 CalculationJob 增加 memory/sqlite 可审计 event history，API 返回 CalculationJobEvent，并同步回归测试、文档和任务 closeout；不实现 retry/timeout、callback retry/outbox、external backend 或分布式 worker。 | 0052-measurement-infrastructure-durable-runtime-event-history/ |
+
+| 0053 | measurement-infrastructure-report-job-retry-timeout-policy | Done | P0 | 执行 MI-NEXT-03 durable runtime 二期第二个可验证切片：为 CalculationJob/report job 增加声明式 retry/timeout/non-retryable policy、本地事件证据、API 可见字段、回归测试与文档说明；不实现 callback retry/outbox、external backend、分布式 worker 或生产级硬中断。 | 0053-measurement-infrastructure-report-job-retry-timeout-policy/ |
