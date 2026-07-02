@@ -51,6 +51,8 @@ scripts/
 ├── preflight.sh
 ├── postgres-job-store-dry-run.sh
 ├── postgres-job-store-dry-run.py
+├── postgres-job-store-live-smoke.sh
+├── postgres-job-store-live-smoke.py
 ├── provider-dependency-smoke.sh
 ├── provider-dependency-smoke.py
 ├── report-job-restart-recovery-smoke.sh
@@ -104,6 +106,7 @@ scripts/
 - `event-contract-gate.sh` / `event-contract-gate.py` 是异步事件 contract gate；校验 AsyncEvent registry、CloudEvents 必备字段、AsyncAPI 风格 channel/operation/message、脱敏示例和 delivery/resource schema 链接，不连接真实 broker 或公网 webhook 接收端。
 - `runtime-backend-gate.sh` / `runtime-backend-gate.py` 是 durable runtime 后端 contract gate；校验 RuntimeBackend registry、memory/sqlite 本地边界、Postgres external backend 候选、Temporal future orchestrator、Redis queue 非 source-of-truth 约束和隐私边界，不连接真实数据库或服务。
 - `postgres-job-store-dry-run.sh` / `postgres-job-store-dry-run.py` 是 Postgres ReportJobStore adapter baseline dry-run；校验 tracked Postgres DDL、required tables/indexes、upsert、webhook outbox conditional claim/release SQL、optional dependency 边界和隐私边界，不连接真实 Postgres、不读取或输出 DSN。
+- `postgres-job-store-live-smoke.sh` / `postgres-job-store-live-smoke.py` 是 Postgres ReportJobStore migration/job live smoke；只从 `FATE_REPORT_JOB_DATABASE_URL` 读取 DSN，用一次性 schema 验证真实数据库 schema 初始化、job/event/idempotency/task payload、webhook outbox claim/release 和 encrypted delivery config 基本读写，输出脱敏 JSON，不证明 production ready、多副本 worker、公网 webhook live 或外部 Vault/KMS。
 - `export-openapi.sh` / `export-openapi.py`：导出本地 OpenAPI JSON，并校验开发者接入必备路径。
 - `developer-docs-smoke.sh` / `developer-docs-smoke.py`：执行开发者 OpenAPI、sandbox fixture 和 SDK 示例 smoke；只保存检查摘要，不保存报告正文或真实凭证。
 - `developer-platform-gate.sh` / `developer-platform-gate.py`：校验 developer platform contract、SDK/package baseline、sandbox token contract 与 API changelog；只证明本地契约和示例自洽，不证明 PyPI/npm SDK 发布或公网 token 服务上线。
@@ -166,4 +169,5 @@ scripts/
 - `scripts/audit-handoff.py -> contracts/fate/audit + governance/tasks + contracts/fate + git`
 - `scripts/audit-handoff-dry-run.py -> contracts/fate/audit + scripts/audit-handoff.py output`
 - `scripts/postgres-job-store-dry-run.py -> domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py`
+- `scripts/postgres-job-store-live-smoke.py -> domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py`
 - 禁止脚本直接隐藏 secret、运行态或旧路径 fallback。

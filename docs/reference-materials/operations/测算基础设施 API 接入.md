@@ -448,7 +448,7 @@ bash scripts/webhook-smoke.sh \
 
 - 记录创建、读取、列表、删除，以及报告 job 提交、取消，会输出结构化 `audit_event` 日志。
 - `audit_event` 只记录 action、actor role、短哈希 target、outcome、requestId 和安全 metadata；不得记录真实 token、请求体、报告正文、姓名、出生地区、recordId、jobId 或 userId 原文。
-- `FATE_REPORT_JOB_TTL_SECONDS` 控制报告 job TTL；`FATE_REPORT_JOB_STORE=memory|sqlite|postgres` 控制 report job store backend；`FATE_REPORT_JOB_DB_PATH` 仅在 `sqlite` backend 下生效；`FATE_REPORT_JOB_DATABASE_URL` 仅在 `postgres` backend 下生效且不得写入文档、日志或 artifact；`FATE_REPORT_JOB_MAX_ATTEMPTS`、`FATE_REPORT_JOB_ATTEMPT_TIMEOUT_SECONDS`、`FATE_REPORT_JOB_RETRY_BACKOFF_SECONDS` 控制本地 report job retry/timeout policy；`FATE_WEBHOOK_MAX_ATTEMPTS`、`FATE_WEBHOOK_RETRY_BACKOFF_SECONDS` 控制本地 webhook callback retry policy；`FATE_WEBHOOK_REDELIVERY_LEASE_SECONDS` 控制 SQLite/Postgres webhook outbox redelivery 的 lease TTL；`FATE_WEBHOOK_CONFIG_FERNET_KEYS` 使用 `key-id:<fernet-key>[,next-id:<fernet-key>]` 格式，`FATE_WEBHOOK_CONFIG_ACTIVE_KEY_ID` 使用 `<key-id>`，在 SQLite/Postgres backend 下启用 encrypted webhook delivery config vault，用于 failed/pending callback 的 URL/secret 加密恢复和 key rotation。
+- `FATE_REPORT_JOB_TTL_SECONDS` 控制报告 job TTL；`FATE_REPORT_JOB_STORE=memory|sqlite|postgres` 控制 report job store backend；`FATE_REPORT_JOB_DB_PATH` 仅在 `sqlite` backend 下生效；`FATE_REPORT_JOB_DATABASE_URL` 仅在 `postgres` backend 下生效且不得写入文档、日志或 artifact；`FATE_REPORT_JOB_POSTGRES_LIVE_EVIDENCE` 指向 `postgres-job-store-live-smoke.sh` 生成的脱敏 JSON，生产预检不能只靠 `FATE_REPORT_JOB_POSTGRES_LIVE_VERIFIED=1`；`FATE_REPORT_JOB_MAX_ATTEMPTS`、`FATE_REPORT_JOB_ATTEMPT_TIMEOUT_SECONDS`、`FATE_REPORT_JOB_RETRY_BACKOFF_SECONDS` 控制本地 report job retry/timeout policy；`FATE_WEBHOOK_MAX_ATTEMPTS`、`FATE_WEBHOOK_RETRY_BACKOFF_SECONDS` 控制本地 webhook callback retry policy；`FATE_WEBHOOK_REDELIVERY_LEASE_SECONDS` 控制 SQLite/Postgres webhook outbox redelivery 的 lease TTL；`FATE_WEBHOOK_CONFIG_FERNET_KEYS` 使用 `key-id:<fernet-key>[,next-id:<fernet-key>]` 格式，`FATE_WEBHOOK_CONFIG_ACTIVE_KEY_ID` 使用 `<key-id>`，在 SQLite/Postgres backend 下启用 encrypted webhook delivery config vault，用于 failed/pending callback 的 URL/secret 加密恢复和 key rotation。
 - `FATE_AUDIT_EVENT_RETENTION_DAYS` 只登记审计事件留存口径；`FATE_RECORD_RETENTION_DAYS=0` 表示记录当前默认显式删除模式。
 - 外部 SIEM、不可变审计存储、生产日志留存平台和记录按年龄自动清理已有本地准入 contract、evidence contract 和反伪造 gate；真实平台连通、清理器实现和生产 live evidence 仍属于外部连通验证待执行。
 
@@ -632,7 +632,7 @@ Report job store：
 | --- | --- | --- |
 | `memory` | `FATE_REPORT_JOB_STORE=memory` | 默认后端；只在当前进程 TTL 生命周期内保留任务状态和幂等键。 |
 | `sqlite` | `FATE_REPORT_JOB_STORE=sqlite`，`FATE_REPORT_JOB_DB_PATH=infra/runtime/local-state/database/report_jobs.sqlite` | 单副本本地持久化；可在 manager 重建后查询已完成、失败、取消和过期任务，并保留幂等键。带 `task_payload` 且存在注册 factory 的 Web/Markdown 报告任务可在本地重新入队执行。配置 `FATE_WEBHOOK_CONFIG_FERNET_KEYS` 后，failed/pending webhook outbox 的 callback URL/secret 会以 Fernet ciphertext 写入本地 encrypted config vault，manager 重建后可在无运行时 resolver 时重投，并在成功后删除。SQLite outbox redelivery 会先 claim 本地 lease，避免同一 outbox 在本地重复重投；该 lease 不属于生产级分布式 worker lease。 |
-| `postgres` | `FATE_REPORT_JOB_STORE=postgres`，`FATE_REPORT_JOB_DATABASE_URL=<secret-env>` | Postgres ReportJobStore adapter baseline；使用 tracked DDL、job/event/outbox/config 表和 webhook outbox conditional claim/release SQL。缺少 `psycopg` 或 DSN 时启动 fail-fast，不会静默 fallback。当前只完成 dry-run 和 adapter baseline；真实 Postgres migration/job smoke、生产多副本 worker lease、exactly-once 和公网 webhook live 仍属外部连通验证待执行。 |
+| `postgres` | `FATE_REPORT_JOB_STORE=postgres`，`FATE_REPORT_JOB_DATABASE_URL=<secret-env>`，`FATE_REPORT_JOB_POSTGRES_LIVE_EVIDENCE=<live-smoke.json>` | Postgres ReportJobStore live smoke baseline；使用 tracked DDL、job/event/outbox/config 表和 webhook outbox conditional claim/release SQL。缺少 `psycopg` 或 DSN 时启动 fail-fast，不会静默 fallback。当前 live smoke 只证明真实数据库 schema/job/outbox/config 路径，不证明 production ready、生产多副本 worker lease、exactly-once、公网 webhook live 或外部 Vault/KMS。 |
 
 RuntimeBackend contract：
 
@@ -640,10 +640,11 @@ RuntimeBackend contract：
 | --- | --- | --- |
 | registry | `contracts/fate/delivery/runtime-backends.json` | 登记 `memory`、`sqlite`、`postgres`、`temporal`、`redis_queue` 的 mature level、生产资格、证据要求和迁移路径。 |
 | schema | `contracts/fate/delivery/schemas/runtime-backend.schema.json` | 定义 RuntimeBackend 字段、状态、生产资格、外部连通边界和禁止伪造声明。 |
-| gate | `bash scripts/runtime-backend-gate.sh --output-json <path>` | 本地校验 contract：`backend.postgres` 已有 adapter baseline 但仍只能是 planned external candidate，`backend.sqlite` 只能 single-replica，`backend.redis_queue` 不能作为 source of truth。 |
+| gate | `bash scripts/runtime-backend-gate.sh --output-json <path>` | 本地校验 contract：`backend.postgres` 已有 live smoke baseline 但仍只能是 planned external candidate，`backend.sqlite` 只能 single-replica，`backend.redis_queue` 不能作为 source of truth。 |
 | postgres dry-run | `bash scripts/postgres-job-store-dry-run.sh --output-json <path>` | 本地校验 Postgres DDL、required tables/indexes、upsert、webhook outbox conditional claim/release SQL 和隐私边界；不连接真实数据库，不读取或输出 DSN。 |
+| postgres live smoke | `FATE_REPORT_JOB_DATABASE_URL=<secret-env> bash scripts/postgres-job-store-live-smoke.sh --output-json <path>` | 连接真实或一次性 Postgres，验证 schema 初始化、job/event/idempotency/task payload、webhook outbox claim/release 和 encrypted delivery config 基本读写；summary 只输出 hash 和检查结果，不输出 DSN、用户名、密码、callback URL、webhook secret 或报告正文。无 DSN 的本地巡检可用 `--allow-missing` 生成 blocked artifact。 |
 
-当前选型口径：Postgres 是第一个 external ReportJobStore adapter 候选，因为 job state、event history、idempotency、outbox 和 worker claim 可以进入同一个事务型外部 source of truth；Temporal 只登记为未来长流程 orchestrator；Redis queue 只能作为未来辅助队列，不得替代 durable job source of truth。0062 完成 contract baseline，0070 完成 Postgres adapter baseline 与 dry-run；真实 Postgres migration/job smoke、生产级分布式 worker lease、exactly-once、公网 webhook live delivery 和外部 Vault/KMS 仍未完成。
+当前选型口径：Postgres 是第一个 external ReportJobStore adapter 候选，因为 job state、event history、idempotency、outbox 和 worker claim 可以进入同一个事务型外部 source of truth；Temporal 只登记为未来长流程 orchestrator；Redis queue 只能作为未来辅助队列，不得替代 durable job source of truth。0062 完成 contract baseline，0070 完成 Postgres adapter baseline 与 dry-run，0071 完成 Postgres migration/job live smoke 入口与 evidence contract；生产级分布式 worker lease、exactly-once、公网 webhook live delivery 和外部 Vault/KMS 仍未完成。
 
 Async event contract：
 

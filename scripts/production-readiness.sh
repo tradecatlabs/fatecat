@@ -64,6 +64,7 @@ from __future__ import annotations
 
 import os
 import sys
+import json
 from pathlib import Path
 
 from dotenv import dotenv_values
@@ -242,7 +243,21 @@ elif report_job_store == "postgres":
         fail("FATE_REPORT_JOB_STORE=postgres 必须提供 FATE_REPORT_JOB_DATABASE_URL；不得在日志中输出 DSN 值")
     if value("FATE_REPORT_JOB_POSTGRES_LIVE_VERIFIED").lower() not in {"1", "true", "yes"}:
         fail("FATE_REPORT_JOB_STORE=postgres 仍需真实 Postgres migration/job smoke 证据；设置 FATE_REPORT_JOB_POSTGRES_LIVE_VERIFIED=1 前不得声明生产 ready")
-    ok("已声明 Postgres report job store，并声明外部 live verification 已完成；DSN 值未输出")
+    evidence_path = value("FATE_REPORT_JOB_POSTGRES_LIVE_EVIDENCE")
+    if not evidence_path:
+        fail("FATE_REPORT_JOB_STORE=postgres 必须提供 FATE_REPORT_JOB_POSTGRES_LIVE_EVIDENCE，指向 postgres live smoke JSON；不得只靠布尔变量声明通过")
+    try:
+        evidence = json.loads(Path(evidence_path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        fail(f"FATE_REPORT_JOB_POSTGRES_LIVE_EVIDENCE 不可读取或不是有效 JSON: {type(exc).__name__}")
+    if evidence.get("kind") != "fatecat.postgres_job_store_live_smoke":
+        fail("FATE_REPORT_JOB_POSTGRES_LIVE_EVIDENCE kind 必须是 fatecat.postgres_job_store_live_smoke")
+    if evidence.get("status") != "passed":
+        fail("FATE_REPORT_JOB_POSTGRES_LIVE_EVIDENCE status 必须是 passed")
+    ship_gate = evidence.get("shipGate") if isinstance(evidence.get("shipGate"), dict) else {}
+    if ship_gate.get("status") != "blocked":
+        fail("Postgres live smoke 只能证明数据库 adapter live；shipGate 必须仍阻止多副本/公网 webhook/外部 Vault 等生产断言")
+    ok("已声明 Postgres report job store，并提供通过的 live smoke evidence；DSN 值未输出")
 else:
     ok("当前使用内存 report job store；仅适合单副本或无跨重启任务查询要求场景")
 
