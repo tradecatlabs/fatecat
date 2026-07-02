@@ -39,6 +39,8 @@ scripts/
 ├── preflight.sh
 ├── provider-dependency-smoke.sh
 ├── provider-dependency-smoke.py
+├── report-job-restart-recovery-smoke.sh
+├── report-job-restart-recovery-smoke.py
 ├── provider-lifecycle-gate.sh
 ├── provider-lifecycle-gate.py
 ├── production-security-gate.sh
@@ -89,6 +91,7 @@ scripts/
 - `secret-scan.sh` / `secret-scan.py` 是本地 secret scanner；扫描 tracked 与未跟踪非忽略的一线文本文件，输出脱敏 JSON summary，发现疑似真实密钥时阻断。
 - `security-smoke.sh` / `security-smoke.py` 是本地安全 smoke；验证 token/owner 边界、响应安全头、请求体限制、限流、registry metadata，并可串联 privacy/source/public-release 文件门禁。
 - `webhook-smoke.sh` / `webhook-smoke.py` 是 report job webhook 本地模拟器；使用可注入 transport 验证终态事件、HMAC 签名和正文/secret 不外发，不访问公网。
+- `report-job-restart-recovery-smoke.sh` / `report-job-restart-recovery-smoke.py` 是 report job SQLite 重建恢复本地 smoke；验证旧 `queued` / `running` 任务被安全标记为 failed、写入 `job.recovered_failed`、保留幂等键且 summary 不泄露报告正文、姓名、出生地区或 secret；不证明跨进程继续执行、external backend 或多副本 worker。
 - `common.sh` 负责解析 runtime root；只允许已就绪的企业根作为运行根。
 - `run-evaluations.sh` / `run-evaluations.py` 是 `contracts/fate/evaluations/registry.json` 的本地 EvaluationRun 执行器；默认跑本地必跑评测，输出 summary JSON，只允许白名单命令。
 - `compare-evaluations.sh` / `compare-evaluations.py` 是本地 Evaluation summary diff 工具；按 `contracts/fate/evaluations/diff-policy.json` 判定新增失败、缺失 run 和失败命令。

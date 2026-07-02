@@ -17,6 +17,7 @@ tests/
 	    ├── test_catalog_contracts.py
 	    ├── test_mingli_bench_gate.py
 	    ├── test_operability_docs.py
+	    ├── test_report_job_restart_recovery_smoke.py
 	    └── test_*.py
 ```
 
@@ -28,6 +29,7 @@ tests/
 - `regression/test_catalog_contracts.py`：组件 catalog canonical root 与 compatibility box 退役防回潮测试。
 - `regression/test_mingli_bench_gate.py`：MingLi-Bench 离线 predictions evaluator smoke 与 FateCat scored baseline 产物合同；准确率只作为评测输出，不宣称模型已专业。
 - `regression/test_operability_docs.py`：公共服务 SLO、指标、告警和 runbook 的文档合同测试。
+- `regression/test_report_job_restart_recovery_smoke.py`：report job SQLite manager 重建本地 smoke 合同；验证 restart-safe failure、`job.recovered_failed`、幂等键保留和 summary 脱敏边界。
 - 服务私有测试可以留在服务根，但必须被根 `scripts/acceptance.sh` 覆盖。
 - 不在这里写入运行态、golden 原始资料或外部 vendor 源码。
 

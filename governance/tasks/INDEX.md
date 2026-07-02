@@ -109,3 +109,5 @@
 | 0053 | measurement-infrastructure-report-job-retry-timeout-policy | Done | P0 | 执行 MI-NEXT-03 durable runtime 二期第二个可验证切片：为 CalculationJob/report job 增加声明式 retry/timeout/non-retryable policy、本地事件证据、API 可见字段、回归测试与文档说明；不实现 callback retry/outbox、external backend、分布式 worker 或生产级硬中断。 | 0053-measurement-infrastructure-report-job-retry-timeout-policy/ |
 
 | 0054 | measurement-infrastructure-webhook-callback-retry-outbox-baseline | Done | P0 | 执行 MI-NEXT-03 durable runtime 二期第三个可验证切片：为 report job webhook callback 增加本地有限 retry、retry/outbox 事件轨迹、生产预检配置、回归测试和文档说明；不实现跨进程持久 outbox、external backend、真实公网 webhook live smoke 或多副本 worker。 | 0054-measurement-infrastructure-webhook-callback-retry-outbox-baseline/ |
+
+| 0055 | measurement-infrastructure-restart-recovery-smoke | Done | P0 | 执行 MI-NEXT-03 durable runtime 二期第四个可验证切片：为 report job SQLite manager 重建增加本地 restart-safe failure smoke、quick CI 门禁、回归测试和文档说明；不实现 external backend、跨进程继续执行、生产多副本 worker 或持久 callback outbox。 | 0055-measurement-infrastructure-restart-recovery-smoke/ |
