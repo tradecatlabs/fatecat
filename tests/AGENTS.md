@@ -22,6 +22,7 @@ tests/
 	    ├── test_webhook_outbox_smoke.py
 	    ├── test_webhook_outbox_redelivery_smoke.py
 	    ├── test_webhook_config_vault_smoke.py
+	    ├── test_webhook_outbox_lease_smoke.py
 	    └── test_*.py
 ```
 
@@ -38,6 +39,7 @@ tests/
 - `regression/test_webhook_outbox_smoke.py`：report job webhook SQLite outbox 本地 smoke 合同；验证 success/failure outbox record、manager 重建可读和 summary 脱敏边界。
 - `regression/test_webhook_outbox_redelivery_smoke.py`：report job webhook SQLite outbox 自动重投 smoke 合同；验证 failed outbox record 在 manager 重建后通过运行时 resolver 自动重投成功，resolver 缺失时跳过且 summary 脱敏。
 - `regression/test_webhook_config_vault_smoke.py`：report job webhook encrypted config vault smoke 合同；验证 callback URL/secret Fernet 加密落库、manager 重建无 resolver 重投、成功后删除 config、key rotation 和 summary 脱敏。
+- `regression/test_webhook_outbox_lease_smoke.py`：report job webhook SQLite outbox lease smoke 合同；验证 failed outbox 本地 claim/release 互斥、错误 owner release 无效、manager 重建后只重投一次和 summary 脱敏。
 - 服务私有测试可以留在服务根，但必须被根 `scripts/acceptance.sh` 覆盖。
 - 不在这里写入运行态、golden 原始资料或外部 vendor 源码。
 

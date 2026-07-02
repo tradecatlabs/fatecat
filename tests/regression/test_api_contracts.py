@@ -1453,6 +1453,91 @@ def test_sqlite_webhook_config_vault_rotates_key_before_redelivery(tmp_path):
     assert SQLiteReportJobStore(db_path, webhook_config_codec=new_codec).count_webhook_delivery_configs() == 0
 
 
+def test_sqlite_webhook_outbox_claim_release_lease_prevents_double_claim(tmp_path):
+    db_path = tmp_path / "report-jobs-webhook-outbox-lease.sqlite"
+
+    def failing_dispatch(_snapshot, _config):
+        raise RuntimeError("lease seed failure")
+
+    manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path),
+        webhook_dispatcher=failing_dispatch,
+        callback_policy=ReportJobWebhookPolicy(max_attempts=1),
+    )
+    created = manager.submit(
+        kind="markdown",
+        report_system="bazi",
+        webhook_config=WebhookConfig(url="https://callback.example/webhook", secret="lease-secret"),
+        task=lambda: {"reportSystem": "bazi", "markdown": "done"},
+    )
+    failed = _wait_for_manager_event(manager, created.job_id, "webhook.delivery_failed")
+    record = failed.callback_outbox[0]
+    store = SQLiteReportJobStore(db_path)
+
+    claimed_by_a = store.claim_webhook_outbox_record(record, lease_owner="worker-a", lease_seconds=30)
+    assert claimed_by_a is not None
+    assert claimed_by_a.outbox_id == record.outbox_id
+    assert store.load_redeliverable_webhook_outbox_records() == []
+    assert store.claim_webhook_outbox_record(record, lease_owner="worker-b", lease_seconds=30) is None
+
+    store.release_webhook_outbox_record(record.outbox_id, lease_owner="worker-b")
+    assert store.claim_webhook_outbox_record(record, lease_owner="worker-b", lease_seconds=30) is None
+    store.release_webhook_outbox_record(record.outbox_id, lease_owner="worker-a")
+
+    claimed_by_b = store.claim_webhook_outbox_record(record, lease_owner="worker-b", lease_seconds=30)
+    assert claimed_by_b is not None
+    assert claimed_by_b.outbox_id == record.outbox_id
+    store.release_webhook_outbox_record(record.outbox_id, lease_owner="worker-b")
+    assert [item.outbox_id for item in store.load_redeliverable_webhook_outbox_records()] == [record.outbox_id]
+
+
+def test_sqlite_webhook_outbox_lease_payload_stays_internal(tmp_path):
+    db_path = tmp_path / "report-jobs-webhook-outbox-lease-payload.sqlite"
+
+    def failing_dispatch(_snapshot, _config):
+        raise RuntimeError("callback.example lease-secret 测试样本 北京")
+
+    manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path),
+        webhook_dispatcher=failing_dispatch,
+        callback_policy=ReportJobWebhookPolicy(max_attempts=1),
+    )
+    created = manager.submit(
+        kind="markdown",
+        report_system="bazi",
+        input_summary={"name": "测试样本", "birthPlace": "北京"},
+        webhook_config=WebhookConfig(url="https://callback.example/webhook", secret="lease-secret"),
+        task=lambda: {"reportSystem": "bazi", "markdown": "# 命理排盘报告：测试样本"},
+    )
+    failed = _wait_for_manager_event(manager, created.job_id, "webhook.delivery_failed")
+    record = failed.callback_outbox[0]
+    store = SQLiteReportJobStore(db_path)
+    assert store.claim_webhook_outbox_record(record, lease_owner="worker-a", lease_seconds=30) is not None
+
+    loaded = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path),
+    ).get(created.job_id)
+    payload = main._report_job_payload(loaded, include_result=False)
+    serialized = json.dumps(payload, ensure_ascii=False)
+
+    assert "leaseOwner" not in serialized
+    assert "leaseAcquiredAt" not in serialized
+    assert "leaseExpiresAt" not in serialized
+    assert "worker-a" not in serialized
+    assert "callback.example" not in serialized
+    assert "lease-secret" not in serialized
+    assert "测试样本" not in json.dumps(payload["webhookOutbox"], ensure_ascii=False)
+
+
 def test_sqlite_replayable_report_job_requeues_after_manager_rebuild(tmp_path):
     db_path = tmp_path / "report-jobs-replayable.sqlite"
     first_manager = ReportJobManager(

@@ -59,6 +59,7 @@ REPORT_JOB_WEBHOOKS_ENABLED = env_flag("FATE_REPORT_JOB_WEBHOOKS_ENABLED")
 WEBHOOK_TIMEOUT_SECONDS = env_int("FATE_WEBHOOK_TIMEOUT_SECONDS", 5, minimum=1)
 WEBHOOK_MAX_ATTEMPTS = env_int("FATE_WEBHOOK_MAX_ATTEMPTS", 1, minimum=1)
 WEBHOOK_RETRY_BACKOFF_SECONDS = env_int("FATE_WEBHOOK_RETRY_BACKOFF_SECONDS", 0, minimum=0)
+WEBHOOK_REDELIVERY_LEASE_SECONDS = env_int("FATE_WEBHOOK_REDELIVERY_LEASE_SECONDS", 30, minimum=1)
 WEBHOOK_ALLOWED_HOSTS = os.getenv("FATE_WEBHOOK_ALLOWED_HOSTS", "").strip()
 WEBHOOK_ALLOW_HTTP = env_flag("FATE_WEBHOOK_ALLOW_HTTP")
 WEBHOOK_CONFIG_FERNET_KEYS = os.getenv("FATE_WEBHOOK_CONFIG_FERNET_KEYS", "").strip()
@@ -179,6 +180,7 @@ def _build_report_job_manager() -> ReportJobManager:
             max_attempts=WEBHOOK_MAX_ATTEMPTS,
             retry_backoff_seconds=WEBHOOK_RETRY_BACKOFF_SECONDS,
         ),
+        **{"webhook_redelivery_lease_seconds": WEBHOOK_REDELIVERY_LEASE_SECONDS},
         task_factories=_report_job_task_factories(),
     )
 

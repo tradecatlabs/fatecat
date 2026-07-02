@@ -177,6 +177,8 @@ run_quick() {
     --output-json "${output_dir}/webhook-outbox-redelivery-smoke.json"
   run_step "webhook config vault smoke" bash "${script_dir}/webhook-config-vault-smoke.sh" \
     --output-json "${output_dir}/webhook-config-vault-smoke.json"
+  run_step "webhook outbox lease smoke" bash "${script_dir}/webhook-outbox-lease-smoke.sh" \
+    --output-json "${output_dir}/webhook-outbox-lease-smoke.json"
   run_step "report job replayable recovery smoke" bash "${script_dir}/report-job-replayable-recovery-smoke.sh" \
     --output-json "${output_dir}/report-job-replayable-recovery-smoke.json"
   run_step "report job restart recovery smoke" bash "${script_dir}/report-job-restart-recovery-smoke.sh" \
@@ -218,6 +220,7 @@ run_quick() {
       tests/regression/test_webhook_outbox_smoke.py \
       tests/regression/test_webhook_outbox_redelivery_smoke.py \
       tests/regression/test_webhook_config_vault_smoke.py \
+      tests/regression/test_webhook_outbox_lease_smoke.py \
       tests/regression/test_report_job_replayable_recovery_smoke.py \
       tests/regression/test_report_job_restart_recovery_smoke.py \
       tests/regression/test_live_release_gate.py \
@@ -338,6 +341,7 @@ write_summary() {
   FATE_LOCAL_CI_WEBHOOK_OUTBOX_SMOKE="${output_dir}/webhook-outbox-smoke.json" \
   FATE_LOCAL_CI_WEBHOOK_OUTBOX_REDELIVERY_SMOKE="${output_dir}/webhook-outbox-redelivery-smoke.json" \
   FATE_LOCAL_CI_WEBHOOK_CONFIG_VAULT_SMOKE="${output_dir}/webhook-config-vault-smoke.json" \
+  FATE_LOCAL_CI_WEBHOOK_OUTBOX_LEASE_SMOKE="${output_dir}/webhook-outbox-lease-smoke.json" \
   FATE_LOCAL_CI_REPORT_JOB_REPLAYABLE_RECOVERY_SMOKE="${output_dir}/report-job-replayable-recovery-smoke.json" \
   FATE_LOCAL_CI_REPORT_JOB_RESTART_RECOVERY_SMOKE="${output_dir}/report-job-restart-recovery-smoke.json" \
   FATE_LOCAL_CI_LIVE_RELEASE_GATE="${output_dir}/live-release-gate.json" \
@@ -386,6 +390,7 @@ payload = {
         "webhookOutboxSmoke": env("FATE_LOCAL_CI_WEBHOOK_OUTBOX_SMOKE"),
         "webhookOutboxRedeliverySmoke": env("FATE_LOCAL_CI_WEBHOOK_OUTBOX_REDELIVERY_SMOKE"),
         "webhookConfigVaultSmoke": env("FATE_LOCAL_CI_WEBHOOK_CONFIG_VAULT_SMOKE"),
+        "webhookOutboxLeaseSmoke": env("FATE_LOCAL_CI_WEBHOOK_OUTBOX_LEASE_SMOKE"),
         "reportJobReplayableRecoverySmoke": env("FATE_LOCAL_CI_REPORT_JOB_REPLAYABLE_RECOVERY_SMOKE"),
         "reportJobRestartRecoverySmoke": env("FATE_LOCAL_CI_REPORT_JOB_RESTART_RECOVERY_SMOKE"),
         "liveReleaseGate": env("FATE_LOCAL_CI_LIVE_RELEASE_GATE"),

@@ -14,7 +14,7 @@ import sqlite3
 import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, is_dataclass, replace
-from datetime import datetime
+from datetime import datetime, timedelta
 from hashlib import sha256
 from pathlib import Path
 from queue import Full, Queue
@@ -185,6 +185,18 @@ class ReportJobStore:
         return []
 
     def save_webhook_outbox_record(self, _record: ReportJobWebhookOutboxRecord) -> None:
+        return
+
+    def claim_webhook_outbox_record(
+        self,
+        record: ReportJobWebhookOutboxRecord,
+        *,
+        lease_owner: str,
+        lease_seconds: float,
+    ) -> ReportJobWebhookOutboxRecord | None:
+        return record
+
+    def release_webhook_outbox_record(self, _outbox_id: str, *, lease_owner: str) -> None:
         return
 
     def has_webhook_delivery_config_store(self) -> bool:
@@ -359,6 +371,7 @@ class SQLiteReportJobStore(ReportJobStore):
         return [self._row_to_webhook_outbox_record(row) for row in rows]
 
     def load_redeliverable_webhook_outbox_records(self) -> list[ReportJobWebhookOutboxRecord]:
+        now = now_cn().isoformat()
         with self._lock, self._connect() as conn:
             rows = conn.execute(
                 """
@@ -368,9 +381,10 @@ class SQLiteReportJobStore(ReportJobStore):
                 FROM report_job_webhook_outbox
                 WHERE event_type = ?
                   AND status IN ('pending', 'failed')
+                  AND (lease_expires_at IS NULL OR lease_expires_at <= ?)
                 ORDER BY updated_at ASC, created_at ASC, outbox_id ASC
                 """,
-                (REPORT_JOB_WEBHOOK_EVENT_TYPE,),
+                (REPORT_JOB_WEBHOOK_EVENT_TYPE, now),
             ).fetchall()
         return [self._row_to_webhook_outbox_record(row) for row in rows]
 
@@ -415,6 +429,81 @@ class SQLiteReportJobStore(ReportJobStore):
                     record.last_error_type,
                     record.result_status_code,
                 ),
+            )
+
+    def claim_webhook_outbox_record(
+        self,
+        record: ReportJobWebhookOutboxRecord,
+        *,
+        lease_owner: str,
+        lease_seconds: float,
+    ) -> ReportJobWebhookOutboxRecord | None:
+        now = now_cn()
+        now_text = now.isoformat()
+        lease_ttl = max(1.0, float(lease_seconds))
+        expires_at = (now + timedelta(seconds=lease_ttl)).isoformat()
+        owner = str(lease_owner).strip()
+        if not owner:
+            return None
+        with self._lock, self._connect() as conn:
+            cursor = conn.execute(
+                """
+                UPDATE report_job_webhook_outbox
+                SET lease_owner = ?,
+                    lease_acquired_at = ?,
+                    lease_expires_at = ?,
+                    updated_at = ?
+                WHERE outbox_id = ?
+                  AND event_type = ?
+                  AND status IN ('pending', 'failed')
+                  AND (
+                    lease_expires_at IS NULL
+                    OR lease_expires_at <= ?
+                    OR lease_owner = ?
+                  )
+                """,
+                (
+                    owner,
+                    now_text,
+                    expires_at,
+                    now_text,
+                    record.outbox_id,
+                    record.event_type,
+                    now_text,
+                    owner,
+                ),
+            )
+            if cursor.rowcount != 1:
+                return None
+            row = conn.execute(
+                """
+                SELECT outbox_id, job_id, event_type, job_status, status, attempts,
+                       max_attempts, signature_mode, target_host_hash, created_at,
+                       updated_at, completed_at, last_error_type, result_status_code
+                FROM report_job_webhook_outbox
+                WHERE outbox_id = ?
+                """,
+                (record.outbox_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        return self._row_to_webhook_outbox_record(row)
+
+    def release_webhook_outbox_record(self, outbox_id: str, *, lease_owner: str) -> None:
+        owner = str(lease_owner).strip()
+        if not owner:
+            return
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                UPDATE report_job_webhook_outbox
+                SET lease_owner = NULL,
+                    lease_acquired_at = NULL,
+                    lease_expires_at = NULL
+                WHERE outbox_id = ?
+                  AND lease_owner = ?
+                """,
+                (outbox_id, owner),
             )
 
     def has_webhook_delivery_config_store(self) -> bool:
@@ -603,6 +692,13 @@ class SQLiteReportJobStore(ReportJobStore):
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_report_job_webhook_outbox_status ON report_job_webhook_outbox(status)"
             )
+            self._ensure_column(conn, "report_job_webhook_outbox", "lease_owner", "TEXT")
+            self._ensure_column(conn, "report_job_webhook_outbox", "lease_acquired_at", "TEXT")
+            self._ensure_column(conn, "report_job_webhook_outbox", "lease_expires_at", "TEXT")
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_report_job_webhook_outbox_lease "
+                "ON report_job_webhook_outbox(status, lease_expires_at)"
+            )
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS report_job_webhook_delivery_config (
@@ -708,6 +804,7 @@ class ReportJobManager:
         execution_policy: ReportJobExecutionPolicy | None = None,
         callback_policy: ReportJobWebhookPolicy | None = None,
         task_factories: dict[str, ReportJobTaskFactory] | None = None,
+        webhook_redelivery_lease_seconds: float = 30.0,
     ) -> None:
         self.max_workers = max(1, max_workers)
         self.queue_size = max(1, queue_size)
@@ -718,6 +815,8 @@ class ReportJobManager:
         self.execution_policy = (execution_policy or ReportJobExecutionPolicy()).normalized()
         self.callback_policy = (callback_policy or ReportJobWebhookPolicy()).normalized()
         self.task_factories = dict(task_factories or {})
+        self.webhook_redelivery_lease_seconds = max(1.0, float(webhook_redelivery_lease_seconds))
+        self._webhook_redelivery_lease_owner = f"manager:{secrets.token_urlsafe(12)}"
         self._queue: Queue[str] = Queue(maxsize=self.queue_size)
         self._jobs: dict[str, _ReportJob] = {}
         self._idempotency_index: dict[str, str] = {}
@@ -959,95 +1058,123 @@ class ReportJobManager:
             self._redeliver_webhook_outbox_record(record)
 
     def _redeliver_webhook_outbox_record(self, record: ReportJobWebhookOutboxRecord) -> None:
-        with self._lock:
-            job = self._jobs.get(record.job_id)
-            if not job or job.status not in {"succeeded", "failed", "cancelled"}:
-                return
-            snapshot = self._snapshot_locked(job)
-        try:
-            webhook_config = self.delivery_resolver(record, snapshot) if self.delivery_resolver else None
-            if webhook_config is None:
-                webhook_config = self.store.load_webhook_delivery_config(record)
-        except Exception as exc:  # noqa: BLE001 - resolver 是运行时外部边界，失败必须转成可审计事件。
+        requested_record = record
+        claimed_record = self.store.claim_webhook_outbox_record(
+            requested_record,
+            lease_owner=self._webhook_redelivery_lease_owner,
+            lease_seconds=self.webhook_redelivery_lease_seconds,
+        )
+        if claimed_record is None:
             with self._lock:
-                job = self._jobs.get(record.job_id)
-                if job:
-                    self._append_event_locked(
-                        job,
-                        "webhook.redelivery_failed",
-                        "报告任务 webhook outbox 重投配置解析失败",
-                        {
-                            "outboxId": record.outbox_id,
-                            "outboxStatus": record.status,
-                            "reason": "config_resolution_failed",
-                            "errorType": type(exc).__name__,
-                        },
-                    )
-            return
-        if webhook_config is None:
-            with self._lock:
-                job = self._jobs.get(record.job_id)
+                job = self._jobs.get(requested_record.job_id)
                 if job:
                     self._append_event_locked(
                         job,
                         "webhook.redelivery_skipped",
-                        "报告任务 webhook outbox 重投缺少运行时配置",
+                        "报告任务 webhook outbox 已被其他执行器 claim",
                         {
-                            "outboxId": record.outbox_id,
-                            "outboxStatus": record.status,
-                            "reason": "config_unavailable",
+                            "outboxId": requested_record.outbox_id,
+                            "outboxStatus": requested_record.status,
+                            "reason": "lease_unavailable",
                         },
                     )
             return
-
-        with self._lock:
-            job = self._jobs.get(record.job_id)
-            if job:
-                self._append_event_locked(
-                    job,
-                    "webhook.redelivery_scheduled",
-                    "报告任务 webhook outbox 已调度重投",
-                    {
-                        "outboxId": record.outbox_id,
-                        "outboxStatus": record.status,
-                        "previousAttempts": record.attempts,
-                        "targetHostHash": record.target_host_hash,
-                    },
-                )
-        final_record = self._dispatch_terminal_webhook(
-            snapshot,
-            webhook_config,
-            existing_outbox_record=record,
-            redelivery=True,
-        )
-        if final_record is None:
-            return
-        with self._lock:
-            job = self._jobs.get(record.job_id)
-            if not job:
+        record = claimed_record
+        try:
+            with self._lock:
+                job = self._jobs.get(record.job_id)
+                if not job or job.status not in {"succeeded", "failed", "cancelled"}:
+                    return
+                snapshot = self._snapshot_locked(job)
+            try:
+                webhook_config = self.delivery_resolver(record, snapshot) if self.delivery_resolver else None
+                if webhook_config is None:
+                    webhook_config = self.store.load_webhook_delivery_config(record)
+            except Exception as exc:  # noqa: BLE001 - resolver 是运行时外部边界，失败必须转成可审计事件。
+                with self._lock:
+                    job = self._jobs.get(record.job_id)
+                    if job:
+                        self._append_event_locked(
+                            job,
+                            "webhook.redelivery_failed",
+                            "报告任务 webhook outbox 重投配置解析失败",
+                            {
+                                "outboxId": record.outbox_id,
+                                "outboxStatus": record.status,
+                                "reason": "config_resolution_failed",
+                                "errorType": type(exc).__name__,
+                            },
+                        )
                 return
-            if final_record.status == "succeeded":
-                self._append_event_locked(
-                    job,
-                    "webhook.redelivery_succeeded",
-                    "报告任务 webhook outbox 重投成功",
-                    {
-                        "outboxId": final_record.outbox_id,
-                        "attempts": final_record.attempts,
-                        "statusCode": final_record.result_status_code,
-                    },
-                )
-            elif final_record.status == "failed":
-                self._append_event_locked(
-                    job,
-                    "webhook.redelivery_failed",
-                    "报告任务 webhook outbox 重投失败",
-                    {
-                        "outboxId": final_record.outbox_id,
-                        "attempts": final_record.attempts,
-                        "errorType": final_record.last_error_type,
-                    },
-                )
+            if webhook_config is None:
+                with self._lock:
+                    job = self._jobs.get(record.job_id)
+                    if job:
+                        self._append_event_locked(
+                            job,
+                            "webhook.redelivery_skipped",
+                            "报告任务 webhook outbox 重投缺少运行时配置",
+                            {
+                                "outboxId": record.outbox_id,
+                                "outboxStatus": record.status,
+                                "reason": "config_unavailable",
+                            },
+                        )
+                return
+
+            with self._lock:
+                job = self._jobs.get(record.job_id)
+                if job:
+                    self._append_event_locked(
+                        job,
+                        "webhook.redelivery_scheduled",
+                        "报告任务 webhook outbox 已调度重投",
+                        {
+                            "outboxId": record.outbox_id,
+                            "outboxStatus": record.status,
+                            "previousAttempts": record.attempts,
+                            "targetHostHash": record.target_host_hash,
+                        },
+                    )
+            final_record = self._dispatch_terminal_webhook(
+                snapshot,
+                webhook_config,
+                existing_outbox_record=record,
+                redelivery=True,
+            )
+            if final_record is None:
+                return
+            with self._lock:
+                job = self._jobs.get(record.job_id)
+                if not job:
+                    return
+                if final_record.status == "succeeded":
+                    self._append_event_locked(
+                        job,
+                        "webhook.redelivery_succeeded",
+                        "报告任务 webhook outbox 重投成功",
+                        {
+                            "outboxId": final_record.outbox_id,
+                            "attempts": final_record.attempts,
+                            "statusCode": final_record.result_status_code,
+                        },
+                    )
+                elif final_record.status == "failed":
+                    self._append_event_locked(
+                        job,
+                        "webhook.redelivery_failed",
+                        "报告任务 webhook outbox 重投失败",
+                        {
+                            "outboxId": final_record.outbox_id,
+                            "attempts": final_record.attempts,
+                            "errorType": final_record.last_error_type,
+                        },
+                    )
+        finally:
+            self.store.release_webhook_outbox_record(
+                record.outbox_id,
+                lease_owner=self._webhook_redelivery_lease_owner,
+            )
 
     def _worker_loop(self) -> None:
         while True:

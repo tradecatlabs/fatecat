@@ -36,7 +36,7 @@ fatecat-delivery/
 - `src/web_ui.py` 只负责零美化语义 HTML：服务端直出、原生表单、真实链接、psql ASCII 表格、Markdown 原文和机器可读片段。
 - `src/web_forms.py` 只定义 Web 原生表单输入和服务端报告结果模型，不渲染 HTML、不调用命理计算。
 - `src/web_report_service.py` 只连接 Web 表单、地区解析、capability 执行和 Markdown 生成；不得渲染 HTML 或管理任务生命周期。
-- `src/report_jobs.py` 只承载公开服务报告任务的队列、状态机、TTL、本地 retry/timeout policy、本地 webhook retry/outbox trail、指标、CalculationJob event history、可选 SQLite job store 和本地 encrypted webhook delivery config vault 接入；不得实现命理规则。`memory` 是默认单进程后端，`sqlite` 只提供单副本本地持久状态、事件历史查询和 Fernet 加密 callback 配置恢复，多副本生产扩容应替换为外部队列或数据库任务系统。
+- `src/report_jobs.py` 只承载公开服务报告任务的队列、状态机、TTL、本地 retry/timeout policy、本地 webhook retry/outbox trail、指标、CalculationJob event history、可选 SQLite job store、本地 encrypted webhook delivery config vault 和 SQLite webhook outbox lease claim/release baseline 接入；不得实现命理规则。`memory` 是默认单进程后端，`sqlite` 只提供单副本本地持久状态、事件历史查询、Fernet 加密 callback 配置恢复和本地 outbox 重投互斥 claim，多副本生产扩容应替换为外部队列或数据库任务系统。
 - `src/webhook_callbacks.py` 只承载 report job 终态 callback payload、HMAC-SHA256 签名、URL 基础校验和可注入 HTTP dispatcher；不得保存 webhook secret、发送报告正文或实现持久重试队列。
 - `src/webhook_config_store.py` 只承载本地 Fernet key ring、callback URL/secret 加密存储、解密和 key rotation baseline；不得承载外部 Vault/KMS、分布式租约、生产密钥生命周期或 webhook dispatcher。
 - `src/report_markdown.py` 只承载 Markdown 表格、转义和行内文本压缩工具；报告层可复用，但不得写入命理规则。
