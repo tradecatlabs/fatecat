@@ -25,7 +25,7 @@
 - TP-02.01 Done：workflow 已增加 digest、artifact upload、attestation 和 verify。
 - TP-03.01 Done：测试/策略门禁已修改并通过 targeted checks。
 - TP-03.02 Done：文档/contract 已同步。
-- TP-04.01 In Progress：本地验证已通过；提交推送和远端 workflow 待执行。
+- TP-04.01 Done：本地验证通过；远端 Container workflow `28580109478` 对 `5b301db` 成功，main image digest 和 attestation verify 通过。
 
 # Review Gate
 
@@ -47,4 +47,4 @@
 - 本地测试通过。
 - 任务包 closeout 通过。
 - commit/push 完成。
-- container workflow `push_image=true` 对当前 commit 成功，或失败已形成 DEBUG/blocked evidence。
+- container workflow `push_image=true` 成功，失败首轮已形成 `DEBUG.md` 证据并修复。

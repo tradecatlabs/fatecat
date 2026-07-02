@@ -3,7 +3,7 @@
 - Task ID: `0050`
 - Slug: `measurement-infrastructure-registry-attestation`
 - Objective: `执行 MI-NEXT-02，把 FateCat container release 从本地 imageId baseline 推进到 GHCR registry digest、GitHub artifact attestation、release artifact CI upload 和 attestation verify gate。`
-- Status: `In Progress`
+- Status: `Done`
 
 ## In Scope
 

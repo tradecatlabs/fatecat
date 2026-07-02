@@ -1,12 +1,10 @@
 # Task Status
 
-- Overall Status: `In Progress`
+- Overall Status: `Done`
 
 # Next Executable Leaves
 
-| Node ID | Next Action |
-| --- | --- |
-| TP-02.01 | 修改 `.github/workflows/container.yml`。 |
+None. 0050 已完成；下一步按主路线图进入 `MI-NEXT-03` durable runtime 二期。
 
 # Task Package Status Table
 
@@ -19,8 +17,8 @@
 | TP-03 | ROOT | 1 | TP-02.01 | No | Done | 门禁、contract、AGENTS、操作文档和 roadmap 已同步。 | 无 | 无 |
 | TP-03.01 | TP-03 | 2 | TP-02.01 | No | Done | `test_container_workflow_attestation.py` 与 `check-public-release-policy.sh` 覆盖关键断言。 | 无 | 无 |
 | TP-03.02 | TP-03 | 2 | TP-02.01 | No | Done | release gate、delivery registry、AGENTS、操作文档和 roadmap 已同步。 | 无 | 无 |
-| TP-04 | ROOT | 1 | TP-03.01, TP-03.02 | No | In Progress | 本地 targeted tests、task docs validation 和 quick CI 已通过；远端 run `28579776942` digest 解析失败已修复，待提交推送重跑。 | 无 | 无 |
-| TP-04.01 | TP-04 | 2 | TP-03.01, TP-03.02 | No | In Progress | digest 解析修复后 workflow regression、public release policy、YAML parse 和 task docs validation 均通过；待提交推送重跑 workflow。 | 无 | 无 |
+| TP-04 | ROOT | 1 | TP-03.01, TP-03.02 | No | Done | 本地 quick CI 通过；远端 run `28580109478` 对 `5b301db` 成功，digest/attestation/verify 均通过。 | 无 | 无 |
+| TP-04.01 | TP-04 | 2 | TP-03.01, TP-03.02 | No | Done | `https://github.com/tradecatlabs/fatecat/actions/runs/28580109478` success；digest `sha256:2544ae3c30ce66141652199dbf065cd168ec2618c7b51bb6afc922172d9a0756`；attestation `33588466`。 | 无 | 无 |
 
 # Blockers
 
@@ -29,7 +27,7 @@
 # Runtime State
 
 - 当前任务：0050
-- 当前阶段：TP-04.01 验证、提交、推送和远端 workflow
+- 当前阶段：Done
 - 生产副作用：尚未发生；远端 `push_image=true` 才会发布 GHCR image
 
 # Remaining Risks
@@ -52,3 +50,7 @@
 | Digest parser fix regression | `.venv/bin/python -m pytest -q tests/regression/test_container_workflow_attestation.py` passed |
 | Digest parser fix policy | `bash scripts/check-public-release-policy.sh` passed |
 | Digest parser fix YAML | `yaml.safe_load(.github/workflows/container.yml)` passed |
+| Remote workflow success | `https://github.com/tradecatlabs/fatecat/actions/runs/28580109478` success for `5b301dbbd56d64709b1996641787647f6309e048` |
+| GHCR digest | `ghcr.io/tradecatlabs/fatecat-delivery@sha256:2544ae3c30ce66141652199dbf065cd168ec2618c7b51bb6afc922172d9a0756` |
+| GitHub attestation | `https://github.com/tradecatlabs/fatecat/attestations/33588466` |
+| Release artifact upload | Artifact `fatecat-release-artifacts-5b301dbbd56d64709b1996641787647f6309e048`, id `8034643123` |

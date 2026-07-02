@@ -100,4 +100,6 @@
 
 | 0049 | measurement-infrastructure-100-deep-research-implementation-plan | Done | P0 | 基于当前 main worktree 和外部基础设施一手资料，补强 FateCat 达到 100% 测算基础设施所需的完整实现计划、资源模型、实现波次和不可伪造验收口径。 | 0049-measurement-infrastructure-100-deep-research-implementation-plan/ |
 
-| 0050 | measurement-infrastructure-registry-attestation | In Progress | P0 | 执行 MI-NEXT-02，把 FateCat container release 从本地 imageId baseline 推进到 GHCR registry digest、GitHub artifact attestation、release artifact CI upload 和 attestation verify gate。 | 0050-measurement-infrastructure-registry-attestation/ |
+| 0050 | measurement-infrastructure-registry-attestation | Done | P0 | 执行 MI-NEXT-02，把 FateCat container release 从本地 imageId baseline 推进到 GHCR registry digest、GitHub artifact attestation、release artifact CI upload 和 attestation verify gate。 | 0050-measurement-infrastructure-registry-attestation/ |
+
+| 0051 | measurement-infrastructure-100-post-0050-executable-plan | Done | P0 | 基于当前 post-0050 状态和外部基础设施同构资料，制作 FateCat 达到 100% 测算基础设施所需的可执行实现计划、任务树、优先级和失败判定。 | 0051-measurement-infrastructure-100-post-0050-executable-plan/ |

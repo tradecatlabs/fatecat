@@ -11,10 +11,10 @@
 | SPEC | 明确 GHCR digest/attestation 验收口径 | Done |
 | RESEARCH | 官方 action 和 CLI 用法已复核 | Done |
 | PLAN | 任务树和变更边界明确 | Done |
-| BUILD | workflow、门禁、文档待实现 | In Progress |
-| TEST | 本地回归与任务文档校验待执行 | Pending |
-| REVIEW | 远端 workflow 待验证 | Pending |
-| SHIP | 提交、推送、CI 证据待完成 | Pending |
+| BUILD | workflow、门禁、文档待实现 | Done |
+| TEST | 本地回归与任务文档校验待执行 | Done |
+| REVIEW | 远端 workflow 待验证 | Done |
+| SHIP | 提交、推送、CI 证据待完成 | Done |
 
 # Simplest Path
 
@@ -32,15 +32,15 @@
 | Wave | Nodes | Purpose | Status |
 | --- | --- | --- | --- |
 | 1 | TP-01.01 | 现状和官方用法复核 | Done |
-| 2 | TP-02.01 | workflow 实现 | In Progress |
-| 3 | TP-03.01, TP-03.02 | 门禁和文档 | Pending |
-| 4 | TP-04.01 | 验证、提交、远端 workflow | Pending |
+| 2 | TP-02.01 | workflow 实现 | Done |
+| 3 | TP-03.01, TP-03.02 | 门禁和文档 | Done |
+| 4 | TP-04.01 | 验证、提交、远端 workflow | Done |
 
 # Next Executable Leaves
 
 | Node ID | Action |
 | --- | --- |
-| TP-02.01 | 修改 `.github/workflows/container.yml`。 |
+| None | 0050 已完成；下一步进入 `MI-NEXT-03` durable runtime 二期。 |
 
 # Future-Optimal Contract
 

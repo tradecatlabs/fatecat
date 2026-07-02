@@ -11,7 +11,7 @@
 - [x] release artifacts 上传为 Actions artifact。
 - [x] 本地回归测试通过。
 - [x] 任务文档校验通过。
-- [ ] 远端 workflow 对当前 commit 成功或失败证据已落盘。
+- [x] 远端 workflow 对当前 commit 成功或失败证据已落盘。
 
 # Task Package Checklists
 
@@ -43,7 +43,7 @@
 ## TP-04.01
 
 - [x] 本地验证通过。
-- [ ] 提交推送完成。
-- [ ] 远端 workflow 证据已记录。
+- [x] 提交推送完成。
+- [x] 远端 workflow 证据已记录。
 - Verify: command output and GitHub Actions run URL。
 - Gate: 未跑远端 workflow 时不写生产完成。
