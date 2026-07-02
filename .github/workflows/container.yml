@@ -12,6 +12,9 @@ on:
 permissions:
   contents: read
   packages: write
+  id-token: write
+  attestations: write
+  artifact-metadata: write
 
 jobs:
   delivery-image:
@@ -28,11 +31,29 @@ jobs:
       - name: Smoke delivery image
         run: bash scripts/container-smoke.sh --image fatecat-delivery:ci --skip-build --startup-timeout 90
 
+      - name: Generate release artifacts
+        if: inputs.push_image
+        run: |
+          bash scripts/release-artifacts.sh \
+            --output-dir infra/runtime/local-state/exports/container-workflow/release-artifacts \
+            --summary-json infra/runtime/local-state/exports/container-workflow/release-artifacts-summary.json
+
+      - name: Upload release artifacts
+        if: inputs.push_image
+        uses: actions/upload-artifact@v4
+        with:
+          name: fatecat-release-artifacts-${{ github.sha }}
+          path: |
+            infra/runtime/local-state/exports/container-workflow/release-artifacts/
+            infra/runtime/local-state/exports/container-workflow/release-artifacts-summary.json
+          if-no-files-found: error
+
       - name: Login to GHCR
         if: inputs.push_image
         run: echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
       - name: Push main image
+        id: push_main
         if: inputs.push_image && github.ref == 'refs/heads/main'
         run: |
           image="ghcr.io/${{ github.repository_owner }}/fatecat-delivery"
@@ -41,11 +62,79 @@ jobs:
           docker tag fatecat-delivery:ci "${image}:${short_sha}"
           docker push "${image}:main"
           docker push "${image}:${short_sha}"
+          digest="$(docker buildx imagetools inspect "${image}:${short_sha}" --format '{{.Digest}}')"
+          if [[ ! "${digest}" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "invalid registry digest: ${digest}" >&2
+            exit 1
+          fi
+          {
+            echo "image=${image}"
+            echo "tag=${short_sha}"
+            echo "digest=${digest}"
+            echo "pushed_ref=${image}@${digest}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Attest main image
+        id: attest_main
+        if: steps.push_main.outputs.digest != ''
+        uses: actions/attest@v4
+        with:
+          subject-name: ${{ steps.push_main.outputs.image }}
+          subject-digest: ${{ steps.push_main.outputs.digest }}
+          push-to-registry: true
+
+      - name: Verify main image attestation
+        if: steps.push_main.outputs.digest != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh attestation verify "oci://${{ steps.push_main.outputs.pushed_ref }}" --repo "${{ github.repository }}"
 
       - name: Push release tag image
+        id: push_release
         if: inputs.push_image && startsWith(github.ref, 'refs/tags/v')
         run: |
           image="ghcr.io/${{ github.repository_owner }}/fatecat-delivery"
           version="${GITHUB_REF_NAME}"
           docker tag fatecat-delivery:ci "${image}:${version}"
           docker push "${image}:${version}"
+          digest="$(docker buildx imagetools inspect "${image}:${version}" --format '{{.Digest}}')"
+          if [[ ! "${digest}" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "invalid registry digest: ${digest}" >&2
+            exit 1
+          fi
+          {
+            echo "image=${image}"
+            echo "tag=${version}"
+            echo "digest=${digest}"
+            echo "pushed_ref=${image}@${digest}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Attest release tag image
+        id: attest_release
+        if: steps.push_release.outputs.digest != ''
+        uses: actions/attest@v4
+        with:
+          subject-name: ${{ steps.push_release.outputs.image }}
+          subject-digest: ${{ steps.push_release.outputs.digest }}
+          push-to-registry: true
+
+      - name: Verify release tag image attestation
+        if: steps.push_release.outputs.digest != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh attestation verify "oci://${{ steps.push_release.outputs.pushed_ref }}" --repo "${{ github.repository }}"
+
+      - name: Write release summary
+        if: steps.push_main.outputs.digest != '' || steps.push_release.outputs.digest != ''
+        run: |
+          {
+            echo "### FateCat container release"
+            if [[ -n "${{ steps.push_main.outputs.digest }}" ]]; then
+              echo "- main image: \`${{ steps.push_main.outputs.pushed_ref }}\`"
+              echo "- main attestation: \`${{ steps.attest_main.outputs['attestation-url'] }}\`"
+            fi
+            if [[ -n "${{ steps.push_release.outputs.digest }}" ]]; then
+              echo "- release image: \`${{ steps.push_release.outputs.pushed_ref }}\`"
+              echo "- release attestation: \`${{ steps.attest_release.outputs['attestation-url'] }}\`"
+            fi
+          } >> "${GITHUB_STEP_SUMMARY}"

@@ -46,6 +46,15 @@ assert_contains() {
 assert_manual_workflow ".github/workflows/acceptance.yml" "FateCat Acceptance"
 assert_manual_workflow ".github/workflows/container.yml" "FateCat Container"
 
+assert_contains ".github/workflows/container.yml" "id-token: write" "Container workflow attestation 需要 OIDC token 权限"
+assert_contains ".github/workflows/container.yml" "attestations: write" "Container workflow attestation 需要 attestations 权限"
+assert_contains ".github/workflows/container.yml" "artifact-metadata: write" "Container workflow attestation 需要 artifact metadata 权限"
+assert_contains ".github/workflows/container.yml" "actions/upload-artifact@v4" "Container workflow 必须上传 release artifacts"
+assert_contains ".github/workflows/container.yml" "docker buildx imagetools inspect" "Container workflow 必须读取 registry digest"
+assert_contains ".github/workflows/container.yml" "actions/attest@v4" "Container workflow 必须生成 GitHub artifact attestation"
+assert_contains ".github/workflows/container.yml" "push-to-registry: true" "Container workflow attestation 必须推送到 registry"
+assert_contains ".github/workflows/container.yml" "gh attestation verify" "Container workflow 必须 verify registry attestation"
+
 assert_contains "infra/huggingface-space/Dockerfile" "FATE_RECORDS_ENABLED=0" "HF 免费 Space 必须默认关闭记录存储"
 assert_contains "infra/huggingface-space/README.md" "免费公开 Space 默认不保存用户记录" "HF README 必须说明默认不保存"
 assert_contains "docs/deployment/huggingface-space.md" "Duplicate this Space" "自助部署文档必须包含网页复制路径"

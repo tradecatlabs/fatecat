@@ -71,7 +71,7 @@ scripts/
 - `data-supply-chain-gate.sh` / `data-supply-chain-gate.py` 是数据供应链门禁；校验 data supply chain registry、canonical classics source/copyright manifest、solar terms source manifest 和 vendor production dependency 许可边界。
 - `export-openapi.sh` / `export-openapi.py`：导出本地 OpenAPI JSON，并校验开发者接入必备路径。
 - `developer-docs-smoke.sh` / `developer-docs-smoke.py`：执行开发者 OpenAPI、sandbox fixture 和 SDK 示例 smoke；只保存检查摘要，不保存报告正文或真实凭证。
-- `check-public-release-policy.sh`：检查公开 Web 工作台发布策略，防止 GitHub 自动验收回潮、HF 免费 Space 误开记录存储或文档口径缺失。
+- `check-public-release-policy.sh`：检查公开 Web 工作台发布策略，防止 GitHub 自动验收回潮、HF 免费 Space 误开记录存储、container workflow 丢失 registry digest/attestation verify 或文档口径缺失。
 - `hf-space-deploy.sh`：生成 Hugging Face Docker Space 分发包，并通过 `hf` CLI 上传到指定 Space；默认目标 `tradecatlabs/fatecat`，默认拒绝非 `tradecatlabs` 认证。
 - `local-ci.sh`：本地 CI/CD 调度入口；只编排本仓脚本，不调用 GitHub Actions；成功或失败都会写 `summary.txt` 与机器可读 `summary.json`，其中 `summary.json` 是 live release gate 的 `evidence.local_ci_quick` 输入。
 - `live-release-gate.sh` / `live-release-gate.py` 是 live release evidence gate；聚合 local CI、远端 CI、生产 API、HF Space、Telegram Bot、container digest、SBOM/provenance、rollback drill 和 clean git state，输出机器可读 JSON。默认只做本地合同检查并标注外部连通验证待执行；`--local-ci-summary` 必须指向 `kind=fatecat.local_ci_summary`、`profile=quick`、`status=passed` 且 commit 匹配当前 HEAD 的 JSON；`--require-live` 才要求真实外部证据全部通过。
@@ -85,7 +85,7 @@ scripts/
 - `public-release-gate.sh`：公开 Web 工作台发布前本地门禁；串联 quick CI、发布策略、delivery smoke、生产静态准入和 live release evidence gate，可选验证线上 API URL。
 - `release-artifacts.sh` / `release-artifacts.py` 生成本地发布资产 baseline：CycloneDX 兼容 SBOM、SLSA/in-toto 风格 provenance 和 manifest；只读取 lockfile、Dockerfile、关键 contracts/scripts 和 git metadata，不生成远端 CI attestation、registry signature 或 container digest。
 - `rollback-drill.sh` / `rollback-drill.py` 生成本地 dry-run rollback drill evidence：校验回滚相关脚本、部署文档、release artifacts 和候选命令，输出 `kind=fatecat.rollback_drill_evidence` 的 JSON；不执行真实生产回滚、registry 切换或 HF/Bot 外部操作。
-- `container-release-evidence.sh` / `container-release-evidence.py` 生成本地 container release evidence：复用 `container-build.sh` 与 `container-smoke.sh`，记录 imageId、build/smoke 状态、RepoDigests、commit 和 `pushExecuted=false`；不推送 registry，不把本地 imageId 当成 GHCR digest。
+- `container-release-evidence.sh` / `container-release-evidence.py` 生成本地 container release evidence：复用 `container-build.sh` 与 `container-smoke.sh`，记录 imageId、build/smoke 状态、RepoDigests、commit 和 `pushExecuted=false`；不推送 registry，不把本地 imageId 当成 GHCR digest。真实 GHCR digest 与 GitHub artifact attestation 由 `.github/workflows/container.yml` 在手动 `push_image=true` 时生成并 verify。
 - `secret-scan.sh` / `secret-scan.py` 是本地 secret scanner；扫描 tracked 与未跟踪非忽略的一线文本文件，输出脱敏 JSON summary，发现疑似真实密钥时阻断。
 - `security-smoke.sh` / `security-smoke.py` 是本地安全 smoke；验证 token/owner 边界、响应安全头、请求体限制、限流、registry metadata，并可串联 privacy/source/public-release 文件门禁。
 - `webhook-smoke.sh` / `webhook-smoke.py` 是 report job webhook 本地模拟器；使用可注入 transport 验证终态事件、HMAC 签名和正文/secret 不外发，不访问公网。

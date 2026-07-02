@@ -80,7 +80,10 @@
         "container evidence imageId=sha256:<64 hex>",
         "container evidence smokeStatus=passed",
         "container evidence pushExecuted=false for local baseline",
-        "sha256:<64 hex> registry image digest for true production release"
+        "sha256:<64 hex> registry image digest for true production release",
+        ".github/workflows/container.yml with push_image=true",
+        "GitHub artifact attestation for ghcr.io/<owner>/fatecat-delivery@sha256:<64 hex>",
+        "gh attestation verify oci://ghcr.io/<owner>/fatecat-delivery@sha256:<64 hex> --repo <owner>/<repo>"
       ],
       "externalConnectivity": "requires_registry",
       "privacyBoundary": "只记录 image digest，不记录 registry token"
@@ -139,6 +142,8 @@
     "bash scripts/public-release-gate.sh --output <dir>"
   ],
   "externalVerification": [
+    "gh workflow run container.yml -f push_image=true",
+    "gh attestation verify oci://ghcr.io/<owner>/fatecat-delivery@sha256:<64 hex> --repo <owner>/<repo>",
     "bash scripts/live-release-gate.sh --require-live --api-url <真实API域名> --hf-space-url <真实HF Space URL> --run-live-bot --output-json <path>",
     "bash scripts/production-readiness.sh --api-url <真实API域名> --require-live-bot"
   ],
@@ -149,7 +154,7 @@
       "真实生产 API /health /ready /metrics 待执行",
       "真实 Hugging Face Space /web 待执行",
       "真实 Telegram Bot live smoke 待执行",
-      "container digest、SBOM、provenance 和 rollback drill artifact 待提供",
+      "GHCR container digest、GitHub attestation、SBOM/provenance artifact 和 rollback drill artifact 待提供",
       "当前 worktree 未提交前不得宣称可发布"
     ],
     "policy": "本地 gate 可证明发布准入口径完整；只有全部 requiredEvidence 为 pass 且 git clean 时，live release shipGate 才能 pass。"

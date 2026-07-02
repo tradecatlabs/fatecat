@@ -1,0 +1,50 @@
+# Task Status
+
+- Overall Status: `In Progress`
+
+# Next Executable Leaves
+
+| Node ID | Next Action |
+| --- | --- |
+| TP-02.01 | 修改 `.github/workflows/container.yml`。 |
+
+# Task Package Status Table
+
+| Node ID | Parent | Depth | Depends On | Ready | Status | Recent Evidence | Blocker | Unblock Needed |
+| --- | --- | ---: | --- | --- | --- | --- | --- | --- |
+| TP-01 | ROOT | 1 | - | No | Done | workflow 与官方 action 用法已复核。 | 无 | 无 |
+| TP-01.01 | TP-01 | 2 | - | No | Done | `actions/attest@v4.1.1` latest；README 确认 container image 参数和权限。 | 无 | 无 |
+| TP-02 | ROOT | 1 | TP-01.01 | No | Done | `.github/workflows/container.yml` 已增加 digest、release artifacts upload、attestation 和 verify。 | 无 | 无 |
+| TP-02.01 | TP-02 | 2 | TP-01.01 | No | Done | workflow YAML 解析通过；新增 workflow regression 通过。 | 无 | 无 |
+| TP-03 | ROOT | 1 | TP-02.01 | No | Done | 门禁、contract、AGENTS、操作文档和 roadmap 已同步。 | 无 | 无 |
+| TP-03.01 | TP-03 | 2 | TP-02.01 | No | Done | `test_container_workflow_attestation.py` 与 `check-public-release-policy.sh` 覆盖关键断言。 | 无 | 无 |
+| TP-03.02 | TP-03 | 2 | TP-02.01 | No | Done | release gate、delivery registry、AGENTS、操作文档和 roadmap 已同步。 | 无 | 无 |
+| TP-04 | ROOT | 1 | TP-03.01, TP-03.02 | No | In Progress | 本地 targeted tests、task docs validation 和 quick CI 已通过，待提交推送和远端 workflow。 | 无 | 无 |
+| TP-04.01 | TP-04 | 2 | TP-03.01, TP-03.02 | No | In Progress | `bash scripts/local-ci.sh --profile quick --output /tmp/fatecat-local-ci-0050-rerun` passed；待提交推送和远端 workflow。 | 无 | 无 |
+
+# Blockers
+
+当前无本地 blocker。远端 workflow 可能因 GitHub runner `gh attestation`、permissions 或 GHCR 权限失败，失败后进入 debug。
+
+# Runtime State
+
+- 当前任务：0050
+- 当前阶段：TP-04.01 验证、提交、推送和远端 workflow
+- 生产副作用：尚未发生；远端 `push_image=true` 才会发布 GHCR image
+
+# Remaining Risks
+
+- 0048 Telegram Bot live smoke 仍缺真实 `FATE_BOT_TOKEN`。
+- 本地 `gh` 不支持 attestation 子命令；远端 verify 必须用 GitHub-hosted runner 证明。
+
+# Current Evidence
+
+| Item | Evidence |
+| --- | --- |
+| Workflow attestation regression | `.venv/bin/python -m pytest -q tests/regression/test_container_workflow_attestation.py` passed |
+| Public release policy | `bash scripts/check-public-release-policy.sh` passed |
+| Workflow YAML syntax | `yaml.safe_load(.github/workflows/container.yml)` passed |
+| Targeted release regression | `.venv/bin/python -m pytest -q tests/regression/test_live_release_gate.py tests/regression/test_container_release_evidence.py tests/regression/test_operability_docs.py tests/regression/test_container_workflow_attestation.py` passed |
+| Task docs validation | `validate_task_docs.py --phase decompose` passed |
+| Task tree validation | `validate_tasks_tree.py --phase auto` passed |
+| Local quick CI | `bash scripts/local-ci.sh --profile quick --output /tmp/fatecat-local-ci-0050-rerun` passed; focused regression `132 passed in 76.62s` |

@@ -492,6 +492,21 @@ bash scripts/container-release-evidence.sh \
 
 该 evidence 必须满足 `kind=fatecat.container_release_evidence`、`status=passed`、`imageId=sha256:<64 hex>`、`smokeStatus=passed`。它只证明本地镜像构建和烟雾验证，不代表 GHCR/registry digest 已推送。
 
+真实 registry release proof 必须走 GitHub 手动容器 workflow：
+
+```bash
+gh workflow run container.yml -f push_image=true
+```
+
+该 workflow 会构建并 smoke delivery image，上传 `release-artifacts.sh` 生成的 SBOM/provenance/manifest，推送 `ghcr.io/<owner>/fatecat-delivery`，读取 `sha256:<64 hex>` registry digest，使用 `actions/attest@v4` 生成 GitHub artifact attestation，并执行：
+
+```bash
+gh attestation verify oci://ghcr.io/<owner>/fatecat-delivery@sha256:<64-hex> \
+  --repo <owner>/<repo>
+```
+
+只有 GitHub Actions run 对当前 commit 成功，且 summary 中记录 immutable image digest 与 attestation verify 通过，才能把 registry digest/attestation 作为生产 release proof。本地 `container-release-evidence.json` 不能替代这个远端证据。
+
 ```bash
 bash scripts/live-release-gate.sh \
   --require-live \
