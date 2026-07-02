@@ -46,3 +46,20 @@ bash scripts/vendor-health.sh
 bash scripts/data-supply-chain-gate.sh --output-json /tmp/fatecat-data-supply-chain-gate-0046-fix.json
 bash scripts/local-ci.sh --profile quick --output /tmp/fatecat-local-ci-0046-fix
 ```
+
+## 2026-07-02 follow-up: full Acceptance regressions
+
+Remote Acceptance run `28573051272` reached full pytest and failed after the vendor fix:
+
+- `tests/regression/test_fate_core_cli.py::test_main_capability_executes_bazi_via_executor`
+- `tests/regression/test_operability_docs.py::test_public_service_operability_runbook_is_referenced_and_actionable`
+
+Root causes:
+
+- `fate_core.cli._run_capability_execute` assumed every executor result exposes `metadata`; existing minimal executor doubles only provide capability id, status, report profile, data, evidence and risk.
+- `REVIEW.md` did not reference `references/ops-pack.md`, while the operability regression requires the public review handoff to point to the actionable runbook.
+
+Fix:
+
+- Read capability result metadata with `getattr(result, "metadata", {})`.
+- Add `references/ops-pack.md` to the `REVIEW.md` evidence table.

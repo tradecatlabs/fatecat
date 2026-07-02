@@ -16,6 +16,7 @@
 |---|---|
 | 当前分支 | `main` |
 | 当前发布目标 | 免费公开 Web 工作台 + HF Space 自助部署 |
+| 公共服务运维手册 | `references/ops-pack.md` |
 | 本地公开发布门禁 | `bash scripts/public-release-gate.sh --api-url https://tradecatlabs-fatecat.hf.space --skip-delivery-smoke --output /tmp/fatecat-public-release-20260617-final` -> `PASS` |
 | quick CI | 门禁内执行 `scripts/local-ci.sh --profile quick` -> `PASS` |
 | focused regression | `54 passed in 10.79s` |

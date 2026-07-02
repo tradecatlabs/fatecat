@@ -246,7 +246,7 @@ def _run_capability_execute(args: argparse.Namespace) -> int:
                 "data": result.data,
                 "evidence": result.evidence,
                 "risk": result.risk,
-                "metadata": result.metadata,
+                "metadata": getattr(result, "metadata", {}),
             }
         ),
         pretty=args.pretty,
