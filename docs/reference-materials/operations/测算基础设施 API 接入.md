@@ -632,7 +632,7 @@ Report job store：
 | --- | --- | --- |
 | `memory` | `FATE_REPORT_JOB_STORE=memory` | 默认后端；只在当前进程 TTL 生命周期内保留任务状态和幂等键。 |
 | `sqlite` | `FATE_REPORT_JOB_STORE=sqlite`，`FATE_REPORT_JOB_DB_PATH=infra/runtime/local-state/database/report_jobs.sqlite` | 单副本本地持久化；可在 manager 重建后查询已完成、失败、取消和过期任务，并保留幂等键。带 `task_payload` 且存在注册 factory 的 Web/Markdown 报告任务可在本地重新入队执行。配置 `FATE_WEBHOOK_CONFIG_FERNET_KEYS` 后，failed/pending webhook outbox 的 callback URL/secret 会以 Fernet ciphertext 写入本地 encrypted config vault，manager 重建后可在无运行时 resolver 时重投，并在成功后删除。SQLite outbox redelivery 会先 claim 本地 lease，避免同一 outbox 在本地重复重投；该 lease 不属于生产级分布式 worker lease。 |
-| `postgres` | `FATE_REPORT_JOB_STORE=postgres`，`FATE_REPORT_JOB_DATABASE_URL=<secret-env>`，`FATE_REPORT_JOB_POSTGRES_LIVE_EVIDENCE=<live-smoke.json>` | Postgres ReportJobStore live smoke baseline；使用 tracked DDL、job/event/outbox/config 表和 webhook outbox conditional claim/release SQL。缺少 `psycopg` 或 DSN 时启动 fail-fast，不会静默 fallback。当前 live smoke 只证明真实数据库 schema/job/outbox/config 路径，不证明 production ready、生产多副本 worker lease、exactly-once、公网 webhook live 或外部 Vault/KMS。 |
+| `postgres` | `FATE_REPORT_JOB_STORE=postgres`，`FATE_REPORT_JOB_DATABASE_URL=<secret-env>`，`FATE_REPORT_JOB_POSTGRES_LIVE_EVIDENCE=<live-smoke.json>` | Postgres ReportJobStore worker lease smoke baseline；使用 tracked DDL、job/event/outbox/config 表和 webhook outbox conditional claim/release SQL。缺少 `psycopg` 或 DSN 时启动 fail-fast，不会静默 fallback。当前 live smoke 与 worker lease negative smoke 只证明真实数据库 schema/job/outbox/config 路径和 outbox duplicate claim 负例，不证明 production ready、job execution worker lease、exactly-once、公网 webhook live 或外部 Vault/KMS。 |
 
 RuntimeBackend contract：
 
@@ -640,11 +640,12 @@ RuntimeBackend contract：
 | --- | --- | --- |
 | registry | `contracts/fate/delivery/runtime-backends.json` | 登记 `memory`、`sqlite`、`postgres`、`temporal`、`redis_queue` 的 mature level、生产资格、证据要求和迁移路径。 |
 | schema | `contracts/fate/delivery/schemas/runtime-backend.schema.json` | 定义 RuntimeBackend 字段、状态、生产资格、外部连通边界和禁止伪造声明。 |
-| gate | `bash scripts/runtime-backend-gate.sh --output-json <path>` | 本地校验 contract：`backend.postgres` 已有 live smoke baseline 但仍只能是 planned external candidate，`backend.sqlite` 只能 single-replica，`backend.redis_queue` 不能作为 source of truth。 |
+| gate | `bash scripts/runtime-backend-gate.sh --output-json <path>` | 本地校验 contract：`backend.postgres` 已有 worker lease smoke baseline 但仍只能是 planned external candidate，`backend.sqlite` 只能 single-replica，`backend.redis_queue` 不能作为 source of truth。 |
 | postgres dry-run | `bash scripts/postgres-job-store-dry-run.sh --output-json <path>` | 本地校验 Postgres DDL、required tables/indexes、upsert、webhook outbox conditional claim/release SQL 和隐私边界；不连接真实数据库，不读取或输出 DSN。 |
 | postgres live smoke | `FATE_REPORT_JOB_DATABASE_URL=<secret-env> bash scripts/postgres-job-store-live-smoke.sh --output-json <path>` | 连接真实或一次性 Postgres，验证 schema 初始化、job/event/idempotency/task payload、webhook outbox claim/release 和 encrypted delivery config 基本读写；summary 只输出 hash 和检查结果，不输出 DSN、用户名、密码、callback URL、webhook secret 或报告正文。无 DSN 的本地巡检可用 `--allow-missing` 生成 blocked artifact。 |
+| postgres worker lease smoke | `FATE_REPORT_JOB_DATABASE_URL=<secret-env> bash scripts/postgres-worker-lease-smoke.sh --output-json <path>` | 用两个独立 `PostgresReportJobStore`/连接模拟多 worker 竞争同一 webhook outbox，验证 duplicate claim 只能一个成功、失败 worker 不能错误 release、lease 过期后可被其他 worker 重新 claim；summary 只输出 hash 和检查结果，不输出 DSN、用户名、密码、callback URL、secret 或报告正文。无 DSN 的本地巡检可用 `--allow-missing` 生成 blocked artifact。 |
 
-当前选型口径：Postgres 是第一个 external ReportJobStore adapter 候选，因为 job state、event history、idempotency、outbox 和 worker claim 可以进入同一个事务型外部 source of truth；Temporal 只登记为未来长流程 orchestrator；Redis queue 只能作为未来辅助队列，不得替代 durable job source of truth。0062 完成 contract baseline，0070 完成 Postgres adapter baseline 与 dry-run，0071 完成 Postgres migration/job live smoke 入口与 evidence contract；生产级分布式 worker lease、exactly-once、公网 webhook live delivery 和外部 Vault/KMS 仍未完成。
+当前选型口径：Postgres 是第一个 external ReportJobStore adapter 候选，因为 job state、event history、idempotency、outbox 和 worker claim 可以进入同一个事务型外部 source of truth；Temporal 只登记为未来长流程 orchestrator；Redis queue 只能作为未来辅助队列，不得替代 durable job source of truth。0062 完成 contract baseline，0070 完成 Postgres adapter baseline 与 dry-run，0071 完成 Postgres migration/job live smoke 入口与 evidence contract，0072 完成 Postgres webhook outbox worker lease negative smoke；job execution worker lease、exactly-once、公网 webhook live delivery 和外部 Vault/KMS 仍未完成。
 
 Async event contract：
 
@@ -687,7 +688,7 @@ Report job event history：
 | 本地持久化 | `memory` 后端保留当前进程内事件；`sqlite` 后端写入 `report_job_events` 并按写入顺序返回。 |
 | 当前事件 | `job.queued`、`job.running`、`job.succeeded`、`job.failed`、`job.cancelled`、`job.expired`、`job.recovered_failed`、`job.recovered_requeued`、`job.attempt_failed`、`job.attempt_timed_out`、`job.retry_scheduled`、`webhook.delivery_attempt_failed`、`webhook.delivery_retry_scheduled`、`webhook.delivery_succeeded`、`webhook.delivery_failed`、`webhook.redelivery_scheduled`、`webhook.redelivery_skipped`、`webhook.redelivery_succeeded`、`webhook.redelivery_failed`。 |
 | 隐私 | event metadata 不包含 Markdown 正文、姓名、出生地区、请求体、webhook URL、webhook secret 或原始异常文本。 |
-| 边界 | 事件历史只证明任务生命周期可审计；本地 webhook retry/outbox trail、SQLite persistent outbox record baseline、restart-safe failure smoke、replayable recovery smoke、SQLite outbox redelivery baseline、SQLite encrypted webhook delivery config vault baseline 与 SQLite outbox lease claim/release baseline 已有，external backend、生产级分布式 worker lease、真实公网 webhook live smoke、外部 Vault/KMS 和生产密钥生命周期仍未完成。 |
+| 边界 | 事件历史只证明任务生命周期可审计；本地 webhook retry/outbox trail、SQLite persistent outbox record baseline、restart-safe failure smoke、replayable recovery smoke、SQLite outbox redelivery baseline、SQLite encrypted webhook delivery config vault baseline、SQLite outbox lease claim/release baseline 与 Postgres outbox worker lease negative smoke 已有，job execution worker lease、真实公网 webhook live smoke、外部 Vault/KMS、生产密钥生命周期和 exactly-once 仍未完成。 |
 
 Report job retry / timeout policy：
 
@@ -766,7 +767,7 @@ bash scripts/webhook-outbox-lease-smoke.sh \
 
 该 smoke 使用临时 SQLite、运行时生成的 Fernet key 和可注入 transport，证明 failed outbox 只能被一个本地 lease owner claim、错误 owner release 无效、release 后可重新 claim、manager 重建后通过 encrypted config 只重投一次，并且 summary 不包含 URL/secret/lease owner/报告正文/姓名/地区。
 
-当前 webhook 是本地可验证 callback baseline，已包含有限 retry、事件轨迹、SQLite persistent outbox record baseline、SQLite manager 重建后的 resolver redelivery baseline、本地 encrypted config vault baseline 和 SQLite outbox lease claim/release baseline；outbox 摘要不包含完整 webhook URL、webhook secret、lease owner、报告正文、姓名、出生地区或请求体。它仍不包含公网 live callback、接收端 SLA、external backend、外部任务系统、外部 Vault/KMS、生产密钥生命周期、生产级分布式 worker lease 或 exactly-once，这些仍是外部连通验证待执行。
+当前 webhook 是本地可验证 callback baseline，已包含有限 retry、事件轨迹、SQLite persistent outbox record baseline、SQLite manager 重建后的 resolver redelivery baseline、本地 encrypted config vault baseline、SQLite outbox lease claim/release baseline 和 Postgres outbox worker lease negative smoke；outbox 摘要不包含完整 webhook URL、webhook secret、lease owner、报告正文、姓名、出生地区或请求体。它仍不包含公网 live callback、接收端 SLA、job execution worker lease、外部 Vault/KMS、生产密钥生命周期或 exactly-once，这些仍是外部连通验证待执行。
 
 ## 准入规则
 

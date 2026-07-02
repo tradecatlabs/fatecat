@@ -42,7 +42,7 @@ def test_runtime_backend_gate_summary(tmp_path):
     assert stored["summary"]["externalCandidate"] == "backend.postgres"
     assert stored["summary"]["futureWorkflowOrchestrator"] == "backend.temporal"
     assert "DSN" in stored["privacyBoundary"]
-    assert any("Postgres adapter 与 migration/job live smoke baseline" in item for item in stored["limits"])
+    assert any("worker lease negative smoke baseline" in item for item in stored["limits"])
     assert any("不在 gate 内连接真实外部数据库" in item for item in stored["limits"])
 
 
@@ -64,13 +64,19 @@ def test_runtime_backend_contract_keeps_external_backends_planned():
 
     assert registry["decision"]["selectedExternalCandidate"] == "backend.postgres"
     assert backends["backend.postgres"]["status"] == "planned"
-    assert backends["backend.postgres"]["implementationStatus"] == "live_smoke_baseline"
+    assert backends["backend.postgres"]["implementationStatus"] == "worker_lease_smoke_baseline"
     assert backends["backend.postgres"]["externalConnectivity"] == "requires_real_database"
     assert "production_ready" in backends["backend.postgres"]["migration"]["blockedClaims"]
+    assert "exactly_once" in backends["backend.postgres"]["migration"]["blockedClaims"]
     assert "public_webhook_live" in backends["backend.postgres"]["migration"]["blockedClaims"]
     assert "external_vault_kms" in backends["backend.postgres"]["migration"]["blockedClaims"]
     assert "bash scripts/postgres-job-store-dry-run.sh" in backends["backend.postgres"]["localVerification"]
+    assert (
+        "bash scripts/postgres-worker-lease-smoke.sh --allow-missing"
+        in backends["backend.postgres"]["localVerification"]
+    )
     assert "bash scripts/postgres-job-store-live-smoke.sh" in backends["backend.postgres"]["externalVerification"]
+    assert "bash scripts/postgres-worker-lease-smoke.sh" in backends["backend.postgres"]["externalVerification"]
     assert backends["backend.sqlite"]["productionEligibility"] == "single_replica_only"
     assert backends["backend.sqlite"]["capabilities"]["multiReplicaReady"] is False
     assert backends["backend.redis_queue"]["status"] == "not_selected"
@@ -92,4 +98,5 @@ def test_runtime_backend_schema_and_resource_model_are_linked():
     assert runtime_schema["allowedBackendType"] == ["memory", "sqlite", "postgres", "temporal", "redis_queue"]
     assert "adapter_baseline" in runtime_schema["allowedImplementationStatus"]
     assert "live_smoke_baseline" in runtime_schema["allowedImplementationStatus"]
+    assert "worker_lease_smoke_baseline" in runtime_schema["allowedImplementationStatus"]
     assert "external_connectivity_pending" in runtime_schema["allowedExternalConnectivity"]

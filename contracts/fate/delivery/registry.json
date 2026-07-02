@@ -255,10 +255,11 @@
     "localVerification": [
       "bash scripts/runtime-backend-gate.sh",
       "bash scripts/postgres-job-store-dry-run.sh",
-      "bash scripts/postgres-job-store-live-smoke.sh --allow-missing"
+      "bash scripts/postgres-job-store-live-smoke.sh --allow-missing",
+      "bash scripts/postgres-worker-lease-smoke.sh --allow-missing"
     ],
     "selectedExternalCandidate": "backend.postgres",
-    "currentProductionEligibility": "live_smoke_baseline",
+    "currentProductionEligibility": "worker_lease_smoke_baseline",
     "externalConnectivity": "外部连通验证待执行",
     "policy": "RuntimeBackend registry 只声明 durable runtime 后端候选、证据口径和迁移路径；真实 Postgres/Temporal/Redis 后端必须由独立 adapter、迁移 smoke、crash/restart smoke 和外部连接证据证明。"
   },

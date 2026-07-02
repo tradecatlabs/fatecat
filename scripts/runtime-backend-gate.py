@@ -251,8 +251,8 @@ def _validate_registry(
     _check(checks, "postgres:planned", postgres["status"] == "planned", postgres["status"])
     _check(
         checks,
-        "postgres:live_smoke_baseline",
-        postgres["implementationStatus"] == "live_smoke_baseline",
+        "postgres:worker_lease_smoke_baseline",
+        postgres["implementationStatus"] == "worker_lease_smoke_baseline",
         postgres["implementationStatus"],
     )
     _check(
@@ -264,7 +264,7 @@ def _validate_registry(
     _check(
         checks,
         "postgres:blocks_production_claim",
-        {"production_ready", "multi_replica_ready", "public_webhook_live", "external_vault_kms"}
+        {"production_ready", "multi_replica_ready", "exactly_once", "public_webhook_live", "external_vault_kms"}
         <= set(postgres["migration"]["blockedClaims"]),
         str(postgres["migration"]["blockedClaims"]),
     )
@@ -273,6 +273,13 @@ def _validate_registry(
         "postgres:live_smoke_registered",
         "bash scripts/postgres-job-store-live-smoke.sh" in postgres["externalVerification"],
         str(postgres["externalVerification"]),
+    )
+    _check(
+        checks,
+        "postgres:worker_lease_smoke_registered",
+        "bash scripts/postgres-worker-lease-smoke.sh" in postgres["externalVerification"]
+        and "bash scripts/postgres-worker-lease-smoke.sh --allow-missing" in postgres["localVerification"],
+        f"local={postgres['localVerification']} external={postgres['externalVerification']}",
     )
     _check(
         checks,
@@ -321,9 +328,9 @@ def run_gate() -> dict[str, Any]:
         "checks": checks,
         "privacyBoundary": "Runtime backend gate 只读取 tracked contract metadata，不读取真实用户、报告正文、webhook URL、webhook secret、token、DSN、数据库密码或生产日志。",
         "limits": [
-            "Postgres adapter 与 migration/job live smoke baseline 已实现，但 runtime backend gate 本身只读取 tracked contract metadata。",
-            "不在 gate 内连接真实外部数据库或服务；真实或一次性 Postgres 连通由 scripts/postgres-job-store-live-smoke.sh 单独证明。",
-            "不证明生产级分布式 worker lease、exactly-once、公网 webhook live delivery 或外部 Vault/KMS。",
+            "Postgres adapter、migration/job live smoke 与 worker lease negative smoke baseline 已实现，但 runtime backend gate 本身只读取 tracked contract metadata。",
+            "不在 gate 内连接真实外部数据库或服务；真实或一次性 Postgres 连通由 scripts/postgres-job-store-live-smoke.sh 和 scripts/postgres-worker-lease-smoke.sh 单独证明。",
+            "不证明 job execution worker lease、exactly-once、公网 webhook live delivery 或外部 Vault/KMS。",
             "不把 SQLite local lease 解释为 external backend。",
         ],
     }
