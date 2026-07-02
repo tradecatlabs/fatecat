@@ -5,6 +5,7 @@
   "schemas": {
     "deliverySurface": "contracts/fate/delivery/schemas/delivery-surface.schema.json",
     "releaseGate": "contracts/fate/delivery/schemas/release-gate.schema.json",
+    "runtimeBackend": "contracts/fate/delivery/schemas/runtime-backend.schema.json",
     "resource": "contracts/fate/capabilities/schemas/resource.schema.json"
   },
   "surfaces": [
@@ -244,6 +245,19 @@
     "shipGateStatus": "blocked",
     "externalConnectivity": "外部连通验证待执行",
     "policy": "delivery registry 只声明 live release gate 入口；真实 API/HF/Bot/CI/container/SBOM/provenance 证据必须由 scripts/live-release-gate.sh 输出。"
+  },
+  "runtimeBackendRegistry": {
+    "resourceType": "RuntimeBackendRegistry",
+    "apiVersion": "fatecat.tradecatlabs/v1",
+    "id": "runtime.backends",
+    "contract": "contracts/fate/delivery/runtime-backends.json",
+    "localVerification": [
+      "bash scripts/runtime-backend-gate.sh"
+    ],
+    "selectedExternalCandidate": "backend.postgres",
+    "currentProductionEligibility": "contract_baseline",
+    "externalConnectivity": "外部连通验证待执行",
+    "policy": "RuntimeBackend registry 只声明 durable runtime 后端候选、证据口径和迁移路径；真实 Postgres/Temporal/Redis 后端必须由独立 adapter、迁移 smoke、crash/restart smoke 和外部连接证据证明。"
   },
   "metadata": {
     "resourceType": "DeliverySurfaceRegistry",

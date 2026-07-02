@@ -585,6 +585,16 @@ Report job store：
 | `memory` | `FATE_REPORT_JOB_STORE=memory` | 默认后端；只在当前进程 TTL 生命周期内保留任务状态和幂等键。 |
 | `sqlite` | `FATE_REPORT_JOB_STORE=sqlite`，`FATE_REPORT_JOB_DB_PATH=infra/runtime/local-state/database/report_jobs.sqlite` | 单副本本地持久化；可在 manager 重建后查询已完成、失败、取消和过期任务，并保留幂等键。带 `task_payload` 且存在注册 factory 的 Web/Markdown 报告任务可在本地重新入队执行。配置 `FATE_WEBHOOK_CONFIG_FERNET_KEYS` 后，failed/pending webhook outbox 的 callback URL/secret 会以 Fernet ciphertext 写入本地 encrypted config vault，manager 重建后可在无运行时 resolver 时重投，并在成功后删除。SQLite outbox redelivery 会先 claim 本地 lease，避免同一 outbox 在本地重复重投；该 lease 不属于生产级分布式 worker lease。 |
 
+RuntimeBackend contract：
+
+| 资源 | 路径 | 说明 |
+| --- | --- | --- |
+| registry | `contracts/fate/delivery/runtime-backends.json` | 登记 `memory`、`sqlite`、`postgres`、`temporal`、`redis_queue` 的 mature level、生产资格、证据要求和迁移路径。 |
+| schema | `contracts/fate/delivery/schemas/runtime-backend.schema.json` | 定义 RuntimeBackend 字段、状态、生产资格、外部连通边界和禁止伪造声明。 |
+| gate | `bash scripts/runtime-backend-gate.sh --output-json <path>` | 本地校验 contract：`backend.postgres` 只能是 planned external candidate，`backend.sqlite` 只能 single-replica，`backend.redis_queue` 不能作为 source of truth。 |
+
+当前选型口径：Postgres 是第一个 external ReportJobStore adapter 候选，因为 job state、event history、idempotency、outbox 和 worker claim 可以进入同一个事务型外部 source of truth；Temporal 只登记为未来长流程 orchestrator；Redis queue 只能作为未来辅助队列，不得替代 durable job source of truth。0062 只完成 contract baseline，不实现真实 Postgres/Temporal/Redis adapter，不连接真实数据库，不证明生产级分布式 worker lease、exactly-once 或公网 webhook live delivery。
+
 `running` 任务取消后不能强杀线程，但完成后会丢弃结果并保持 `cancelled`。如果 SQLite backend 在 manager 重建时发现旧 `queued` / `running` 任务：带 `task_payload` 且存在注册 factory 的任务会标记为 `queued`、写入 `job.recovered_requeued` 并重新入队；无 payload 或无 factory 的任务会标记为 `failed`、写入 `job.recovered_failed` 并保留错误原因。该能力只是本地可重建执行 baseline，不是 external backend、分布式 worker、生产多副本锁或 exactly-once。多副本生产不能使用本地 `memory` / `sqlite` job store 假装分布式任务系统，后续需要外部队列或数据库任务系统。
 
 本地 restart recovery smoke：

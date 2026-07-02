@@ -164,6 +164,8 @@ run_quick() {
     --output-json "${output_dir}/bazi-ziwei-l4-golden-smoke.json"
   run_step "data supply chain gate" bash "${script_dir}/data-supply-chain-gate.sh" \
     --output-json "${output_dir}/data-supply-chain-gate.json"
+  run_step "runtime backend gate" bash "${script_dir}/runtime-backend-gate.sh" \
+    --output-json "${output_dir}/runtime-backend-gate.json"
   run_step "release artifacts" bash "${script_dir}/release-artifacts.sh" \
     --output-dir "${output_dir}/release-artifacts" \
     --summary-json "${output_dir}/release-artifacts-summary.json"
@@ -213,6 +215,7 @@ run_quick() {
       tests/regression/test_provider_dependency_smoke.py \
       tests/regression/test_provider_lifecycle_gate.py \
       tests/regression/test_production_security_gate.py \
+      tests/regression/test_runtime_backend_gate.py \
       tests/regression/test_secret_scan.py \
       tests/regression/test_security_smoke.py \
       tests/regression/test_web_html.py \
@@ -334,6 +337,7 @@ write_summary() {
   FATE_LOCAL_CI_OBSERVABILITY_TRACE_SLO_SMOKE="${output_dir}/observability-trace-slo-smoke.json" \
   FATE_LOCAL_CI_BAZI_ZIWEI_L4_GOLDEN_SMOKE="${output_dir}/bazi-ziwei-l4-golden-smoke.json" \
   FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE="${output_dir}/data-supply-chain-gate.json" \
+  FATE_LOCAL_CI_RUNTIME_BACKEND_GATE="${output_dir}/runtime-backend-gate.json" \
   FATE_LOCAL_CI_RELEASE_ARTIFACTS="${output_dir}/release-artifacts" \
   FATE_LOCAL_CI_RELEASE_ARTIFACTS_SUMMARY="${output_dir}/release-artifacts-summary.json" \
   FATE_LOCAL_CI_EVALUATION_DASHBOARD_SMOKE="${output_dir}/evaluation-dashboard-smoke" \
@@ -383,6 +387,7 @@ payload = {
         "observabilityTraceSloSmoke": env("FATE_LOCAL_CI_OBSERVABILITY_TRACE_SLO_SMOKE"),
         "baziZiweiL4GoldenSmoke": env("FATE_LOCAL_CI_BAZI_ZIWEI_L4_GOLDEN_SMOKE"),
         "dataSupplyChainGate": env("FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE"),
+        "runtimeBackendGate": env("FATE_LOCAL_CI_RUNTIME_BACKEND_GATE"),
         "releaseArtifacts": env("FATE_LOCAL_CI_RELEASE_ARTIFACTS"),
         "releaseArtifactsSummary": env("FATE_LOCAL_CI_RELEASE_ARTIFACTS_SUMMARY"),
         "evaluationDashboardSmoke": env("FATE_LOCAL_CI_EVALUATION_DASHBOARD_SMOKE"),

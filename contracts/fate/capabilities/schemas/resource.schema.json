@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "description": "测算基础设施资源模型契约。用于把 capability、provider、job、report、evidence、dataset、evaluation run、observability signal、security control、delivery surface 与 release gate 作为稳定 API 资源管理。",
+  "description": "测算基础设施资源模型契约。用于把 capability、provider、job、report、evidence、dataset、evaluation run、observability signal、security control、delivery surface、runtime backend 与 release gate 作为稳定 API 资源管理。",
   "resourceTypes": [
     "Capability",
     "Provider",
@@ -12,6 +12,7 @@
     "ObservabilitySignal",
     "SecurityControl",
     "DeliverySurface",
+    "RuntimeBackend",
     "ReleaseGate",
     "WebhookEvent"
   ],
@@ -115,6 +116,25 @@
     "privacyBoundary",
     "externalConnectivity"
   ],
+  "runtimeBackendResourceFields": [
+    "name",
+    "backendType",
+    "status",
+    "maturity",
+    "deploymentScope",
+    "durability",
+    "coordination",
+    "productionEligibility",
+    "implementationStatus",
+    "config",
+    "capabilities",
+    "requiredEvidence",
+    "localVerification",
+    "externalVerification",
+    "privacyBoundary",
+    "externalConnectivity",
+    "migration"
+  ],
   "releaseGateResourceFields": [
     "name",
     "status",
@@ -172,6 +192,8 @@
     "涉及真实域名、真实 token、Bot live smoke 或云端权限的 SecurityControl 必须标记 externalConnectivity=external_connectivity_pending",
     "DeliverySurface resource 只登记交付入口契约，不保存用户输入、报告正文、真实 token 或生产运行日志",
     "partial DeliverySurface 必须说明同源范围和未覆盖的输出边界",
+    "RuntimeBackend resource 只登记 durable runtime 后端契约，不保存真实 DSN、secret、生产日志或用户报告正文",
+    "RuntimeBackend external backend 生产通过必须由真实外部连接、迁移 smoke、crash/restart smoke 和 worker claim 负例共同证明",
     "ReleaseGate resource 只登记发布证据口径和 gate 结果，不保存真实 token、生产日志正文或用户报告正文",
     "live release shipGate=pass 必须由真实外部域名、真实 Bot、远端 CI、container digest、SBOM/provenance 和回滚演练证据共同证明"
   ]

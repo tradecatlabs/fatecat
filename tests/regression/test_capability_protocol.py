@@ -124,6 +124,7 @@ def test_capability_schemas_define_required_protocol_boundaries():
     assert "ObservabilitySignal" in resource_schema["resourceTypes"]
     assert "SecurityControl" in resource_schema["resourceTypes"]
     assert "DeliverySurface" in resource_schema["resourceTypes"]
+    assert "RuntimeBackend" in resource_schema["resourceTypes"]
     assert "ReleaseGate" in resource_schema["resourceTypes"]
     assert "usageRole" in resource_schema["datasetResourceFields"]
     assert "localAvailability" in resource_schema["datasetResourceFields"]
@@ -137,6 +138,8 @@ def test_capability_schemas_define_required_protocol_boundaries():
     assert "surfaceType" in resource_schema["deliverySurfaceResourceFields"]
     assert "canonicalChain" in resource_schema["deliverySurfaceResourceFields"]
     assert "outputContracts" in resource_schema["deliverySurfaceResourceFields"]
+    assert "backendType" in resource_schema["runtimeBackendResourceFields"]
+    assert "productionEligibility" in resource_schema["runtimeBackendResourceFields"]
     assert "requiredEvidence" in resource_schema["releaseGateResourceFields"]
     assert "shipGate" in resource_schema["releaseGateResourceFields"]
     assert "providerId" in provider_schema["requiredProviderFields"]
@@ -544,6 +547,8 @@ def test_delivery_surface_schema_and_registry_define_same_source_boundaries():
     registry = _load_json(DELIVERY_DIR / "registry.json")
     release_schema = _load_json(DELIVERY_DIR / "schemas" / "release-gate.schema.json")
     release_gate = _load_json(DELIVERY_DIR / "release-gate.json")
+    runtime_schema = _load_json(DELIVERY_DIR / "schemas" / "runtime-backend.schema.json")
+    runtime_registry = _load_json(DELIVERY_DIR / "runtime-backends.json")
     surfaces = {item["id"]: item for item in registry["surfaces"]}
 
     assert schema["requiredDeliverySurfaceFields"] == [
@@ -574,8 +579,21 @@ def test_delivery_surface_schema_and_registry_define_same_source_boundaries():
 
     assert registry["schemas"]["deliverySurface"] == "contracts/fate/delivery/schemas/delivery-surface.schema.json"
     assert registry["schemas"]["releaseGate"] == "contracts/fate/delivery/schemas/release-gate.schema.json"
+    assert registry["schemas"]["runtimeBackend"] == "contracts/fate/delivery/schemas/runtime-backend.schema.json"
     assert registry["releaseGate"]["id"] == "gate.live_release"
     assert registry["releaseGate"]["contract"] == "contracts/fate/delivery/release-gate.json"
+    assert registry["runtimeBackendRegistry"]["contract"] == "contracts/fate/delivery/runtime-backends.json"
+    assert registry["runtimeBackendRegistry"]["selectedExternalCandidate"] == "backend.postgres"
+    assert runtime_schema["allowedBackendType"] == ["memory", "sqlite", "postgres", "temporal", "redis_queue"]
+    assert runtime_schema["allowedProductionEligibility"] == [
+        "not_allowed",
+        "single_replica_only",
+        "candidate",
+        "future_orchestrator",
+        "auxiliary_only",
+    ]
+    assert runtime_registry["decision"]["selectedExternalCandidate"] == "backend.postgres"
+    assert runtime_registry["decision"]["futureWorkflowOrchestrator"] == "backend.temporal"
     assert release_schema["requiredShipGateFields"] == ["status", "blockingItems", "policy"]
     assert release_gate["resourceType"] == "ReleaseGate"
     assert release_gate["shipGate"]["status"] == "blocked"

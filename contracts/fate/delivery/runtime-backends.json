@@ -1,0 +1,318 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": "fatecat.tradecatlabs/v1",
+  "resourceType": "RuntimeBackendRegistry",
+  "id": "runtime.backends",
+  "description": "FateCat CalculationJob durable runtime backend registry。这里登记 memory、sqlite 与 external backend 候选，明确生产边界和迁移路径；不保存真实 DSN、凭证或生产连接结果。",
+  "decision": {
+    "status": "contract_baseline",
+    "selectedExternalCandidate": "backend.postgres",
+    "firstAdapterPath": "Postgres ReportJobStore adapter with transactional claim/release and migration smoke",
+    "futureWorkflowOrchestrator": "backend.temporal",
+    "notSelectedAsSourceOfTruth": ["backend.redis_queue"],
+    "nextTask": "0062 closes contract baseline; next implementation task may add postgres adapter behind explicit env gate"
+  },
+  "schemas": {
+    "runtimeBackend": "contracts/fate/delivery/schemas/runtime-backend.schema.json",
+    "resource": "contracts/fate/capabilities/schemas/resource.schema.json"
+  },
+  "backends": [
+    {
+      "resourceType": "RuntimeBackend",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "backend.memory",
+      "name": "In-process memory report job store",
+      "backendType": "memory",
+      "status": "available",
+      "maturity": "L2",
+      "deploymentScope": "process_local",
+      "durability": "process lifetime only",
+      "coordination": "single process executor only",
+      "productionEligibility": "not_allowed",
+      "implementationStatus": "implemented",
+      "config": {
+        "envVars": ["FATE_REPORT_JOB_STORE=memory"],
+        "secretPolicy": "no secret or DSN required"
+      },
+      "capabilities": {
+        "jobStatePersistence": false,
+        "eventHistoryPersistence": false,
+        "idempotencyPersistence": false,
+        "taskPayloadRecovery": false,
+        "webhookOutboxPersistence": false,
+        "workerLease": false,
+        "multiReplicaReady": false,
+        "exactlyOnceClaim": false
+      },
+      "requiredEvidence": [
+        "tests/regression/test_api_contracts.py report job memory baseline"
+      ],
+      "localVerification": [
+        ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k report_job"
+      ],
+      "externalVerification": [],
+      "privacyBoundary": "Memory backend must not persist user input, report body, webhook secret, token or DSN after process lifetime.",
+      "externalConnectivity": "not_required",
+      "migration": {
+        "upgradePath": "Use sqlite for local restart recovery; use postgres candidate for production external backend.",
+        "rollbackPath": "Set FATE_REPORT_JOB_STORE=memory for local development only.",
+        "blockedClaims": ["durable", "multi_replica", "production_worker_lease"]
+      },
+      "links": {
+        "self": "/runtime-backends/backend.memory",
+        "collection": "/runtime-backends",
+        "schema": "contracts/fate/delivery/schemas/runtime-backend.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py::MemoryReportJobStore",
+        "rationale": "Fast local default with zero external dependency.",
+        "failureMode": "Process restart loses job state, idempotency, event history and outbox records.",
+        "releaseImpact": "Not eligible for public production durable runtime.",
+        "risk": "Using memory backend in production would lose running job state on restart."
+      }
+    },
+    {
+      "resourceType": "RuntimeBackend",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "backend.sqlite",
+      "name": "SQLite local persistent report job store",
+      "backendType": "sqlite",
+      "status": "available",
+      "maturity": "L3",
+      "deploymentScope": "single_replica_local",
+      "durability": "local file persistence",
+      "coordination": "single replica sqlite transaction and local webhook outbox lease",
+      "productionEligibility": "single_replica_only",
+      "implementationStatus": "implemented",
+      "config": {
+        "envVars": ["FATE_REPORT_JOB_STORE=sqlite", "FATE_REPORT_JOB_DB_PATH"],
+        "secretPolicy": "callback URL/secret may be stored only through Fernet encrypted config vault when FATE_WEBHOOK_CONFIG_FERNET_KEYS is configured"
+      },
+      "capabilities": {
+        "jobStatePersistence": true,
+        "eventHistoryPersistence": true,
+        "idempotencyPersistence": true,
+        "taskPayloadRecovery": true,
+        "webhookOutboxPersistence": true,
+        "workerLease": "local_outbox_lease_only",
+        "multiReplicaReady": false,
+        "exactlyOnceClaim": false
+      },
+      "requiredEvidence": [
+        "bash scripts/report-job-restart-recovery-smoke.sh",
+        "bash scripts/report-job-replayable-recovery-smoke.sh",
+        "bash scripts/webhook-outbox-smoke.sh",
+        "bash scripts/webhook-outbox-redelivery-smoke.sh",
+        "bash scripts/webhook-config-vault-smoke.sh",
+        "bash scripts/webhook-outbox-lease-smoke.sh"
+      ],
+      "localVerification": [
+        "bash scripts/runtime-backend-gate.sh",
+        "bash scripts/report-job-replayable-recovery-smoke.sh",
+        "bash scripts/webhook-outbox-lease-smoke.sh"
+      ],
+      "externalVerification": [],
+      "privacyBoundary": "Public API must not expose SQLite file path, callback URL, webhook secret, lease owner, report body, user name or non-Beijing real location.",
+      "externalConnectivity": "not_required",
+      "migration": {
+        "upgradePath": "Keep sqlite as local baseline; introduce postgres adapter for external database backed production runtime.",
+        "rollbackPath": "Return to memory only for local development; keep sqlite migration optional and backward compatible.",
+        "blockedClaims": ["distributed_worker_lease", "multi_replica_ready", "exactly_once", "external_backend"]
+      },
+      "links": {
+        "self": "/runtime-backends/backend.sqlite",
+        "collection": "/runtime-backends",
+        "schema": "contracts/fate/delivery/schemas/runtime-backend.schema.json"
+      },
+      "metadata": {
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py::SQLiteReportJobStore",
+        "rationale": "Provides local restart recovery, replayable payload recovery, event history and webhook outbox baselines without new infrastructure dependency.",
+        "failureMode": "Multiple production replicas cannot safely share local SQLite as a distributed job system.",
+        "releaseImpact": "Allowed for local and single-replica smoke only; not enough for public multi-replica production.",
+        "risk": "SQLite local lease can reduce duplicate local redelivery but is not a production distributed worker lease."
+      }
+    },
+    {
+      "resourceType": "RuntimeBackend",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "backend.postgres",
+      "name": "Postgres external report job store candidate",
+      "backendType": "postgres",
+      "status": "planned",
+      "maturity": "L0",
+      "deploymentScope": "external_database",
+      "durability": "external relational database durability after adapter implementation",
+      "coordination": "transactional row claim/release candidate using database locks or equivalent conditional update",
+      "productionEligibility": "candidate",
+      "implementationStatus": "contract_baseline",
+      "config": {
+        "envVars": ["FATE_REPORT_JOB_STORE=postgres", "FATE_REPORT_JOB_DATABASE_URL"],
+        "secretPolicy": "database URL must come from secret manager or environment; registry and logs must never store the DSN value"
+      },
+      "capabilities": {
+        "jobStatePersistence": "planned",
+        "eventHistoryPersistence": "planned",
+        "idempotencyPersistence": "planned",
+        "taskPayloadRecovery": "planned",
+        "webhookOutboxPersistence": "planned",
+        "workerLease": "planned",
+        "multiReplicaReady": "planned",
+        "exactlyOnceClaim": false
+      },
+      "requiredEvidence": [
+        "contract baseline: bash scripts/runtime-backend-gate.sh",
+        "future adapter smoke: postgres migration apply/rollback",
+        "future crash/restart smoke with two workers",
+        "future duplicate claim negative test"
+      ],
+      "localVerification": [
+        "bash scripts/runtime-backend-gate.sh"
+      ],
+      "externalVerification": [
+        "future: run postgres-backed job store smoke against disposable external database without logging DSN"
+      ],
+      "privacyBoundary": "Postgres registry may name env vars and migration evidence, but must not include DSN, username, password, report body, callback URL or user input.",
+      "externalConnectivity": "requires_real_database",
+      "migration": {
+        "upgradePath": "Introduce PostgresReportJobStore behind FATE_REPORT_JOB_STORE=postgres; run migration smoke before production eligibility can advance.",
+        "rollbackPath": "Switch back to sqlite for local single-replica baseline if external database smoke fails.",
+        "blockedClaims": ["implemented", "production_ready", "external_live_verified", "exactly_once"]
+      },
+      "links": {
+        "self": "/runtime-backends/backend.postgres",
+        "collection": "/runtime-backends",
+        "schema": "contracts/fate/delivery/schemas/runtime-backend.schema.json"
+      },
+      "metadata": {
+        "owner": "future domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py::PostgresReportJobStore",
+        "rationale": "Postgres is the first external backend candidate because it can hold job state, event history, idempotency, outbox and worker claim state in one transactional source of truth.",
+        "failureMode": "Until adapter and smoke exist, selecting FATE_REPORT_JOB_STORE=postgres must fail instead of silently falling back.",
+        "releaseImpact": "Blocks production multi-replica durable runtime until implemented and externally verified.",
+        "risk": "External database operations require migration, connection pooling, secret handling, lock contention and rollback evidence."
+      }
+    },
+    {
+      "resourceType": "RuntimeBackend",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "backend.temporal",
+      "name": "Temporal workflow orchestrator future candidate",
+      "backendType": "temporal",
+      "status": "planned",
+      "maturity": "L0",
+      "deploymentScope": "external_workflow",
+      "durability": "durable workflow event history after integration",
+      "coordination": "workflow task queue and retry policy after integration",
+      "productionEligibility": "future_orchestrator",
+      "implementationStatus": "planned",
+      "config": {
+        "envVars": ["FATE_WORKFLOW_BACKEND=temporal"],
+        "secretPolicy": "Temporal endpoint and credentials must come from secret manager or environment; no values in registry"
+      },
+      "capabilities": {
+        "jobStatePersistence": "future",
+        "eventHistoryPersistence": "future",
+        "idempotencyPersistence": "future",
+        "taskPayloadRecovery": "future",
+        "webhookOutboxPersistence": "future",
+        "workerLease": "future",
+        "multiReplicaReady": "future",
+        "exactlyOnceClaim": false
+      },
+      "requiredEvidence": [
+        "future workflow design ADR",
+        "future Temporal worker smoke",
+        "future activity retry/non-retryable policy tests"
+      ],
+      "localVerification": [
+        "bash scripts/runtime-backend-gate.sh"
+      ],
+      "externalVerification": [
+        "future: Temporal namespace connectivity and workflow replay smoke"
+      ],
+      "privacyBoundary": "Workflow history must not store raw report markdown, webhook secret or unnecessary user input.",
+      "externalConnectivity": "requires_real_service",
+      "migration": {
+        "upgradePath": "Use Temporal when report generation becomes multi-step workflow orchestration rather than a single job store adapter concern.",
+        "rollbackPath": "Keep ReportJobStore backend independent so Temporal can be disabled without losing API contract.",
+        "blockedClaims": ["current_job_store_adapter", "implemented", "production_ready"]
+      },
+      "links": {
+        "self": "/runtime-backends/backend.temporal",
+        "collection": "/runtime-backends",
+        "schema": "contracts/fate/delivery/schemas/runtime-backend.schema.json"
+      },
+      "metadata": {
+        "owner": "future workflow service",
+        "rationale": "Temporal is better suited for long-lived multi-step workflows, not the first minimal external ReportJobStore adapter.",
+        "failureMode": "Using Temporal as a label without worker, namespace, replay and retry evidence would overstate durable execution.",
+        "releaseImpact": "Future orchestration path only.",
+        "risk": "Adds operational dependency and workflow modeling cost; should not be introduced before Postgres adapter contract is proven insufficient."
+      }
+    },
+    {
+      "resourceType": "RuntimeBackend",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "backend.redis_queue",
+      "name": "Redis queue auxiliary candidate",
+      "backendType": "redis_queue",
+      "status": "not_selected",
+      "maturity": "L0",
+      "deploymentScope": "external_queue",
+      "durability": "queue durability only; not job source of truth",
+      "coordination": "queue delivery semantics after integration",
+      "productionEligibility": "auxiliary_only",
+      "implementationStatus": "planned",
+      "config": {
+        "envVars": ["FATE_REPORT_JOB_QUEUE=redis"],
+        "secretPolicy": "Redis URL must not be stored in contracts or logs"
+      },
+      "capabilities": {
+        "jobStatePersistence": false,
+        "eventHistoryPersistence": false,
+        "idempotencyPersistence": false,
+        "taskPayloadRecovery": false,
+        "webhookOutboxPersistence": false,
+        "workerLease": "auxiliary_only",
+        "multiReplicaReady": false,
+        "exactlyOnceClaim": false
+      },
+      "requiredEvidence": [
+        "future queue auxiliary ADR if introduced",
+        "future queue plus database source-of-truth smoke"
+      ],
+      "localVerification": [
+        "bash scripts/runtime-backend-gate.sh"
+      ],
+      "externalVerification": [
+        "future: Redis connectivity only if used as auxiliary queue"
+      ],
+      "privacyBoundary": "Redis queue payload must not contain raw markdown, webhook secret or unnecessary user input.",
+      "externalConnectivity": "requires_real_service",
+      "migration": {
+        "upgradePath": "Use only as a wake-up or dispatch queue paired with Postgres/other durable source of truth.",
+        "rollbackPath": "Disable Redis queue without losing CalculationJob source-of-truth state.",
+        "blockedClaims": ["source_of_truth", "durable_job_store", "exactly_once"]
+      },
+      "links": {
+        "self": "/runtime-backends/backend.redis_queue",
+        "collection": "/runtime-backends",
+        "schema": "contracts/fate/delivery/schemas/runtime-backend.schema.json"
+      },
+      "metadata": {
+        "owner": "future worker queue",
+        "rationale": "Redis can be useful for dispatch, but should not be the durable CalculationJob record source.",
+        "failureMode": "Treating a queue as source of truth can lose audit history, idempotency and recovery evidence.",
+        "releaseImpact": "Not selected for durable runtime source of truth.",
+        "risk": "Without database-backed state, retries and duplicate delivery can become hard to audit."
+      }
+    }
+  ],
+  "invariants": [
+    "RuntimeBackend registry 不保存真实 DSN、token、secret、webhook URL、用户输入、报告正文或生产日志。",
+    "memory/sqlite available 只代表本地 baseline，不代表 external backend 已生产。",
+    "backend.postgres 是首个 external backend adapter candidate，但 status=planned 且 implementationStatus=contract_baseline。",
+    "backend.temporal 是 future workflow orchestrator，不是当前 ReportJobStore adapter。",
+    "backend.redis_queue 不得作为 CalculationJob source of truth。",
+    "任何 production multi-replica durable runtime 结论必须来自外部 backend adapter、迁移 smoke、crash/restart smoke 和 duplicate claim negative test。"
+  ]
+}

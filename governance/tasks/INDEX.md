@@ -119,3 +119,5 @@
 | 0060 | measurement-infrastructure-webhook-outbox-lease-baseline | Done | P0 | 执行 MI-NEXT-03 durable runtime 二期第九个可验证切片：为 report job webhook outbox 增加 SQLite 本地 claim/release lease baseline，避免多个 manager 重建时重复重投同一条 failed/pending outbox record。不实现 external backend、生产级分布式 worker lease、多副本锁、真实公网 webhook live smoke、外部 Vault/KMS 或 exactly-once。 | 0060-measurement-infrastructure-webhook-outbox-lease-baseline/ |
 
 | 0061 | measurement-infrastructure-100-post-0060-deep-research-plan | Done | P0 | 基于当前 main、0060 之后的 durable runtime 状态和外部基础设施一手资料，制作 FateCat 达到 100% 测算基础设施所需的完整实现计划、资源成熟度矩阵、任务树、执行顺序和不可伪造验收口径；本任务只落盘规划，不实现业务代码。 | 0061-measurement-infrastructure-100-post-0060-deep-research-plan/ |
+
+| 0062 | measurement-infrastructure-runtime-backend-contract | Done | P0 | 执行 0061 后续任务树的第一个 P0 切片：为 CalculationJob durable runtime 新增 external backend contract baseline，登记 memory/sqlite/postgres/temporal/redis_queue 的成熟度、生产边界、证据要求和迁移路径，新增 runtime backend gate、回归测试、文档和任务 closeout；本任务不实现真实 Postgres/Temporal adapter、不声明 external backend 已生产。 | 0062-measurement-infrastructure-runtime-backend-contract/ |

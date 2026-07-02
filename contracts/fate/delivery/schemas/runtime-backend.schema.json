@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "description": "测算基础设施 RuntimeBackend 资源契约。RuntimeBackend 用于登记 CalculationJob durable runtime 的本地和外部后端候选，明确成熟度、生产边界、证据要求和迁移路径；登记不等于外部 backend 已生产。",
+  "requiredRegistryFields": [
+    "schemaVersion",
+    "apiVersion",
+    "resourceType",
+    "id",
+    "description",
+    "decision",
+    "schemas",
+    "backends",
+    "invariants"
+  ],
+  "requiredRuntimeBackendFields": [
+    "resourceType",
+    "apiVersion",
+    "id",
+    "name",
+    "backendType",
+    "status",
+    "maturity",
+    "deploymentScope",
+    "durability",
+    "coordination",
+    "productionEligibility",
+    "implementationStatus",
+    "config",
+    "capabilities",
+    "requiredEvidence",
+    "localVerification",
+    "externalVerification",
+    "privacyBoundary",
+    "externalConnectivity",
+    "migration",
+    "links",
+    "metadata"
+  ],
+  "requiredDecisionFields": [
+    "status",
+    "selectedExternalCandidate",
+    "firstAdapterPath",
+    "futureWorkflowOrchestrator",
+    "notSelectedAsSourceOfTruth",
+    "nextTask"
+  ],
+  "requiredCapabilityFields": [
+    "jobStatePersistence",
+    "eventHistoryPersistence",
+    "idempotencyPersistence",
+    "taskPayloadRecovery",
+    "webhookOutboxPersistence",
+    "workerLease",
+    "multiReplicaReady",
+    "exactlyOnceClaim"
+  ],
+  "requiredMetadataFields": [
+    "owner",
+    "rationale",
+    "failureMode",
+    "releaseImpact",
+    "risk"
+  ],
+  "allowedBackendType": ["memory", "sqlite", "postgres", "temporal", "redis_queue"],
+  "allowedStatus": ["available", "planned", "not_selected"],
+  "allowedMaturity": ["L0", "L1", "L2", "L3", "L4"],
+  "allowedDeploymentScope": ["process_local", "single_replica_local", "external_database", "external_workflow", "external_queue"],
+  "allowedImplementationStatus": ["implemented", "contract_baseline", "planned"],
+  "allowedProductionEligibility": ["not_allowed", "single_replica_only", "candidate", "future_orchestrator", "auxiliary_only"],
+  "allowedExternalConnectivity": [
+    "not_required",
+    "external_connectivity_pending",
+    "requires_real_database",
+    "requires_real_service"
+  ],
+  "invariants": [
+    "RuntimeBackend 资源只登记运行后端契约，不保存用户输入、报告正文、真实 token、secret、DSN、私钥或生产日志",
+    "memory 后端不得声明 durable 或 production ready",
+    "sqlite 后端只允许 single_replica_only，不得声明生产级分布式 worker lease",
+    "postgres 是当前首个 external backend adapter 候选，但 status 必须保持 planned，直到真实 adapter、迁移 smoke 和外部数据库验证完成",
+    "temporal 可登记为 future workflow orchestrator，但不能替代当前 ReportJobStore adapter contract",
+    "redis_queue 不得作为 CalculationJob source of truth；只允许作为未来辅助队列",
+    "任何 external backend 生产通过必须由真实外部数据库或服务、迁移 smoke、crash/restart 证据和 worker lease 证据共同证明"
+  ]
+}
