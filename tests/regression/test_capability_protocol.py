@@ -269,14 +269,18 @@ def test_evaluation_registry_resources_are_traceable_and_do_not_pollute_producti
     assert registry["metadata"]["runner"]["defaultMode"] == "all-local-required"
     assert "shell=True" in registry["metadata"]["runner"]["safety"]
     assert registry["metadata"]["diffPolicy"] == "contracts/fate/evaluations/diff-policy.json"
+    assert registry["metadata"]["coreQualityCorpusManifest"] == "contracts/fate/evaluations/core-quality-corpus.json"
+    assert registry["metadata"]["reportDiffPolicy"] == "contracts/fate/evaluations/report-diff-policy.json"
     assert {
         "dataset.solar_terms_1900_2030",
         "dataset.bazi_golden_matrix",
         "dataset.ziwei_golden_cases",
+        "dataset.bazi_ziwei_core_quality_corpus",
         "dataset.mingli_bench_offline",
         "run.local_ci_quick",
         "run.solar_terms_golden",
         "run.evaluation_dashboard_smoke",
+        "run.core_quality_corpus_gate",
         "run.mingli_bench_offline",
     } <= set(resources)
 

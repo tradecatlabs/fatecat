@@ -34,8 +34,8 @@ def test_bazi_ziwei_l4_golden_smoke_summary(tmp_path):
     assert stored["summary"]["baziMatrix"]["requiredTagCount"] >= 15
     assert stored["summary"]["baziRuleDepth"]["caseCount"] >= 3
     assert stored["summary"]["baziRuleDepth"]["executedCaseCount"] == 2
-    assert stored["summary"]["ziweiCases"]["caseCount"] >= 1
-    assert stored["summary"]["ziweiCases"]["executedCaseCount"] == 1
+    assert stored["summary"]["ziweiCases"]["caseCount"] >= 4
+    assert stored["summary"]["ziweiCases"]["executedCaseCount"] == 2
     assert stored["summary"]["ziweiRuleDepth"]["caseCount"] >= 3
     assert stored["summary"]["ziweiRuleDepth"]["executedCaseCount"] == 2
     assert stored["summary"]["markdownProfiles"]["bazi"]["policyGate"] == "pass"

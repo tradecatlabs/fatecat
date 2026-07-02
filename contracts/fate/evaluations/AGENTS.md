@@ -9,7 +9,9 @@
 ```text
 evaluations/
 ├── AGENTS.md
+├── core-quality-corpus.json
 ├── diff-policy.json
+├── report-diff-policy.json
 ├── registry.json
 └── schemas/
     ├── dataset.schema.json
@@ -19,10 +21,13 @@ evaluations/
 ## 职责边界
 
 - `registry.json`：登记 Dataset 与 EvaluationRun 资源，记录路径、用途、命令、本地可验证性、隐私和风险边界。
+- `core-quality-corpus.json`：登记八字/紫微核心质量语料、最小样本数量、隐私边界和 release gate，不保存真实用户命例。
 - `diff-policy.json`：定义本地 Evaluation summary diff 的失败阈值和隐私边界；只比较状态与命令结果，不解析标准答案。
+- `report-diff-policy.json`：定义 production report 的结构 diff 策略；锁门禁、标题结构和体系隔离，不锁完整自然语言断语。
 - `schemas/dataset.schema.json`：定义 Dataset 资源字段，覆盖 golden、benchmark、classics、calendar 和 rule registry 等数据资产。
 - `schemas/evaluation-run.schema.json`：定义 EvaluationRun 资源字段，覆盖本地回归、release gate、offline benchmark 和后续外部评测。
 - `scripts/run-evaluations.sh`：本地 EvaluationRun 执行入口；读取本 registry，输出机器可读 summary JSON。
+- `scripts/core-quality-corpus-gate.sh`：核心质量语料门禁；校验 `core-quality-corpus.json`、`report-diff-policy.json`、registry 链接、匿名样本数量和北京测试样本隐私边界。
 - `scripts/compare-evaluations.sh`：本地 Evaluation summary diff 入口；读取两个 summary JSON 和 `diff-policy.json` 判定是否回归。
 - `scripts/evaluation-dashboard.sh`：本地 Evaluation dashboard 渲染入口；把 summary/diff 输出为静态 HTML artifact，不渲染命令输出 tail、标准答案或报告正文。
 - `scripts/evaluation-dashboard-smoke.sh`：本地 dashboard dry-run smoke；作为 `run.evaluation_dashboard_smoke` 登记并进入本地必跑集合。

@@ -166,6 +166,8 @@ run_quick() {
   run_step "bazi ziwei L4 golden smoke" bash "${script_dir}/bazi-ziwei-l4-golden-smoke.sh" \
     --profile quick \
     --output-json "${output_dir}/bazi-ziwei-l4-golden-smoke.json"
+  run_step "core quality corpus gate" bash "${script_dir}/core-quality-corpus-gate.sh" \
+    --output-json "${output_dir}/core-quality-corpus-gate.json"
   run_step "data supply chain gate" bash "${script_dir}/data-supply-chain-gate.sh" \
     --output-json "${output_dir}/data-supply-chain-gate.json"
   run_step "runtime backend gate" bash "${script_dir}/runtime-backend-gate.sh" \
@@ -211,6 +213,7 @@ run_quick() {
       tests/regression/test_api_contracts.py \
       tests/regression/test_bazi_ziwei_l4_golden_smoke.py \
       tests/regression/test_branding_support.py \
+      tests/regression/test_core_quality_corpus_gate.py \
       tests/regression/test_data_supply_chain_gate.py \
       tests/regression/test_developer_docs_smoke.py \
       tests/regression/test_evaluation_dashboard.py \
@@ -345,6 +348,7 @@ write_summary() {
   FATE_LOCAL_CI_OBSERVABILITY_TRACE_SLO_SMOKE="${output_dir}/observability-trace-slo-smoke.json" \
   FATE_LOCAL_CI_OTEL_COLLECTOR_SLO_GATE="${output_dir}/otel-collector-slo-gate.json" \
   FATE_LOCAL_CI_BAZI_ZIWEI_L4_GOLDEN_SMOKE="${output_dir}/bazi-ziwei-l4-golden-smoke.json" \
+  FATE_LOCAL_CI_CORE_QUALITY_CORPUS_GATE="${output_dir}/core-quality-corpus-gate.json" \
   FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE="${output_dir}/data-supply-chain-gate.json" \
   FATE_LOCAL_CI_RUNTIME_BACKEND_GATE="${output_dir}/runtime-backend-gate.json" \
   FATE_LOCAL_CI_EVENT_CONTRACT_GATE="${output_dir}/event-contract-gate.json" \
@@ -398,6 +402,7 @@ payload = {
         "observabilityTraceSloSmoke": env("FATE_LOCAL_CI_OBSERVABILITY_TRACE_SLO_SMOKE"),
         "otelCollectorSloGate": env("FATE_LOCAL_CI_OTEL_COLLECTOR_SLO_GATE"),
         "baziZiweiL4GoldenSmoke": env("FATE_LOCAL_CI_BAZI_ZIWEI_L4_GOLDEN_SMOKE"),
+        "coreQualityCorpusGate": env("FATE_LOCAL_CI_CORE_QUALITY_CORPUS_GATE"),
         "dataSupplyChainGate": env("FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE"),
         "runtimeBackendGate": env("FATE_LOCAL_CI_RUNTIME_BACKEND_GATE"),
         "eventContractGate": env("FATE_LOCAL_CI_EVENT_CONTRACT_GATE"),

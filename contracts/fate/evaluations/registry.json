@@ -128,6 +128,49 @@
     {
       "resourceType": "Dataset",
       "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "dataset.bazi_ziwei_core_quality_corpus",
+      "name": "八字/紫微核心质量语料清单",
+      "domain": "fate-core",
+      "datasetType": "core_quality_corpus",
+      "usageRole": "evaluation_only",
+      "status": "available",
+      "localAvailability": "tracked_in_repo",
+      "privacyClass": "anonymous_fixture",
+      "sourceRef": {
+        "type": "contract",
+        "path": "contracts/fate/evaluations/core-quality-corpus.json"
+      },
+      "paths": [
+        "contracts/fate/evaluations/core-quality-corpus.json",
+        "contracts/fate/evaluations/report-diff-policy.json",
+        "domains/fate-analysis/data-products/bazi/golden/coverage_matrix_cases.json",
+        "domains/fate-analysis/data-products/bazi/golden/rule_depth_cases.json",
+        "domains/fate-analysis/data-products/bazi/golden/statement_cases.json",
+        "domains/fate-analysis/data-products/ziwei/golden/cases.json",
+        "domains/fate-analysis/data-products/ziwei/golden/rule_depth_cases.json"
+      ],
+      "commands": [
+        "bash scripts/core-quality-corpus-gate.sh",
+        "bash scripts/bazi-ziwei-l4-golden-smoke.sh --profile quick"
+      ],
+      "coveredCapabilities": ["bazi", "ziwei"],
+      "links": {
+        "self": "/evaluations/dataset.bazi_ziwei_core_quality_corpus",
+        "collection": "/evaluations",
+        "schema": "contracts/fate/evaluations/schemas/dataset.schema.json",
+        "resource": "contracts/fate/capabilities/schemas/resource.schema.json"
+      },
+      "metadata": {
+        "owner": "contracts/fate/evaluations",
+        "verificationScope": "八字/紫微核心质量语料 manifest、匿名 fixture 数量、隐私边界和完整报告 diff 策略",
+        "releaseGate": "required",
+        "externalConnectivity": "not_required",
+        "risk": "只证明核心语料和报告结构门禁存在；不证明真实命例准确率或专家人工验收完成。"
+      }
+    },
+    {
+      "resourceType": "Dataset",
+      "apiVersion": "fatecat.tradecatlabs/v1",
       "id": "dataset.mingli_bench_offline",
       "name": "MingLi-Bench 离线 benchmark",
       "domain": "bazi",
@@ -176,7 +219,8 @@
       "datasetIds": [
         "dataset.solar_terms_1900_2030",
         "dataset.bazi_golden_matrix",
-        "dataset.ziwei_golden_cases"
+        "dataset.ziwei_golden_cases",
+        "dataset.bazi_ziwei_core_quality_corpus"
       ],
       "commands": ["bash scripts/local-ci.sh --profile quick"],
       "releaseRequired": true,
@@ -232,7 +276,8 @@
       "datasetIds": [
         "dataset.solar_terms_1900_2030",
         "dataset.bazi_golden_matrix",
-        "dataset.ziwei_golden_cases"
+        "dataset.ziwei_golden_cases",
+        "dataset.bazi_ziwei_core_quality_corpus"
       ],
       "commands": ["bash scripts/evaluation-dashboard-smoke.sh"],
       "releaseRequired": true,
@@ -250,6 +295,32 @@
         "resultStorage": "infra/runtime/local-state/exports/evaluations/dashboard-smoke/ 与任务 closeout evidence",
         "externalConnectivity": "not_required",
         "risk": "只验证 dashboard 生成链路；不代表 nightly 或远端 CI 已验证当前 diff。"
+      }
+    },
+    {
+      "resourceType": "EvaluationRun",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "run.core_quality_corpus_gate",
+      "name": "八字/紫微核心质量语料与报告 diff gate",
+      "runType": "release_gate",
+      "gateType": "required",
+      "datasetIds": ["dataset.bazi_ziwei_core_quality_corpus"],
+      "commands": ["bash scripts/core-quality-corpus-gate.sh"],
+      "releaseRequired": true,
+      "localAvailability": "tracked_in_repo",
+      "lastKnownStatusPolicy": "tracked_by_task_evidence",
+      "links": {
+        "self": "/evaluations/run.core_quality_corpus_gate",
+        "collection": "/evaluations",
+        "schema": "contracts/fate/evaluations/schemas/evaluation-run.schema.json",
+        "datasets": "/evaluations/dataset.bazi_ziwei_core_quality_corpus"
+      },
+      "metadata": {
+        "owner": "scripts/core-quality-corpus-gate.sh",
+        "verificationScope": "核心质量语料 manifest、报告 diff policy、匿名样本数量、北京测试样本隐私边界",
+        "resultStorage": "infra/runtime/local-state/exports/quality/core-quality-corpus-gate.json 与任务 closeout evidence",
+        "externalConnectivity": "not_required",
+        "risk": "只验证本仓静态语料和结构策略；不代替外部专家评测或公网 live smoke。"
       }
     },
     {
@@ -291,6 +362,9 @@
       "safety": "runner 使用 shlex 拆分命令、白名单 bash scripts/*.sh 与 python -m pytest，不使用 shell=True。"
     },
     "diffPolicy": "contracts/fate/evaluations/diff-policy.json",
+    "coreQualityCorpusManifest": "contracts/fate/evaluations/core-quality-corpus.json",
+    "reportDiffPolicy": "contracts/fate/evaluations/report-diff-policy.json",
+    "coreQualityCorpusGateCommand": "bash scripts/core-quality-corpus-gate.sh",
     "diffCommand": "bash scripts/compare-evaluations.sh --baseline-json <baseline> --current-json <current>",
     "dashboardCommand": "bash scripts/evaluation-dashboard.sh --summary-json <summary> --output-html <dashboard>",
     "nightlyCommand": "bash scripts/evaluation-nightly.sh"

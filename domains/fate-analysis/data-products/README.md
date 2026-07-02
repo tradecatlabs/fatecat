@@ -9,6 +9,8 @@
 | `china_coordinates.csv` | 中国行政区经纬度数据 | 是 |
 | `classics/*.txt` | 已整理命理古籍与基础语料 | 可选 |
 | `bazi/golden/coverage_matrix_cases.json` | 100+ 匿名八字结构覆盖矩阵，用于锁定四柱、起运、覆盖标签和失败解释 | 测试依赖 |
+| `ziwei/golden/cases.json` | 匿名紫微基础盘面样本，用于锁定十二宫、命身宫、四化数量和核心规则 id | 测试依赖 |
+| `ziwei/golden/rule_depth_cases.json` | 匿名紫微规则深度样本，用于锁定规则、组合主题和冲突解释 | 测试依赖 |
 | `calendar/solar_terms/golden/` | 节气 golden fixture，用于测试成熟历法库输出 | 测试依赖 |
 
 ## 供应链门禁
@@ -17,6 +19,15 @@
 bash scripts/data-supply-chain-gate.sh \
   --output-json infra/runtime/local-state/exports/supply-chain/data-supply-chain-gate.json
 ```
+
+核心质量语料门禁：
+
+```bash
+bash scripts/core-quality-corpus-gate.sh \
+  --output-json infra/runtime/local-state/exports/quality/core-quality-corpus-gate.json
+```
+
+该门禁校验八字/紫微匿名 fixture、核心质量语料 manifest、完整报告 diff 策略和北京测试样本隐私边界。
 
 该门禁校验：
 

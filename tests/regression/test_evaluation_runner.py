@@ -32,7 +32,12 @@ def test_evaluation_runner_defaults_to_local_required_dry_run(tmp_path):
     assert stored["selection"]["allLocalRequired"] is True
     assert stored["summary"]["status"] == "planned"
     run_ids = {item["runId"] for item in stored["runs"]}
-    assert run_ids == {"run.evaluation_dashboard_smoke", "run.local_ci_quick", "run.solar_terms_golden"}
+    assert run_ids == {
+        "run.core_quality_corpus_gate",
+        "run.evaluation_dashboard_smoke",
+        "run.local_ci_quick",
+        "run.solar_terms_golden",
+    }
     assert all(item["status"] == "planned" for item in stored["runs"])
     assert all(command["exitCode"] is None for item in stored["runs"] for command in item["commands"])
 

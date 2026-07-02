@@ -127,3 +127,5 @@
 | 0064 | measurement-infrastructure-otel-collector-slo-adapter | Done | P0 | 执行 0061 后续任务树的 OTel collector/SLO adapter P0 切片：为 FateCat observability 新增 OpenTelemetry Collector dry-run 配置、SLO evidence contract、collector contract gate、回归测试和文档 closeout；本任务不接入真实 trace backend、不声明生产监控或真实 error budget 已完成。 | 0064-measurement-infrastructure-otel-collector-slo-adapter/ |
 
 | 0065 | measurement-infrastructure-security-externalization-gate | Done | P0 | 执行 0061 后续任务树的 Security externalization P0 切片：新增 OIDC/SIEM/retention cleaner 外部化证据契约、反伪造 gate、回归测试、quick CI 接线和文档 closeout；本任务不接入真实 IdP、SIEM、不可变审计平台或真实数据清理器，不把本地 scoped token 写成生产身份。 | 0065-measurement-infrastructure-security-externalization-gate/ |
+
+| 0066 | measurement-infrastructure-core-quality-corpus | Done | P0 | 执行 0061 后续任务树的 core quality corpus expansion 切片：新增八字/紫微核心质量语料 manifest、完整报告 diff 策略、语料门禁和匿名紫微样本扩容，并接入 quick CI；不使用真实用户隐私样例，不把 evaluation fixture 变成生产输入。 | 0066-measurement-infrastructure-core-quality-corpus/ |

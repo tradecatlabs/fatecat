@@ -2385,15 +2385,19 @@ def test_evaluation_resources_are_discoverable_and_linked():
     assert payload["metadata"]["runner"]["command"] == "bash scripts/run-evaluations.sh"
     assert payload["metadata"]["runner"]["defaultMode"] == "all-local-required"
     assert payload["metadata"]["diffPolicy"] == "contracts/fate/evaluations/diff-policy.json"
+    assert payload["metadata"]["coreQualityCorpusManifest"] == "contracts/fate/evaluations/core-quality-corpus.json"
+    assert payload["metadata"]["reportDiffPolicy"] == "contracts/fate/evaluations/report-diff-policy.json"
     resources = {item["id"]: item for item in payload["resources"]}
     assert {
         "dataset.solar_terms_1900_2030",
         "dataset.bazi_golden_matrix",
         "dataset.ziwei_golden_cases",
+        "dataset.bazi_ziwei_core_quality_corpus",
         "dataset.mingli_bench_offline",
         "run.local_ci_quick",
         "run.solar_terms_golden",
         "run.evaluation_dashboard_smoke",
+        "run.core_quality_corpus_gate",
         "run.mingli_bench_offline",
     } <= set(resources)
 
@@ -2415,8 +2419,13 @@ def test_evaluation_resources_are_discoverable_and_linked():
         "dataset.solar_terms_1900_2030",
         "dataset.bazi_golden_matrix",
         "dataset.ziwei_golden_cases",
+        "dataset.bazi_ziwei_core_quality_corpus",
     ]
     assert local_ci["lastKnownStatusPolicy"] == "tracked_by_task_evidence"
+
+    core_quality = resources["run.core_quality_corpus_gate"]
+    assert core_quality["releaseRequired"] is True
+    assert core_quality["datasetIds"] == ["dataset.bazi_ziwei_core_quality_corpus"]
 
     detail = client.get("/evaluations/run.solar_terms_golden")
     assert detail.status_code == 200

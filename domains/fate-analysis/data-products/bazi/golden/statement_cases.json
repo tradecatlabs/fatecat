@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "description": "综合八字陈述服务轻量命例 golden；只锁定结构化盘面、边界和证据字段，不锁定完整断语。",
+  "source": "synthetic_anonymous_fixture",
   "cases": [
     {
       "id": "winter_1990_male",

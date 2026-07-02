@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.report_diff_policy",
+  "version": "report-diff-policy.v1",
+  "description": "FateCat production report 的完整报告 diff 策略。该策略锁发布门禁、结构和隐私边界，不锁死完整自然语言断语正文。",
+  "scope": {
+    "covered": [
+      "bazi 与 ziwei production report profile 的 policyGate",
+      "bazi 与 ziwei production report profile 的 snapshotGate",
+      "Markdown 标题结构、必备段落和报告系统隔离",
+      "报告输出不得泄露真实非北京地区样例、secret、token、DSN 或生产路径"
+    ],
+    "notCovered": [
+      "完整断语正文逐字 snapshot",
+      "真实用户命例库",
+      "外部专家人工断盘准确率",
+      "第三方模型输出质量",
+      "公网 API/Bot live smoke"
+    ]
+  },
+  "invariants": {
+    "policyGateStatus": "pass",
+    "snapshotGateStatus": "pass",
+    "defaultReportSystem": "bazi",
+    "reportSystemIsolation": "非默认体系不得混入综合八字默认报告；紫微、黄历、六爻、梅花、奇门等必须通过独立 capability/profile 输出。",
+    "privacyBoundary": "默认测试 payload 只允许北京/测试样本；不得出现真实姓名、真实非北京地区、token、secret、DSN、私钥、证书、webhook secret 或生产账号。"
+  },
+  "profiles": {
+    "bazi": {
+      "capabilityId": "bazi",
+      "requiredGates": ["policyGate", "snapshotGate", "analysisEvidence"],
+      "structurePolicy": {
+        "requiredTopLevelHeadings": [
+          "# 命理排盘报告",
+          "## 第一卷：先天命格（静态分析）",
+          "## 第三卷：后天运路（动态趋势）",
+          "## 第四卷：民俗与建议（生活应用）"
+        ],
+        "requiredCoreBlocks": [
+          "八字排盘详情",
+          "日主概览",
+          "五行喜忌（调候与平衡）",
+          "命造格局（格局用神）",
+          "节气司令",
+          "干支关系",
+          "运势分析",
+          "袁天罡称骨"
+        ],
+        "forbiddenDefaultBlocks": ["紫微斗数", "紫微基础", "紫微运限四化", "建除十二神", "六爻占卜", "梅花易数", "奇门遁甲", "大六壬"]
+      }
+    },
+    "ziwei": {
+      "capabilityId": "ziwei",
+      "requiredGates": ["policyGate", "snapshotGate", "analysisEvidence"],
+      "structurePolicy": {
+        "requiredTopLevelHeadings": ["# 紫微斗数报告", "## 紫微斗数", "## 紫微基础"],
+        "requiredCoreBlocks": ["十二宫", "命宫", "身宫", "四化"],
+        "forbiddenDefaultBlocks": ["八字排盘详情", "五行喜忌（调候与平衡）", "袁天罡称骨"]
+      }
+    }
+  },
+  "thresholds": {
+    "maxPolicyFailures": 0,
+    "maxSnapshotFailures": 0,
+    "maxPrivacyViolations": 0,
+    "minBaziGoldenCases": 300,
+    "minZiweiGoldenCases": 4
+  },
+  "commands": [
+    "bash scripts/bazi-ziwei-l4-golden-smoke.sh --profile quick",
+    "bash scripts/core-quality-corpus-gate.sh"
+  ],
+  "privacyBoundary": "report diff 只比较结构、门禁状态和脱敏 fixture，不保存用户报告正文、benchmark 标准答案、token、secret、DSN 或生产账号。",
+  "limitations": [
+    "自然语言表达允许在不破坏结构、证据和安全边界的前提下演进。",
+    "完整人工专业准确率需要样本外 benchmark 与专家复核，不由本策略单独证明。"
+  ]
+}

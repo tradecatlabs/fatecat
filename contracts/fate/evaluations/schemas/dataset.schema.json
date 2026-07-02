@@ -30,6 +30,7 @@
     "calendar_golden",
     "bazi_golden",
     "ziwei_golden",
+    "core_quality_corpus",
     "benchmark",
     "classics",
     "rule_registry",

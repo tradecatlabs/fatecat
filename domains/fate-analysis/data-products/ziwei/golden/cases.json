@@ -27,9 +27,121 @@
         "mutagenPlacementCount": 4,
         "fortuneLinkCount": 5,
         "requiredRuleIds": [
+          "ziwei.brightness_state",
+          "ziwei.golden_case_guard",
+          "ziwei.mutagen_flow",
+          "ziwei.palace_relations",
+          "ziwei.palace_topic",
+          "ziwei.pattern_match_seed",
+          "ziwei.star_encyclopedia_seed",
+          "ziwei.star_taxonomy"
+        ]
+      }
+    },
+    {
+      "id": "beijing_1988_female",
+      "input": {
+        "birthDateTime": "1988-08-08 18:30:00",
+        "gender": "女",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京",
+        "name": "测试样本"
+      },
+      "expected": {
+        "palaceCount": 12,
+        "lifePalace": {
+          "name": "财帛",
+          "earthlyBranch": "午",
+          "majorStars": ["廉贞", "天相"]
+        },
+        "bodyPalace": {
+          "name": "迁移",
+          "earthlyBranch": "辰",
+          "majorStars": ["贪狼"]
+        },
+        "mutagenPlacementCount": 4,
+        "fortuneLinkCount": 5,
+        "requiredRuleIds": [
+          "ziwei.brightness_state",
+          "ziwei.golden_case_guard",
+          "ziwei.mutagen_flow",
+          "ziwei.palace_relations",
+          "ziwei.palace_topic",
+          "ziwei.pattern_match_seed",
+          "ziwei.star_encyclopedia_seed",
+          "ziwei.star_taxonomy"
+        ]
+      }
+    },
+    {
+      "id": "beijing_2001_male",
+      "input": {
+        "birthDateTime": "2001-02-04 23:30:00",
+        "gender": "男",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京",
+        "name": "测试样本"
+      },
+      "expected": {
+        "palaceCount": 12,
+        "lifePalace": {
+          "name": "父母",
+          "earthlyBranch": "卯",
+          "majorStars": ["天相"]
+        },
+        "bodyPalace": {
+          "name": "命宫",
+          "earthlyBranch": "寅",
+          "majorStars": ["太阳", "巨门"]
+        },
+        "mutagenPlacementCount": 4,
+        "fortuneLinkCount": 5,
+        "requiredRuleIds": [
+          "ziwei.brightness_state",
+          "ziwei.golden_case_guard",
+          "ziwei.mutagen_flow",
+          "ziwei.palace_relations",
+          "ziwei.palace_topic",
+          "ziwei.pattern_match_seed",
+          "ziwei.star_encyclopedia_seed",
+          "ziwei.star_taxonomy"
+        ]
+      }
+    },
+    {
+      "id": "beijing_1976_female",
+      "input": {
+        "birthDateTime": "1976-12-21 05:15:00",
+        "gender": "女",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京",
+        "name": "测试样本"
+      },
+      "expected": {
+        "palaceCount": 12,
+        "lifePalace": {
+          "name": "兄弟",
+          "earthlyBranch": "申",
+          "majorStars": ["天机", "太阴"]
+        },
+        "bodyPalace": {
+          "name": "迁移",
+          "earthlyBranch": "卯",
+          "majorStars": []
+        },
+        "mutagenPlacementCount": 4,
+        "fortuneLinkCount": 5,
+        "requiredRuleIds": [
+          "ziwei.brightness_state",
           "ziwei.star_taxonomy",
           "ziwei.palace_relations",
           "ziwei.mutagen_flow",
+          "ziwei.palace_topic",
+          "ziwei.pattern_match_seed",
+          "ziwei.star_encyclopedia_seed",
           "ziwei.golden_case_guard"
         ]
       }
