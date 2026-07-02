@@ -853,7 +853,7 @@ def test_report_job_webhook_dispatcher_sends_signed_terminal_event():
         task=lambda: {"reportSystem": "bazi", "markdown": "# 命理排盘报告：测试样本"},
     )
 
-    final_snapshot = _wait_for_manager_job(manager, created.job_id)
+    final_snapshot = _wait_for_manager_event(manager, created.job_id, "webhook.delivery_succeeded")
     assert final_snapshot.status == "succeeded"
     assert captured["url"] == "https://callback.example/webhook"
     assert captured["timeoutSeconds"] == 3
