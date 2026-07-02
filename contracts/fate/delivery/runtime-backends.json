@@ -5,12 +5,12 @@
   "id": "runtime.backends",
   "description": "FateCat CalculationJob durable runtime backend registry。这里登记 memory、sqlite 与 external backend 候选，明确生产边界和迁移路径；不保存真实 DSN、凭证或生产连接结果。",
   "decision": {
-    "status": "contract_baseline",
+    "status": "adapter_baseline",
     "selectedExternalCandidate": "backend.postgres",
     "firstAdapterPath": "Postgres ReportJobStore adapter with transactional claim/release and migration smoke",
     "futureWorkflowOrchestrator": "backend.temporal",
     "notSelectedAsSourceOfTruth": ["backend.redis_queue"],
-    "nextTask": "0062 closes contract baseline; next implementation task may add postgres adapter behind explicit env gate"
+    "nextTask": "0070 adds Postgres adapter baseline and local dry-run; next task must run real Postgres migration/job smoke with external DSN evidence"
   },
   "schemas": {
     "runtimeBackend": "contracts/fate/delivery/schemas/runtime-backend.schema.json",
@@ -139,34 +139,36 @@
       "name": "Postgres external report job store candidate",
       "backendType": "postgres",
       "status": "planned",
-      "maturity": "L0",
+      "maturity": "L1",
       "deploymentScope": "external_database",
-      "durability": "external relational database durability after adapter implementation",
-      "coordination": "transactional row claim/release candidate using database locks or equivalent conditional update",
+      "durability": "external relational database durability after real migration/job smoke",
+      "coordination": "transactional webhook outbox row claim/release adapter baseline using conditional update",
       "productionEligibility": "candidate",
-      "implementationStatus": "contract_baseline",
+      "implementationStatus": "adapter_baseline",
       "config": {
         "envVars": ["FATE_REPORT_JOB_STORE=postgres", "FATE_REPORT_JOB_DATABASE_URL"],
         "secretPolicy": "database URL must come from secret manager or environment; registry and logs must never store the DSN value"
       },
       "capabilities": {
-        "jobStatePersistence": "planned",
-        "eventHistoryPersistence": "planned",
-        "idempotencyPersistence": "planned",
-        "taskPayloadRecovery": "planned",
-        "webhookOutboxPersistence": "planned",
-        "workerLease": "planned",
+        "jobStatePersistence": "adapter_baseline",
+        "eventHistoryPersistence": "adapter_baseline",
+        "idempotencyPersistence": "adapter_baseline",
+        "taskPayloadRecovery": "adapter_baseline",
+        "webhookOutboxPersistence": "adapter_baseline",
+        "workerLease": "transactional_outbox_claim_adapter_baseline",
         "multiReplicaReady": "planned",
         "exactlyOnceClaim": false
       },
       "requiredEvidence": [
         "contract baseline: bash scripts/runtime-backend-gate.sh",
-        "future adapter smoke: postgres migration apply/rollback",
+        "adapter baseline: bash scripts/postgres-job-store-dry-run.sh",
+        "future live adapter smoke: postgres migration apply/rollback against disposable external database",
         "future crash/restart smoke with two workers",
         "future duplicate claim negative test"
       ],
       "localVerification": [
-        "bash scripts/runtime-backend-gate.sh"
+        "bash scripts/runtime-backend-gate.sh",
+        "bash scripts/postgres-job-store-dry-run.sh"
       ],
       "externalVerification": [
         "future: run postgres-backed job store smoke against disposable external database without logging DSN"
@@ -174,9 +176,9 @@
       "privacyBoundary": "Postgres registry may name env vars and migration evidence, but must not include DSN, username, password, report body, callback URL or user input.",
       "externalConnectivity": "requires_real_database",
       "migration": {
-        "upgradePath": "Introduce PostgresReportJobStore behind FATE_REPORT_JOB_STORE=postgres; run migration smoke before production eligibility can advance.",
+        "upgradePath": "Use PostgresReportJobStore behind FATE_REPORT_JOB_STORE=postgres; run real migration/job smoke before production eligibility can advance.",
         "rollbackPath": "Switch back to sqlite for local single-replica baseline if external database smoke fails.",
-        "blockedClaims": ["implemented", "production_ready", "external_live_verified", "exactly_once"]
+        "blockedClaims": ["production_ready", "external_live_verified", "multi_replica_ready", "exactly_once"]
       },
       "links": {
         "self": "/runtime-backends/backend.postgres",
@@ -184,11 +186,11 @@
         "schema": "contracts/fate/delivery/schemas/runtime-backend.schema.json"
       },
       "metadata": {
-        "owner": "future domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py::PostgresReportJobStore",
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py::PostgresReportJobStore",
         "rationale": "Postgres is the first external backend candidate because it can hold job state, event history, idempotency, outbox and worker claim state in one transactional source of truth.",
-        "failureMode": "Until adapter and smoke exist, selecting FATE_REPORT_JOB_STORE=postgres must fail instead of silently falling back.",
-        "releaseImpact": "Blocks production multi-replica durable runtime until implemented and externally verified.",
-        "risk": "External database operations require migration, connection pooling, secret handling, lock contention and rollback evidence."
+        "failureMode": "Without real database DSN, psycopg and migration/job smoke, selecting FATE_REPORT_JOB_STORE=postgres must fail instead of silently falling back.",
+        "releaseImpact": "Blocks production multi-replica durable runtime until external migration/job smoke and worker lease evidence exist.",
+        "risk": "External database operations require live migration, connection pooling, secret handling, lock contention and rollback evidence."
       }
     },
     {
@@ -310,7 +312,7 @@
   "invariants": [
     "RuntimeBackend registry 不保存真实 DSN、token、secret、webhook URL、用户输入、报告正文或生产日志。",
     "memory/sqlite available 只代表本地 baseline，不代表 external backend 已生产。",
-    "backend.postgres 是首个 external backend adapter candidate，但 status=planned 且 implementationStatus=contract_baseline。",
+    "backend.postgres 是首个 external backend adapter candidate；adapter baseline 已落地，但 status=planned，直到真实外部数据库验证完成。",
     "backend.temporal 是 future workflow orchestrator，不是当前 ReportJobStore adapter。",
     "backend.redis_queue 不得作为 CalculationJob source of truth。",
     "任何 production multi-replica durable runtime 结论必须来自外部 backend adapter、迁移 smoke、crash/restart smoke 和 duplicate claim negative test。"

@@ -227,9 +227,9 @@ else:
     ok(f"已声明外部限流后端：{rate_limit_backend}")
 
 report_job_store = (value("FATE_REPORT_JOB_STORE") or "memory").lower()
-allowed_report_job_stores = {"memory", "sqlite"}
+allowed_report_job_stores = {"memory", "sqlite", "postgres"}
 if report_job_store not in allowed_report_job_stores:
-    fail("FATE_REPORT_JOB_STORE 必须是 memory/sqlite")
+    fail("FATE_REPORT_JOB_STORE 必须是 memory/sqlite/postgres")
 if replicas > 1 and report_job_store in {"memory", "sqlite"}:
     fail("多副本公网部署不能使用本地 report job store；请先接入外部队列/数据库任务系统")
 if report_job_store == "sqlite":
@@ -237,6 +237,12 @@ if report_job_store == "sqlite":
     if not db_path.endswith((".sqlite", ".sqlite3", ".db")):
         fail("FATE_REPORT_JOB_DB_PATH 应使用 .sqlite/.sqlite3/.db 文件路径")
     ok("已启用 SQLite report job store；仅适合单副本本地持久化")
+elif report_job_store == "postgres":
+    if not value("FATE_REPORT_JOB_DATABASE_URL"):
+        fail("FATE_REPORT_JOB_STORE=postgres 必须提供 FATE_REPORT_JOB_DATABASE_URL；不得在日志中输出 DSN 值")
+    if value("FATE_REPORT_JOB_POSTGRES_LIVE_VERIFIED").lower() not in {"1", "true", "yes"}:
+        fail("FATE_REPORT_JOB_STORE=postgres 仍需真实 Postgres migration/job smoke 证据；设置 FATE_REPORT_JOB_POSTGRES_LIVE_VERIFIED=1 前不得声明生产 ready")
+    ok("已声明 Postgres report job store，并声明外部 live verification 已完成；DSN 值未输出")
 else:
     ok("当前使用内存 report job store；仅适合单副本或无跨重启任务查询要求场景")
 

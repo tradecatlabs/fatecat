@@ -51,6 +51,7 @@ REPORT_JOB_MAX_ATTEMPTS = env_int("FATE_REPORT_JOB_MAX_ATTEMPTS", 1, minimum=1)
 REPORT_JOB_ATTEMPT_TIMEOUT_SECONDS = env_int("FATE_REPORT_JOB_ATTEMPT_TIMEOUT_SECONDS", 0, minimum=0)
 REPORT_JOB_RETRY_BACKOFF_SECONDS = env_int("FATE_REPORT_JOB_RETRY_BACKOFF_SECONDS", 0, minimum=0)
 REPORT_JOB_STORE = os.getenv("FATE_REPORT_JOB_STORE", "memory").strip().lower() or "memory"
+REPORT_JOB_DATABASE_URL = os.getenv("FATE_REPORT_JOB_DATABASE_URL", "").strip()
 REPORT_JOB_DB_PATH = os.getenv(
     "FATE_REPORT_JOB_DB_PATH",
     str(RUNTIME_DATABASE_DIR / "report_jobs.sqlite"),
@@ -113,6 +114,7 @@ from report_generator import (  # noqa: E402
     public_birth_place,
 )
 from report_jobs import (  # noqa: E402
+    PostgresReportJobStore,
     ReportJobEvent,
     ReportJobExecutionPolicy,
     ReportJobManager,
@@ -163,8 +165,13 @@ def _build_report_job_manager() -> ReportJobManager:
         if not db_path.is_absolute():
             db_path = RUNTIME_DATABASE_DIR / db_path
         store = SQLiteReportJobStore(db_path, webhook_config_codec=_build_webhook_config_codec())
+    elif REPORT_JOB_STORE == "postgres":
+        store = PostgresReportJobStore(
+            REPORT_JOB_DATABASE_URL,
+            webhook_config_codec=_build_webhook_config_codec(),
+        )
     elif REPORT_JOB_STORE != "memory":
-        raise RuntimeError("FATE_REPORT_JOB_STORE 只支持 memory 或 sqlite")
+        raise RuntimeError("FATE_REPORT_JOB_STORE 只支持 memory、sqlite 或 postgres")
     return ReportJobManager(
         max_workers=REPORT_JOB_WORKERS,
         queue_size=REPORT_JOB_QUEUE_SIZE,

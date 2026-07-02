@@ -251,8 +251,8 @@ def _validate_registry(
     _check(checks, "postgres:planned", postgres["status"] == "planned", postgres["status"])
     _check(
         checks,
-        "postgres:contract_baseline",
-        postgres["implementationStatus"] == "contract_baseline",
+        "postgres:adapter_baseline",
+        postgres["implementationStatus"] == "adapter_baseline",
         postgres["implementationStatus"],
     )
     _check(
@@ -264,7 +264,8 @@ def _validate_registry(
     _check(
         checks,
         "postgres:blocks_production_claim",
-        {"implemented", "production_ready", "external_live_verified"} <= set(postgres["migration"]["blockedClaims"]),
+        {"production_ready", "external_live_verified", "multi_replica_ready"}
+        <= set(postgres["migration"]["blockedClaims"]),
         str(postgres["migration"]["blockedClaims"]),
     )
     _check(
@@ -314,7 +315,7 @@ def run_gate() -> dict[str, Any]:
         "checks": checks,
         "privacyBoundary": "Runtime backend gate 只读取 tracked contract metadata，不读取真实用户、报告正文、webhook URL、webhook secret、token、DSN、数据库密码或生产日志。",
         "limits": [
-            "不实现 Postgres、Temporal 或 Redis adapter。",
+            "Postgres adapter baseline 已实现，但不连接真实外部数据库。",
             "不连接真实外部数据库或服务。",
             "不证明生产级分布式 worker lease、exactly-once 或公网 webhook live delivery。",
             "不把 SQLite local lease 解释为 external backend。",

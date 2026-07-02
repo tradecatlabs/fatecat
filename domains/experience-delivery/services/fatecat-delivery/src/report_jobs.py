@@ -240,6 +240,156 @@ class InMemoryReportJobStore(ReportJobStore):
             self._events.setdefault(event.job_id, []).append(event)
 
 
+POSTGRES_REPORT_JOB_SCHEMA_SQL: tuple[str, ...] = (
+    """
+    CREATE TABLE IF NOT EXISTS report_jobs (
+        job_id TEXT PRIMARY KEY,
+        kind TEXT NOT NULL,
+        status TEXT NOT NULL,
+        report_system TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        expires_at TEXT NOT NULL,
+        started_at TEXT,
+        finished_at TEXT,
+        error TEXT,
+        result_json TEXT,
+        input_summary_json TEXT NOT NULL,
+        task_payload_json TEXT,
+        idempotency_key TEXT,
+        attempts INTEGER NOT NULL DEFAULT 0,
+        max_attempts INTEGER NOT NULL DEFAULT 1,
+        attempt_timeout_seconds DOUBLE PRECISION,
+        retry_backoff_seconds DOUBLE PRECISION NOT NULL DEFAULT 0,
+        updated_at TEXT NOT NULL
+    )
+    """,
+    """
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_report_jobs_idempotency
+    ON report_jobs(idempotency_key)
+    WHERE idempotency_key IS NOT NULL
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_report_jobs_status ON report_jobs(status)",
+    "CREATE INDEX IF NOT EXISTS idx_report_jobs_expires_at ON report_jobs(expires_at)",
+    """
+    CREATE TABLE IF NOT EXISTS report_job_events (
+        sequence BIGSERIAL PRIMARY KEY,
+        event_id TEXT NOT NULL UNIQUE,
+        job_id TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        status TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        message TEXT,
+        metadata_json TEXT NOT NULL
+    )
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_report_job_events_job_sequence ON report_job_events(job_id, sequence)",
+    """
+    CREATE TABLE IF NOT EXISTS report_job_webhook_outbox (
+        outbox_id TEXT PRIMARY KEY,
+        job_id TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        job_status TEXT NOT NULL,
+        status TEXT NOT NULL,
+        attempts INTEGER NOT NULL DEFAULT 0,
+        max_attempts INTEGER NOT NULL DEFAULT 1,
+        signature_mode TEXT NOT NULL,
+        target_host_hash TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        completed_at TEXT,
+        last_error_type TEXT,
+        result_status_code INTEGER,
+        lease_owner TEXT,
+        lease_acquired_at TEXT,
+        lease_expires_at TEXT
+    )
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_report_job_webhook_outbox_job ON report_job_webhook_outbox(job_id)",
+    "CREATE INDEX IF NOT EXISTS idx_report_job_webhook_outbox_status ON report_job_webhook_outbox(status)",
+    """
+    CREATE INDEX IF NOT EXISTS idx_report_job_webhook_outbox_lease
+    ON report_job_webhook_outbox(status, lease_expires_at)
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS report_job_webhook_delivery_config (
+        outbox_id TEXT PRIMARY KEY,
+        job_id TEXT NOT NULL,
+        cipher_suite TEXT NOT NULL,
+        key_id TEXT NOT NULL,
+        ciphertext TEXT NOT NULL,
+        target_host_hash TEXT,
+        signature_mode TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        rotated_at TEXT
+    )
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS idx_report_job_webhook_delivery_config_job
+    ON report_job_webhook_delivery_config(job_id)
+    """,
+)
+
+POSTGRES_WEBHOOK_OUTBOX_CLAIM_SQL = """
+UPDATE report_job_webhook_outbox
+SET lease_owner = %(lease_owner)s,
+    lease_acquired_at = %(now)s,
+    lease_expires_at = %(lease_expires_at)s,
+    updated_at = %(now)s
+WHERE outbox_id = %(outbox_id)s
+  AND event_type = %(event_type)s
+  AND status IN ('pending', 'failed')
+  AND (
+    lease_expires_at IS NULL
+    OR lease_expires_at <= %(now)s
+    OR lease_owner = %(lease_owner)s
+  )
+RETURNING outbox_id, job_id, event_type, job_status, status, attempts,
+          max_attempts, signature_mode, target_host_hash, created_at,
+          updated_at, completed_at, last_error_type, result_status_code
+"""
+
+POSTGRES_REPORT_JOB_REQUIRED_TABLES = (
+    "report_jobs",
+    "report_job_events",
+    "report_job_webhook_outbox",
+    "report_job_webhook_delivery_config",
+)
+
+POSTGRES_REPORT_JOB_REQUIRED_INDEXES = (
+    "idx_report_jobs_idempotency",
+    "idx_report_jobs_status",
+    "idx_report_jobs_expires_at",
+    "idx_report_job_events_job_sequence",
+    "idx_report_job_webhook_outbox_job",
+    "idx_report_job_webhook_outbox_status",
+    "idx_report_job_webhook_outbox_lease",
+    "idx_report_job_webhook_delivery_config_job",
+)
+
+
+def postgres_report_job_schema_sql() -> tuple[str, ...]:
+    """返回 Postgres ReportJobStore schema 语句；不包含 DSN 或外部连接信息。"""
+
+    return POSTGRES_REPORT_JOB_SCHEMA_SQL
+
+
+def _build_postgres_connect_factory(database_url: str) -> Callable[[], Any]:
+    try:
+        import psycopg
+        from psycopg.rows import dict_row
+    except ModuleNotFoundError as exc:
+        raise RuntimeError(
+            "FATE_REPORT_JOB_STORE=postgres 需要安装可选依赖 psycopg；"
+            "请安装 fatecat[postgres] 或 psycopg[binary]，并通过 FATE_REPORT_JOB_DATABASE_URL 提供 DSN。"
+        ) from exc
+
+    def connect() -> Any:
+        return psycopg.connect(database_url, row_factory=dict_row)
+
+    return connect
+
+
 class SQLiteReportJobStore(ReportJobStore):
     """SQLite 报告任务状态存储。
 
@@ -766,6 +916,450 @@ class SQLiteReportJobStore(ReportJobStore):
         )
 
     def _row_to_webhook_outbox_record(self, row: sqlite3.Row) -> ReportJobWebhookOutboxRecord:
+        return ReportJobWebhookOutboxRecord(
+            outbox_id=str(row["outbox_id"]),
+            job_id=str(row["job_id"]),
+            event_type=str(row["event_type"]),
+            job_status=_coerce_status(str(row["job_status"])),
+            status=_coerce_webhook_outbox_status(str(row["status"])),
+            attempts=max(0, int(row["attempts"] or 0)),
+            max_attempts=max(1, int(row["max_attempts"] or 1)),
+            signature_mode=str(row["signature_mode"]),
+            target_host_hash=row["target_host_hash"],
+            created_at=str(row["created_at"]),
+            updated_at=str(row["updated_at"]),
+            completed_at=row["completed_at"],
+            last_error_type=row["last_error_type"],
+            result_status_code=int(row["result_status_code"]) if row["result_status_code"] is not None else None,
+        )
+
+
+class PostgresReportJobStore(ReportJobStore):
+    """Postgres 报告任务状态存储。
+
+    该 backend 是外部数据库 adapter baseline。它复用 `ReportJobStore` 接口和 Postgres
+    事务语义承载 job state、event history、idempotency、webhook outbox 与 outbox lease；
+    是否具备生产多副本能力仍必须由真实数据库 smoke 和运维证据证明。
+    """
+
+    backend_name = "postgres"
+
+    def __init__(
+        self,
+        database_url: str,
+        *,
+        webhook_config_codec: Any | None = None,
+        connect_factory: Callable[[], Any] | None = None,
+        initialize_schema: bool = True,
+    ) -> None:
+        if not str(database_url or "").strip():
+            raise ValueError("FATE_REPORT_JOB_STORE=postgres 需要 FATE_REPORT_JOB_DATABASE_URL")
+        self.webhook_config_codec = webhook_config_codec
+        self._connect_factory = connect_factory or _build_postgres_connect_factory(str(database_url))
+        self._lock = Lock()
+        if initialize_schema:
+            self._init_schema()
+
+    def load_jobs(self) -> list[_ReportJob]:
+        with self._lock, self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT job_id, kind, status, report_system, created_at, expires_at,
+                       started_at, finished_at, error, result_json, input_summary_json,
+                       idempotency_key, attempts, max_attempts, attempt_timeout_seconds,
+                       retry_backoff_seconds, task_payload_json
+                FROM report_jobs
+                ORDER BY created_at ASC
+                """
+            ).fetchall()
+        return [self._row_to_job(row) for row in rows]
+
+    def save_job(self, job: _ReportJob) -> None:
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO report_jobs (
+                    job_id, kind, status, report_system, created_at, expires_at,
+                    started_at, finished_at, error, result_json, input_summary_json,
+                    task_payload_json, idempotency_key, attempts, max_attempts,
+                    attempt_timeout_seconds, retry_backoff_seconds, updated_at
+                )
+                VALUES (
+                    %(job_id)s, %(kind)s, %(status)s, %(report_system)s, %(created_at)s, %(expires_at)s,
+                    %(started_at)s, %(finished_at)s, %(error)s, %(result_json)s, %(input_summary_json)s,
+                    %(task_payload_json)s, %(idempotency_key)s, %(attempts)s, %(max_attempts)s,
+                    %(attempt_timeout_seconds)s, %(retry_backoff_seconds)s, %(updated_at)s
+                )
+                ON CONFLICT(job_id) DO UPDATE SET
+                    kind=EXCLUDED.kind,
+                    status=EXCLUDED.status,
+                    report_system=EXCLUDED.report_system,
+                    created_at=EXCLUDED.created_at,
+                    expires_at=EXCLUDED.expires_at,
+                    started_at=EXCLUDED.started_at,
+                    finished_at=EXCLUDED.finished_at,
+                    error=EXCLUDED.error,
+                    result_json=EXCLUDED.result_json,
+                    input_summary_json=EXCLUDED.input_summary_json,
+                    task_payload_json=EXCLUDED.task_payload_json,
+                    idempotency_key=EXCLUDED.idempotency_key,
+                    attempts=EXCLUDED.attempts,
+                    max_attempts=EXCLUDED.max_attempts,
+                    attempt_timeout_seconds=EXCLUDED.attempt_timeout_seconds,
+                    retry_backoff_seconds=EXCLUDED.retry_backoff_seconds,
+                    updated_at=EXCLUDED.updated_at
+                """,
+                {
+                    "job_id": job.job_id,
+                    "kind": job.kind,
+                    "status": job.status,
+                    "report_system": job.report_system,
+                    "created_at": job.created_at,
+                    "expires_at": job.expires_at,
+                    "started_at": job.started_at,
+                    "finished_at": job.finished_at,
+                    "error": job.error,
+                    "result_json": _json_dumps(job.result),
+                    "input_summary_json": _json_dumps(job.input_summary),
+                    "task_payload_json": _json_dumps(job.task_payload),
+                    "idempotency_key": job.idempotency_key,
+                    "attempts": job.attempts,
+                    "max_attempts": job.max_attempts,
+                    "attempt_timeout_seconds": job.attempt_timeout_seconds,
+                    "retry_backoff_seconds": job.retry_backoff_seconds,
+                    "updated_at": now_cn().isoformat(),
+                },
+            )
+
+    def load_job_events(self, job_id: str) -> list[ReportJobEvent]:
+        with self._lock, self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT event_id, job_id, event_type, status, created_at, message, metadata_json
+                FROM report_job_events
+                WHERE job_id = %(job_id)s
+                ORDER BY sequence ASC
+                """,
+                {"job_id": job_id},
+            ).fetchall()
+        return [self._row_to_event(row) for row in rows]
+
+    def append_job_event(self, event: ReportJobEvent) -> None:
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO report_job_events (
+                    event_id, job_id, event_type, status, created_at, message, metadata_json
+                )
+                VALUES (
+                    %(event_id)s, %(job_id)s, %(event_type)s, %(status)s,
+                    %(created_at)s, %(message)s, %(metadata_json)s
+                )
+                ON CONFLICT(event_id) DO NOTHING
+                """,
+                {
+                    "event_id": event.event_id,
+                    "job_id": event.job_id,
+                    "event_type": event.event_type,
+                    "status": event.status,
+                    "created_at": event.created_at,
+                    "message": event.message,
+                    "metadata_json": _json_dumps(event.metadata),
+                },
+            )
+
+    def load_webhook_outbox_records(self, job_id: str) -> list[ReportJobWebhookOutboxRecord]:
+        with self._lock, self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT outbox_id, job_id, event_type, job_status, status, attempts,
+                       max_attempts, signature_mode, target_host_hash, created_at,
+                       updated_at, completed_at, last_error_type, result_status_code
+                FROM report_job_webhook_outbox
+                WHERE job_id = %(job_id)s
+                ORDER BY created_at ASC, outbox_id ASC
+                """,
+                {"job_id": job_id},
+            ).fetchall()
+        return [self._row_to_webhook_outbox_record(row) for row in rows]
+
+    def load_redeliverable_webhook_outbox_records(self) -> list[ReportJobWebhookOutboxRecord]:
+        now = now_cn().isoformat()
+        with self._lock, self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT outbox_id, job_id, event_type, job_status, status, attempts,
+                       max_attempts, signature_mode, target_host_hash, created_at,
+                       updated_at, completed_at, last_error_type, result_status_code
+                FROM report_job_webhook_outbox
+                WHERE event_type = %(event_type)s
+                  AND status IN ('pending', 'failed')
+                  AND (lease_expires_at IS NULL OR lease_expires_at <= %(now)s)
+                ORDER BY updated_at ASC, created_at ASC, outbox_id ASC
+                """,
+                {"event_type": REPORT_JOB_WEBHOOK_EVENT_TYPE, "now": now},
+            ).fetchall()
+        return [self._row_to_webhook_outbox_record(row) for row in rows]
+
+    def save_webhook_outbox_record(self, record: ReportJobWebhookOutboxRecord) -> None:
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO report_job_webhook_outbox (
+                    outbox_id, job_id, event_type, job_status, status, attempts,
+                    max_attempts, signature_mode, target_host_hash, created_at,
+                    updated_at, completed_at, last_error_type, result_status_code
+                )
+                VALUES (
+                    %(outbox_id)s, %(job_id)s, %(event_type)s, %(job_status)s, %(status)s, %(attempts)s,
+                    %(max_attempts)s, %(signature_mode)s, %(target_host_hash)s, %(created_at)s,
+                    %(updated_at)s, %(completed_at)s, %(last_error_type)s, %(result_status_code)s
+                )
+                ON CONFLICT(outbox_id) DO UPDATE SET
+                    job_id=EXCLUDED.job_id,
+                    event_type=EXCLUDED.event_type,
+                    job_status=EXCLUDED.job_status,
+                    status=EXCLUDED.status,
+                    attempts=EXCLUDED.attempts,
+                    max_attempts=EXCLUDED.max_attempts,
+                    signature_mode=EXCLUDED.signature_mode,
+                    target_host_hash=EXCLUDED.target_host_hash,
+                    created_at=EXCLUDED.created_at,
+                    updated_at=EXCLUDED.updated_at,
+                    completed_at=EXCLUDED.completed_at,
+                    last_error_type=EXCLUDED.last_error_type,
+                    result_status_code=EXCLUDED.result_status_code
+                """,
+                {
+                    "outbox_id": record.outbox_id,
+                    "job_id": record.job_id,
+                    "event_type": record.event_type,
+                    "job_status": record.job_status,
+                    "status": record.status,
+                    "attempts": record.attempts,
+                    "max_attempts": record.max_attempts,
+                    "signature_mode": record.signature_mode,
+                    "target_host_hash": record.target_host_hash,
+                    "created_at": record.created_at,
+                    "updated_at": record.updated_at,
+                    "completed_at": record.completed_at,
+                    "last_error_type": record.last_error_type,
+                    "result_status_code": record.result_status_code,
+                },
+            )
+
+    def claim_webhook_outbox_record(
+        self,
+        record: ReportJobWebhookOutboxRecord,
+        *,
+        lease_owner: str,
+        lease_seconds: float,
+    ) -> ReportJobWebhookOutboxRecord | None:
+        owner = str(lease_owner).strip()
+        if not owner:
+            return None
+        now = now_cn()
+        lease_ttl = max(1.0, float(lease_seconds))
+        with self._lock, self._connect() as conn:
+            row = conn.execute(
+                POSTGRES_WEBHOOK_OUTBOX_CLAIM_SQL,
+                {
+                    "lease_owner": owner,
+                    "now": now.isoformat(),
+                    "lease_expires_at": (now + timedelta(seconds=lease_ttl)).isoformat(),
+                    "outbox_id": record.outbox_id,
+                    "event_type": record.event_type,
+                },
+            ).fetchone()
+        if row is None:
+            return None
+        return self._row_to_webhook_outbox_record(row)
+
+    def release_webhook_outbox_record(self, outbox_id: str, *, lease_owner: str) -> None:
+        owner = str(lease_owner).strip()
+        if not owner:
+            return
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                UPDATE report_job_webhook_outbox
+                SET lease_owner = NULL,
+                    lease_acquired_at = NULL,
+                    lease_expires_at = NULL
+                WHERE outbox_id = %(outbox_id)s
+                  AND lease_owner = %(lease_owner)s
+                """,
+                {"outbox_id": outbox_id, "lease_owner": owner},
+            )
+
+    def has_webhook_delivery_config_store(self) -> bool:
+        return self.webhook_config_codec is not None
+
+    def save_webhook_delivery_config(self, record: ReportJobWebhookOutboxRecord, webhook_config: Any) -> None:
+        if not self.webhook_config_codec:
+            return
+        encrypted = self.webhook_config_codec.encrypt_config(webhook_config)
+        now = now_cn().isoformat()
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO report_job_webhook_delivery_config (
+                    outbox_id, job_id, cipher_suite, key_id, ciphertext,
+                    target_host_hash, signature_mode, created_at, updated_at, rotated_at
+                )
+                VALUES (
+                    %(outbox_id)s, %(job_id)s, %(cipher_suite)s, %(key_id)s, %(ciphertext)s,
+                    %(target_host_hash)s, %(signature_mode)s, %(created_at)s, %(updated_at)s, %(rotated_at)s
+                )
+                ON CONFLICT(outbox_id) DO UPDATE SET
+                    job_id=EXCLUDED.job_id,
+                    cipher_suite=EXCLUDED.cipher_suite,
+                    key_id=EXCLUDED.key_id,
+                    ciphertext=EXCLUDED.ciphertext,
+                    target_host_hash=EXCLUDED.target_host_hash,
+                    signature_mode=EXCLUDED.signature_mode,
+                    updated_at=EXCLUDED.updated_at,
+                    rotated_at=EXCLUDED.rotated_at
+                """,
+                {
+                    "outbox_id": record.outbox_id,
+                    "job_id": record.job_id,
+                    "cipher_suite": encrypted.cipher_suite,
+                    "key_id": encrypted.key_id,
+                    "ciphertext": encrypted.ciphertext,
+                    "target_host_hash": record.target_host_hash,
+                    "signature_mode": record.signature_mode,
+                    "created_at": now,
+                    "updated_at": now,
+                    "rotated_at": None,
+                },
+            )
+
+    def load_webhook_delivery_config(self, record: ReportJobWebhookOutboxRecord) -> Any | None:
+        if not self.webhook_config_codec:
+            return None
+        with self._lock, self._connect() as conn:
+            row = conn.execute(
+                """
+                SELECT cipher_suite, key_id, ciphertext
+                FROM report_job_webhook_delivery_config
+                WHERE outbox_id = %(outbox_id)s
+                """,
+                {"outbox_id": record.outbox_id},
+            ).fetchone()
+        if row is None:
+            return None
+        encrypted = EncryptedWebhookDeliveryConfig(
+            cipher_suite=str(row["cipher_suite"]),
+            key_id=str(row["key_id"]),
+            ciphertext=str(row["ciphertext"]),
+        )
+        return self.webhook_config_codec.decrypt_config(encrypted)
+
+    def delete_webhook_delivery_config(self, outbox_id: str) -> None:
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                "DELETE FROM report_job_webhook_delivery_config WHERE outbox_id = %(outbox_id)s",
+                {"outbox_id": outbox_id},
+            )
+
+    def rotate_webhook_delivery_configs(self) -> int:
+        if not self.webhook_config_codec:
+            return 0
+        with self._lock, self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT outbox_id, cipher_suite, key_id, ciphertext
+                FROM report_job_webhook_delivery_config
+                ORDER BY updated_at ASC, outbox_id ASC
+                """
+            ).fetchall()
+            rotated = 0
+            now = now_cn().isoformat()
+            for row in rows:
+                old = EncryptedWebhookDeliveryConfig(
+                    cipher_suite=str(row["cipher_suite"]),
+                    key_id=str(row["key_id"]),
+                    ciphertext=str(row["ciphertext"]),
+                )
+                if old.key_id == self.webhook_config_codec.active_key_id:
+                    continue
+                new = self.webhook_config_codec.rotate(old)
+                conn.execute(
+                    """
+                    UPDATE report_job_webhook_delivery_config
+                    SET cipher_suite = %(cipher_suite)s,
+                        key_id = %(key_id)s,
+                        ciphertext = %(ciphertext)s,
+                        updated_at = %(updated_at)s,
+                        rotated_at = %(rotated_at)s
+                    WHERE outbox_id = %(outbox_id)s
+                    """,
+                    {
+                        "cipher_suite": new.cipher_suite,
+                        "key_id": new.key_id,
+                        "ciphertext": new.ciphertext,
+                        "updated_at": now,
+                        "rotated_at": now,
+                        "outbox_id": str(row["outbox_id"]),
+                    },
+                )
+                rotated += 1
+        return rotated
+
+    def count_webhook_delivery_configs(self) -> int:
+        with self._lock, self._connect() as conn:
+            row = conn.execute("SELECT COUNT(*) AS count FROM report_job_webhook_delivery_config").fetchone()
+        return int(row["count"] or 0)
+
+    def _connect(self) -> Any:
+        return self._connect_factory()
+
+    def _init_schema(self) -> None:
+        with self._lock, self._connect() as conn:
+            for statement in POSTGRES_REPORT_JOB_SCHEMA_SQL:
+                conn.execute(statement)
+
+    def _row_to_job(self, row: Any) -> _ReportJob:
+        return _ReportJob(
+            job_id=str(row["job_id"]),
+            kind=str(row["kind"]),
+            status=_coerce_status(str(row["status"])),
+            report_system=str(row["report_system"]),
+            task=None,
+            task_payload=_coerce_task_payload(_json_loads(row["task_payload_json"])),
+            input_summary=_json_loads(row["input_summary_json"]) or {},
+            idempotency_key=row["idempotency_key"],
+            webhook_config=None,
+            created_monotonic=time.monotonic(),
+            expires_monotonic=_expires_monotonic(str(row["expires_at"])),
+            created_at=str(row["created_at"]),
+            expires_at=str(row["expires_at"]),
+            started_at=row["started_at"],
+            finished_at=row["finished_at"],
+            error=row["error"],
+            result=_json_loads(row["result_json"]),
+            attempts=int(row["attempts"] or 0),
+            max_attempts=max(1, int(row["max_attempts"] or 1)),
+            attempt_timeout_seconds=float(row["attempt_timeout_seconds"])
+            if row["attempt_timeout_seconds"] is not None
+            else None,
+            retry_backoff_seconds=max(0.0, float(row["retry_backoff_seconds"] or 0)),
+        )
+
+    def _row_to_event(self, row: Any) -> ReportJobEvent:
+        metadata = _json_loads(row["metadata_json"])
+        return ReportJobEvent(
+            event_id=str(row["event_id"]),
+            job_id=str(row["job_id"]),
+            event_type=str(row["event_type"]),
+            status=_coerce_status(str(row["status"])),
+            created_at=str(row["created_at"]),
+            message=row["message"],
+            metadata=metadata if isinstance(metadata, dict) else {},
+        )
+
+    def _row_to_webhook_outbox_record(self, row: Any) -> ReportJobWebhookOutboxRecord:
         return ReportJobWebhookOutboxRecord(
             outbox_id=str(row["outbox_id"]),
             job_id=str(row["job_id"]),

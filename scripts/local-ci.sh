@@ -174,6 +174,8 @@ run_quick() {
     --output-json "${output_dir}/data-supply-chain-gate.json"
   run_step "runtime backend gate" bash "${script_dir}/runtime-backend-gate.sh" \
     --output-json "${output_dir}/runtime-backend-gate.json"
+  run_step "postgres job store dry-run" bash "${script_dir}/postgres-job-store-dry-run.sh" \
+    --output-json "${output_dir}/postgres-job-store-dry-run.json"
   run_step "event contract gate" bash "${script_dir}/event-contract-gate.sh" \
     --output-json "${output_dir}/event-contract-gate.json"
   run_step "release artifacts" bash "${script_dir}/release-artifacts.sh" \
@@ -236,6 +238,7 @@ run_quick() {
       tests/regression/test_provider_lifecycle_gate.py \
       tests/regression/test_production_security_gate.py \
       tests/regression/test_runtime_backend_gate.py \
+      tests/regression/test_postgres_job_store_adapter.py \
       tests/regression/test_event_contract_gate.py \
       tests/regression/test_secret_scan.py \
       tests/regression/test_security_smoke.py \
@@ -363,6 +366,7 @@ write_summary() {
   FATE_LOCAL_CI_CORE_QUALITY_CORPUS_GATE="${output_dir}/core-quality-corpus-gate.json" \
   FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE="${output_dir}/data-supply-chain-gate.json" \
   FATE_LOCAL_CI_RUNTIME_BACKEND_GATE="${output_dir}/runtime-backend-gate.json" \
+  FATE_LOCAL_CI_POSTGRES_JOB_STORE_DRY_RUN="${output_dir}/postgres-job-store-dry-run.json" \
   FATE_LOCAL_CI_EVENT_CONTRACT_GATE="${output_dir}/event-contract-gate.json" \
   FATE_LOCAL_CI_RELEASE_ARTIFACTS="${output_dir}/release-artifacts" \
   FATE_LOCAL_CI_RELEASE_ARTIFACTS_SUMMARY="${output_dir}/release-artifacts-summary.json" \
@@ -420,6 +424,7 @@ payload = {
         "coreQualityCorpusGate": env("FATE_LOCAL_CI_CORE_QUALITY_CORPUS_GATE"),
         "dataSupplyChainGate": env("FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE"),
         "runtimeBackendGate": env("FATE_LOCAL_CI_RUNTIME_BACKEND_GATE"),
+        "postgresJobStoreDryRun": env("FATE_LOCAL_CI_POSTGRES_JOB_STORE_DRY_RUN"),
         "eventContractGate": env("FATE_LOCAL_CI_EVENT_CONTRACT_GATE"),
         "releaseArtifacts": env("FATE_LOCAL_CI_RELEASE_ARTIFACTS"),
         "releaseArtifactsSummary": env("FATE_LOCAL_CI_RELEASE_ARTIFACTS_SUMMARY"),

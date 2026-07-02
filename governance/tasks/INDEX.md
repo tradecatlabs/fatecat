@@ -135,3 +135,5 @@
 | 0068 | measurement-infrastructure-audit-handoff-generator | Done | P0 | 执行 0061 后续任务树的 audit handoff generator 切片：新增可一键生成第三方审计交接包的 Markdown/JSON generator、审计包 gate、任务与证据索引、pending external validations 扫描和 local-ci 接入；不能遗漏外部连通验证待执行项，不能把本地或 contract baseline 伪造成生产 live 证据。 | 0068-measurement-infrastructure-audit-handoff-generator/ |
 
 | 0069 | measurement-infrastructure-audit-dry-run-verifier | Done | P0 | 执行 0061/0068 后续任务树的 third-party audit dry-run 切片：新增 audit handoff dry-run verifier，消费 0068 生成的 Markdown/JSON 审计交接包，验证必备字段、Markdown 区块、pending external validations、risk register、敏感赋值防护和禁止 100% live 伪声明，并接入 local-ci artifact；不替代真实第三方审计，不声明外部 live evidence 已完成。 | 0069-measurement-infrastructure-audit-dry-run-verifier/ |
+
+| 0070 | measurement-infrastructure-postgres-job-store-adapter | Done | P0 | 执行 MI-100.01 Durable Runtime 的 Postgres job store adapter 切片：在不伪造真实外部数据库 live 的前提下，为 CalculationJob/ReportJobStore 新增可选 Postgres adapter、Postgres DDL/migration dry-run、webhook outbox transactional claim/release 语义、配置入口和回归门禁；真实 Postgres 连通、生产多副本 worker、外部 Vault/KMS 与公网 webhook live 仍保留为外部验证待执行。 | 0070-measurement-infrastructure-postgres-job-store-adapter/ |
