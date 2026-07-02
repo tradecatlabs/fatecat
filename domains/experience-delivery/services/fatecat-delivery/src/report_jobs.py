@@ -13,18 +13,22 @@ import secrets
 import sqlite3
 import time
 from collections.abc import Callable
-from dataclasses import asdict, dataclass, is_dataclass
+from dataclasses import asdict, dataclass, is_dataclass, replace
 from datetime import datetime
+from hashlib import sha256
 from pathlib import Path
 from queue import Full, Queue
 from threading import Event, Lock, Thread
 from typing import Any, Literal
+from urllib.parse import urlparse
 
 from utils.timezone import now_cn
 
 logger = logging.getLogger(__name__)
 
 ReportJobStatus = Literal["queued", "running", "succeeded", "failed", "expired", "cancelled"]
+ReportJobWebhookOutboxStatus = Literal["pending", "succeeded", "failed"]
+REPORT_JOB_WEBHOOK_EVENT_TYPE = "report_job.terminal"
 
 
 class ReportJobQueueFull(RuntimeError):
@@ -84,6 +88,24 @@ class ReportJobEvent:
 
 
 @dataclass(frozen=True)
+class ReportJobWebhookOutboxRecord:
+    outbox_id: str
+    job_id: str
+    event_type: str
+    job_status: ReportJobStatus
+    status: ReportJobWebhookOutboxStatus
+    attempts: int
+    max_attempts: int
+    signature_mode: str
+    target_host_hash: str | None
+    created_at: str
+    updated_at: str
+    completed_at: str | None
+    last_error_type: str | None
+    result_status_code: int | None
+
+
+@dataclass(frozen=True)
 class ReportJobSnapshot:
     job_id: str
     kind: str
@@ -105,6 +127,7 @@ class ReportJobSnapshot:
     attempt_timeout_seconds: float | None
     retry_backoff_seconds: float
     events: tuple[ReportJobEvent, ...]
+    callback_outbox: tuple[ReportJobWebhookOutboxRecord, ...]
 
 
 ReportJobWebhookDispatcher = Callable[[ReportJobSnapshot, Any], Any]
@@ -150,6 +173,12 @@ class ReportJobStore:
         return []
 
     def append_job_event(self, _event: ReportJobEvent) -> None:
+        return
+
+    def load_webhook_outbox_records(self, _job_id: str) -> list[ReportJobWebhookOutboxRecord]:
+        return []
+
+    def save_webhook_outbox_record(self, _record: ReportJobWebhookOutboxRecord) -> None:
         return
 
 
@@ -283,6 +312,64 @@ class SQLiteReportJobStore(ReportJobStore):
                 ),
             )
 
+    def load_webhook_outbox_records(self, job_id: str) -> list[ReportJobWebhookOutboxRecord]:
+        with self._lock, self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT outbox_id, job_id, event_type, job_status, status, attempts,
+                       max_attempts, signature_mode, target_host_hash, created_at,
+                       updated_at, completed_at, last_error_type, result_status_code
+                FROM report_job_webhook_outbox
+                WHERE job_id = ?
+                ORDER BY created_at ASC, outbox_id ASC
+                """,
+                (job_id,),
+            ).fetchall()
+        return [self._row_to_webhook_outbox_record(row) for row in rows]
+
+    def save_webhook_outbox_record(self, record: ReportJobWebhookOutboxRecord) -> None:
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO report_job_webhook_outbox (
+                    outbox_id, job_id, event_type, job_status, status, attempts,
+                    max_attempts, signature_mode, target_host_hash, created_at,
+                    updated_at, completed_at, last_error_type, result_status_code
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(outbox_id) DO UPDATE SET
+                    job_id=excluded.job_id,
+                    event_type=excluded.event_type,
+                    job_status=excluded.job_status,
+                    status=excluded.status,
+                    attempts=excluded.attempts,
+                    max_attempts=excluded.max_attempts,
+                    signature_mode=excluded.signature_mode,
+                    target_host_hash=excluded.target_host_hash,
+                    created_at=excluded.created_at,
+                    updated_at=excluded.updated_at,
+                    completed_at=excluded.completed_at,
+                    last_error_type=excluded.last_error_type,
+                    result_status_code=excluded.result_status_code
+                """,
+                (
+                    record.outbox_id,
+                    record.job_id,
+                    record.event_type,
+                    record.job_status,
+                    record.status,
+                    record.attempts,
+                    record.max_attempts,
+                    record.signature_mode,
+                    record.target_host_hash,
+                    record.created_at,
+                    record.updated_at,
+                    record.completed_at,
+                    record.last_error_type,
+                    record.result_status_code,
+                ),
+            )
+
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
@@ -336,6 +423,32 @@ class SQLiteReportJobStore(ReportJobStore):
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_report_job_events_job_sequence ON report_job_events(job_id, sequence)"
             )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS report_job_webhook_outbox (
+                    outbox_id TEXT PRIMARY KEY,
+                    job_id TEXT NOT NULL,
+                    event_type TEXT NOT NULL,
+                    job_status TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    attempts INTEGER NOT NULL DEFAULT 0,
+                    max_attempts INTEGER NOT NULL DEFAULT 1,
+                    signature_mode TEXT NOT NULL,
+                    target_host_hash TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    completed_at TEXT,
+                    last_error_type TEXT,
+                    result_status_code INTEGER
+                )
+                """
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_report_job_webhook_outbox_job ON report_job_webhook_outbox(job_id)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_report_job_webhook_outbox_status ON report_job_webhook_outbox(status)"
+            )
 
     @staticmethod
     def _ensure_column(conn: sqlite3.Connection, table: str, column: str, definition: str) -> None:
@@ -379,6 +492,24 @@ class SQLiteReportJobStore(ReportJobStore):
             created_at=str(row["created_at"]),
             message=row["message"],
             metadata=metadata if isinstance(metadata, dict) else {},
+        )
+
+    def _row_to_webhook_outbox_record(self, row: sqlite3.Row) -> ReportJobWebhookOutboxRecord:
+        return ReportJobWebhookOutboxRecord(
+            outbox_id=str(row["outbox_id"]),
+            job_id=str(row["job_id"]),
+            event_type=str(row["event_type"]),
+            job_status=_coerce_status(str(row["job_status"])),
+            status=_coerce_webhook_outbox_status(str(row["status"])),
+            attempts=max(0, int(row["attempts"] or 0)),
+            max_attempts=max(1, int(row["max_attempts"] or 1)),
+            signature_mode=str(row["signature_mode"]),
+            target_host_hash=row["target_host_hash"],
+            created_at=str(row["created_at"]),
+            updated_at=str(row["updated_at"]),
+            completed_at=row["completed_at"],
+            last_error_type=row["last_error_type"],
+            result_status_code=int(row["result_status_code"]) if row["result_status_code"] is not None else None,
         )
 
 
@@ -786,10 +917,14 @@ class ReportJobManager:
             attempt_timeout_seconds=job.attempt_timeout_seconds,
             retry_backoff_seconds=job.retry_backoff_seconds,
             events=tuple(self.store.load_job_events(job.job_id)),
+            callback_outbox=tuple(self.store.load_webhook_outbox_records(job.job_id)),
         )
 
     def _persist_locked(self, job: _ReportJob) -> None:
         self.store.save_job(job)
+
+    def _persist_webhook_outbox_locked(self, record: ReportJobWebhookOutboxRecord) -> None:
+        self.store.save_webhook_outbox_record(record)
 
     def _append_event_locked(
         self,
@@ -817,12 +952,41 @@ class ReportJobManager:
             return
         max_attempts = self.callback_policy.max_attempts
         retry_backoff_seconds = self.callback_policy.retry_backoff_seconds
+        now = now_cn().isoformat()
+        outbox_record = ReportJobWebhookOutboxRecord(
+            outbox_id=_webhook_outbox_id(snapshot),
+            job_id=snapshot.job_id,
+            event_type=REPORT_JOB_WEBHOOK_EVENT_TYPE,
+            job_status=snapshot.status,
+            status="pending",
+            attempts=0,
+            max_attempts=max_attempts,
+            signature_mode=getattr(webhook_config, "signature_mode", "none"),
+            target_host_hash=_target_host_hash(getattr(webhook_config, "url", None)),
+            created_at=now,
+            updated_at=now,
+            completed_at=None,
+            last_error_type=None,
+            result_status_code=None,
+        )
+        with self._lock:
+            self._persist_webhook_outbox_locked(outbox_record)
         for attempt in range(1, max_attempts + 1):
             try:
                 result = self.webhook_dispatcher(snapshot, webhook_config)
             except Exception as exc:  # noqa: BLE001 - webhook 是附属出口，失败不能反向破坏任务终态。
                 error_type = type(exc).__name__
                 will_retry = attempt < max_attempts
+                updated_at = now_cn().isoformat()
+                outbox_record = replace(
+                    outbox_record,
+                    status="pending" if will_retry else "failed",
+                    attempts=attempt,
+                    updated_at=updated_at,
+                    completed_at=None if will_retry else updated_at,
+                    last_error_type=error_type,
+                    result_status_code=None,
+                )
                 logger.warning(
                     "报告任务 webhook 投递失败 job_id=%s status=%s attempt=%s error_type=%s will_retry=%s",
                     snapshot.job_id,
@@ -832,6 +996,7 @@ class ReportJobManager:
                     will_retry,
                 )
                 with self._lock:
+                    self._persist_webhook_outbox_locked(outbox_record)
                     job = self._jobs.get(snapshot.job_id)
                     if job:
                         self._append_event_locked(
@@ -875,7 +1040,18 @@ class ReportJobManager:
                     self._sleep_before_retry(retry_backoff_seconds)
                     continue
                 return
+            updated_at = now_cn().isoformat()
+            outbox_record = replace(
+                outbox_record,
+                status="succeeded",
+                attempts=attempt,
+                updated_at=updated_at,
+                completed_at=updated_at,
+                last_error_type=None,
+                result_status_code=getattr(result, "status_code", None),
+            )
             with self._lock:
+                self._persist_webhook_outbox_locked(outbox_record)
                 job = self._jobs.get(snapshot.job_id)
                 if job:
                     self._append_event_locked(
@@ -911,6 +1087,24 @@ def _coerce_status(value: str) -> ReportJobStatus:
     if value in allowed:
         return value  # type: ignore[return-value]
     return "failed"
+
+
+def _coerce_webhook_outbox_status(value: str) -> ReportJobWebhookOutboxStatus:
+    allowed: set[ReportJobWebhookOutboxStatus] = {"pending", "succeeded", "failed"}
+    if value in allowed:
+        return value  # type: ignore[return-value]
+    return "failed"
+
+
+def _webhook_outbox_id(snapshot: ReportJobSnapshot) -> str:
+    return f"whob_{snapshot.job_id}_{snapshot.status}"
+
+
+def _target_host_hash(raw_url: str | None) -> str | None:
+    hostname = urlparse(str(raw_url or "")).hostname
+    if not hostname:
+        return None
+    return sha256(hostname.lower().encode("utf-8")).hexdigest()[:16]
 
 
 def _expires_monotonic(expires_at: str) -> float:

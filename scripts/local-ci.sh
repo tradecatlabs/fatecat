@@ -171,6 +171,8 @@ run_quick() {
     --output-dir "${output_dir}/evaluation-dashboard-smoke"
   run_step "webhook smoke" bash "${script_dir}/webhook-smoke.sh" \
     --output-json "${output_dir}/webhook-smoke.json"
+  run_step "webhook outbox smoke" bash "${script_dir}/webhook-outbox-smoke.sh" \
+    --output-json "${output_dir}/webhook-outbox-smoke.json"
   run_step "report job restart recovery smoke" bash "${script_dir}/report-job-restart-recovery-smoke.sh" \
     --output-json "${output_dir}/report-job-restart-recovery-smoke.json"
   run_step "live release gate contract" bash "${script_dir}/live-release-gate.sh" \
@@ -207,6 +209,7 @@ run_quick() {
       tests/regression/test_security_smoke.py \
       tests/regression/test_web_html.py \
       tests/regression/test_webhook_smoke.py \
+      tests/regression/test_webhook_outbox_smoke.py \
       tests/regression/test_report_job_restart_recovery_smoke.py \
       tests/regression/test_live_release_gate.py \
       tests/regression/test_container_release_evidence.py \
@@ -323,6 +326,7 @@ write_summary() {
   FATE_LOCAL_CI_RELEASE_ARTIFACTS_SUMMARY="${output_dir}/release-artifacts-summary.json" \
   FATE_LOCAL_CI_EVALUATION_DASHBOARD_SMOKE="${output_dir}/evaluation-dashboard-smoke" \
   FATE_LOCAL_CI_WEBHOOK_SMOKE="${output_dir}/webhook-smoke.json" \
+  FATE_LOCAL_CI_WEBHOOK_OUTBOX_SMOKE="${output_dir}/webhook-outbox-smoke.json" \
   FATE_LOCAL_CI_REPORT_JOB_RESTART_RECOVERY_SMOKE="${output_dir}/report-job-restart-recovery-smoke.json" \
   FATE_LOCAL_CI_LIVE_RELEASE_GATE="${output_dir}/live-release-gate.json" \
   "${summary_python}" - <<'PY'
@@ -367,6 +371,7 @@ payload = {
         "releaseArtifactsSummary": env("FATE_LOCAL_CI_RELEASE_ARTIFACTS_SUMMARY"),
         "evaluationDashboardSmoke": env("FATE_LOCAL_CI_EVALUATION_DASHBOARD_SMOKE"),
         "webhookSmoke": env("FATE_LOCAL_CI_WEBHOOK_SMOKE"),
+        "webhookOutboxSmoke": env("FATE_LOCAL_CI_WEBHOOK_OUTBOX_SMOKE"),
         "reportJobRestartRecoverySmoke": env("FATE_LOCAL_CI_REPORT_JOB_RESTART_RECOVERY_SMOKE"),
         "liveReleaseGate": env("FATE_LOCAL_CI_LIVE_RELEASE_GATE"),
     },

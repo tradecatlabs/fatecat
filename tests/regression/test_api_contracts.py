@@ -1033,6 +1033,108 @@ def test_report_job_webhook_default_policy_attempts_once_without_retry():
     assert final_snapshot.events[-1].metadata["maxAttempts"] == 1
 
 
+def test_sqlite_webhook_outbox_persists_success_and_failure_records(tmp_path):
+    success_db = tmp_path / "report-jobs-success.sqlite"
+
+    def success_dispatch(_snapshot, _config):
+        return type("WebhookResult", (), {"status_code": 204, "event_type": "report_job.terminal"})()
+
+    success_manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(success_db),
+        webhook_dispatcher=success_dispatch,
+        callback_policy=ReportJobWebhookPolicy(max_attempts=2),
+    )
+    success_created = success_manager.submit(
+        kind="markdown",
+        report_system="bazi",
+        input_summary={"name": "测试样本", "birthPlace": "北京"},
+        webhook_config=WebhookConfig(url="https://callback.example/webhook", secret="sqlite-secret"),
+        task=lambda: {"reportSystem": "bazi", "markdown": "# 命理排盘报告：测试样本"},
+    )
+    success_snapshot = _wait_for_manager_event(success_manager, success_created.job_id, "webhook.delivery_succeeded")
+
+    assert len(success_snapshot.callback_outbox) == 1
+    success_outbox = success_snapshot.callback_outbox[0]
+    assert success_outbox.status == "succeeded"
+    assert success_outbox.event_type == "report_job.terminal"
+    assert success_outbox.job_status == "succeeded"
+    assert success_outbox.attempts == 1
+    assert success_outbox.max_attempts == 2
+    assert success_outbox.signature_mode == "hmac-sha256"
+    assert success_outbox.target_host_hash
+    assert success_outbox.result_status_code == 204
+
+    rebuilt_success = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(success_db),
+    )
+    loaded_success = rebuilt_success.get(success_created.job_id)
+    assert loaded_success.callback_outbox[0].status == "succeeded"
+    success_payload = main._report_job_payload(loaded_success, include_result=False)
+    assert success_payload["webhookOutbox"][0]["status"] == "succeeded"
+    success_text = json.dumps(success_payload["webhookOutbox"], ensure_ascii=False)
+    assert "callback.example" not in success_text
+    assert "sqlite-secret" not in success_text
+    assert "测试样本" not in success_text
+    assert "北京" not in success_text
+    assert "# 命理排盘报告" not in success_text
+
+    failure_db = tmp_path / "report-jobs-failure.sqlite"
+
+    def failing_dispatch(_snapshot, _config):
+        raise RuntimeError("callback.example sqlite-secret 测试样本 北京")
+
+    failure_manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(failure_db),
+        webhook_dispatcher=failing_dispatch,
+        callback_policy=ReportJobWebhookPolicy(max_attempts=2),
+    )
+    failure_created = failure_manager.submit(
+        kind="markdown",
+        report_system="bazi",
+        input_summary={"name": "测试样本", "birthPlace": "北京"},
+        webhook_config=WebhookConfig(url="https://callback.example/webhook", secret="sqlite-secret"),
+        task=lambda: {"reportSystem": "bazi", "markdown": "# 命理排盘报告：测试样本"},
+    )
+    failure_snapshot = _wait_for_manager_event(failure_manager, failure_created.job_id, "webhook.delivery_failed")
+
+    assert len(failure_snapshot.callback_outbox) == 1
+    failure_outbox = failure_snapshot.callback_outbox[0]
+    assert failure_outbox.status == "failed"
+    assert failure_outbox.event_type == "report_job.terminal"
+    assert failure_outbox.job_status == "succeeded"
+    assert failure_outbox.attempts == 2
+    assert failure_outbox.max_attempts == 2
+    assert failure_outbox.signature_mode == "hmac-sha256"
+    assert failure_outbox.target_host_hash
+    assert failure_outbox.last_error_type == "RuntimeError"
+    assert failure_outbox.result_status_code is None
+
+    rebuilt_failure = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(failure_db),
+    )
+    loaded_failure = rebuilt_failure.get(failure_created.job_id)
+    assert loaded_failure.callback_outbox[0].status == "failed"
+    failure_payload = main._report_job_payload(loaded_failure, include_result=False)
+    assert failure_payload["webhookOutbox"][0]["status"] == "failed"
+    failure_text = json.dumps(failure_payload["webhookOutbox"], ensure_ascii=False)
+    assert "callback.example" not in failure_text
+    assert "sqlite-secret" not in failure_text
+    assert "测试样本" not in failure_text
+    assert "北京" not in failure_text
+
+
 def test_markdown_report_job_idempotency_key_returns_existing_job():
     client = TestClient(app)
     headers = {"Idempotency-Key": "job-idempotency-regression"}

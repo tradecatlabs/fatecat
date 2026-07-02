@@ -605,7 +605,7 @@ Report job event history：
 | 本地持久化 | `memory` 后端保留当前进程内事件；`sqlite` 后端写入 `report_job_events` 并按写入顺序返回。 |
 | 当前事件 | `job.queued`、`job.running`、`job.succeeded`、`job.failed`、`job.cancelled`、`job.expired`、`job.recovered_failed`、`job.attempt_failed`、`job.attempt_timed_out`、`job.retry_scheduled`、`webhook.delivery_attempt_failed`、`webhook.delivery_retry_scheduled`、`webhook.delivery_succeeded`、`webhook.delivery_failed`。 |
 | 隐私 | event metadata 不包含 Markdown 正文、姓名、出生地区、请求体、webhook URL、webhook secret 或原始异常文本。 |
-| 边界 | 事件历史只证明任务生命周期可审计；本地 webhook retry/outbox trail 与 restart-safe failure smoke 已有，持久 outbox、external backend、跨进程继续执行或真实公网 webhook live smoke 仍未完成。 |
+| 边界 | 事件历史只证明任务生命周期可审计；本地 webhook retry/outbox trail、SQLite persistent outbox record baseline 与 restart-safe failure smoke 已有，external backend、跨进程继续执行、跨进程自动重投或真实公网 webhook live smoke 仍未完成。 |
 
 Report job retry / timeout policy：
 
@@ -629,6 +629,7 @@ Report job webhook callback：
 | 签名 | 如果提供 secret，发送 `X-FateCat-Webhook-Signature: sha256=<hmac>`，HMAC 输入是排序后的 JSON body。 |
 | 事件 | 只在 `succeeded` / `failed` / `cancelled` 终态发送 `report_job.terminal`。 |
 | retry | 默认 `FATE_WEBHOOK_MAX_ATTEMPTS=1` 不重试；显式配置 `>1` 时，本地 manager 会记录 `webhook.delivery_attempt_failed`、`webhook.delivery_retry_scheduled`，最终写入 `webhook.delivery_succeeded` 或 `webhook.delivery_failed`；接收方必须按 `eventId` 做幂等处理。 |
+| outbox | SQLite backend 会写入 `CalculationJob.data.webhookOutbox[]` 脱敏摘要，包含 outboxId、eventType、jobStatus、status、attempts、maxAttempts、signature、targetHostHash、时间字段、lastErrorType 和 resultStatusCode。 |
 | 隐私 | webhook payload 不包含 Markdown 正文、姓名、出生地区、请求体或 secret；只包含 jobId、状态、时间戳、statusUrl/cancelUrl 和 `resultAvailable`。 |
 
 示例：
@@ -650,7 +651,14 @@ curl -sS -X POST http://127.0.0.1:8001/api/v1/report/jobs \
   }'
 ```
 
-当前 webhook 是本地可验证 callback baseline，已包含有限 retry 与 outbox trail 事件证据；它仍不包含跨进程持久 outbox 表、接收端 SLA、外部任务系统或真实公网 callback live smoke，这些仍是外部连通验证待执行。
+本地 webhook outbox smoke：
+
+```bash
+bash scripts/webhook-outbox-smoke.sh \
+  --output-json infra/runtime/local-state/exports/webhook/outbox-smoke.json
+```
+
+当前 webhook 是本地可验证 callback baseline，已包含有限 retry、事件轨迹和 SQLite persistent outbox record baseline；outbox 摘要不包含完整 webhook URL、webhook secret、报告正文、姓名、出生地区或请求体。它仍不包含跨进程自动重投、secret 加密/轮换、接收端 SLA、external backend、外部任务系统或真实公网 callback live smoke，这些仍是外部连通验证待执行。
 
 ## 准入规则
 

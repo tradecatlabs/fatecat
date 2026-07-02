@@ -115,6 +115,7 @@ from report_jobs import (  # noqa: E402
     ReportJobNotFound,
     ReportJobQueueFull,
     ReportJobSnapshot,
+    ReportJobWebhookOutboxRecord,
     ReportJobWebhookPolicy,
     SQLiteReportJobStore,
 )
@@ -598,6 +599,7 @@ def _report_job_payload(snapshot: ReportJobSnapshot, *, include_result: bool) ->
             "enabled": snapshot.webhook_enabled,
             "signature": snapshot.webhook_signature,
         },
+        "webhookOutbox": [_report_job_webhook_outbox_payload(record) for record in snapshot.callback_outbox],
         "events": [_report_job_event_payload(event) for event in snapshot.events],
         "links": {
             "self": f"/api/v1/report/jobs/{snapshot.job_id}",
@@ -624,6 +626,29 @@ def _report_job_event_payload(event: ReportJobEvent) -> dict[str, Any]:
         "createdAt": event.created_at,
         "message": event.message,
         "metadata": event.metadata,
+    }
+
+
+def _report_job_webhook_outbox_payload(record: ReportJobWebhookOutboxRecord) -> dict[str, Any]:
+    return {
+        "resourceType": "CalculationJobWebhookOutbox",
+        "apiVersion": "fatecat.tradecatlabs/v1",
+        "outboxId": record.outbox_id,
+        "id": record.outbox_id,
+        "jobId": record.job_id,
+        "eventType": record.event_type,
+        "jobStatus": record.job_status,
+        "status": record.status,
+        "attempts": record.attempts,
+        "maxAttempts": record.max_attempts,
+        "signature": record.signature_mode,
+        "targetHostHash": record.target_host_hash,
+        "createdAt": record.created_at,
+        "updatedAt": record.updated_at,
+        "completedAt": record.completed_at,
+        "lastErrorType": record.last_error_type,
+        "resultStatusCode": record.result_status_code,
+        "privacyBoundary": "excludes webhook url, webhook secret, request body, report markdown and user input",
     }
 
 
