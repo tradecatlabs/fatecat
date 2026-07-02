@@ -10,6 +10,8 @@
 scripts/
 ├── AGENTS.md
 ├── acceptance.sh
+├── audit-handoff.sh
+├── audit-handoff.py
 ├── bazi-ziwei-l4-golden-smoke.sh
 ├── bazi-ziwei-l4-golden-smoke.py
 ├── check-public-release-policy.sh
@@ -89,6 +91,7 @@ scripts/
 ## 职责边界
 
 - 根脚本负责 bootstrap、preflight、acceptance、delivery smoke、容器 smoke、导出卫生和生产就绪检查。
+- `audit-handoff.sh` / `audit-handoff.py` 是第三方审计交接包生成器；聚合 Git、任务索引、关键 contract、local-ci/CI 证据入口和所有 tracked + untracked non-ignored `外部连通验证待执行` occurrences，输出 Markdown/JSON，不证明外部 live 已完成。
 - `container-build.sh`：构建 FateCat delivery 镜像。
 - `container-smoke.sh`：启动临时容器并验证 `/health` 与真实排盘 API。
 - `container-release.sh`：构建、smoke，并在显式 `--push` 时推送 registry。
@@ -154,4 +157,5 @@ scripts/
 - `scripts/release-artifacts.py -> pyproject.toml + requirements.lock.txt + requirements-dev.lock.txt + infra/docker + contracts/fate/delivery`
 - `scripts/developer-docs-smoke.py -> contracts/fate/developer + docs/reference-materials/developer + FastAPI TestClient`
 - `scripts/developer-platform-gate.py -> contracts/fate/developer + docs/reference-materials/developer`
+- `scripts/audit-handoff.py -> contracts/fate/audit + governance/tasks + contracts/fate + git`
 - 禁止脚本直接隐藏 secret、运行态或旧路径 fallback。

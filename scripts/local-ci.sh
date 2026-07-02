@@ -199,6 +199,8 @@ run_quick() {
     --sbom-path "${output_dir}/release-artifacts/sbom.cyclonedx.json" \
     --provenance-path "${output_dir}/release-artifacts/provenance.slsa.json" \
     --output-json "${output_dir}/live-release-gate.json"
+  run_step "audit handoff" bash "${script_dir}/audit-handoff.sh" \
+    --output-dir "${output_dir}/audit-handoff"
   run_step "ruff check" env RUFF_CACHE_DIR="${RUFF_CACHE_DIR:-/tmp/fatecat-ruff-cache}" \
     "${python_bin}" -m ruff check "${runtime_root}"
   run_step "ruff format check" env RUFF_CACHE_DIR="${RUFF_CACHE_DIR:-/tmp/fatecat-ruff-cache}" \
@@ -213,6 +215,7 @@ run_quick() {
     cd "${runtime_root}"
     "${python_bin}" -m pytest -q \
       tests/regression/test_api_contracts.py \
+      tests/regression/test_audit_handoff.py \
       tests/regression/test_bazi_ziwei_l4_golden_smoke.py \
       tests/regression/test_branding_support.py \
       tests/regression/test_core_quality_corpus_gate.py \
@@ -367,6 +370,7 @@ write_summary() {
   FATE_LOCAL_CI_REPORT_JOB_REPLAYABLE_RECOVERY_SMOKE="${output_dir}/report-job-replayable-recovery-smoke.json" \
   FATE_LOCAL_CI_REPORT_JOB_RESTART_RECOVERY_SMOKE="${output_dir}/report-job-restart-recovery-smoke.json" \
   FATE_LOCAL_CI_LIVE_RELEASE_GATE="${output_dir}/live-release-gate.json" \
+  FATE_LOCAL_CI_AUDIT_HANDOFF="${output_dir}/audit-handoff" \
   "${summary_python}" - <<'PY'
 import json
 import os
@@ -422,6 +426,7 @@ payload = {
         "reportJobReplayableRecoverySmoke": env("FATE_LOCAL_CI_REPORT_JOB_REPLAYABLE_RECOVERY_SMOKE"),
         "reportJobRestartRecoverySmoke": env("FATE_LOCAL_CI_REPORT_JOB_RESTART_RECOVERY_SMOKE"),
         "liveReleaseGate": env("FATE_LOCAL_CI_LIVE_RELEASE_GATE"),
+        "auditHandoff": env("FATE_LOCAL_CI_AUDIT_HANDOFF"),
     },
     "privacyBoundary": "只记录命令产物路径、commit 和状态，不复制测试日志全文或用户报告内容。",
     "limitations": [

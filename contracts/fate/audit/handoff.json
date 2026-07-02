@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.audit_handoff_contract",
+  "resourceType": "AuditHandoff",
+  "id": "audit.handoff.bundle",
+  "status": "baseline",
+  "description": "Machine-readable contract for generating a third-party audit handoff bundle as Markdown and JSON without omitting pending external validations.",
+  "generator": {
+    "command": "bash scripts/audit-handoff.sh --output-dir <dir>",
+    "pythonEntrypoint": "scripts/audit-handoff.py",
+    "defaultOutputDir": "infra/runtime/local-state/exports/audit-handoff"
+  },
+  "requiredOutputs": [
+    "audit-handoff.json",
+    "AUDIT_HANDOFF.md"
+  ],
+  "requiredJsonFields": [
+    "schemaVersion",
+    "kind",
+    "generatedAt",
+    "status",
+    "repository",
+    "taskIndex",
+    "evidence",
+    "pendingExternalValidations",
+    "riskRegister",
+    "verification"
+  ],
+  "requiredMarkdownSections": [
+    "Latest Status",
+    "Delivery Evidence",
+    "Code And Asset Index",
+    "Pending External Validations",
+    "Risk Register",
+    "Verification",
+    "Final Conclusion"
+  ],
+  "pendingExternalValidationPolicy": {
+    "requiredPhrase": "外部连通验证待执行",
+    "source": "tracked files via git grep plus untracked non-ignored first-party text files",
+    "coverageRule": "The generated JSON must include every tracked and untracked non-ignored occurrence of the required phrase with path, line and excerpt.",
+    "nonOmissionGate": "pendingExternalValidationCount must equal the repository occurrence count used by the generator."
+  },
+  "evidenceSources": [
+    "git status",
+    "git rev-parse HEAD",
+    "governance/tasks/INDEX.md",
+    "contracts/fate/delivery/release-gate.json",
+    "contracts/fate/security/registry.json",
+    "contracts/fate/observability/registry.json",
+    "docs/reference-materials/roadmap/测算基础设施100%实现计划.md",
+    "local-ci summary when supplied"
+  ],
+  "privacyBoundary": "Audit handoff output must not embed real tokens, secrets, DSNs, private keys, production credentials, user report bodies or non-redacted production payloads.",
+  "nonClaims": [
+    "Does not prove production API live connectivity unless external live evidence is supplied.",
+    "Does not prove Telegram Bot live smoke without real operator credentials.",
+    "Does not prove OIDC, SIEM, immutable audit storage, retention cleaner, trace backend or alert live status.",
+    "Does not replace third-party audit review."
+  ]
+}

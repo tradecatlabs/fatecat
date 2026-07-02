@@ -131,3 +131,5 @@
 | 0066 | measurement-infrastructure-core-quality-corpus | Done | P0 | 执行 0061 后续任务树的 core quality corpus expansion 切片：新增八字/紫微核心质量语料 manifest、完整报告 diff 策略、语料门禁和匿名紫微样本扩容，并接入 quick CI；不使用真实用户隐私样例，不把 evaluation fixture 变成生产输入。 | 0066-measurement-infrastructure-core-quality-corpus/ |
 
 | 0067 | measurement-infrastructure-developer-platform-baseline | Done | P0 | 执行 0061 后续任务树的 developer platform 切片：新增 SDK/package baseline、sandbox token contract、API changelog 与开发者平台 gate，并接入 docs smoke/local-ci；不把本地 docs smoke 伪装成已发布 SDK，不声明公网 sandbox token 服务已上线。 | 0067-measurement-infrastructure-developer-platform-baseline/ |
+
+| 0068 | measurement-infrastructure-audit-handoff-generator | Done | P0 | 执行 0061 后续任务树的 audit handoff generator 切片：新增可一键生成第三方审计交接包的 Markdown/JSON generator、审计包 gate、任务与证据索引、pending external validations 扫描和 local-ci 接入；不能遗漏外部连通验证待执行项，不能把本地或 contract baseline 伪造成生产 live 证据。 | 0068-measurement-infrastructure-audit-handoff-generator/ |

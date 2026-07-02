@@ -14,6 +14,9 @@ contracts/fate/
 │   ├── errors.json
 │   ├── schemas/
 │   └── profiles/
+├── audit/
+│   ├── handoff.json
+│   └── AGENTS.md
 ├── data-supply-chain/
 │   ├── registry.json
 │   └── schemas/
@@ -49,6 +52,8 @@ contracts/fate/
 - `capabilities/`：统一测算能力协议与注册表；默认能力只能是 `bazi`，其他体系必须独立输出或保持 planned。
 - `capabilities/registry.json` 的每个能力必须声明 `maturity`、`engine.engineVersion`、`evidencePolicy` 和 `testGate`；这些字段是测算基础设施成熟度、可复现计算和发布门禁的审计入口。
 - `capabilities/errors.json`：标准错误码字典，服务层只负责读取和映射，不在业务代码里另起一套错误事实源。
+- `audit/`：第三方审计交接契约；只登记 audit handoff bundle 输出结构、证据来源和外部待验证项策略，不保存真实生产证据或用户报告正文。
+- `audit/handoff.json`：审计包 generator 的机器真相源；要求 Markdown/JSON 输出完整列出 tracked 和 untracked non-ignored `外部连通验证待执行` occurrence。
 - `data-supply-chain/`：数据、典籍、vendor、benchmark 与导出边界注册表；只登记来源、分层、许可状态、usageRole、productionEligibility、exportPolicy 和验证命令，不保存原始大文件。
 - `data-supply-chain/registry.json`：登记 raw/canonical/derived/reference/runtime/export 分层资产；`review_required`、`source_archive_only`、`evaluation_only` 和 `reference_only` 不得被文档写成默认生产输入。
 - `delivery/`：多端交付资源注册表，登记 DeliverySurface，只做 FastAPI/Web/Bot/CLI/Skill/HF Space 的入口、同源链路、输出契约和验证边界说明，不保存用户输入或运行态报告。
