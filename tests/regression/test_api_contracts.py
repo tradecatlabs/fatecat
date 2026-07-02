@@ -27,6 +27,7 @@ from report_jobs import (  # noqa: E402
     ReportJobManager,
     ReportJobNonRetryableError,
     ReportJobQueueFull,
+    ReportJobWebhookPolicy,
     SQLiteReportJobStore,
 )
 from webhook_callbacks import HttpWebhookDispatcher, WebhookConfig  # noqa: E402
@@ -83,6 +84,23 @@ def _wait_for_manager_job(manager: ReportJobManager, job_id: str, *, timeout_sec
             return last_snapshot
         time.sleep(0.05)
     raise AssertionError(f"report manager job did not finish: {last_snapshot}")
+
+
+def _wait_for_manager_event(
+    manager: ReportJobManager,
+    job_id: str,
+    event_type: str,
+    *,
+    timeout_seconds: float = 4.0,
+):
+    deadline = time.monotonic() + timeout_seconds
+    last_snapshot = None
+    while time.monotonic() < deadline:
+        last_snapshot = manager.get(job_id)
+        if any(event.event_type == event_type for event in last_snapshot.events):
+            return last_snapshot
+        time.sleep(0.05)
+    raise AssertionError(f"report manager event did not appear: {event_type} snapshot={last_snapshot}")
 
 
 def _audit_events(caplog) -> list[dict]:
@@ -878,6 +896,141 @@ def test_report_job_webhook_dispatches_cancelled_terminal_event():
 
     assert cancelled.status == "cancelled"
     assert statuses == ["cancelled"]
+
+
+def test_report_job_webhook_retry_policy_retries_failed_callback():
+    attempts: list[int] = []
+
+    def flaky_dispatch(_snapshot, _config):
+        attempts.append(len(attempts) + 1)
+        if len(attempts) == 1:
+            raise RuntimeError("callback failed with private details")
+        return type("WebhookResult", (), {"status_code": 204, "event_type": "report_job.terminal"})()
+
+    manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        webhook_dispatcher=flaky_dispatch,
+        callback_policy=ReportJobWebhookPolicy(max_attempts=2),
+    )
+    created = manager.submit(
+        kind="markdown",
+        report_system="bazi",
+        input_summary={"name": "测试样本", "birthPlace": "北京"},
+        webhook_config=WebhookConfig(url="https://callback.example/webhook", secret="retry-secret"),
+        task=lambda: {"reportSystem": "bazi", "markdown": "# 命理排盘报告：测试样本"},
+    )
+
+    final_snapshot = _wait_for_manager_event(manager, created.job_id, "webhook.delivery_succeeded")
+
+    assert attempts == [1, 2]
+    event_types = [event.event_type for event in final_snapshot.events]
+    assert event_types == [
+        "job.queued",
+        "job.running",
+        "job.succeeded",
+        "webhook.delivery_attempt_failed",
+        "webhook.delivery_retry_scheduled",
+        "webhook.delivery_succeeded",
+    ]
+    attempt_failed = next(
+        event for event in final_snapshot.events if event.event_type == "webhook.delivery_attempt_failed"
+    )
+    retry_scheduled = next(
+        event for event in final_snapshot.events if event.event_type == "webhook.delivery_retry_scheduled"
+    )
+    succeeded = next(event for event in final_snapshot.events if event.event_type == "webhook.delivery_succeeded")
+    assert attempt_failed.metadata["attempt"] == 1
+    assert attempt_failed.metadata["maxAttempts"] == 2
+    assert attempt_failed.metadata["errorType"] == "RuntimeError"
+    assert attempt_failed.metadata["willRetry"] is True
+    assert retry_scheduled.metadata["nextAttempt"] == 2
+    assert succeeded.metadata["attempt"] == 2
+    assert succeeded.metadata["statusCode"] == 204
+    events_text = json.dumps([event.metadata for event in final_snapshot.events], ensure_ascii=False)
+    assert "callback.example" not in events_text
+    assert "retry-secret" not in events_text
+    assert "测试样本" not in events_text
+    assert "北京" not in events_text
+    assert "private details" not in events_text
+
+
+def test_report_job_webhook_retry_policy_records_final_failure_without_sensitive_metadata():
+    attempts: list[int] = []
+
+    def failing_dispatch(_snapshot, _config):
+        attempts.append(len(attempts) + 1)
+        raise RuntimeError("callback.example retry-secret 测试样本 北京")
+
+    manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        webhook_dispatcher=failing_dispatch,
+        callback_policy=ReportJobWebhookPolicy(max_attempts=2),
+    )
+    created = manager.submit(
+        kind="markdown",
+        report_system="bazi",
+        input_summary={"name": "测试样本", "birthPlace": "北京"},
+        webhook_config=WebhookConfig(url="https://callback.example/webhook", secret="retry-secret"),
+        task=lambda: {"reportSystem": "bazi", "markdown": "# 命理排盘报告：测试样本"},
+    )
+
+    final_snapshot = _wait_for_manager_event(manager, created.job_id, "webhook.delivery_failed")
+
+    assert final_snapshot.status == "succeeded"
+    assert attempts == [1, 2]
+    event_types = [event.event_type for event in final_snapshot.events]
+    assert event_types == [
+        "job.queued",
+        "job.running",
+        "job.succeeded",
+        "webhook.delivery_attempt_failed",
+        "webhook.delivery_retry_scheduled",
+        "webhook.delivery_attempt_failed",
+        "webhook.delivery_failed",
+    ]
+    final_failure = final_snapshot.events[-1]
+    assert final_failure.metadata["attempt"] == 2
+    assert final_failure.metadata["maxAttempts"] == 2
+    assert final_failure.metadata["errorType"] == "RuntimeError"
+    assert "willRetry" not in final_failure.metadata
+    events_text = json.dumps([event.metadata for event in final_snapshot.events], ensure_ascii=False)
+    assert "callback.example" not in events_text
+    assert "retry-secret" not in events_text
+    assert "测试样本" not in events_text
+    assert "北京" not in events_text
+
+
+def test_report_job_webhook_default_policy_attempts_once_without_retry():
+    attempts: list[int] = []
+
+    def failing_dispatch(_snapshot, _config):
+        attempts.append(len(attempts) + 1)
+        raise RuntimeError("first attempt only")
+
+    manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        webhook_dispatcher=failing_dispatch,
+    )
+    created = manager.submit(
+        kind="markdown",
+        report_system="bazi",
+        webhook_config=WebhookConfig(url="https://callback.example/webhook"),
+        task=lambda: {"reportSystem": "bazi", "markdown": "done"},
+    )
+
+    final_snapshot = _wait_for_manager_event(manager, created.job_id, "webhook.delivery_failed")
+
+    assert attempts == [1]
+    event_types = [event.event_type for event in final_snapshot.events]
+    assert "webhook.delivery_retry_scheduled" not in event_types
+    assert final_snapshot.events[-1].metadata["attempt"] == 1
+    assert final_snapshot.events[-1].metadata["maxAttempts"] == 1
 
 
 def test_markdown_report_job_idempotency_key_returns_existing_job():

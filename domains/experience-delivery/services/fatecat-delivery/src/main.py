@@ -56,6 +56,8 @@ REPORT_JOB_DB_PATH = os.getenv(
 ).strip()
 REPORT_JOB_WEBHOOKS_ENABLED = env_flag("FATE_REPORT_JOB_WEBHOOKS_ENABLED")
 WEBHOOK_TIMEOUT_SECONDS = env_int("FATE_WEBHOOK_TIMEOUT_SECONDS", 5, minimum=1)
+WEBHOOK_MAX_ATTEMPTS = env_int("FATE_WEBHOOK_MAX_ATTEMPTS", 1, minimum=1)
+WEBHOOK_RETRY_BACKOFF_SECONDS = env_int("FATE_WEBHOOK_RETRY_BACKOFF_SECONDS", 0, minimum=0)
 WEBHOOK_ALLOWED_HOSTS = os.getenv("FATE_WEBHOOK_ALLOWED_HOSTS", "").strip()
 WEBHOOK_ALLOW_HTTP = env_flag("FATE_WEBHOOK_ALLOW_HTTP")
 AUDIT_LOG_ENABLED = os.getenv("FATE_AUDIT_LOG_ENABLED", "1").strip().lower() not in {"0", "false", "no", "off"}
@@ -113,6 +115,7 @@ from report_jobs import (  # noqa: E402
     ReportJobNotFound,
     ReportJobQueueFull,
     ReportJobSnapshot,
+    ReportJobWebhookPolicy,
     SQLiteReportJobStore,
 )
 from web_forms import WebReportForm, WebReportJobView, WebReportResult  # noqa: E402
@@ -157,6 +160,10 @@ def _build_report_job_manager() -> ReportJobManager:
             max_attempts=REPORT_JOB_MAX_ATTEMPTS,
             attempt_timeout_seconds=REPORT_JOB_ATTEMPT_TIMEOUT_SECONDS or None,
             retry_backoff_seconds=REPORT_JOB_RETRY_BACKOFF_SECONDS,
+        ),
+        callback_policy=ReportJobWebhookPolicy(
+            max_attempts=WEBHOOK_MAX_ATTEMPTS,
+            retry_backoff_seconds=WEBHOOK_RETRY_BACKOFF_SECONDS,
         ),
     )
 

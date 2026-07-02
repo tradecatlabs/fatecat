@@ -208,6 +208,8 @@ assert_int_setting("FATE_REPORT_JOB_MAX_ATTEMPTS", 1, 1, 10)
 assert_int_setting("FATE_REPORT_JOB_ATTEMPT_TIMEOUT_SECONDS", 0, 0, 3_600)
 assert_int_setting("FATE_REPORT_JOB_RETRY_BACKOFF_SECONDS", 0, 0, 300)
 assert_int_setting("FATE_WEBHOOK_TIMEOUT_SECONDS", 5, 1, 30)
+assert_int_setting("FATE_WEBHOOK_MAX_ATTEMPTS", 1, 1, 10)
+assert_int_setting("FATE_WEBHOOK_RETRY_BACKOFF_SECONDS", 0, 0, 300)
 rate_limit = assert_int_setting("FATE_RATE_LIMIT_PER_MINUTE", 120, 0, 10_000)
 if rate_limit == 0:
     fail("FATE_RATE_LIMIT_PER_MINUTE=0 会关闭公网限流")

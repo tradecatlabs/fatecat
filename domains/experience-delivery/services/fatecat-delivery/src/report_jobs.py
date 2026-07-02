@@ -61,6 +61,18 @@ class ReportJobExecutionPolicy:
 
 
 @dataclass(frozen=True)
+class ReportJobWebhookPolicy:
+    max_attempts: int = 1
+    retry_backoff_seconds: float = 0.0
+
+    def normalized(self) -> ReportJobWebhookPolicy:
+        return ReportJobWebhookPolicy(
+            max_attempts=max(1, int(self.max_attempts)),
+            retry_backoff_seconds=max(0.0, float(self.retry_backoff_seconds)),
+        )
+
+
+@dataclass(frozen=True)
 class ReportJobEvent:
     event_id: str
     job_id: str
@@ -374,8 +386,8 @@ class ReportJobManager:
     """有界报告任务队列。
 
     ponytail: 默认内存实现适合单进程免费公开入口；SQLite backend 只提升本地状态
-    可查询性。本地 retry/timeout 已由 execution policy 管理；多副本生产、跨进程继续执行、
-    callback retry/outbox、生产硬 timeout 和 webhook 仍应升级到专用任务系统。
+    可查询性。本地 retry/timeout 与 webhook retry/outbox trail 已由 policy 管理；多副本生产、
+    跨进程继续执行、持久 callback outbox、生产硬 timeout 和 webhook 仍应升级到专用任务系统。
     """
 
     def __init__(
@@ -387,6 +399,7 @@ class ReportJobManager:
         store: ReportJobStore | None = None,
         webhook_dispatcher: ReportJobWebhookDispatcher | None = None,
         execution_policy: ReportJobExecutionPolicy | None = None,
+        callback_policy: ReportJobWebhookPolicy | None = None,
     ) -> None:
         self.max_workers = max(1, max_workers)
         self.queue_size = max(1, queue_size)
@@ -394,6 +407,7 @@ class ReportJobManager:
         self.store = store or InMemoryReportJobStore()
         self.webhook_dispatcher = webhook_dispatcher
         self.execution_policy = (execution_policy or ReportJobExecutionPolicy()).normalized()
+        self.callback_policy = (callback_policy or ReportJobWebhookPolicy()).normalized()
         self._queue: Queue[str] = Queue(maxsize=self.queue_size)
         self._jobs: dict[str, _ReportJob] = {}
         self._idempotency_index: dict[str, str] = {}
@@ -801,33 +815,82 @@ class ReportJobManager:
             return
         if snapshot.status not in {"succeeded", "failed", "cancelled"}:
             return
-        try:
-            result = self.webhook_dispatcher(snapshot, webhook_config)
-        except Exception:  # noqa: BLE001 - webhook 是附属出口，失败不能反向破坏任务终态。
-            logger.exception("报告任务 webhook 投递失败 job_id=%s status=%s", snapshot.job_id, snapshot.status)
+        max_attempts = self.callback_policy.max_attempts
+        retry_backoff_seconds = self.callback_policy.retry_backoff_seconds
+        for attempt in range(1, max_attempts + 1):
+            try:
+                result = self.webhook_dispatcher(snapshot, webhook_config)
+            except Exception as exc:  # noqa: BLE001 - webhook 是附属出口，失败不能反向破坏任务终态。
+                error_type = type(exc).__name__
+                will_retry = attempt < max_attempts
+                logger.warning(
+                    "报告任务 webhook 投递失败 job_id=%s status=%s attempt=%s error_type=%s will_retry=%s",
+                    snapshot.job_id,
+                    snapshot.status,
+                    attempt,
+                    error_type,
+                    will_retry,
+                )
+                with self._lock:
+                    job = self._jobs.get(snapshot.job_id)
+                    if job:
+                        self._append_event_locked(
+                            job,
+                            "webhook.delivery_attempt_failed",
+                            "报告任务 webhook 投递 attempt 失败",
+                            {
+                                "status": snapshot.status,
+                                "attempt": attempt,
+                                "maxAttempts": max_attempts,
+                                "errorType": error_type,
+                                "willRetry": will_retry,
+                            },
+                        )
+                        if will_retry:
+                            self._append_event_locked(
+                                job,
+                                "webhook.delivery_retry_scheduled",
+                                "报告任务 webhook 将按 retry policy 重试",
+                                {
+                                    "status": snapshot.status,
+                                    "attempt": attempt,
+                                    "nextAttempt": attempt + 1,
+                                    "maxAttempts": max_attempts,
+                                    "retryBackoffSeconds": retry_backoff_seconds,
+                                },
+                            )
+                        else:
+                            self._append_event_locked(
+                                job,
+                                "webhook.delivery_failed",
+                                "报告任务 webhook 投递失败",
+                                {
+                                    "status": snapshot.status,
+                                    "attempt": attempt,
+                                    "maxAttempts": max_attempts,
+                                    "errorType": error_type,
+                                },
+                            )
+                if will_retry:
+                    self._sleep_before_retry(retry_backoff_seconds)
+                    continue
+                return
             with self._lock:
                 job = self._jobs.get(snapshot.job_id)
                 if job:
                     self._append_event_locked(
                         job,
-                        "webhook.delivery_failed",
-                        "报告任务 webhook 投递失败",
-                        {"status": snapshot.status},
+                        "webhook.delivery_succeeded",
+                        "报告任务 webhook 投递成功",
+                        {
+                            "status": snapshot.status,
+                            "attempt": attempt,
+                            "maxAttempts": max_attempts,
+                            "statusCode": getattr(result, "status_code", None),
+                            "eventType": getattr(result, "event_type", None),
+                        },
                     )
             return
-        with self._lock:
-            job = self._jobs.get(snapshot.job_id)
-            if job:
-                self._append_event_locked(
-                    job,
-                    "webhook.delivery_succeeded",
-                    "报告任务 webhook 投递成功",
-                    {
-                        "status": snapshot.status,
-                        "statusCode": getattr(result, "status_code", None),
-                        "eventType": getattr(result, "event_type", None),
-                    },
-                )
 
     def _queue_position_locked(self, job_id: str) -> int | None:
         with self._queue.mutex:

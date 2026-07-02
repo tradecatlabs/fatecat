@@ -1,7 +1,7 @@
 """报告任务 webhook 回调。
 
 该模块只负责把已完成的 CalculationJob 终态事件投递给调用方配置的回调 URL。
-它不保存 webhook secret，不发送报告正文，也不实现持久重试队列。
+它不保存 webhook secret，不发送报告正文，也不实现持久重试队列；本地 retry 编排由 report job manager 管理。
 """
 
 from __future__ import annotations

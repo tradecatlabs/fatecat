@@ -129,6 +129,8 @@ FATE_REPORT_JOB_TTL_SECONDS=1800
 FATE_REPORT_JOB_MAX_ATTEMPTS=1
 FATE_REPORT_JOB_ATTEMPT_TIMEOUT_SECONDS=0
 FATE_REPORT_JOB_RETRY_BACKOFF_SECONDS=0
+FATE_WEBHOOK_MAX_ATTEMPTS=1
+FATE_WEBHOOK_RETRY_BACKOFF_SECONDS=0
 ```
 
 含义：
@@ -136,7 +138,7 @@ FATE_REPORT_JOB_RETRY_BACKOFF_SECONDS=0
 - 不保存用户报告记录到数据库。
 - Web 提交会进入进程内有界队列。
 - 默认 1 个 worker 生成报告。
-- 默认不重试、不启用 attempt timeout；免费 Space 上不要把 timeout 当成可强杀底层计算的生产隔离能力。
+- 默认 report job 不重试、不启用 attempt timeout；默认 webhook callback 不重试。免费 Space 上不要把 timeout 当成可强杀底层计算的生产隔离能力，也不要把本地 callback retry 当成持久 outbox。
 - 最多 20 个等待任务。
 - 结果默认 30 分钟后过期。
 - Space 重启后队列和结果都会消失。
