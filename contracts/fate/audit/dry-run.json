@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.audit_dry_run_contract",
+  "resourceType": "AuditDryRun",
+  "id": "audit.handoff.dry_run",
+  "status": "baseline",
+  "description": "Machine-readable contract for pre-auditing FateCat audit handoff bundles before real third-party review.",
+  "verifier": {
+    "command": "bash scripts/audit-handoff-dry-run.sh --bundle-json <json> --bundle-markdown <md> --output-dir <dir>",
+    "pythonEntrypoint": "scripts/audit-handoff-dry-run.py",
+    "defaultOutputDir": "infra/runtime/local-state/exports/audit-dry-run"
+  },
+  "requiredInputs": [
+    "audit-handoff.json",
+    "AUDIT_HANDOFF.md"
+  ],
+  "requiredOutputs": [
+    "audit-dry-run.json",
+    "AUDIT_DRY_RUN.md"
+  ],
+  "requiredBundleJsonFields": [
+    "schemaVersion",
+    "kind",
+    "generatedAt",
+    "status",
+    "repository",
+    "taskIndex",
+    "evidence",
+    "pendingExternalValidationCount",
+    "pendingExternalValidations",
+    "riskRegister",
+    "verification"
+  ],
+  "requiredBundleMarkdownSections": [
+    "Latest Status",
+    "Delivery Evidence",
+    "Code And Asset Index",
+    "Pending External Validations",
+    "Risk Register",
+    "Verification",
+    "Final Conclusion"
+  ],
+  "requiredDryRunChecks": [
+    "bundle_kind",
+    "json_required_fields",
+    "markdown_required_sections",
+    "pending_count_consistency",
+    "pending_risk_registered",
+    "final_conclusion_blocks_live_claim",
+    "sensitive_assignment_absent",
+    "false_live_claim_absent"
+  ],
+  "shipGatePolicy": {
+    "blockedWhenPendingExternalValidationsExist": true,
+    "blockedWhenBundleWorktreeDirty": true,
+    "blockedWhenRemoteAcceptanceMissing": false,
+    "blockedStatus": "blocked",
+    "passedStatus": "passed"
+  },
+  "forbiddenSensitiveAssignmentPatterns": [
+    "token=",
+    "secret=",
+    "password=",
+    "passwd=",
+    "private_key="
+  ],
+  "forbiddenFalseClaimPhrases": [
+    "third-party audit passed",
+    "third-party audit complete",
+    "production live complete",
+    "100% infrastructure passed",
+    "100% infrastructure complete",
+    "第三方审计已完成",
+    "生产 live 已完成",
+    "生产已完成"
+  ],
+  "privacyBoundary": "Audit dry-run output must not embed real tokens, secrets, DSNs, private keys, production credentials, user report bodies or non-redacted production payloads.",
+  "nonClaims": [
+    "Dry-run passed does not mean third-party audit passed.",
+    "Dry-run passed does not prove production API, Bot, OIDC, SIEM, monitoring, developer portal or sandbox live status.",
+    "Ship gate remains blocked while external validations are pending."
+  ]
+}

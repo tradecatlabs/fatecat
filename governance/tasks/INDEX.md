@@ -133,3 +133,5 @@
 | 0067 | measurement-infrastructure-developer-platform-baseline | Done | P0 | 执行 0061 后续任务树的 developer platform 切片：新增 SDK/package baseline、sandbox token contract、API changelog 与开发者平台 gate，并接入 docs smoke/local-ci；不把本地 docs smoke 伪装成已发布 SDK，不声明公网 sandbox token 服务已上线。 | 0067-measurement-infrastructure-developer-platform-baseline/ |
 
 | 0068 | measurement-infrastructure-audit-handoff-generator | Done | P0 | 执行 0061 后续任务树的 audit handoff generator 切片：新增可一键生成第三方审计交接包的 Markdown/JSON generator、审计包 gate、任务与证据索引、pending external validations 扫描和 local-ci 接入；不能遗漏外部连通验证待执行项，不能把本地或 contract baseline 伪造成生产 live 证据。 | 0068-measurement-infrastructure-audit-handoff-generator/ |
+
+| 0069 | measurement-infrastructure-audit-dry-run-verifier | Done | P0 | 执行 0061/0068 后续任务树的 third-party audit dry-run 切片：新增 audit handoff dry-run verifier，消费 0068 生成的 Markdown/JSON 审计交接包，验证必备字段、Markdown 区块、pending external validations、risk register、敏感赋值防护和禁止 100% live 伪声明，并接入 local-ci artifact；不替代真实第三方审计，不声明外部 live evidence 已完成。 | 0069-measurement-infrastructure-audit-dry-run-verifier/ |

@@ -9,11 +9,14 @@
 ```text
 audit/
 ├── AGENTS.md
+├── dry-run.json
 └── handoff.json
 ```
 
 ## 职责边界
 
 - `handoff.json`：定义 audit handoff generator 的必备输出、Markdown 区块、JSON 字段和 pending external validation 策略。
+- `dry-run.json`：定义 audit handoff dry-run verifier 的输入、输出、检查项、ship gate 与 non-claim 策略。
 - 审计包生成器位于 `scripts/audit-handoff.py`，只聚合仓库内证据、Git 状态、任务索引和明确标记的外部待验证项。
+- dry-run verifier 位于 `scripts/audit-handoff-dry-run.py`，只做本地审计前置检查，不替代真实第三方审计。
 - 这里不声明真实生产 API、Bot、OIDC、SIEM、监控平台、developer portal 或 sandbox token 已完成 live 验证。
