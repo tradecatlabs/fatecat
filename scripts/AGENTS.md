@@ -58,6 +58,8 @@ scripts/
 ├── webhook-outbox-smoke.py
 ├── webhook-outbox-redelivery-smoke.sh
 ├── webhook-outbox-redelivery-smoke.py
+├── webhook-config-vault-smoke.sh
+├── webhook-config-vault-smoke.py
 ├── webhook-smoke.sh
 ├── webhook-smoke.py
 ├── export-runtime.sh
@@ -99,6 +101,7 @@ scripts/
 - `webhook-smoke.sh` / `webhook-smoke.py` 是 report job webhook 本地模拟器；使用可注入 transport 验证终态事件、HMAC 签名和正文/secret 不外发，不访问公网。
 - `webhook-outbox-smoke.sh` / `webhook-outbox-smoke.py` 是 report job webhook SQLite outbox 本地 smoke；验证 success/failure outbox record、attempts、manager 重建可读和 summary 脱敏边界，不证明公网 live callback、跨进程自动重投或 external backend。
 - `webhook-outbox-redelivery-smoke.sh` / `webhook-outbox-redelivery-smoke.py` 是 report job webhook SQLite outbox 自动重投本地 smoke；验证 failed outbox record 可在 manager 重建后通过运行时 resolver 自动重投成功，resolver 缺失时跳过且 summary 脱敏，不证明公网 live callback、external backend、分布式 worker lease、多副本锁、持久明文 secret 或 exactly-once。
+- `webhook-config-vault-smoke.sh` / `webhook-config-vault-smoke.py` 是 report job webhook encrypted config vault 本地 smoke；验证 failed outbox 的 callback URL/secret 只以 Fernet ciphertext 落库、manager 重建可在无运行时 resolver 时重投、成功后删除 encrypted config，并覆盖 key rotation 与 summary 脱敏；不证明外部 Vault/KMS、external backend、分布式 worker lease、多副本锁、真实公网 live callback 或 exactly-once。
 - `report-job-replayable-recovery-smoke.sh` / `report-job-replayable-recovery-smoke.py` 是 report job SQLite 可重建执行本地 smoke；验证带 `task_payload` 和 factory 的 active 任务重建后重新入队成功，无 payload 任务仍安全失败；不证明 external backend、分布式 worker lease、多副本锁或 exactly-once。
 - `report-job-restart-recovery-smoke.sh` / `report-job-restart-recovery-smoke.py` 是 report job SQLite 重建恢复本地 smoke；验证旧 `queued` / `running` 任务被安全标记为 failed、写入 `job.recovered_failed`、保留幂等键且 summary 不泄露报告正文、姓名、出生地区或 secret；不证明跨进程继续执行、external backend 或多副本 worker。
 - `common.sh` 负责解析 runtime root；只允许已就绪的企业根作为运行根。

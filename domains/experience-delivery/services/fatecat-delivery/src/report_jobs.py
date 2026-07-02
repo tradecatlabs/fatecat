@@ -23,6 +23,7 @@ from typing import Any, Literal
 from urllib.parse import urlparse
 
 from utils.timezone import now_cn
+from webhook_config_store import EncryptedWebhookDeliveryConfig
 
 logger = logging.getLogger(__name__)
 
@@ -186,6 +187,28 @@ class ReportJobStore:
     def save_webhook_outbox_record(self, _record: ReportJobWebhookOutboxRecord) -> None:
         return
 
+    def has_webhook_delivery_config_store(self) -> bool:
+        return False
+
+    def save_webhook_delivery_config(
+        self,
+        _record: ReportJobWebhookOutboxRecord,
+        _webhook_config: Any,
+    ) -> None:
+        return
+
+    def load_webhook_delivery_config(self, _record: ReportJobWebhookOutboxRecord) -> Any | None:
+        return None
+
+    def delete_webhook_delivery_config(self, _outbox_id: str) -> None:
+        return
+
+    def rotate_webhook_delivery_configs(self) -> int:
+        return 0
+
+    def count_webhook_delivery_configs(self) -> int:
+        return 0
+
 
 class InMemoryReportJobStore(ReportJobStore):
     """默认单进程事件存储；任务主体状态仍由 manager 内存字典持有。"""
@@ -214,9 +237,10 @@ class SQLiteReportJobStore(ReportJobStore):
 
     backend_name = "sqlite"
 
-    def __init__(self, db_path: str | Path) -> None:
+    def __init__(self, db_path: str | Path, *, webhook_config_codec: Any | None = None) -> None:
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self.webhook_config_codec = webhook_config_codec
         self._lock = Lock()
         self._init_schema()
 
@@ -393,6 +417,112 @@ class SQLiteReportJobStore(ReportJobStore):
                 ),
             )
 
+    def has_webhook_delivery_config_store(self) -> bool:
+        return self.webhook_config_codec is not None
+
+    def save_webhook_delivery_config(self, record: ReportJobWebhookOutboxRecord, webhook_config: Any) -> None:
+        if not self.webhook_config_codec:
+            return
+        encrypted = self.webhook_config_codec.encrypt_config(webhook_config)
+        now = now_cn().isoformat()
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO report_job_webhook_delivery_config (
+                    outbox_id, job_id, cipher_suite, key_id, ciphertext,
+                    target_host_hash, signature_mode, created_at, updated_at, rotated_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(outbox_id) DO UPDATE SET
+                    job_id=excluded.job_id,
+                    cipher_suite=excluded.cipher_suite,
+                    key_id=excluded.key_id,
+                    ciphertext=excluded.ciphertext,
+                    target_host_hash=excluded.target_host_hash,
+                    signature_mode=excluded.signature_mode,
+                    updated_at=excluded.updated_at,
+                    rotated_at=excluded.rotated_at
+                """,
+                (
+                    record.outbox_id,
+                    record.job_id,
+                    encrypted.cipher_suite,
+                    encrypted.key_id,
+                    encrypted.ciphertext,
+                    record.target_host_hash,
+                    record.signature_mode,
+                    now,
+                    now,
+                    None,
+                ),
+            )
+
+    def load_webhook_delivery_config(self, record: ReportJobWebhookOutboxRecord) -> Any | None:
+        if not self.webhook_config_codec:
+            return None
+        with self._lock, self._connect() as conn:
+            row = conn.execute(
+                """
+                SELECT cipher_suite, key_id, ciphertext
+                FROM report_job_webhook_delivery_config
+                WHERE outbox_id = ?
+                """,
+                (record.outbox_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        encrypted = EncryptedWebhookDeliveryConfig(
+            cipher_suite=str(row["cipher_suite"]),
+            key_id=str(row["key_id"]),
+            ciphertext=str(row["ciphertext"]),
+        )
+        return self.webhook_config_codec.decrypt_config(encrypted)
+
+    def delete_webhook_delivery_config(self, outbox_id: str) -> None:
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                "DELETE FROM report_job_webhook_delivery_config WHERE outbox_id = ?",
+                (outbox_id,),
+            )
+
+    def rotate_webhook_delivery_configs(self) -> int:
+        if not self.webhook_config_codec:
+            return 0
+        with self._lock, self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT outbox_id, cipher_suite, key_id, ciphertext
+                FROM report_job_webhook_delivery_config
+                ORDER BY updated_at ASC, outbox_id ASC
+                """
+            ).fetchall()
+            rotated = 0
+            now = now_cn().isoformat()
+            for row in rows:
+                old = EncryptedWebhookDeliveryConfig(
+                    cipher_suite=str(row["cipher_suite"]),
+                    key_id=str(row["key_id"]),
+                    ciphertext=str(row["ciphertext"]),
+                )
+                if old.key_id == self.webhook_config_codec.active_key_id:
+                    continue
+                new = self.webhook_config_codec.rotate(old)
+                conn.execute(
+                    """
+                    UPDATE report_job_webhook_delivery_config
+                    SET cipher_suite = ?, key_id = ?, ciphertext = ?, updated_at = ?, rotated_at = ?
+                    WHERE outbox_id = ?
+                    """,
+                    (new.cipher_suite, new.key_id, new.ciphertext, now, now, str(row["outbox_id"])),
+                )
+                rotated += 1
+        return rotated
+
+    def count_webhook_delivery_configs(self) -> int:
+        with self._lock, self._connect() as conn:
+            row = conn.execute("SELECT COUNT(*) AS count FROM report_job_webhook_delivery_config").fetchone()
+        return int(row["count"] or 0)
+
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
@@ -472,6 +602,26 @@ class SQLiteReportJobStore(ReportJobStore):
             )
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_report_job_webhook_outbox_status ON report_job_webhook_outbox(status)"
+            )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS report_job_webhook_delivery_config (
+                    outbox_id TEXT PRIMARY KEY,
+                    job_id TEXT NOT NULL,
+                    cipher_suite TEXT NOT NULL,
+                    key_id TEXT NOT NULL,
+                    ciphertext TEXT NOT NULL,
+                    target_host_hash TEXT,
+                    signature_mode TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    rotated_at TEXT
+                )
+                """
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_report_job_webhook_delivery_config_job "
+                "ON report_job_webhook_delivery_config(job_id)"
             )
 
     @staticmethod
@@ -789,7 +939,9 @@ class ReportJobManager:
         )
 
     def _schedule_webhook_outbox_redelivery(self) -> None:
-        if not self.webhook_dispatcher or not self.delivery_resolver:
+        if not self.webhook_dispatcher:
+            return
+        if not self.delivery_resolver and not self.store.has_webhook_delivery_config_store():
             return
         records = tuple(self.store.load_redeliverable_webhook_outbox_records())
         if not records:
@@ -814,6 +966,8 @@ class ReportJobManager:
             snapshot = self._snapshot_locked(job)
         try:
             webhook_config = self.delivery_resolver(record, snapshot) if self.delivery_resolver else None
+            if webhook_config is None:
+                webhook_config = self.store.load_webhook_delivery_config(record)
         except Exception as exc:  # noqa: BLE001 - resolver 是运行时外部边界，失败必须转成可审计事件。
             with self._lock:
                 job = self._jobs.get(record.job_id)
@@ -1183,6 +1337,7 @@ class ReportJobManager:
             )
         with self._lock:
             self._persist_webhook_outbox_locked(outbox_record)
+        self._save_webhook_delivery_config(outbox_record, webhook_config)
         for attempt in range(1, max_attempts + 1):
             try:
                 result = self.webhook_dispatcher(snapshot, webhook_config)
@@ -1282,8 +1437,30 @@ class ReportJobManager:
                             "eventType": getattr(result, "event_type", None),
                         },
                     )
+            self._delete_webhook_delivery_config(outbox_record.outbox_id)
             return outbox_record
         return outbox_record
+
+    def _save_webhook_delivery_config(self, record: ReportJobWebhookOutboxRecord, webhook_config: Any) -> None:
+        try:
+            self.store.save_webhook_delivery_config(record, webhook_config)
+        except Exception as exc:  # noqa: BLE001 - encrypted config 是附属持久化，失败不能破坏任务终态。
+            logger.warning(
+                "报告任务 webhook 配置加密持久化失败 job_id=%s outbox_id=%s error_type=%s",
+                record.job_id,
+                record.outbox_id,
+                type(exc).__name__,
+            )
+
+    def _delete_webhook_delivery_config(self, outbox_id: str) -> None:
+        try:
+            self.store.delete_webhook_delivery_config(outbox_id)
+        except Exception as exc:  # noqa: BLE001 - 清理失败不能反向破坏已完成投递。
+            logger.warning(
+                "报告任务 webhook 配置密文清理失败 outbox_id=%s error_type=%s",
+                outbox_id,
+                type(exc).__name__,
+            )
 
     def _queue_position_locked(self, job_id: str) -> int | None:
         with self._queue.mutex:

@@ -400,7 +400,7 @@ bash scripts/webhook-smoke.sh \
 
 - 记录创建、读取、列表、删除，以及报告 job 提交、取消，会输出结构化 `audit_event` 日志。
 - `audit_event` 只记录 action、actor role、短哈希 target、outcome、requestId 和安全 metadata；不得记录真实 token、请求体、报告正文、姓名、出生地区、recordId、jobId 或 userId 原文。
-- `FATE_REPORT_JOB_TTL_SECONDS` 控制报告 job TTL；`FATE_REPORT_JOB_STORE=memory|sqlite` 控制 report job store backend；`FATE_REPORT_JOB_DB_PATH` 仅在 `sqlite` backend 下生效；`FATE_REPORT_JOB_MAX_ATTEMPTS`、`FATE_REPORT_JOB_ATTEMPT_TIMEOUT_SECONDS`、`FATE_REPORT_JOB_RETRY_BACKOFF_SECONDS` 控制本地 report job retry/timeout policy；`FATE_WEBHOOK_MAX_ATTEMPTS`、`FATE_WEBHOOK_RETRY_BACKOFF_SECONDS` 控制本地 webhook callback retry policy。
+- `FATE_REPORT_JOB_TTL_SECONDS` 控制报告 job TTL；`FATE_REPORT_JOB_STORE=memory|sqlite` 控制 report job store backend；`FATE_REPORT_JOB_DB_PATH` 仅在 `sqlite` backend 下生效；`FATE_REPORT_JOB_MAX_ATTEMPTS`、`FATE_REPORT_JOB_ATTEMPT_TIMEOUT_SECONDS`、`FATE_REPORT_JOB_RETRY_BACKOFF_SECONDS` 控制本地 report job retry/timeout policy；`FATE_WEBHOOK_MAX_ATTEMPTS`、`FATE_WEBHOOK_RETRY_BACKOFF_SECONDS` 控制本地 webhook callback retry policy；`FATE_WEBHOOK_CONFIG_FERNET_KEYS` 使用 `key-id:<fernet-key>[,next-id:<fernet-key>]` 格式，`FATE_WEBHOOK_CONFIG_ACTIVE_KEY_ID` 使用 `<key-id>`，只在 SQLite backend 下启用本地 encrypted webhook delivery config vault，用于 failed/pending callback 的 URL/secret 加密恢复和 key rotation。
 - `FATE_AUDIT_EVENT_RETENTION_DAYS` 只登记审计事件留存口径；`FATE_RECORD_RETENTION_DAYS=0` 表示记录当前默认显式删除模式。
 - 外部 SIEM、不可变审计存储、生产日志留存平台和记录按年龄自动清理已有本地准入 contract 和 gate；真实平台连通、清理器实现和生产 live evidence 仍属于外部连通验证待执行。
 
@@ -583,7 +583,7 @@ Report job store：
 | 后端 | 配置 | 能力边界 |
 | --- | --- | --- |
 | `memory` | `FATE_REPORT_JOB_STORE=memory` | 默认后端；只在当前进程 TTL 生命周期内保留任务状态和幂等键。 |
-| `sqlite` | `FATE_REPORT_JOB_STORE=sqlite`，`FATE_REPORT_JOB_DB_PATH=infra/runtime/local-state/database/report_jobs.sqlite` | 单副本本地持久化；可在 manager 重建后查询已完成、失败、取消和过期任务，并保留幂等键。带 `task_payload` 且存在注册 factory 的 Web/Markdown 报告任务可在本地重新入队执行。 |
+| `sqlite` | `FATE_REPORT_JOB_STORE=sqlite`，`FATE_REPORT_JOB_DB_PATH=infra/runtime/local-state/database/report_jobs.sqlite` | 单副本本地持久化；可在 manager 重建后查询已完成、失败、取消和过期任务，并保留幂等键。带 `task_payload` 且存在注册 factory 的 Web/Markdown 报告任务可在本地重新入队执行。配置 `FATE_WEBHOOK_CONFIG_FERNET_KEYS` 后，failed/pending webhook outbox 的 callback URL/secret 会以 Fernet ciphertext 写入本地 encrypted config vault，manager 重建后可在无运行时 resolver 时重投，并在成功后删除。 |
 
 `running` 任务取消后不能强杀线程，但完成后会丢弃结果并保持 `cancelled`。如果 SQLite backend 在 manager 重建时发现旧 `queued` / `running` 任务：带 `task_payload` 且存在注册 factory 的任务会标记为 `queued`、写入 `job.recovered_requeued` 并重新入队；无 payload 或无 factory 的任务会标记为 `failed`、写入 `job.recovered_failed` 并保留错误原因。该能力只是本地可重建执行 baseline，不是 external backend、分布式 worker、生产多副本锁或 exactly-once。多副本生产不能使用本地 `memory` / `sqlite` job store 假装分布式任务系统，后续需要外部队列或数据库任务系统。
 
@@ -614,7 +614,7 @@ Report job event history：
 | 本地持久化 | `memory` 后端保留当前进程内事件；`sqlite` 后端写入 `report_job_events` 并按写入顺序返回。 |
 | 当前事件 | `job.queued`、`job.running`、`job.succeeded`、`job.failed`、`job.cancelled`、`job.expired`、`job.recovered_failed`、`job.recovered_requeued`、`job.attempt_failed`、`job.attempt_timed_out`、`job.retry_scheduled`、`webhook.delivery_attempt_failed`、`webhook.delivery_retry_scheduled`、`webhook.delivery_succeeded`、`webhook.delivery_failed`、`webhook.redelivery_scheduled`、`webhook.redelivery_skipped`、`webhook.redelivery_succeeded`、`webhook.redelivery_failed`。 |
 | 隐私 | event metadata 不包含 Markdown 正文、姓名、出生地区、请求体、webhook URL、webhook secret 或原始异常文本。 |
-| 边界 | 事件历史只证明任务生命周期可审计；本地 webhook retry/outbox trail、SQLite persistent outbox record baseline、restart-safe failure smoke、replayable recovery smoke 与 SQLite outbox redelivery baseline 已有，external backend、生产级分布式 worker lease、真实公网 webhook live smoke、持久 callback secret 加密/轮换仍未完成。 |
+| 边界 | 事件历史只证明任务生命周期可审计；本地 webhook retry/outbox trail、SQLite persistent outbox record baseline、restart-safe failure smoke、replayable recovery smoke、SQLite outbox redelivery baseline 与 SQLite encrypted webhook delivery config vault baseline 已有，external backend、生产级分布式 worker lease、真实公网 webhook live smoke、外部 Vault/KMS 和生产密钥生命周期仍未完成。 |
 
 Report job retry / timeout policy：
 
@@ -639,6 +639,7 @@ Report job webhook callback：
 | 事件 | 只在 `succeeded` / `failed` / `cancelled` 终态发送 `report_job.terminal`。 |
 | retry | 默认 `FATE_WEBHOOK_MAX_ATTEMPTS=1` 不重试；显式配置 `>1` 时，本地 manager 会记录 `webhook.delivery_attempt_failed`、`webhook.delivery_retry_scheduled`，最终写入 `webhook.delivery_succeeded` 或 `webhook.delivery_failed`；接收方必须按 `eventId` 做幂等处理。 |
 | outbox | SQLite backend 会写入 `CalculationJob.data.webhookOutbox[]` 脱敏摘要，包含 outboxId、eventType、jobStatus、status、attempts、maxAttempts、signature、targetHostHash、时间字段、lastErrorType 和 resultStatusCode。 |
+| encrypted config vault | SQLite backend 配置 `FATE_WEBHOOK_CONFIG_FERNET_KEYS` 后，会把 failed/pending webhook 的 callback URL/secret 加密写入 `report_job_webhook_delivery_config`；manager 重建后可用该 encrypted config 重投，成功后删除，`FATE_WEBHOOK_CONFIG_ACTIVE_KEY_ID` 用于新写入和本地 rotation。 |
 | 隐私 | webhook payload 不包含 Markdown 正文、姓名、出生地区、请求体或 secret；只包含 jobId、状态、时间戳、statusUrl/cancelUrl 和 `resultAvailable`。 |
 
 示例：
@@ -674,7 +675,16 @@ bash scripts/webhook-outbox-redelivery-smoke.sh \
   --output-json infra/runtime/local-state/exports/webhook/redelivery-smoke.json
 ```
 
-当前 webhook 是本地可验证 callback baseline，已包含有限 retry、事件轨迹、SQLite persistent outbox record baseline 和 SQLite manager 重建后的 resolver redelivery baseline；outbox 摘要不包含完整 webhook URL、webhook secret、报告正文、姓名、出生地区或请求体。它仍不包含公网 live callback、secret 加密/轮换、接收端 SLA、external backend、外部任务系统、生产级分布式 worker lease 或 exactly-once，这些仍是外部连通验证待执行。
+本地 webhook encrypted config vault smoke：
+
+```bash
+bash scripts/webhook-config-vault-smoke.sh \
+  --output-json infra/runtime/local-state/exports/webhook/config-vault-smoke.json
+```
+
+该 smoke 使用临时 SQLite 和运行时生成的 Fernet key，证明 failed outbox 的 callback URL/secret 只以 ciphertext 落库、raw SQLite 和 summary 不包含 URL/secret/报告正文/姓名/地区、key rotation 会把旧 key id 切到 active key，manager 重建后不依赖外部 `delivery_resolver` 也能重投，成功后 encrypted config 被删除。
+
+当前 webhook 是本地可验证 callback baseline，已包含有限 retry、事件轨迹、SQLite persistent outbox record baseline、SQLite manager 重建后的 resolver redelivery baseline 和本地 encrypted config vault baseline；outbox 摘要不包含完整 webhook URL、webhook secret、报告正文、姓名、出生地区或请求体。它仍不包含公网 live callback、接收端 SLA、external backend、外部任务系统、外部 Vault/KMS、生产密钥生命周期、生产级分布式 worker lease 或 exactly-once，这些仍是外部连通验证待执行。
 
 ## 准入规则
 

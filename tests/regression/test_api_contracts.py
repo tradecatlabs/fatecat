@@ -31,6 +31,13 @@ from report_jobs import (  # noqa: E402
     SQLiteReportJobStore,
 )
 from webhook_callbacks import HttpWebhookDispatcher, WebhookConfig  # noqa: E402
+from webhook_config_store import FernetWebhookConfigCodec  # noqa: E402
+
+
+def _fernet_key():
+    from cryptography.fernet import Fernet
+
+    return Fernet.generate_key().decode("ascii")
 
 
 def _payload() -> dict:
@@ -1315,6 +1322,135 @@ def test_sqlite_webhook_outbox_redelivery_records_resolver_error(tmp_path):
     assert "resolver-secret" not in serialized
     assert "测试样本" not in serialized
     assert "北京" not in serialized
+
+
+def test_sqlite_webhook_config_vault_redelivers_without_external_resolver_and_deletes_on_success(tmp_path):
+    db_path = tmp_path / "report-jobs-webhook-config-vault.sqlite"
+    codec = FernetWebhookConfigCodec(keys={"v1": _fernet_key()}, active_key_id="v1")
+
+    def failing_dispatch(_snapshot, _config):
+        raise RuntimeError("callback.example vault-secret 测试样本 北京")
+
+    first_manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path, webhook_config_codec=codec),
+        webhook_dispatcher=failing_dispatch,
+        callback_policy=ReportJobWebhookPolicy(max_attempts=1),
+    )
+    created = first_manager.submit(
+        kind="markdown",
+        report_system="bazi",
+        input_summary={"name": "测试样本", "birthPlace": "北京"},
+        webhook_config=WebhookConfig(url="https://callback.example/webhook", secret="vault-secret"),
+        task=lambda: {"reportSystem": "bazi", "markdown": "# 命理排盘报告：测试样本"},
+    )
+    failed_snapshot = _wait_for_manager_event(first_manager, created.job_id, "webhook.delivery_failed")
+
+    assert failed_snapshot.callback_outbox[0].status == "failed"
+    assert SQLiteReportJobStore(db_path, webhook_config_codec=codec).count_webhook_delivery_configs() == 1
+    raw_db_text = db_path.read_bytes().decode("latin1", errors="ignore")
+    assert "callback.example" not in raw_db_text
+    assert "vault-secret" not in raw_db_text
+    assert "测试样本" not in raw_db_text
+    assert "北京" not in raw_db_text
+    assert "# 命理排盘报告" not in raw_db_text
+
+    redelivery_attempts: list[str] = []
+
+    def success_dispatch(snapshot, config):
+        redelivery_attempts.append(f"{snapshot.job_id}:{config.signature_mode}")
+        assert config.url == "https://callback.example/webhook"
+        assert config.secret == "vault-secret"
+        return type("WebhookResult", (), {"status_code": 204, "event_type": "report_job.terminal"})()
+
+    rebuilt = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path, webhook_config_codec=codec),
+        webhook_dispatcher=success_dispatch,
+        callback_policy=ReportJobWebhookPolicy(max_attempts=1),
+    )
+    redelivered = _wait_for_manager_event(rebuilt, created.job_id, "webhook.redelivery_succeeded")
+
+    assert redelivery_attempts == [f"{created.job_id}:hmac-sha256"]
+    assert redelivered.callback_outbox[0].status == "succeeded"
+    assert SQLiteReportJobStore(db_path, webhook_config_codec=codec).count_webhook_delivery_configs() == 0
+    payload = main._report_job_payload(redelivered, include_result=False)
+    serialized = json.dumps(
+        {
+            "events": [event.metadata for event in redelivered.events],
+            "outbox": payload["webhookOutbox"],
+        },
+        ensure_ascii=False,
+    )
+    assert "callback.example" not in serialized
+    assert "vault-secret" not in serialized
+    assert "测试样本" not in serialized
+    assert "北京" not in serialized
+
+
+def test_sqlite_webhook_config_vault_rotates_key_before_redelivery(tmp_path):
+    db_path = tmp_path / "report-jobs-webhook-config-vault-rotation.sqlite"
+    old_key = _fernet_key()
+    new_key = _fernet_key()
+    old_codec = FernetWebhookConfigCodec(keys={"old": old_key}, active_key_id="old")
+
+    def failing_dispatch(_snapshot, _config):
+        raise RuntimeError("rotation failure")
+
+    first_manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path, webhook_config_codec=old_codec),
+        webhook_dispatcher=failing_dispatch,
+        callback_policy=ReportJobWebhookPolicy(max_attempts=1),
+    )
+    created = first_manager.submit(
+        kind="markdown",
+        report_system="bazi",
+        webhook_config=WebhookConfig(url="https://callback.example/webhook", secret="rotation-secret"),
+        task=lambda: {"reportSystem": "bazi", "markdown": "done"},
+    )
+    _wait_for_manager_event(first_manager, created.job_id, "webhook.delivery_failed")
+
+    def current_key_id() -> str:
+        with SQLiteReportJobStore(db_path)._connect() as conn:
+            row = conn.execute("SELECT key_id FROM report_job_webhook_delivery_config").fetchone()
+        return str(row["key_id"])
+
+    assert current_key_id() == "old"
+    new_codec = FernetWebhookConfigCodec(keys={"old": old_key, "new": new_key}, active_key_id="new")
+    rotated_store = SQLiteReportJobStore(db_path, webhook_config_codec=new_codec)
+    assert rotated_store.rotate_webhook_delivery_configs() == 1
+    assert current_key_id() == "new"
+    assert rotated_store.rotate_webhook_delivery_configs() == 0
+    assert current_key_id() == "new"
+
+    redelivery_attempts = 0
+
+    def success_dispatch(_snapshot, config):
+        nonlocal redelivery_attempts
+        redelivery_attempts += 1
+        assert config.secret == "rotation-secret"
+        return type("WebhookResult", (), {"status_code": 204, "event_type": "report_job.terminal"})()
+
+    rebuilt = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path, webhook_config_codec=new_codec),
+        webhook_dispatcher=success_dispatch,
+        callback_policy=ReportJobWebhookPolicy(max_attempts=1),
+    )
+    redelivered = _wait_for_manager_event(rebuilt, created.job_id, "webhook.redelivery_succeeded")
+
+    assert redelivery_attempts == 1
+    assert redelivered.callback_outbox[0].status == "succeeded"
+    assert SQLiteReportJobStore(db_path, webhook_config_codec=new_codec).count_webhook_delivery_configs() == 0
 
 
 def test_sqlite_replayable_report_job_requeues_after_manager_rebuild(tmp_path):

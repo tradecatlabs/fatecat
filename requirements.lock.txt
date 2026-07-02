@@ -9,9 +9,11 @@ anyio==4.12.1
 attrs==26.1.0
 bidict==0.23.1
 certifi==2026.1.4
+cffi==2.0.0
 china-region==0.0.11
 click==8.3.1
 colorama==0.4.6
+cryptography==49.0.0
 divicast==0.1.1
 fastapi==0.128.0
 frozenlist==1.8.0
@@ -29,6 +31,7 @@ packaging==26.2
 pandas==2.3.3
 pip==26.1.2
 propcache==0.5.2
+pycparser==3.0
 pydantic==2.12.5
 pydantic_core==2.41.5
 python-dateutil==2.9.0.post0

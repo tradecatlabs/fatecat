@@ -14,11 +14,13 @@ bidict==0.23.1
 black==26.5.1
 build==1.5.0
 certifi==2026.1.4
+cffi==2.0.0
 cfgv==3.5.0
 china-region==0.0.11
 click==8.3.1
 colorama==0.4.6
 coverage==7.14.1
+cryptography==49.0.0
 decorator==5.3.1
 distlib==0.4.2
 divicast==0.1.1
@@ -59,6 +61,7 @@ pluggy==1.6.0
 pre_commit==4.6.0
 prompt_toolkit==3.0.52
 propcache==0.5.2
+pycparser==3.0
 psutil==7.2.2
 ptyprocess==0.7.0
 pure_eval==0.2.3

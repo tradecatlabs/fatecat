@@ -27,6 +27,7 @@ from _paths import ASSETS_DIR, FATE_CORE_SRC_DIR, RUNTIME_DATABASE_DIR, get_env_
 from branding import attach_branding, get_branding_payload, get_disclaimer_payload
 from service_config import cors_allow_origins, env_flag, env_int
 from utils.timezone import now_cn
+from webhook_config_store import FernetWebhookConfigCodec, WebhookConfigStoreError
 
 if str(FATE_CORE_SRC_DIR) not in sys.path:
     sys.path.insert(0, str(FATE_CORE_SRC_DIR))
@@ -60,6 +61,8 @@ WEBHOOK_MAX_ATTEMPTS = env_int("FATE_WEBHOOK_MAX_ATTEMPTS", 1, minimum=1)
 WEBHOOK_RETRY_BACKOFF_SECONDS = env_int("FATE_WEBHOOK_RETRY_BACKOFF_SECONDS", 0, minimum=0)
 WEBHOOK_ALLOWED_HOSTS = os.getenv("FATE_WEBHOOK_ALLOWED_HOSTS", "").strip()
 WEBHOOK_ALLOW_HTTP = env_flag("FATE_WEBHOOK_ALLOW_HTTP")
+WEBHOOK_CONFIG_FERNET_KEYS = os.getenv("FATE_WEBHOOK_CONFIG_FERNET_KEYS", "").strip()
+WEBHOOK_CONFIG_ACTIVE_KEY_ID = os.getenv("FATE_WEBHOOK_CONFIG_ACTIVE_KEY_ID", "").strip() or None
 AUDIT_LOG_ENABLED = os.getenv("FATE_AUDIT_LOG_ENABLED", "1").strip().lower() not in {"0", "false", "no", "off"}
 AUDIT_EVENT_RETENTION_DAYS = env_int("FATE_AUDIT_EVENT_RETENTION_DAYS", 30, minimum=1)
 RECORD_RETENTION_DAYS = env_int("FATE_RECORD_RETENTION_DAYS", 0, minimum=0)
@@ -142,13 +145,23 @@ _REQUEST_LATENCY_BUCKETS = (0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 
 _BODY_LIMIT_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 
 
+def _build_webhook_config_codec() -> FernetWebhookConfigCodec | None:
+    try:
+        return FernetWebhookConfigCodec.from_raw(
+            WEBHOOK_CONFIG_FERNET_KEYS,
+            active_key_id=WEBHOOK_CONFIG_ACTIVE_KEY_ID,
+        )
+    except WebhookConfigStoreError as exc:
+        raise RuntimeError("FATE_WEBHOOK_CONFIG_FERNET_KEYS 配置无效") from exc
+
+
 def _build_report_job_manager() -> ReportJobManager:
     store = None
     if REPORT_JOB_STORE == "sqlite":
         db_path = Path(REPORT_JOB_DB_PATH)
         if not db_path.is_absolute():
             db_path = RUNTIME_DATABASE_DIR / db_path
-        store = SQLiteReportJobStore(db_path)
+        store = SQLiteReportJobStore(db_path, webhook_config_codec=_build_webhook_config_codec())
     elif REPORT_JOB_STORE != "memory":
         raise RuntimeError("FATE_REPORT_JOB_STORE 只支持 memory 或 sqlite")
     return ReportJobManager(
