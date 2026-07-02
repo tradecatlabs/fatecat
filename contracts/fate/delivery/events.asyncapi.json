@@ -1,0 +1,231 @@
+{
+  "asyncapi": "3.1.0",
+  "info": {
+    "title": "FateCat Async Event Contract",
+    "version": "0.1.0",
+    "description": "Contract baseline for FateCat job, webhook, evaluation and release events. This document is static and does not prove broker or live webhook delivery."
+  },
+  "defaultContentType": "application/cloudevents+json; charset=utf-8",
+  "channels": {
+    "job.events": {
+      "address": "fatecat.job.events",
+      "messages": {
+        "jobCreated": {
+          "$ref": "#/components/messages/message.job.created"
+        },
+        "jobTerminal": {
+          "$ref": "#/components/messages/message.job.terminal"
+        }
+      },
+      "description": "CalculationJob lifecycle events."
+    },
+    "webhook.events": {
+      "address": "fatecat.webhook.events",
+      "messages": {
+        "webhookDelivery": {
+          "$ref": "#/components/messages/message.webhook.delivery"
+        }
+      },
+      "description": "Webhook callback outbox and delivery events."
+    },
+    "evaluation.events": {
+      "address": "fatecat.evaluation.events",
+      "messages": {
+        "evaluationRunCompleted": {
+          "$ref": "#/components/messages/message.evaluation.run.completed"
+        }
+      },
+      "description": "Evaluation runner completion events."
+    },
+    "release.events": {
+      "address": "fatecat.release.events",
+      "messages": {
+        "releaseGateCompleted": {
+          "$ref": "#/components/messages/message.release.gate.completed"
+        }
+      },
+      "description": "Release gate completion events."
+    }
+  },
+  "operations": {
+    "sendJobEvents": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/job.events"
+      },
+      "messages": [
+        {
+          "$ref": "#/components/messages/message.job.created"
+        },
+        {
+          "$ref": "#/components/messages/message.job.terminal"
+        }
+      ]
+    },
+    "sendWebhookEvents": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/webhook.events"
+      },
+      "messages": [
+        {
+          "$ref": "#/components/messages/message.webhook.delivery"
+        }
+      ]
+    },
+    "sendEvaluationEvents": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/evaluation.events"
+      },
+      "messages": [
+        {
+          "$ref": "#/components/messages/message.evaluation.run.completed"
+        }
+      ]
+    },
+    "sendReleaseEvents": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/release.events"
+      },
+      "messages": [
+        {
+          "$ref": "#/components/messages/message.release.gate.completed"
+        }
+      ]
+    }
+  },
+  "components": {
+    "messages": {
+      "message.job.created": {
+        "name": "message.job.created",
+        "title": "Calculation job created",
+        "contentType": "application/cloudevents+json",
+        "payload": {
+          "$ref": "#/components/schemas/CloudEventEnvelope"
+        },
+        "examples": [
+          {
+            "$ref": "#/components/examples/jobCreated"
+          }
+        ]
+      },
+      "message.job.terminal": {
+        "name": "message.job.terminal",
+        "title": "Calculation job terminal",
+        "contentType": "application/cloudevents+json",
+        "payload": {
+          "$ref": "#/components/schemas/CloudEventEnvelope"
+        },
+        "examples": [
+          {
+            "$ref": "#/components/examples/jobTerminal"
+          }
+        ]
+      },
+      "message.webhook.delivery": {
+        "name": "message.webhook.delivery",
+        "title": "Webhook delivery result",
+        "contentType": "application/cloudevents+json",
+        "payload": {
+          "$ref": "#/components/schemas/CloudEventEnvelope"
+        },
+        "examples": [
+          {
+            "$ref": "#/components/examples/webhookDelivery"
+          }
+        ]
+      },
+      "message.evaluation.run.completed": {
+        "name": "message.evaluation.run.completed",
+        "title": "Evaluation run completed",
+        "contentType": "application/cloudevents+json",
+        "payload": {
+          "$ref": "#/components/schemas/CloudEventEnvelope"
+        },
+        "examples": [
+          {
+            "$ref": "#/components/examples/evaluationRunCompleted"
+          }
+        ]
+      },
+      "message.release.gate.completed": {
+        "name": "message.release.gate.completed",
+        "title": "Release gate completed",
+        "contentType": "application/cloudevents+json",
+        "payload": {
+          "$ref": "#/components/schemas/CloudEventEnvelope"
+        },
+        "examples": [
+          {
+            "$ref": "#/components/examples/releaseGateCompleted"
+          }
+        ]
+      }
+    },
+    "schemas": {
+      "CloudEventEnvelope": {
+        "type": "object",
+        "required": ["id", "source", "specversion", "type", "data"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "specversion": {
+            "type": "string",
+            "const": "1.0"
+          },
+          "type": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "time": {
+            "type": "string"
+          },
+          "datacontenttype": {
+            "type": "string"
+          },
+          "dataschema": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "examples": {
+      "jobCreated": {
+        "summary": "Synthetic job.created CloudEvent example",
+        "externalValue": "contracts/fate/delivery/examples/events/job-created.json"
+      },
+      "jobTerminal": {
+        "summary": "Synthetic job.terminal CloudEvent example",
+        "externalValue": "contracts/fate/delivery/examples/events/job-terminal.json"
+      },
+      "webhookDelivery": {
+        "summary": "Synthetic webhook.delivery CloudEvent example",
+        "externalValue": "contracts/fate/delivery/examples/events/webhook-delivery.json"
+      },
+      "evaluationRunCompleted": {
+        "summary": "Synthetic evaluation.run.completed CloudEvent example",
+        "externalValue": "contracts/fate/delivery/examples/events/evaluation-run-completed.json"
+      },
+      "releaseGateCompleted": {
+        "summary": "Synthetic release.gate.completed CloudEvent example",
+        "externalValue": "contracts/fate/delivery/examples/events/release-gate-completed.json"
+      }
+    }
+  },
+  "x-fatecat-boundary": {
+    "status": "contract_baseline",
+    "privacyBoundary": "Synthetic examples only; no real webhook URL, secret, token, user input, report markdown or production log.",
+    "externalConnectivity": "external_connectivity_pending"
+  }
+}

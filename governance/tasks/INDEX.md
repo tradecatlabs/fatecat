@@ -121,3 +121,5 @@
 | 0061 | measurement-infrastructure-100-post-0060-deep-research-plan | Done | P0 | 基于当前 main、0060 之后的 durable runtime 状态和外部基础设施一手资料，制作 FateCat 达到 100% 测算基础设施所需的完整实现计划、资源成熟度矩阵、任务树、执行顺序和不可伪造验收口径；本任务只落盘规划，不实现业务代码。 | 0061-measurement-infrastructure-100-post-0060-deep-research-plan/ |
 
 | 0062 | measurement-infrastructure-runtime-backend-contract | Done | P0 | 执行 0061 后续任务树的第一个 P0 切片：为 CalculationJob durable runtime 新增 external backend contract baseline，登记 memory/sqlite/postgres/temporal/redis_queue 的成熟度、生产边界、证据要求和迁移路径，新增 runtime backend gate、回归测试、文档和任务 closeout；本任务不实现真实 Postgres/Temporal adapter、不声明 external backend 已生产。 | 0062-measurement-infrastructure-runtime-backend-contract/ |
+
+| 0063 | measurement-infrastructure-event-contract-baseline | Done | P0 | 执行 0061 后续任务树的 Event Platform P0 切片：为 job/webhook/evaluation/release 事件新增 CloudEvents envelope 与 AsyncAPI 风格事件契约基线，提供 schema、registry、examples、event contract gate、回归测试和文档 closeout；本任务不实现真实公网 webhook live delivery、不连接外部 broker、不声明事件平台已生产。 | 0063-measurement-infrastructure-event-contract-baseline/ |

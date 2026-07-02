@@ -1,0 +1,22 @@
+{
+  "id": "evt_webhook_demo_001_delivery",
+  "source": "/fatecat/webhook",
+  "specversion": "1.0",
+  "type": "com.tradecatlabs.fatecat.webhook.delivery.v1",
+  "subject": "webhook/outbox_demo_001",
+  "time": "2026-07-02T00:02:00Z",
+  "datacontenttype": "application/json",
+  "dataschema": "contracts/fate/capabilities/schemas/resource.schema.json#/webhookEventResourceFields",
+  "data": {
+    "resourceType": "WebhookEvent",
+    "outboxId": "outbox_demo_001",
+    "jobId": "job_demo_001",
+    "eventType": "report_job.terminal",
+    "status": "succeeded",
+    "attempts": 1,
+    "maxAttempts": 3,
+    "signatureMode": "hmac-sha256",
+    "targetHostHash": "sha256:demo-host-hash",
+    "resultStatusCode": 200
+  }
+}

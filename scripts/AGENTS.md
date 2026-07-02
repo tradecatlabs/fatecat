@@ -18,6 +18,8 @@ scripts/
 ├── container-smoke.sh
 ├── data-supply-chain-gate.sh
 ├── data-supply-chain-gate.py
+├── event-contract-gate.sh
+├── event-contract-gate.py
 ├── developer-docs-smoke.sh
 ├── developer-docs-smoke.py
 ├── export-openapi.sh
@@ -83,6 +85,7 @@ scripts/
 - `container-smoke.sh`：启动临时容器并验证 `/health` 与真实排盘 API。
 - `container-release.sh`：构建、smoke，并在显式 `--push` 时推送 registry。
 - `data-supply-chain-gate.sh` / `data-supply-chain-gate.py` 是数据供应链门禁；校验 data supply chain registry、canonical classics source/copyright manifest、solar terms source manifest 和 vendor production dependency 许可边界。
+- `event-contract-gate.sh` / `event-contract-gate.py` 是异步事件 contract gate；校验 AsyncEvent registry、CloudEvents 必备字段、AsyncAPI 风格 channel/operation/message、脱敏示例和 delivery/resource schema 链接，不连接真实 broker 或公网 webhook 接收端。
 - `runtime-backend-gate.sh` / `runtime-backend-gate.py` 是 durable runtime 后端 contract gate；校验 RuntimeBackend registry、memory/sqlite 本地边界、Postgres external backend 候选、Temporal future orchestrator、Redis queue 非 source-of-truth 约束和隐私边界，不连接真实数据库或服务。
 - `export-openapi.sh` / `export-openapi.py`：导出本地 OpenAPI JSON，并校验开发者接入必备路径。
 - `developer-docs-smoke.sh` / `developer-docs-smoke.py`：执行开发者 OpenAPI、sandbox fixture 和 SDK 示例 smoke；只保存检查摘要，不保存报告正文或真实凭证。

@@ -1034,3 +1034,19 @@ def test_bazi_capability_delegates_to_pure_analysis(monkeypatch):
     assert result.metadata["provider"]["health"]["checks"]["runner"] == "<lambda>"
     assert result.metadata["testGate"]["status"] == "passing"
     assert result.risk["disclaimerRequired"] is True
+
+
+def test_async_event_schema_and_resource_model_are_linked():
+    delivery_registry = _load_json(DELIVERY_DIR / "registry.json")
+    event_schema = _load_json(DELIVERY_DIR / "schemas" / "async-event.schema.json")
+    resource_schema = _load_json(CAPABILITY_DIR / "schemas" / "resource.schema.json")
+
+    assert delivery_registry["schemas"]["asyncEvent"] == "contracts/fate/delivery/schemas/async-event.schema.json"
+    assert delivery_registry["asyncEventRegistry"]["contract"] == "contracts/fate/delivery/events.json"
+    assert delivery_registry["asyncEventRegistry"]["asyncApiDocument"] == (
+        "contracts/fate/delivery/events.asyncapi.json"
+    )
+    assert "AsyncEvent" in resource_schema["resourceTypes"]
+    assert "asyncEventResourceFields" in resource_schema
+    assert event_schema["allowedEventDomain"] == ["job", "webhook", "evaluation", "release"]
+    assert event_schema["requiredCloudEventsContextFields"] == ["id", "source", "specversion", "type"]

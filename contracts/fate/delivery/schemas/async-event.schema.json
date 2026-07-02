@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "description": "FateCat 异步事件契约基线。字段对齐 CloudEvents 必备上下文属性和 AsyncAPI 风格 channel/operation/message 建模；本文件不是完整 JSON Schema 校验器。",
+  "requiredRegistryFields": [
+    "schemaVersion",
+    "apiVersion",
+    "resourceType",
+    "id",
+    "standards",
+    "schemas",
+    "asyncApi",
+    "channels",
+    "operations",
+    "events",
+    "metadata"
+  ],
+  "requiredStandardsFields": [
+    "cloudEvents",
+    "asyncApi",
+    "compatibility"
+  ],
+  "requiredAsyncApiFields": [
+    "version",
+    "documentPath",
+    "status",
+    "channels",
+    "operations"
+  ],
+  "requiredChannelFields": [
+    "name",
+    "address",
+    "messages",
+    "description"
+  ],
+  "requiredOperationFields": [
+    "action",
+    "channel",
+    "messages",
+    "description"
+  ],
+  "requiredEventFields": [
+    "resourceType",
+    "apiVersion",
+    "id",
+    "name",
+    "eventDomain",
+    "eventType",
+    "cloudEventsType",
+    "channel",
+    "operation",
+    "resourceRef",
+    "payloadSchema",
+    "example",
+    "producer",
+    "consumers",
+    "deliverySemantics",
+    "privacyBoundary",
+    "externalConnectivity",
+    "links",
+    "metadata"
+  ],
+  "requiredCloudEventsContextFields": [
+    "id",
+    "source",
+    "specversion",
+    "type"
+  ],
+  "recommendedCloudEventsContextFields": [
+    "subject",
+    "time",
+    "datacontenttype",
+    "dataschema"
+  ],
+  "allowedEventDomain": [
+    "job",
+    "webhook",
+    "evaluation",
+    "release"
+  ],
+  "allowedOperationAction": [
+    "send",
+    "receive"
+  ],
+  "allowedExternalConnectivity": [
+    "not_required",
+    "external_connectivity_pending",
+    "requires_real_receiver",
+    "requires_real_broker"
+  ],
+  "allowedDeliverySemantics": [
+    "local_contract_only",
+    "at_least_once_simulated",
+    "at_least_once_live_required",
+    "not_delivered"
+  ],
+  "eventTypePrefixes": [
+    "job.",
+    "webhook.",
+    "evaluation.",
+    "release."
+  ],
+  "sensitiveTerms": [
+    "secret",
+    "token",
+    "password",
+    "privateKey",
+    "webhookUrl",
+    "reportMarkdown",
+    "userInput"
+  ],
+  "invariants": [
+    "每个事件必须声明 CloudEvents 必备上下文字段 id/source/specversion/type 的示例值。",
+    "每个事件必须映射到 registry.channels 与 registry.operations 中存在的 channel/operation。",
+    "事件示例不得包含真实 webhook URL、secret、token、password、用户输入、出生地区、报告正文或生产日志。",
+    "本契约只证明事件协议可发现、可验证和可文档化，不证明真实 broker 或公网 webhook live delivery。"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "id": "evt_release_demo_001_completed",
+  "source": "/fatecat/release",
+  "specversion": "1.0",
+  "type": "com.tradecatlabs.fatecat.release.gate.completed.v1",
+  "subject": "release/main-demo",
+  "time": "2026-07-02T00:04:00Z",
+  "datacontenttype": "application/json",
+  "dataschema": "contracts/fate/delivery/schemas/release-gate.schema.json",
+  "data": {
+    "resourceType": "ReleaseGate",
+    "gateId": "gate.live_release",
+    "status": "blocked",
+    "commit": "0000000000000000000000000000000000000000",
+    "passed": 2,
+    "pending": 8,
+    "failed": 0,
+    "shipGate": "blocked"
+  }
+}

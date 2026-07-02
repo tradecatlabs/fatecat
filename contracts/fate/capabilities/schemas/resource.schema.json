@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "description": "测算基础设施资源模型契约。用于把 capability、provider、job、report、evidence、dataset、evaluation run、observability signal、security control、delivery surface、runtime backend 与 release gate 作为稳定 API 资源管理。",
+  "description": "测算基础设施资源模型契约。用于把 capability、provider、job、report、evidence、dataset、evaluation run、observability signal、security control、delivery surface、runtime backend、async event 与 release gate 作为稳定 API 资源管理。",
   "resourceTypes": [
     "Capability",
     "Provider",
@@ -14,7 +14,8 @@
     "DeliverySurface",
     "RuntimeBackend",
     "ReleaseGate",
-    "WebhookEvent"
+    "WebhookEvent",
+    "AsyncEvent"
   ],
   "requiredResourceFields": ["resourceType", "apiVersion", "id", "links", "metadata"],
   "capabilityResourceFields": [
@@ -144,6 +145,22 @@
     "externalVerification",
     "shipGate"
   ],
+  "asyncEventResourceFields": [
+    "name",
+    "eventDomain",
+    "eventType",
+    "cloudEventsType",
+    "channel",
+    "operation",
+    "resourceRef",
+    "payloadSchema",
+    "example",
+    "producer",
+    "consumers",
+    "deliverySemantics",
+    "privacyBoundary",
+    "externalConnectivity"
+  ],
   "webhookEventResourceFields": [
     "eventType",
     "eventId",
@@ -195,6 +212,9 @@
     "RuntimeBackend resource 只登记 durable runtime 后端契约，不保存真实 DSN、secret、生产日志或用户报告正文",
     "RuntimeBackend external backend 生产通过必须由真实外部连接、迁移 smoke、crash/restart smoke 和 worker claim 负例共同证明",
     "ReleaseGate resource 只登记发布证据口径和 gate 结果，不保存真实 token、生产日志正文或用户报告正文",
-    "live release shipGate=pass 必须由真实外部域名、真实 Bot、远端 CI、container digest、SBOM/provenance 和回滚演练证据共同证明"
+    "live release shipGate=pass 必须由真实外部域名、真实 Bot、远端 CI、container digest、SBOM/provenance 和回滚演练证据共同证明",
+    "AsyncEvent resource 必须兼容 CloudEvents 必备上下文字段 id/source/specversion/type，并提供 AsyncAPI 风格 channel、operation、message 契约",
+    "AsyncEvent registry 只登记事件契约和示例，不保存真实 webhook URL、secret、token、用户输入、报告正文或生产事件日志",
+    "AsyncEvent external broker、真实公网 webhook 投递和第三方事件消费必须由独立 live smoke 证明，不能由本地 contract gate 代替"
   ]
 }

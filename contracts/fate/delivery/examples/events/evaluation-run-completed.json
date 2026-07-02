@@ -1,0 +1,19 @@
+{
+  "id": "evt_evaluation_demo_001_completed",
+  "source": "/fatecat/evaluation",
+  "specversion": "1.0",
+  "type": "com.tradecatlabs.fatecat.evaluation.run.completed.v1",
+  "subject": "evaluation/eval_demo_001",
+  "time": "2026-07-02T00:03:00Z",
+  "datacontenttype": "application/json",
+  "dataschema": "contracts/fate/evaluations/schemas/evaluation-run.schema.json",
+  "data": {
+    "resourceType": "EvaluationRun",
+    "runId": "eval_demo_001",
+    "status": "passed",
+    "passed": 5,
+    "failed": 0,
+    "planned": 0,
+    "artifact": "infra/runtime/local-state/exports/evaluations/eval_demo_001/summary.json"
+  }
+}

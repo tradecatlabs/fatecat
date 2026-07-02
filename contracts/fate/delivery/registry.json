@@ -3,6 +3,7 @@
   "apiVersion": "fatecat.tradecatlabs/v1",
   "description": "FateCat 测算基础设施多端交付面资源注册表。这里登记 API、Web、Bot、CLI、Skill 与托管 Web 的同源链路和验证边界。",
   "schemas": {
+    "asyncEvent": "contracts/fate/delivery/schemas/async-event.schema.json",
     "deliverySurface": "contracts/fate/delivery/schemas/delivery-surface.schema.json",
     "releaseGate": "contracts/fate/delivery/schemas/release-gate.schema.json",
     "runtimeBackend": "contracts/fate/delivery/schemas/runtime-backend.schema.json",
@@ -258,6 +259,20 @@
     "currentProductionEligibility": "contract_baseline",
     "externalConnectivity": "外部连通验证待执行",
     "policy": "RuntimeBackend registry 只声明 durable runtime 后端候选、证据口径和迁移路径；真实 Postgres/Temporal/Redis 后端必须由独立 adapter、迁移 smoke、crash/restart smoke 和外部连接证据证明。"
+  },
+  "asyncEventRegistry": {
+    "resourceType": "AsyncEventRegistry",
+    "apiVersion": "fatecat.tradecatlabs/v1",
+    "id": "events.async",
+    "contract": "contracts/fate/delivery/events.json",
+    "asyncApiDocument": "contracts/fate/delivery/events.asyncapi.json",
+    "localVerification": [
+      "bash scripts/event-contract-gate.sh"
+    ],
+    "eventDomains": ["job", "webhook", "evaluation", "release"],
+    "currentProductionEligibility": "contract_baseline",
+    "externalConnectivity": "外部连通验证待执行",
+    "policy": "AsyncEvent registry 只声明 CloudEvents envelope、AsyncAPI 风格 channel/operation/message 和脱敏示例；真实公网 webhook live delivery 或外部 broker 必须由独立 live smoke 证明。"
   },
   "metadata": {
     "resourceType": "DeliverySurfaceRegistry",

@@ -1,0 +1,19 @@
+{
+  "id": "evt_job_demo_001_created",
+  "source": "/fatecat/job",
+  "specversion": "1.0",
+  "type": "com.tradecatlabs.fatecat.job.created.v1",
+  "subject": "job/job_demo_001",
+  "time": "2026-07-02T00:00:00Z",
+  "datacontenttype": "application/json",
+  "dataschema": "contracts/fate/capabilities/schemas/resource.schema.json#/calculationJobFields",
+  "data": {
+    "resourceType": "CalculationJob",
+    "jobId": "job_demo_001",
+    "kind": "report_markdown",
+    "status": "queued",
+    "reportSystem": "bazi",
+    "statusUrl": "/api/v1/report/jobs/job_demo_001",
+    "resultAvailable": false
+  }
+}

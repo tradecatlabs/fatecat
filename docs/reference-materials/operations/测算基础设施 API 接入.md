@@ -595,6 +595,18 @@ RuntimeBackend contract：
 
 当前选型口径：Postgres 是第一个 external ReportJobStore adapter 候选，因为 job state、event history、idempotency、outbox 和 worker claim 可以进入同一个事务型外部 source of truth；Temporal 只登记为未来长流程 orchestrator；Redis queue 只能作为未来辅助队列，不得替代 durable job source of truth。0062 只完成 contract baseline，不实现真实 Postgres/Temporal/Redis adapter，不连接真实数据库，不证明生产级分布式 worker lease、exactly-once 或公网 webhook live delivery。
 
+Async event contract：
+
+| 资源 | 路径 | 说明 |
+| --- | --- | --- |
+| registry | `contracts/fate/delivery/events.json` | 登记 `job`、`webhook`、`evaluation`、`release` 事件域，包含 CloudEvents envelope、AsyncAPI 风格 channel/operation/message、producer、consumer、payload schema、脱敏示例和外部连通边界。 |
+| AsyncAPI | `contracts/fate/delivery/events.asyncapi.json` | 静态 AsyncAPI 3.1 风格文档，供开发者和 Agent 发现事件通道；不证明外部 broker 或公网 webhook live delivery。 |
+| schema | `contracts/fate/delivery/schemas/async-event.schema.json` | 定义 AsyncEvent 字段、CloudEvents 必备上下文字段 `id/source/specversion/type`、事件域枚举和隐私不变量。 |
+| examples | `contracts/fate/delivery/examples/events/*.json` | 只保存合成脱敏 CloudEvents 示例，不包含真实 webhook URL、secret、token、用户输入、出生地区、报告正文或生产日志。 |
+| gate | `bash scripts/event-contract-gate.sh --output-json <path>` | 本地校验 registry、AsyncAPI 文档、示例、delivery registry 和 resource schema 链接。 |
+
+0063 只完成事件契约 baseline：`event.webhook.delivery` 仍标记为 `requires_real_receiver`，公网接收端、签名验证日志、外部 broker、真实事件订阅和 live delivery 仍属外部连通验证待执行。
+
 `running` 任务取消后不能强杀线程，但完成后会丢弃结果并保持 `cancelled`。如果 SQLite backend 在 manager 重建时发现旧 `queued` / `running` 任务：带 `task_payload` 且存在注册 factory 的任务会标记为 `queued`、写入 `job.recovered_requeued` 并重新入队；无 payload 或无 factory 的任务会标记为 `failed`、写入 `job.recovered_failed` 并保留错误原因。该能力只是本地可重建执行 baseline，不是 external backend、分布式 worker、生产多副本锁或 exactly-once。多副本生产不能使用本地 `memory` / `sqlite` job store 假装分布式任务系统，后续需要外部队列或数据库任务系统。
 
 本地 restart recovery smoke：

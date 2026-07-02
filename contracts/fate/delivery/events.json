@@ -1,0 +1,245 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": "fatecat.tradecatlabs/v1",
+  "resourceType": "AsyncEventRegistry",
+  "id": "events.async",
+  "description": "FateCat 异步事件资源注册表。登记 job、webhook、evaluation 与 release 事件的 CloudEvents envelope、AsyncAPI 风格 channel/operation 和脱敏示例。",
+  "standards": {
+    "cloudEvents": {
+      "version": "1.0",
+      "requiredContextFields": ["id", "source", "specversion", "type"],
+      "recommendedContextFields": ["subject", "time", "datacontenttype", "dataschema"],
+      "sourcePattern": "/fatecat/{domain}",
+      "typePrefix": "com.tradecatlabs.fatecat"
+    },
+    "asyncApi": {
+      "version": "3.1.0",
+      "shape": "channels + operations + messages",
+      "documentPath": "contracts/fate/delivery/events.asyncapi.json"
+    },
+    "compatibility": {
+      "policy": "minor_additive",
+      "breakingChangeRequires": "schemaVersion bump and event-contract-gate update",
+      "privacyBoundary": "event context and examples must not include user input, report markdown, webhook URL, secret, token, password or production log"
+    }
+  },
+  "schemas": {
+    "asyncEvent": "contracts/fate/delivery/schemas/async-event.schema.json",
+    "resource": "contracts/fate/capabilities/schemas/resource.schema.json"
+  },
+  "asyncApi": {
+    "version": "3.1.0",
+    "documentPath": "contracts/fate/delivery/events.asyncapi.json",
+    "status": "contract_baseline",
+    "channels": ["job.events", "webhook.events", "evaluation.events", "release.events"],
+    "operations": ["sendJobEvents", "sendWebhookEvents", "sendEvaluationEvents", "sendReleaseEvents"]
+  },
+  "channels": {
+    "job.events": {
+      "name": "job.events",
+      "address": "fatecat.job.events",
+      "messages": ["message.job.created", "message.job.terminal"],
+      "description": "CalculationJob lifecycle event channel."
+    },
+    "webhook.events": {
+      "name": "webhook.events",
+      "address": "fatecat.webhook.events",
+      "messages": ["message.webhook.delivery"],
+      "description": "Webhook callback outbox and delivery event channel."
+    },
+    "evaluation.events": {
+      "name": "evaluation.events",
+      "address": "fatecat.evaluation.events",
+      "messages": ["message.evaluation.run.completed"],
+      "description": "EvaluationRun completed event channel."
+    },
+    "release.events": {
+      "name": "release.events",
+      "address": "fatecat.release.events",
+      "messages": ["message.release.gate.completed"],
+      "description": "Release gate completed event channel."
+    }
+  },
+  "operations": {
+    "sendJobEvents": {
+      "action": "send",
+      "channel": "job.events",
+      "messages": ["message.job.created", "message.job.terminal"],
+      "description": "FateCat emits CalculationJob lifecycle events."
+    },
+    "sendWebhookEvents": {
+      "action": "send",
+      "channel": "webhook.events",
+      "messages": ["message.webhook.delivery"],
+      "description": "FateCat emits webhook callback outbox and delivery events."
+    },
+    "sendEvaluationEvents": {
+      "action": "send",
+      "channel": "evaluation.events",
+      "messages": ["message.evaluation.run.completed"],
+      "description": "FateCat emits local evaluation runner completion events."
+    },
+    "sendReleaseEvents": {
+      "action": "send",
+      "channel": "release.events",
+      "messages": ["message.release.gate.completed"],
+      "description": "FateCat emits release gate completion events."
+    }
+  },
+  "events": [
+    {
+      "resourceType": "AsyncEvent",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "event.job.created",
+      "name": "Calculation job created",
+      "eventDomain": "job",
+      "eventType": "job.created",
+      "cloudEventsType": "com.tradecatlabs.fatecat.job.created.v1",
+      "channel": "job.events",
+      "operation": "sendJobEvents",
+      "resourceRef": "CalculationJob",
+      "payloadSchema": "contracts/fate/capabilities/schemas/resource.schema.json#/calculationJobFields",
+      "example": "contracts/fate/delivery/examples/events/job-created.json",
+      "producer": "domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py",
+      "consumers": ["api.polling_client", "future.event_subscriber"],
+      "deliverySemantics": "local_contract_only",
+      "privacyBoundary": "Example contains only job id/status/reportSystem and excludes user input, report markdown, webhook URL, secret and token.",
+      "externalConnectivity": "not_required",
+      "links": {
+        "schema": "contracts/fate/delivery/schemas/async-event.schema.json",
+        "example": "contracts/fate/delivery/examples/events/job-created.json"
+      },
+      "metadata": {
+        "messageId": "message.job.created",
+        "status": "contract_baseline",
+        "liveEvidence": "local contract only"
+      }
+    },
+    {
+      "resourceType": "AsyncEvent",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "event.job.terminal",
+      "name": "Calculation job terminal",
+      "eventDomain": "job",
+      "eventType": "job.terminal",
+      "cloudEventsType": "com.tradecatlabs.fatecat.job.terminal.v1",
+      "channel": "job.events",
+      "operation": "sendJobEvents",
+      "resourceRef": "CalculationJob",
+      "payloadSchema": "contracts/fate/capabilities/schemas/resource.schema.json#/calculationJobFields",
+      "example": "contracts/fate/delivery/examples/events/job-terminal.json",
+      "producer": "domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py",
+      "consumers": ["api.polling_client", "webhook.dispatcher", "future.event_subscriber"],
+      "deliverySemantics": "local_contract_only",
+      "privacyBoundary": "Example contains terminal status and availability flags only; report body, user input, webhook URL, secret and token are excluded.",
+      "externalConnectivity": "not_required",
+      "links": {
+        "schema": "contracts/fate/delivery/schemas/async-event.schema.json",
+        "example": "contracts/fate/delivery/examples/events/job-terminal.json"
+      },
+      "metadata": {
+        "messageId": "message.job.terminal",
+        "status": "contract_baseline",
+        "liveEvidence": "local contract only"
+      }
+    },
+    {
+      "resourceType": "AsyncEvent",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "event.webhook.delivery",
+      "name": "Webhook delivery result",
+      "eventDomain": "webhook",
+      "eventType": "webhook.delivery",
+      "cloudEventsType": "com.tradecatlabs.fatecat.webhook.delivery.v1",
+      "channel": "webhook.events",
+      "operation": "sendWebhookEvents",
+      "resourceRef": "WebhookEvent",
+      "payloadSchema": "contracts/fate/capabilities/schemas/resource.schema.json#/webhookEventResourceFields",
+      "example": "contracts/fate/delivery/examples/events/webhook-delivery.json",
+      "producer": "domains/experience-delivery/services/fatecat-delivery/src/webhook_callbacks.py",
+      "consumers": ["webhook.outbox", "future.event_subscriber"],
+      "deliverySemantics": "at_least_once_live_required",
+      "privacyBoundary": "Example records status, attempt count and targetHostHash only; it never includes callback URL, webhook secret, token, report markdown or user input.",
+      "externalConnectivity": "requires_real_receiver",
+      "links": {
+        "schema": "contracts/fate/delivery/schemas/async-event.schema.json",
+        "example": "contracts/fate/delivery/examples/events/webhook-delivery.json"
+      },
+      "metadata": {
+        "messageId": "message.webhook.delivery",
+        "status": "contract_baseline",
+        "liveEvidence": "外部连通验证待执行"
+      }
+    },
+    {
+      "resourceType": "AsyncEvent",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "event.evaluation.run.completed",
+      "name": "Evaluation run completed",
+      "eventDomain": "evaluation",
+      "eventType": "evaluation.run.completed",
+      "cloudEventsType": "com.tradecatlabs.fatecat.evaluation.run.completed.v1",
+      "channel": "evaluation.events",
+      "operation": "sendEvaluationEvents",
+      "resourceRef": "EvaluationRun",
+      "payloadSchema": "contracts/fate/evaluations/schemas/evaluation-run.schema.json",
+      "example": "contracts/fate/delivery/examples/events/evaluation-run-completed.json",
+      "producer": "scripts/evaluation-runner.py",
+      "consumers": ["evaluation.dashboard", "future.event_subscriber"],
+      "deliverySemantics": "local_contract_only",
+      "privacyBoundary": "Example contains run id/status/counts and artifact path only; benchmark answers, user input, secret, token and production logs are excluded.",
+      "externalConnectivity": "not_required",
+      "links": {
+        "schema": "contracts/fate/delivery/schemas/async-event.schema.json",
+        "example": "contracts/fate/delivery/examples/events/evaluation-run-completed.json"
+      },
+      "metadata": {
+        "messageId": "message.evaluation.run.completed",
+        "status": "contract_baseline",
+        "liveEvidence": "local contract only"
+      }
+    },
+    {
+      "resourceType": "AsyncEvent",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "event.release.gate.completed",
+      "name": "Release gate completed",
+      "eventDomain": "release",
+      "eventType": "release.gate.completed",
+      "cloudEventsType": "com.tradecatlabs.fatecat.release.gate.completed.v1",
+      "channel": "release.events",
+      "operation": "sendReleaseEvents",
+      "resourceRef": "ReleaseGate",
+      "payloadSchema": "contracts/fate/delivery/schemas/release-gate.schema.json",
+      "example": "contracts/fate/delivery/examples/events/release-gate-completed.json",
+      "producer": "scripts/live-release-gate.py",
+      "consumers": ["release.audit", "future.event_subscriber"],
+      "deliverySemantics": "local_contract_only",
+      "privacyBoundary": "Example contains gate status, commit and evidence counts only; user input, secret, token, registry credentials, production logs and report body are excluded.",
+      "externalConnectivity": "not_required",
+      "links": {
+        "schema": "contracts/fate/delivery/schemas/async-event.schema.json",
+        "example": "contracts/fate/delivery/examples/events/release-gate-completed.json"
+      },
+      "metadata": {
+        "messageId": "message.release.gate.completed",
+        "status": "contract_baseline",
+        "liveEvidence": "local contract only"
+      }
+    }
+  ],
+  "metadata": {
+    "owner": "contracts/fate/delivery",
+    "localVerification": [
+      "bash scripts/event-contract-gate.sh"
+    ],
+    "externalConnectivity": "外部连通验证待执行",
+    "privacyBoundary": "Registry stores event metadata and synthetic examples only; no real webhook URL, secret, token, user input, report markdown or production event log is stored.",
+    "limits": [
+      "不实现真实公网 webhook live delivery。",
+      "不接入 Kafka、NATS、RabbitMQ、Redis Streams 或其他外部 broker。",
+      "不声明事件平台已生产。",
+      "不替代 report job event history 或 webhook outbox 运行时实现。"
+    ]
+  }
+}
