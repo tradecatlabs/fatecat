@@ -612,9 +612,9 @@ Report job event history：
 | API 字段 | `/api/v1/report/jobs/{job_id}` 返回的 `CalculationJob.data.events[]`。 |
 | 事件资源 | 每项为 `CalculationJobEvent`，包含 `eventId`、`jobId`、`eventType`、`status`、`createdAt`、`message`、`metadata`。 |
 | 本地持久化 | `memory` 后端保留当前进程内事件；`sqlite` 后端写入 `report_job_events` 并按写入顺序返回。 |
-| 当前事件 | `job.queued`、`job.running`、`job.succeeded`、`job.failed`、`job.cancelled`、`job.expired`、`job.recovered_failed`、`job.recovered_requeued`、`job.attempt_failed`、`job.attempt_timed_out`、`job.retry_scheduled`、`webhook.delivery_attempt_failed`、`webhook.delivery_retry_scheduled`、`webhook.delivery_succeeded`、`webhook.delivery_failed`。 |
+| 当前事件 | `job.queued`、`job.running`、`job.succeeded`、`job.failed`、`job.cancelled`、`job.expired`、`job.recovered_failed`、`job.recovered_requeued`、`job.attempt_failed`、`job.attempt_timed_out`、`job.retry_scheduled`、`webhook.delivery_attempt_failed`、`webhook.delivery_retry_scheduled`、`webhook.delivery_succeeded`、`webhook.delivery_failed`、`webhook.redelivery_scheduled`、`webhook.redelivery_skipped`、`webhook.redelivery_succeeded`、`webhook.redelivery_failed`。 |
 | 隐私 | event metadata 不包含 Markdown 正文、姓名、出生地区、请求体、webhook URL、webhook secret 或原始异常文本。 |
-| 边界 | 事件历史只证明任务生命周期可审计；本地 webhook retry/outbox trail、SQLite persistent outbox record baseline、restart-safe failure smoke 与 replayable recovery smoke 已有，external backend、生产级分布式 worker lease、跨进程 webhook 自动重投或真实公网 webhook live smoke 仍未完成。 |
+| 边界 | 事件历史只证明任务生命周期可审计；本地 webhook retry/outbox trail、SQLite persistent outbox record baseline、restart-safe failure smoke、replayable recovery smoke 与 SQLite outbox redelivery baseline 已有，external backend、生产级分布式 worker lease、真实公网 webhook live smoke、持久 callback secret 加密/轮换仍未完成。 |
 
 Report job retry / timeout policy：
 
@@ -667,7 +667,14 @@ bash scripts/webhook-outbox-smoke.sh \
   --output-json infra/runtime/local-state/exports/webhook/outbox-smoke.json
 ```
 
-当前 webhook 是本地可验证 callback baseline，已包含有限 retry、事件轨迹和 SQLite persistent outbox record baseline；outbox 摘要不包含完整 webhook URL、webhook secret、报告正文、姓名、出生地区或请求体。它仍不包含跨进程自动重投、secret 加密/轮换、接收端 SLA、external backend、外部任务系统或真实公网 callback live smoke，这些仍是外部连通验证待执行。
+本地 webhook outbox redelivery smoke：
+
+```bash
+bash scripts/webhook-outbox-redelivery-smoke.sh \
+  --output-json infra/runtime/local-state/exports/webhook/redelivery-smoke.json
+```
+
+当前 webhook 是本地可验证 callback baseline，已包含有限 retry、事件轨迹、SQLite persistent outbox record baseline 和 SQLite manager 重建后的 resolver redelivery baseline；outbox 摘要不包含完整 webhook URL、webhook secret、报告正文、姓名、出生地区或请求体。它仍不包含公网 live callback、secret 加密/轮换、接收端 SLA、external backend、外部任务系统、生产级分布式 worker lease 或 exactly-once，这些仍是外部连通验证待执行。
 
 ## 准入规则
 

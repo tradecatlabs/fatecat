@@ -180,6 +180,9 @@ class ReportJobStore:
     def load_webhook_outbox_records(self, _job_id: str) -> list[ReportJobWebhookOutboxRecord]:
         return []
 
+    def load_redeliverable_webhook_outbox_records(self) -> list[ReportJobWebhookOutboxRecord]:
+        return []
+
     def save_webhook_outbox_record(self, _record: ReportJobWebhookOutboxRecord) -> None:
         return
 
@@ -328,6 +331,22 @@ class SQLiteReportJobStore(ReportJobStore):
                 ORDER BY created_at ASC, outbox_id ASC
                 """,
                 (job_id,),
+            ).fetchall()
+        return [self._row_to_webhook_outbox_record(row) for row in rows]
+
+    def load_redeliverable_webhook_outbox_records(self) -> list[ReportJobWebhookOutboxRecord]:
+        with self._lock, self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT outbox_id, job_id, event_type, job_status, status, attempts,
+                       max_attempts, signature_mode, target_host_hash, created_at,
+                       updated_at, completed_at, last_error_type, result_status_code
+                FROM report_job_webhook_outbox
+                WHERE event_type = ?
+                  AND status IN ('pending', 'failed')
+                ORDER BY updated_at ASC, created_at ASC, outbox_id ASC
+                """,
+                (REPORT_JOB_WEBHOOK_EVENT_TYPE,),
             ).fetchall()
         return [self._row_to_webhook_outbox_record(row) for row in rows]
 
@@ -535,6 +554,7 @@ class ReportJobManager:
         ttl_seconds: int,
         store: ReportJobStore | None = None,
         webhook_dispatcher: ReportJobWebhookDispatcher | None = None,
+        delivery_resolver: Any = None,
         execution_policy: ReportJobExecutionPolicy | None = None,
         callback_policy: ReportJobWebhookPolicy | None = None,
         task_factories: dict[str, ReportJobTaskFactory] | None = None,
@@ -544,6 +564,7 @@ class ReportJobManager:
         self.ttl_seconds = max(60, ttl_seconds)
         self.store = store or InMemoryReportJobStore()
         self.webhook_dispatcher = webhook_dispatcher
+        self.delivery_resolver = delivery_resolver
         self.execution_policy = (execution_policy or ReportJobExecutionPolicy()).normalized()
         self.callback_policy = (callback_policy or ReportJobWebhookPolicy()).normalized()
         self.task_factories = dict(task_factories or {})
@@ -554,6 +575,7 @@ class ReportJobManager:
         self._started = False
         self._recovered_requeued_count = 0
         self._load_persisted_jobs()
+        self._schedule_webhook_outbox_redelivery()
         if self._recovered_requeued_count:
             self.start()
 
@@ -765,6 +787,113 @@ class ReportJobManager:
             "任务执行器重启后将未完成任务标记为失败",
             {"reason": reason},
         )
+
+    def _schedule_webhook_outbox_redelivery(self) -> None:
+        if not self.webhook_dispatcher or not self.delivery_resolver:
+            return
+        records = tuple(self.store.load_redeliverable_webhook_outbox_records())
+        if not records:
+            return
+        thread = Thread(
+            target=self._redeliver_webhook_outbox_records,
+            args=(records,),
+            name="fatecat-webhook-outbox-redelivery",
+            daemon=True,
+        )
+        thread.start()
+
+    def _redeliver_webhook_outbox_records(self, records: tuple[ReportJobWebhookOutboxRecord, ...]) -> None:
+        for record in records:
+            self._redeliver_webhook_outbox_record(record)
+
+    def _redeliver_webhook_outbox_record(self, record: ReportJobWebhookOutboxRecord) -> None:
+        with self._lock:
+            job = self._jobs.get(record.job_id)
+            if not job or job.status not in {"succeeded", "failed", "cancelled"}:
+                return
+            snapshot = self._snapshot_locked(job)
+        try:
+            webhook_config = self.delivery_resolver(record, snapshot) if self.delivery_resolver else None
+        except Exception as exc:  # noqa: BLE001 - resolver 是运行时外部边界，失败必须转成可审计事件。
+            with self._lock:
+                job = self._jobs.get(record.job_id)
+                if job:
+                    self._append_event_locked(
+                        job,
+                        "webhook.redelivery_failed",
+                        "报告任务 webhook outbox 重投配置解析失败",
+                        {
+                            "outboxId": record.outbox_id,
+                            "outboxStatus": record.status,
+                            "reason": "config_resolution_failed",
+                            "errorType": type(exc).__name__,
+                        },
+                    )
+            return
+        if webhook_config is None:
+            with self._lock:
+                job = self._jobs.get(record.job_id)
+                if job:
+                    self._append_event_locked(
+                        job,
+                        "webhook.redelivery_skipped",
+                        "报告任务 webhook outbox 重投缺少运行时配置",
+                        {
+                            "outboxId": record.outbox_id,
+                            "outboxStatus": record.status,
+                            "reason": "config_unavailable",
+                        },
+                    )
+            return
+
+        with self._lock:
+            job = self._jobs.get(record.job_id)
+            if job:
+                self._append_event_locked(
+                    job,
+                    "webhook.redelivery_scheduled",
+                    "报告任务 webhook outbox 已调度重投",
+                    {
+                        "outboxId": record.outbox_id,
+                        "outboxStatus": record.status,
+                        "previousAttempts": record.attempts,
+                        "targetHostHash": record.target_host_hash,
+                    },
+                )
+        final_record = self._dispatch_terminal_webhook(
+            snapshot,
+            webhook_config,
+            existing_outbox_record=record,
+            redelivery=True,
+        )
+        if final_record is None:
+            return
+        with self._lock:
+            job = self._jobs.get(record.job_id)
+            if not job:
+                return
+            if final_record.status == "succeeded":
+                self._append_event_locked(
+                    job,
+                    "webhook.redelivery_succeeded",
+                    "报告任务 webhook outbox 重投成功",
+                    {
+                        "outboxId": final_record.outbox_id,
+                        "attempts": final_record.attempts,
+                        "statusCode": final_record.result_status_code,
+                    },
+                )
+            elif final_record.status == "failed":
+                self._append_event_locked(
+                    job,
+                    "webhook.redelivery_failed",
+                    "报告任务 webhook outbox 重投失败",
+                    {
+                        "outboxId": final_record.outbox_id,
+                        "attempts": final_record.attempts,
+                        "errorType": final_record.last_error_type,
+                    },
+                )
 
     def _worker_loop(self) -> None:
         while True:
@@ -1006,30 +1135,52 @@ class ReportJobManager:
         self.store.append_job_event(event)
         return event
 
-    def _dispatch_terminal_webhook(self, snapshot: ReportJobSnapshot | None, webhook_config: Any | None) -> None:
+    def _dispatch_terminal_webhook(
+        self,
+        snapshot: ReportJobSnapshot | None,
+        webhook_config: Any | None,
+        *,
+        existing_outbox_record: ReportJobWebhookOutboxRecord | None = None,
+        redelivery: bool = False,
+    ) -> ReportJobWebhookOutboxRecord | None:
         if not snapshot or not webhook_config or not self.webhook_dispatcher:
-            return
+            return None
         if snapshot.status not in {"succeeded", "failed", "cancelled"}:
-            return
+            return None
         max_attempts = self.callback_policy.max_attempts
         retry_backoff_seconds = self.callback_policy.retry_backoff_seconds
         now = now_cn().isoformat()
-        outbox_record = ReportJobWebhookOutboxRecord(
-            outbox_id=_webhook_outbox_id(snapshot),
-            job_id=snapshot.job_id,
-            event_type=REPORT_JOB_WEBHOOK_EVENT_TYPE,
-            job_status=snapshot.status,
-            status="pending",
-            attempts=0,
-            max_attempts=max_attempts,
-            signature_mode=getattr(webhook_config, "signature_mode", "none"),
-            target_host_hash=_target_host_hash(getattr(webhook_config, "url", None)),
-            created_at=now,
-            updated_at=now,
-            completed_at=None,
-            last_error_type=None,
-            result_status_code=None,
-        )
+        if existing_outbox_record is None:
+            outbox_record = ReportJobWebhookOutboxRecord(
+                outbox_id=_webhook_outbox_id(snapshot),
+                job_id=snapshot.job_id,
+                event_type=REPORT_JOB_WEBHOOK_EVENT_TYPE,
+                job_status=snapshot.status,
+                status="pending",
+                attempts=0,
+                max_attempts=max_attempts,
+                signature_mode=getattr(webhook_config, "signature_mode", "none"),
+                target_host_hash=_target_host_hash(getattr(webhook_config, "url", None)),
+                created_at=now,
+                updated_at=now,
+                completed_at=None,
+                last_error_type=None,
+                result_status_code=None,
+            )
+        else:
+            outbox_record = replace(
+                existing_outbox_record,
+                status="pending",
+                attempts=0,
+                max_attempts=max_attempts,
+                signature_mode=getattr(webhook_config, "signature_mode", existing_outbox_record.signature_mode),
+                target_host_hash=existing_outbox_record.target_host_hash
+                or _target_host_hash(getattr(webhook_config, "url", None)),
+                updated_at=now,
+                completed_at=None,
+                last_error_type=None,
+                result_status_code=None,
+            )
         with self._lock:
             self._persist_webhook_outbox_locked(outbox_record)
         for attempt in range(1, max_attempts + 1):
@@ -1063,7 +1214,9 @@ class ReportJobManager:
                         self._append_event_locked(
                             job,
                             "webhook.delivery_attempt_failed",
-                            "报告任务 webhook 投递 attempt 失败",
+                            "报告任务 webhook 重投 attempt 失败"
+                            if redelivery
+                            else "报告任务 webhook 投递 attempt 失败",
                             {
                                 "status": snapshot.status,
                                 "attempt": attempt,
@@ -1076,7 +1229,9 @@ class ReportJobManager:
                             self._append_event_locked(
                                 job,
                                 "webhook.delivery_retry_scheduled",
-                                "报告任务 webhook 将按 retry policy 重试",
+                                "报告任务 webhook 重投将按 retry policy 重试"
+                                if redelivery
+                                else "报告任务 webhook 将按 retry policy 重试",
                                 {
                                     "status": snapshot.status,
                                     "attempt": attempt,
@@ -1089,7 +1244,7 @@ class ReportJobManager:
                             self._append_event_locked(
                                 job,
                                 "webhook.delivery_failed",
-                                "报告任务 webhook 投递失败",
+                                "报告任务 webhook 重投失败" if redelivery else "报告任务 webhook 投递失败",
                                 {
                                     "status": snapshot.status,
                                     "attempt": attempt,
@@ -1100,7 +1255,7 @@ class ReportJobManager:
                 if will_retry:
                     self._sleep_before_retry(retry_backoff_seconds)
                     continue
-                return
+                return outbox_record
             updated_at = now_cn().isoformat()
             outbox_record = replace(
                 outbox_record,
@@ -1118,7 +1273,7 @@ class ReportJobManager:
                     self._append_event_locked(
                         job,
                         "webhook.delivery_succeeded",
-                        "报告任务 webhook 投递成功",
+                        "报告任务 webhook 重投成功" if redelivery else "报告任务 webhook 投递成功",
                         {
                             "status": snapshot.status,
                             "attempt": attempt,
@@ -1127,7 +1282,8 @@ class ReportJobManager:
                             "eventType": getattr(result, "event_type", None),
                         },
                     )
-            return
+            return outbox_record
+        return outbox_record
 
     def _queue_position_locked(self, job_id: str) -> int | None:
         with self._queue.mutex:

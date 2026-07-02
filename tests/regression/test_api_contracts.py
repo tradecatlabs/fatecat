@@ -1135,6 +1135,188 @@ def test_sqlite_webhook_outbox_persists_success_and_failure_records(tmp_path):
     assert "北京" not in failure_text
 
 
+def test_sqlite_webhook_outbox_redelivers_failed_record_after_manager_rebuild(tmp_path):
+    db_path = tmp_path / "report-jobs-webhook-redelivery.sqlite"
+    first_attempts: list[int] = []
+
+    def failing_dispatch(_snapshot, _config):
+        first_attempts.append(len(first_attempts) + 1)
+        raise RuntimeError("callback.example redelivery-secret 测试样本 北京")
+
+    first_manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path),
+        webhook_dispatcher=failing_dispatch,
+        callback_policy=ReportJobWebhookPolicy(max_attempts=1),
+    )
+    created = first_manager.submit(
+        kind="markdown",
+        report_system="bazi",
+        input_summary={"name": "测试样本", "birthPlace": "北京"},
+        webhook_config=WebhookConfig(url="https://callback.example/webhook", secret="redelivery-secret"),
+        task=lambda: {"reportSystem": "bazi", "markdown": "# 命理排盘报告：测试样本"},
+    )
+    failed_snapshot = _wait_for_manager_event(first_manager, created.job_id, "webhook.delivery_failed")
+
+    assert first_attempts == [1]
+    assert failed_snapshot.callback_outbox[0].status == "failed"
+
+    redelivery_attempts: list[str] = []
+
+    def success_dispatch(snapshot, config):
+        redelivery_attempts.append(f"{snapshot.job_id}:{getattr(config, 'signature_mode', 'none')}")
+        return type("WebhookResult", (), {"status_code": 204, "event_type": "report_job.terminal"})()
+
+    def resolver(record, snapshot):
+        assert record.outbox_id == failed_snapshot.callback_outbox[0].outbox_id
+        assert snapshot.job_id == created.job_id
+        return WebhookConfig(url="https://callback.example/webhook", secret="redelivery-secret")
+
+    rebuilt = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path),
+        webhook_dispatcher=success_dispatch,
+        delivery_resolver=resolver,
+        callback_policy=ReportJobWebhookPolicy(max_attempts=1),
+    )
+    recovered = _wait_for_manager_event(rebuilt, created.job_id, "webhook.redelivery_succeeded")
+    event_types = [event.event_type for event in recovered.events]
+
+    assert redelivery_attempts == [f"{created.job_id}:hmac-sha256"]
+    assert recovered.callback_outbox[0].status == "succeeded"
+    assert recovered.callback_outbox[0].attempts == 1
+    assert recovered.callback_outbox[0].result_status_code == 204
+    assert "webhook.redelivery_scheduled" in event_types
+    assert "webhook.delivery_succeeded" in event_types
+    assert event_types[-1] == "webhook.redelivery_succeeded"
+    payload = main._report_job_payload(recovered, include_result=False)
+    serialized = json.dumps(
+        {
+            "events": [event.metadata for event in recovered.events],
+            "outbox": payload["webhookOutbox"],
+        },
+        ensure_ascii=False,
+    )
+    assert "callback.example" not in serialized
+    assert "redelivery-secret" not in serialized
+    assert "测试样本" not in serialized
+    assert "北京" not in serialized
+    assert "# 命理排盘报告" not in serialized
+
+
+def test_sqlite_webhook_outbox_redelivery_skips_when_resolver_returns_none(tmp_path):
+    db_path = tmp_path / "report-jobs-webhook-redelivery-missing-config.sqlite"
+
+    def failing_dispatch(_snapshot, _config):
+        raise RuntimeError("redelivery config unavailable")
+
+    first_manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path),
+        webhook_dispatcher=failing_dispatch,
+        callback_policy=ReportJobWebhookPolicy(max_attempts=1),
+    )
+    created = first_manager.submit(
+        kind="markdown",
+        report_system="bazi",
+        webhook_config=WebhookConfig(url="https://callback.example/webhook", secret="missing-config-secret"),
+        task=lambda: {"reportSystem": "bazi", "markdown": "done"},
+    )
+    failed_snapshot = _wait_for_manager_event(first_manager, created.job_id, "webhook.delivery_failed")
+    assert failed_snapshot.callback_outbox[0].status == "failed"
+
+    redelivery_called = False
+
+    def should_not_dispatch(_snapshot, _config):
+        nonlocal redelivery_called
+        redelivery_called = True
+        raise AssertionError("resolver returned None, dispatcher must not be called")
+
+    rebuilt = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path),
+        webhook_dispatcher=should_not_dispatch,
+        delivery_resolver=lambda _record, _snapshot: None,
+        callback_policy=ReportJobWebhookPolicy(max_attempts=1),
+    )
+    skipped = _wait_for_manager_event(rebuilt, created.job_id, "webhook.redelivery_skipped")
+    event_types = [event.event_type for event in skipped.events]
+
+    assert redelivery_called is False
+    assert skipped.callback_outbox[0].status == "failed"
+    assert "webhook.redelivery_skipped" in event_types
+    assert "webhook.redelivery_succeeded" not in event_types
+    assert "webhook.redelivery_failed" not in event_types
+    serialized = json.dumps([event.metadata for event in skipped.events], ensure_ascii=False)
+    assert "callback.example" not in serialized
+    assert "missing-config-secret" not in serialized
+
+
+def test_sqlite_webhook_outbox_redelivery_records_resolver_error(tmp_path):
+    db_path = tmp_path / "report-jobs-webhook-redelivery-resolver-error.sqlite"
+
+    def failing_dispatch(_snapshot, _config):
+        raise RuntimeError("seed failure")
+
+    first_manager = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path),
+        webhook_dispatcher=failing_dispatch,
+        callback_policy=ReportJobWebhookPolicy(max_attempts=1),
+    )
+    created = first_manager.submit(
+        kind="markdown",
+        report_system="bazi",
+        input_summary={"name": "测试样本", "birthPlace": "北京"},
+        webhook_config=WebhookConfig(url="https://callback.example/webhook", secret="resolver-secret"),
+        task=lambda: {"reportSystem": "bazi", "markdown": "done"},
+    )
+    failed_snapshot = _wait_for_manager_event(first_manager, created.job_id, "webhook.delivery_failed")
+    assert failed_snapshot.callback_outbox[0].status == "failed"
+
+    redelivery_called = False
+
+    def should_not_dispatch(_snapshot, _config):
+        nonlocal redelivery_called
+        redelivery_called = True
+        raise AssertionError("resolver failed, dispatcher must not be called")
+
+    def resolver_raises(_record, _snapshot):
+        raise RuntimeError("callback.example resolver-secret 测试样本 北京")
+
+    rebuilt = ReportJobManager(
+        max_workers=1,
+        queue_size=4,
+        ttl_seconds=120,
+        store=SQLiteReportJobStore(db_path),
+        webhook_dispatcher=should_not_dispatch,
+        delivery_resolver=resolver_raises,
+        callback_policy=ReportJobWebhookPolicy(max_attempts=1),
+    )
+    redelivery_failed = _wait_for_manager_event(rebuilt, created.job_id, "webhook.redelivery_failed")
+
+    assert redelivery_called is False
+    assert redelivery_failed.callback_outbox[0].status == "failed"
+    failure_events = [event for event in redelivery_failed.events if event.event_type == "webhook.redelivery_failed"]
+    assert failure_events[-1].metadata["reason"] == "config_resolution_failed"
+    assert failure_events[-1].metadata["errorType"] == "RuntimeError"
+    serialized = json.dumps([event.metadata for event in redelivery_failed.events], ensure_ascii=False)
+    assert "callback.example" not in serialized
+    assert "resolver-secret" not in serialized
+    assert "测试样本" not in serialized
+    assert "北京" not in serialized
+
+
 def test_sqlite_replayable_report_job_requeues_after_manager_rebuild(tmp_path):
     db_path = tmp_path / "report-jobs-replayable.sqlite"
     first_manager = ReportJobManager(
