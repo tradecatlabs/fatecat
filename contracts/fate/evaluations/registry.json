@@ -365,10 +365,12 @@
       "safety": "runner 使用 shlex 拆分命令、白名单 bash scripts/*.sh 与 python -m pytest，不使用 shell=True。"
     },
     "diffPolicy": "contracts/fate/evaluations/diff-policy.json",
+    "trendPolicy": "contracts/fate/evaluations/trend-policy.json",
     "coreQualityCorpusManifest": "contracts/fate/evaluations/core-quality-corpus.json",
     "reportDiffPolicy": "contracts/fate/evaluations/report-diff-policy.json",
     "coreQualityCorpusGateCommand": "bash scripts/core-quality-corpus-gate.sh",
     "diffCommand": "bash scripts/compare-evaluations.sh --baseline-json <baseline> --current-json <current>",
+    "trendCommand": "bash scripts/evaluation-trend-gate.sh",
     "dashboardCommand": "bash scripts/evaluation-dashboard.sh --summary-json <summary> --output-html <dashboard>",
     "nightlyCommand": "bash scripts/evaluation-nightly.sh"
   }

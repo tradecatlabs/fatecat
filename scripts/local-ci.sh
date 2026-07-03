@@ -240,6 +240,8 @@ run_quick() {
     --output-json "${output_dir}/current-release-proof.json"
   run_step "evaluation dashboard smoke" bash "${script_dir}/evaluation-dashboard-smoke.sh" \
     --output-dir "${output_dir}/evaluation-dashboard-smoke"
+  run_step "evaluation trend gate smoke" bash "${script_dir}/evaluation-trend-gate-smoke.sh" \
+    --output-dir "${output_dir}/evaluation-trend-gate-smoke"
   run_step "webhook smoke" bash "${script_dir}/webhook-smoke.sh" \
     --output-json "${output_dir}/webhook-smoke.json"
   run_step "webhook outbox smoke" bash "${script_dir}/webhook-outbox-smoke.sh" \
@@ -307,6 +309,7 @@ run_quick() {
       tests/regression/test_evaluation_dashboard.py \
       tests/regression/test_evaluation_history_diff.py \
       tests/regression/test_evaluation_runner.py \
+      tests/regression/test_evaluation_trend_gate.py \
       tests/regression/test_external_secret_provider_gate.py \
       tests/regression/test_mingli_bench_aggregate_gate.py \
       tests/regression/test_mingli_bench_gate.py \
@@ -484,6 +487,7 @@ write_summary() {
   FATE_LOCAL_CI_ROLLBACK_DRILL="${output_dir}/rollback-drill.json" \
   FATE_LOCAL_CI_CURRENT_RELEASE_PROOF="${output_dir}/current-release-proof.json" \
   FATE_LOCAL_CI_EVALUATION_DASHBOARD_SMOKE="${output_dir}/evaluation-dashboard-smoke" \
+  FATE_LOCAL_CI_EVALUATION_TREND_GATE_SMOKE="${output_dir}/evaluation-trend-gate-smoke" \
   FATE_LOCAL_CI_WEBHOOK_SMOKE="${output_dir}/webhook-smoke.json" \
   FATE_LOCAL_CI_WEBHOOK_OUTBOX_SMOKE="${output_dir}/webhook-outbox-smoke.json" \
   FATE_LOCAL_CI_WEBHOOK_OUTBOX_REDELIVERY_SMOKE="${output_dir}/webhook-outbox-redelivery-smoke.json" \
@@ -566,6 +570,7 @@ payload = {
         "rollbackDrill": env("FATE_LOCAL_CI_ROLLBACK_DRILL"),
         "currentReleaseProof": env("FATE_LOCAL_CI_CURRENT_RELEASE_PROOF"),
         "evaluationDashboardSmoke": env("FATE_LOCAL_CI_EVALUATION_DASHBOARD_SMOKE"),
+        "evaluationTrendGateSmoke": env("FATE_LOCAL_CI_EVALUATION_TREND_GATE_SMOKE"),
         "webhookSmoke": env("FATE_LOCAL_CI_WEBHOOK_SMOKE"),
         "webhookOutboxSmoke": env("FATE_LOCAL_CI_WEBHOOK_OUTBOX_SMOKE"),
         "webhookOutboxRedeliverySmoke": env("FATE_LOCAL_CI_WEBHOOK_OUTBOX_REDELIVERY_SMOKE"),

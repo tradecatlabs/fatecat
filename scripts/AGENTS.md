@@ -46,6 +46,9 @@ scripts/
 ├── evaluation-dashboard.sh
 ├── evaluation-dashboard.py
 ├── evaluation-dashboard-smoke.sh
+├── evaluation-trend-gate.sh
+├── evaluation-trend-gate.py
+├── evaluation-trend-gate-smoke.sh
 ├── evaluation-nightly.sh
 ├── hf-space-deploy.sh
 ├── local-ci.sh
@@ -202,6 +205,8 @@ scripts/
 - `compare-evaluations.sh` / `compare-evaluations.py` 是本地 Evaluation summary diff 工具；按 `contracts/fate/evaluations/diff-policy.json` 判定新增失败、缺失 run 和失败命令。
 - `evaluation-dashboard.sh` / `evaluation-dashboard.py` 把 EvaluationRun summary 与可选 diff 渲染为静态 HTML dashboard；只展示状态、命令、exit code、duration 和 diff 摘要，不渲染 stdout/stderr tail、benchmark 标准答案、报告正文或真实凭证。
 - `evaluation-dashboard-smoke.sh` 使用 dry-run EvaluationRun summary 验证 dashboard renderer 和隐私边界；进入 quick CI，不执行重型评测。
+- `evaluation-trend-gate.sh` / `evaluation-trend-gate.py` 是 EvaluationRun history/latest 趋势门禁；拒绝最新失败、连续失败、缺失 required run 和失败命令，只输出 summary-only 趋势 JSON，不复制 stdout/stderr tail、benchmark 标准答案、报告正文、真实凭证或真实用户输入。
+- `evaluation-trend-gate-smoke.sh` 使用 synthetic history fixture 验证 trend gate 策略和隐私边界；进入 quick CI，不执行重型评测、不访问公网。
 - `evaluation-nightly.sh` 执行 releaseRequired EvaluationRun、记录 history/latest、生成 diff 和 dashboard artifact；默认不执行 reference repo benchmark，不访问外部模型 API。
 - `mingli-bench-gate.sh` / `mingli-bench-gate.py` 是 MingLi-Bench 离线聚合门禁；校验 core corpus、vendor license/usage、EvaluationRun 边界和 FateCat baseline 汇总，不保存逐题结果或标准答案。
 - `generate-mingli-predictions.sh` 是 `fate_core.evaluation.mingli_baseline` 的薄封装，不承载领域评测规则。

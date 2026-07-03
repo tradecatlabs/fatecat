@@ -1,0 +1,10 @@
+# Execution Checklist
+[x] TP-01.01 | P0 | 盘点 EvaluationRun runner/history/dashboard/nightly 现状 | Verify: `rg -n "record-history|latest.json|evaluation-dashboard|evaluation-nightly" scripts contracts tests docs` | Gate: 确认趋势库缺口不是已有 diff/dashboard 能力覆盖 | Parallelizable: Yes
+[x] TP-01.02 | P0 | 定义 trend policy、失败阈值和隐私边界 | Verify: `cat contracts/fate/evaluations/trend-policy.json` | Gate: 明确 latest、consecutive、failed run/command、missing required run 和 productionBoundary | Parallelizable: Yes
+[x] TP-02.01 | P0 | 实现 trend gate CLI 和 shell wrapper | Verify: `bash scripts/evaluation-trend-gate.sh --help` | Gate: CLI 可读取 history dir、policy 和 output JSON | Parallelizable: No
+[x] TP-02.02 | P0 | 增加 synthetic smoke 并接入 quick CI | Verify: `bash scripts/evaluation-trend-gate-smoke.sh --output-dir /tmp/fatecat-evaluation-trend-gate-smoke-0104` | Gate: smoke passed 且 local-ci 包含 trend smoke | Parallelizable: Yes
+[x] TP-02.03 | P0 | 接入 registry metadata 和 AGENTS 文档 | Verify: `rg -n "trendPolicy|trendCommand|evaluation-trend-gate" contracts scripts/AGENTS.md` | Gate: registry、contracts AGENTS、scripts AGENTS 口径一致 | Parallelizable: Yes
+[x] TP-03.01 | P0 | 增加 focused regression tests | Verify: `.venv/bin/python -m pytest -q tests/regression/test_evaluation_trend_gate.py` | Gate: clean/failure/missing-required/privacy/wiring cases passed | Parallelizable: Yes
+[x] TP-03.02 | P0 | 刷新 100% infrastructure roadmap Post-0103 section | Verify: `rg -n "Post-0103|0104|trend policy" docs/reference-materials/roadmap/测算基础设施100%实现计划.md` | Gate: 路线图明确 trend store 是本地质量门禁，外部 live 仍 pending | Parallelizable: Yes
+[x] TP-04.01 | P0 | 执行 validators、focused tests、smoke、runner history、lint、secret scan 和 diff check | Verify: `python3 /home/lenovo/.codex/skills/auto-tasks/scripts/validate_task_docs.py --task-dir governance/tasks/0104-measurement-infrastructure-evaluation-trend-store --phase closeout` | Gate: 验证证据写入 STATUS/Checklist | Parallelizable: No
+[x] TP-04.02 | P0 | 关闭任务文档并准备 git delivery | Verify: `git status --short --branch` | Gate: scoped diff 清楚，提交/推送如实记录 | Parallelizable: No

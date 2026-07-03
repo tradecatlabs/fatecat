@@ -193,3 +193,5 @@
 | 0102 | measurement-infrastructure-evidence-coverage-trend | Done | P0 | 执行 0099 Wave A A3：新增八字/紫微 evidence coverage trend gate，把 rule_depth_registry、classics_rule_index、analysisEvidence、Report evidenceRefs、冲突解释和反证字段纳入 tracked baseline，对覆盖率下降、规则引用断链或证据字段回退 fail-fast；不保存完整报告正文、真实用户资料或外部生产证据。 | 0102-measurement-infrastructure-evidence-coverage-trend/ |
 
 | 0103 | measurement-infrastructure-current-audit-bundle-refresh | Done | P0 | 执行 0099 Wave A A4：基于最新 commit 重新聚合 current audit bundle，并让审计证据包显式纳入 local-ci gate artifact 摘要，尤其是 0102 新增的 evidence coverage trend gate；输出 audit markdown/json、evidence index、risk register 和 external pending list，不伪造外部 live 或第三方审计完成。 | 0103-measurement-infrastructure-current-audit-bundle-refresh/ |
+
+| 0104 | measurement-infrastructure-evaluation-trend-store | In Progress | P0 | 执行 0099 后续本地可执行质量趋势库切片：新增 EvaluationRun history trend policy/gate/smoke，把 run-evaluations history/latest 从单次记录升级为可审计趋势门禁；拒绝最新失败、连续失败、缺失 required run 或失败命令；不保存命令输出、benchmark 标准答案、报告正文或真实凭证。 | 0104-measurement-infrastructure-evaluation-trend-store/ |

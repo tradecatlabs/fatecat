@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.evaluation_trend_policy",
+  "id": "evaluation.trend.policy.baseline",
+  "description": "EvaluationRun 本地历史趋势门禁策略。该策略读取 summary history 的结构化结果，判断最新状态、连续失败、缺失 run 和失败命令，不保存命令输出、benchmark 标准答案或报告正文。",
+  "history": {
+    "defaultWindow": 10,
+    "minSummaries": 1,
+    "latestMustPass": true,
+    "maxConsecutiveFailedSummaries": 0,
+    "maxLatestFailedRuns": 0,
+    "maxLatestFailedCommands": 0,
+    "maxLatestMissingRequiredRuns": 0
+  },
+  "privacyBoundary": "Trend gate 只读取 EvaluationRun summary 的 status、runId、exitCode、generatedAt 和 gitCommit；不得复制 stdout/stderr tail、benchmark 标准答案、报告正文、真实 token、secret、DSN 或真实用户输入。",
+  "productionBoundary": "status=passed 只表示本地评测历史趋势未触发 policy violation；不代表外部 benchmark、远端 CI 当前 commit、第三方审计或生产 live 已完成。"
+}
