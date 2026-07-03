@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.evidence_coverage_trend_contract",
+  "id": "audit.evidence.coverage.trend",
+  "status": "baseline",
+  "description": "Evidence coverage trend gate 契约。门禁聚合 rule_depth_registry、classics_rule_index、CapabilityExecutor 输出和 capability Report evidenceRefs，检查规则引用断链、analysisEvidence trace 完整度、冲突解释和反证字段，并与 tracked baseline 比较。",
+  "generator": {
+    "command": "bash scripts/evidence-coverage-trend-gate.sh --output-json <path>",
+    "pythonEntrypoint": "scripts/evidence-coverage-trend-gate.py",
+    "defaultOutput": "infra/runtime/local-state/exports/quality/evidence-coverage-trend.json"
+  },
+  "inputSources": [
+    "contracts/fate/evidence-coverage-baseline.json",
+    "contracts/fate/rule_depth_registry.json",
+    "contracts/fate/classics_rule_index.json",
+    "CapabilityExecutor bazi/ziwei 北京测试样本",
+    "FastAPI /capabilities/{capability_id}/calculate Report envelope"
+  ],
+  "requiredOutputFields": [
+    "schemaVersion",
+    "kind",
+    "generatedAt",
+    "status",
+    "baseline",
+    "registry",
+    "capabilities",
+    "trendFindings",
+    "brokenRuleRefs",
+    "privacyBoundary",
+    "productionBoundary"
+  ],
+  "requiredChecks": [
+    "rule_depth_registry.rules[].id exists in classics_rule_index",
+    "rule_depth_registry.rules[].sourceRuleIds all exist in classics_rule_index",
+    "analysisEvidence items carry ruleIds, source/sources, basis and risk/riskBoundary",
+    "capability Report evidenceRefs carry id, source and ruleIds",
+    "capability Report evidenceRefs completeRatio stays at or above tracked baseline",
+    "baziRuleDepth/ziweiRuleDepth appliedRules carry ruleId, sourceRuleIds, evidenceFields, conditions, conflictPolicy and riskBoundary",
+    "conflictResolution conflicts carry explanation and counterEvidence",
+    "combinationStatements carry ruleIds and riskBoundary"
+  ],
+  "forbiddenReportFragments": [
+    "token=",
+    "secret=",
+    "password=",
+    "DATABASE_URL",
+    "DB_DSN",
+    "BEGIN RSA",
+    "BEGIN OPENSSH",
+    "命理排盘报告：",
+    "第一卷",
+    "出生地区"
+  ],
+  "privacyBoundary": "门禁输出只保存计数、ratio、字段名、ruleId 和证据路径；不得复制完整报告正文、真实用户输入、真实地名字段、token、secret、DSN、私钥或生产日志 payload。",
+  "productionBoundary": "status=passed 只表示本地 evidence coverage 未低于 tracked baseline 且规则引用未断链；不代表预测准确率、专业能力 100%、外部生产 live 或第三方审计通过。"
+}

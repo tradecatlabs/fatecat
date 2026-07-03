@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.evidence_coverage_baseline",
+  "id": "evidence-coverage-baseline-2026-07-03",
+  "description": "八字/紫微 evidence coverage trend 初始 baseline。该文件记录本地匿名北京测试样本与规则 registry 的最低可接受覆盖率，不保存完整报告正文、真实用户数据或外部生产证据。",
+  "registryMinimums": {
+    "totalRules": 44,
+    "rulesBySystem": {
+      "bazi": 22,
+      "ziwei": 22
+    }
+  },
+  "capabilityMinimums": {
+    "bazi": {
+      "minEvidenceItems": 12,
+      "minReportEvidenceRefs": 12,
+      "minAppliedRules": 22,
+      "minConflicts": 5,
+      "minCombinationStatements": 6,
+      "minTraceCompletenessRatio": 1.0,
+      "minReportEvidenceRefCompletenessRatio": 1.0,
+      "minConflictExplanationRatio": 1.0,
+      "minConflictCounterEvidenceRatio": 1.0,
+      "requiredEvidenceItems": [
+        "dayMaster",
+        "wuxingPreference",
+        "pattern",
+        "ganzhiRelations",
+        "timePipeline",
+        "solarTermBoundary",
+        "patternUseGodTrace",
+        "baziBenchmark",
+        "baziRuleDepth"
+      ]
+    },
+    "ziwei": {
+      "minEvidenceItems": 6,
+      "minReportEvidenceRefs": 6,
+      "minAppliedRules": 22,
+      "minConflicts": 4,
+      "minCombinationStatements": 4,
+      "minTraceCompletenessRatio": 1.0,
+      "minReportEvidenceRefCompletenessRatio": 1.0,
+      "minConflictExplanationRatio": 1.0,
+      "minConflictCounterEvidenceRatio": 1.0,
+      "requiredEvidenceItems": [
+        "ziweiChart",
+        "horoscope",
+        "timePipeline",
+        "interpretation",
+        "benchmarkHardening",
+        "ruleDepth"
+      ]
+    }
+  },
+  "maxBrokenRuleRefs": 0,
+  "privacyBoundary": "baseline 只保存结构化计数、ratio、字段名和 ruleId 覆盖门槛；不得保存出生地区以外真实用户资料、完整 Markdown 报告正文、token、secret、DSN、私钥、生产日志 payload 或外部账号数据。",
+  "productionBoundary": "该 baseline 只证明本地匿名样本 evidence coverage 不回退，不证明预测准确率、专业能力 100%、第三方审计通过或外部生产 live 已完成。"
+}

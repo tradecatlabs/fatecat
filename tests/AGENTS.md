@@ -38,6 +38,7 @@ tests/
 	    ├── test_otel_backend_slo_gate.py
 	    ├── test_provider_drift_scanner.py
 	    ├── test_provider_drift_trend_gate.py
+	    ├── test_evidence_coverage_trend_gate.py
 	    └── test_*.py
 ```
 
@@ -72,6 +73,7 @@ tests/
 - `regression/test_otel_backend_slo_gate.py`：OTel backend/SLO staged evidence gate 合同；验证 pending summary、脱敏 live fixture、placeholder/raw URL/缺字段负例和 summary 隐私边界。
 - `regression/test_provider_drift_scanner.py`：production provider drift scanner 合同；验证 provider lifecycle/dependency smoke、provider.validate/provider.calculate span、source/license/vendor refs 和 drift report 隐私边界。
 - `regression/test_provider_drift_trend_gate.py`：provider/source/license 长期趋势门禁合同；验证 tracked baseline 指纹、当前 scanner 对比、缺 provider、license 回退、vendor hash 漂移和 scanner failed summary 的负向拒绝。
+- `regression/test_evidence_coverage_trend_gate.py`：八字/紫微 evidence coverage trend 门禁合同；验证 tracked baseline、规则索引断链拒绝、analysisEvidence 和 Report evidenceRefs 完整度、冲突解释/反证字段以及 CLI summary 输出。
 - 服务私有测试可以留在服务根，但必须被根 `scripts/acceptance.sh` 覆盖。
 - 不在这里写入运行态、golden 原始资料或外部 vendor 源码。
 

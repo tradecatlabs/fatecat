@@ -278,6 +278,26 @@ bash scripts/bazi-ziwei-l4-golden-smoke.sh \
 
 `--profile quick` 只执行代表样本，进入本地 quick CI；`--profile full` 执行当前 fixture 全量样本，适合作为发布前加严检查。该 smoke 不读取真实用户、不新增真实命例、不锁定全文断语正文、不宣称八字/紫微专业能力 100%。
 
+八字/紫微 evidence coverage trend gate：
+
+```bash
+bash scripts/evidence-coverage-trend-gate.sh \
+  --output-json infra/runtime/local-state/exports/quality/evidence-coverage-trend.json
+```
+
+该 gate 聚合 `contracts/fate/rule_depth_registry.json`、`contracts/fate/classics_rule_index.json`、统一 `CapabilityExecutor` 输出和 `/capabilities/{capability_id}/calculate` 的 Report envelope，验证：
+
+| 检查 | 含义 |
+| --- | --- |
+| 规则引用 | `rule_depth_registry.rules[].id` 和 `sourceRuleIds` 必须能回到 `classics_rule_index.json`。 |
+| analysisEvidence | evidence item 必须带 `ruleIds`、`source/sources`、`basis` 和 `risk/riskBoundary`。 |
+| Report evidenceRefs | API Report 的 evidenceRefs 必须带 `id`、`source` 和 `ruleIds`，完整度不得低于 baseline。 |
+| 冲突解释 | `conflictResolution.conflicts` 必须带解释和反证字段。 |
+| 组合断语 | `combinationStatements` 必须带 `ruleIds` 和 `riskBoundary`。 |
+| 覆盖趋势 | 当前八字/紫微证据项数、Report evidenceRefs、appliedRules、conflicts 和 combinationStatements 不得低于 `contracts/fate/evidence-coverage-baseline.json`。 |
+
+该 gate 只输出计数、ratio、字段名和 ruleId 覆盖摘要，不保存完整 Markdown 报告正文、真实用户资料、真实出生地区、token、secret、DSN 或生产日志 payload。`status=passed` 只证明本地 evidence coverage 未低于 tracked baseline，不证明预测准确率、专业能力 100%、外部 live 或第三方审计通过。
+
 `report.evidenceRefs` 是从原始 `evidence` 中抽取的可跳转引用摘要；它不替代完整 `evidence`。
 
 `report.policyGate` 是当前 capability Report envelope 的最小禁止性断语门禁：它使用 `risk.forbiddenClaims` 作为策略来源，扫描 `report.sections` 和 `report.metadata` 摘要字段，并显式排除 `risk.forbiddenClaims` 清单自身，避免风险清单自触发。Markdown 成功结果另有正文 `policyGate` 与 heading `snapshotGate`；完整全文 golden diff、阈值和人工审核仍属于后续发布门禁。

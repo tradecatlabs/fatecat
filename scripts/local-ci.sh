@@ -189,6 +189,8 @@ run_quick() {
   run_step "bazi ziwei L4 golden smoke" bash "${script_dir}/bazi-ziwei-l4-golden-smoke.sh" \
     --profile quick \
     --output-json "${output_dir}/bazi-ziwei-l4-golden-smoke.json"
+  run_step "evidence coverage trend gate" bash "${script_dir}/evidence-coverage-trend-gate.sh" \
+    --output-json "${output_dir}/evidence-coverage-trend-gate.json"
   run_step "core quality corpus gate" bash "${script_dir}/core-quality-corpus-gate.sh" \
     --output-json "${output_dir}/core-quality-corpus-gate.json"
   run_step "MingLi-Bench aggregate gate" bash "${script_dir}/mingli-bench-gate.sh" \
@@ -310,6 +312,7 @@ run_quick() {
       tests/regression/test_observability_smoke.py \
       tests/regression/test_observability_trace_slo.py \
       tests/regression/test_otel_backend_slo_gate.py \
+      tests/regression/test_evidence_coverage_trend_gate.py \
       tests/regression/test_provider_dependency_smoke.py \
       tests/regression/test_provider_lifecycle_gate.py \
       tests/regression/test_production_security_gate.py \
@@ -460,6 +463,7 @@ write_summary() {
   FATE_LOCAL_CI_OTEL_COLLECTOR_SLO_GATE="${output_dir}/otel-collector-slo-gate.json" \
   FATE_LOCAL_CI_OTEL_BACKEND_SLO_GATE="${output_dir}/otel-backend-slo-gate.json" \
   FATE_LOCAL_CI_BAZI_ZIWEI_L4_GOLDEN_SMOKE="${output_dir}/bazi-ziwei-l4-golden-smoke.json" \
+  FATE_LOCAL_CI_EVIDENCE_COVERAGE_TREND_GATE="${output_dir}/evidence-coverage-trend-gate.json" \
   FATE_LOCAL_CI_CORE_QUALITY_CORPUS_GATE="${output_dir}/core-quality-corpus-gate.json" \
   FATE_LOCAL_CI_MINGLI_BENCH_GATE="${output_dir}/mingli-bench-gate.json" \
   FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE="${output_dir}/data-supply-chain-gate.json" \
@@ -541,6 +545,7 @@ payload = {
         "otelCollectorSloGate": env("FATE_LOCAL_CI_OTEL_COLLECTOR_SLO_GATE"),
         "otelBackendSloGate": env("FATE_LOCAL_CI_OTEL_BACKEND_SLO_GATE"),
         "baziZiweiL4GoldenSmoke": env("FATE_LOCAL_CI_BAZI_ZIWEI_L4_GOLDEN_SMOKE"),
+        "evidenceCoverageTrendGate": env("FATE_LOCAL_CI_EVIDENCE_COVERAGE_TREND_GATE"),
         "coreQualityCorpusGate": env("FATE_LOCAL_CI_CORE_QUALITY_CORPUS_GATE"),
         "mingliBenchGate": env("FATE_LOCAL_CI_MINGLI_BENCH_GATE"),
         "dataSupplyChainGate": env("FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE"),

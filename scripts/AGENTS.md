@@ -37,6 +37,8 @@ scripts/
 ├── developer-platform-gate.py
 ├── developer-portal-gate.sh
 ├── developer-portal-gate.py
+├── evidence-coverage-trend-gate.sh
+├── evidence-coverage-trend-gate.py
 ├── sandbox-access-gateway-gate.sh
 ├── sandbox-access-gateway-gate.py
 ├── export-openapi.sh
@@ -162,6 +164,7 @@ scripts/
 - `live-release-gate.sh` / `live-release-gate.py` 是 live release evidence gate；聚合 local CI、远端 CI、生产 API、HF Space、Telegram Bot、container digest、SBOM/provenance、rollback drill 和 clean git state，输出机器可读 JSON。默认只做本地合同检查并标注外部连通验证待执行；`--local-ci-summary` 必须指向 `kind=fatecat.local_ci_summary`、`profile=quick`、`status=passed` 且 commit 匹配当前 HEAD 的 JSON；`--require-live` 才要求真实外部证据全部通过。
 - `measurement-infrastructure-certification.sh` / `measurement-infrastructure-certification.py` 是 100% 测算基础设施 certification dry-run 聚合器；只消费 local-ci 产物目录中已有 gate summary，输出分域 passed/blocked/pending/in-progress 结论；本地证据齐全但外部 live 或 release/audit gate 未闭合时应输出 `blocked`，不声明 100% 完成。
 - `bazi-ziwei-l4-golden-smoke.sh` / `bazi-ziwei-l4-golden-smoke.py` 是八字/紫微 L4 golden evidence 本地 smoke；`quick` 跑代表样本并进入本地 quick CI，`full` 跑当前 fixture 全量样本，不访问真实用户或外部账号。
+- `evidence-coverage-trend-gate.sh` / `evidence-coverage-trend-gate.py` 是八字/紫微 evidence coverage trend 门禁；聚合 `rule_depth_registry.json`、`classics_rule_index.json`、CapabilityExecutor 输出和 capability Report `evidenceRefs`，拒绝规则引用断链、analysisEvidence trace 缺字段、冲突解释/反证字段回退或 tracked baseline 覆盖率下降；不保存完整报告正文或真实用户资料。
 - `capability-cli.sh` 是根级 capability CLI 入口；只转发到 `fate_core.cli capability`，测算逻辑必须继续由 `CapabilityExecutor` 和 provider registry 执行。
 - `capability-cli-smoke.sh` / `capability-cli-smoke.py` 是 capability CLI 交付面本地 smoke；验证 bazi/ziwei/almanac/meihua production capability 可执行、planned capability 拒绝执行，并只保存 hash、字节数、字段名和状态。
 - `core-quality-corpus-gate.sh` / `core-quality-corpus-gate.py` 是八字/紫微核心质量语料门禁；校验 evaluation manifest、report diff policy、匿名 fixture 数量、紫微覆盖标签、summary-only 报告结构 diff 策略、北京测试样本和 registry 链接，不读取真实用户或生产数据。

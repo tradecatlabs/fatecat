@@ -46,6 +46,8 @@ contracts/fate/
 │   ├── retention-cleanup.json
 │   └── schemas/
 ├── classics_rule_index.json
+├── evidence-coverage-baseline.json
+├── evidence-coverage-trend-contract.json
 ├── evidence_schema.json
 ├── future_features.json
 ├── rule_depth_registry.json
@@ -84,6 +86,8 @@ contracts/fate/
 - `security/registry.json`：登记 available/manual controls；需要真实域名、真实 token、Bot live smoke 或云端权限的控制必须标注外部连通验证待执行。
 - `security/retention-cleanup.json`：登记本地 SQLite retention cleanup baseline 的命令、summary、smoke 与脱敏边界；不代表生产 scheduler、生产数据库或外部 SIEM retention 已验证。
 - `future_features.json`：记录不再进入标准报告、后续需按新功能重新设计契约的候选能力。
+- `evidence-coverage-baseline.json`：八字/紫微 evidence coverage trend 的 tracked baseline；只保存覆盖率门槛、计数和隐私边界，不保存报告正文或真实用户资料。
+- `evidence-coverage-trend-contract.json`：evidence coverage trend gate 契约；要求 rule depth registry、classics rule index、analysisEvidence、Report evidenceRefs、冲突解释和反证字段不回退。
 - `evidence_schema.json`：综合八字机器可读 evidence 字段契约；默认不渲染到 Markdown。
 - `weight_policy.json`：综合八字核心、动态、辅助、民俗权重边界。
 - `classics_rule_index.json`：典籍规则索引种子，只保存短规则与来源，不保存大段原文。
