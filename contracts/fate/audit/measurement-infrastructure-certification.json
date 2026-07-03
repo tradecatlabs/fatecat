@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.measurement_infrastructure_certification_contract",
+  "resourceType": "MeasurementInfrastructureCertification",
+  "id": "audit.measurement.infrastructure.certification",
+  "status": "baseline",
+  "description": "100% 测算基础设施 certification aggregator dry-run 契约。该聚合器只消费本地 local-ci 产物和现有 gate summary，输出分域 passed/blocked/pending/in-progress 结论；不把本地 dry-run、blocked ship gate 或 pending external live 伪装成 100% 完成。",
+  "generator": {
+    "command": "bash scripts/measurement-infrastructure-certification.sh --evidence-dir <local-ci-output-dir> --output-json <path>",
+    "pythonEntrypoint": "scripts/measurement-infrastructure-certification.py",
+    "defaultOutput": "infra/runtime/local-state/exports/certification/measurement-infrastructure-certification.json"
+  },
+  "requiredEvidenceFiles": [
+    "provider-drift-trend-gate.json",
+    "core-quality-corpus-gate.json",
+    "mingli-bench-gate.json",
+    "data-supply-chain-gate.json",
+    "event-contract-gate.json",
+    "developer-platform-gate.json",
+    "developer-portal-gate.json",
+    "sandbox-access-gateway-gate.json",
+    "production-security-gate.json",
+    "security-externalization-gate.json",
+    "retention-production-cleanup-gate.json",
+    "external-secret-provider-gate.json",
+    "observability-slo-gate.json",
+    "observability-trace-slo-smoke.json",
+    "otel-collector-slo-gate.json",
+    "otel-backend-slo-gate.json",
+    "runtime-backend-gate.json",
+    "multi-replica-runtime-gate.json",
+    "live-release-gate.json",
+    "current-release-proof.json",
+    "current-audit-bundle/current-audit-bundle.json"
+  ],
+  "requiredOutputFields": [
+    "schemaVersion",
+    "kind",
+    "generatedAt",
+    "status",
+    "certificationGate",
+    "domains",
+    "externalPending",
+    "blockingItems",
+    "privacyBoundary",
+    "releaseBoundary"
+  ],
+  "allowedDomainStatus": ["passed", "blocked", "pending", "in-progress", "failed"],
+  "blockedGateFields": ["shipGate.status=blocked", "auditGate.status=blocked", "proofGate.status=fail"],
+  "nonClaims": [
+    "Does not mean FateCat is 100% production infrastructure.",
+    "Does not replace third-party audit.",
+    "Does not prove Bot/API/HF/OIDC/SIEM/OTel/Vault/KMS/multi-replica live validation unless separate live evidence exists."
+  ],
+  "forbiddenReportFragments": [
+    "token=",
+    "secret=",
+    "password=",
+    "DATABASE_URL",
+    "DB_DSN",
+    "BEGIN RSA",
+    "BEGIN OPENSSH",
+    "命理排盘报告：",
+    "第一卷"
+  ],
+  "privacyBoundary": "Certification aggregator 只保存各 gate 的状态、计数、阻断项和证据路径，不复制用户报告正文、出生地区、真实 token、secret、DSN、私钥、生产日志 payload 或外部账号数据。",
+  "releaseBoundary": "status=passed 只允许在所有必备本地证据、当前发布证据、外部 live 证据和审计证据均通过时出现；本地 dry-run 下应保持 blocked/pending，不得宣称 100%。"
+}

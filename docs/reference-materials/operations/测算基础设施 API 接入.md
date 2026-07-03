@@ -216,6 +216,20 @@ bash scripts/provider-drift-trend-gate.sh \
 
 当前已完成本地 provider lifecycle baseline、本地 dependency smoke baseline、provider drift scanner baseline 和 provider/source/license drift trend baseline；真实公网外部依赖 live smoke、许可证人工法律复核和跨版本升级策略仍是后续任务。
 
+## 测算基础设施认证 dry-run
+
+100% 测算基础设施认证聚合器：
+
+```bash
+bash scripts/measurement-infrastructure-certification.sh \
+  --evidence-dir <local-ci-output-dir> \
+  --output-json infra/runtime/local-state/exports/certification/measurement-infrastructure-certification.json
+```
+
+该聚合器只消费 local-ci 产物目录中的机器可读 gate summary，覆盖 provider、core quality、event、developer、security/privacy、observability/SRE、runtime、release 和 audit 九个分域。缺少必备证据时输出 `failed`；release/audit/live evidence 未闭合时输出 `blocked` 或 `pending`，并保持 `certificationGate.canClaim100Percent=false`。只有所有分域均 `passed` 时，才允许配合 `--require-certified` 作为 100% 基础设施声明前置证据。
+
+它不连接真实外部系统，不读取真实 `.env`、token、secret、DSN 或生产账号，不复制报告正文、出生地区或用户 payload；真实 Bot/API/HF/OIDC/SIEM/OTel/Vault/KMS/多副本 live 仍需要独立外部连通验证。
+
 ## 数据供应链门禁
 
 数据、典籍、vendor、benchmark 与导出边界的机器契约位于：

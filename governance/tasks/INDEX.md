@@ -186,4 +186,6 @@
 
 | 0099 | measurement-infrastructure-100-post-0098-deep-research-plan | Done | P0 | 基于当前 worktree、0098 retention staged gate 本地 closeout 事实和外部基础设施官方资料，制作 FateCat 达到 100% 测算基础设施所需的完整实现计划、资源成熟度矩阵、执行波次、验收门禁和不可伪造证据口径；本任务只做调研与规划落盘，不实现业务功能。 | 0099-measurement-infrastructure-100-post-0098-deep-research-plan/ |
 
-| 0100 | measurement-infrastructure-provider-source-license-drift-trend | In-Progress | P0 | 把单次 provider drift scanner 升级为 provider/source/license 长期趋势门禁：记录 provider/source/license/vendor 指纹、对比历史基线、拒绝 provider/source/license/vendor 证据回退或缺失，并接入 quick CI；不连接真实公网 provider、不做法律许可证结论、不保存真实用户输入或生产凭证。 | 0100-measurement-infrastructure-provider-source-license-drift-trend/ |
+| 0100 | measurement-infrastructure-provider-source-license-drift-trend | Done | P0 | 把单次 provider drift scanner 升级为 provider/source/license 长期趋势门禁：记录 provider/source/license/vendor 指纹、对比历史基线、拒绝 provider/source/license/vendor 证据回退或缺失，并接入 quick CI；不连接真实公网 provider、不做法律许可证结论、不保存真实用户输入或生产凭证。 | 0100-measurement-infrastructure-provider-source-license-drift-trend/ |
+
+| 0101 | measurement-infrastructure-certification-aggregator-dry-run | Done | P0 | 执行 0099 Wave A A2：新增 100% 测算基础设施 certification aggregator dry-run，聚合 local-ci 产物中的 release、audit、provider trend、core quality、security、SRE、runtime、developer 和 external pending 证据，输出 passed/blocked/pending/in-progress 分域结论；默认不得把本地 dry-run 或 pending external live 伪装成 100% 完成。 | 0101-measurement-infrastructure-certification-aggregator-dry-run/ |

@@ -270,6 +270,9 @@ run_quick() {
     --current-release-proof "${output_dir}/current-release-proof.json" \
     --rollback-evidence-path "${output_dir}/rollback-drill.json" \
     --release-artifacts-dir "${output_dir}/release-artifacts"
+  run_step "measurement infrastructure certification dry-run" bash "${script_dir}/measurement-infrastructure-certification.sh" \
+    --evidence-dir "${output_dir}" \
+    --output-json "${output_dir}/measurement-infrastructure-certification.json"
   run_step "ruff check" env RUFF_CACHE_DIR="${RUFF_CACHE_DIR:-/tmp/fatecat-ruff-cache}" \
     "${python_bin}" -m ruff check "${runtime_root}"
   run_step "ruff format check" env RUFF_CACHE_DIR="${RUFF_CACHE_DIR:-/tmp/fatecat-ruff-cache}" \
@@ -332,6 +335,7 @@ run_quick() {
       tests/regression/test_report_job_replayable_recovery_smoke.py \
       tests/regression/test_report_job_restart_recovery_smoke.py \
       tests/regression/test_current_audit_bundle.py \
+      tests/regression/test_measurement_infrastructure_certification.py \
       tests/regression/test_current_release_proof.py \
       tests/regression/test_live_release_gate.py \
       tests/regression/test_container_release_evidence.py \
@@ -438,6 +442,7 @@ write_summary() {
   FATE_LOCAL_CI_PRODUCTION_SECURITY_GATE="${output_dir}/production-security-gate.json" \
   FATE_LOCAL_CI_SECURITY_EXTERNALIZATION_GATE="${output_dir}/security-externalization-gate.json" \
   FATE_LOCAL_CI_RETENTION_CLEANUP_SMOKE="${output_dir}/retention-cleanup-smoke.json" \
+  FATE_LOCAL_CI_RETENTION_PRODUCTION_CLEANUP_GATE="${output_dir}/retention-production-cleanup-gate.json" \
   FATE_LOCAL_CI_EXTERNAL_SECRET_PROVIDER_GATE="${output_dir}/external-secret-provider-gate.json" \
   FATE_LOCAL_CI_DEVELOPER_DOCS_SMOKE="${output_dir}/developer-docs-smoke.json" \
   FATE_LOCAL_CI_DEVELOPER_PLATFORM_GATE="${output_dir}/developer-platform-gate.json" \
@@ -449,6 +454,7 @@ write_summary() {
   FATE_LOCAL_CI_PROVIDER_LIFECYCLE_GATE="${output_dir}/provider-lifecycle-gate.json" \
   FATE_LOCAL_CI_PROVIDER_DEPENDENCY_SMOKE="${output_dir}/provider-dependency-smoke.json" \
   FATE_LOCAL_CI_PROVIDER_DRIFT_SCANNER="${output_dir}/provider-drift-scanner.json" \
+  FATE_LOCAL_CI_PROVIDER_DRIFT_TREND_GATE="${output_dir}/provider-drift-trend-gate.json" \
   FATE_LOCAL_CI_OBSERVABILITY_SLO_GATE="${output_dir}/observability-slo-gate.json" \
   FATE_LOCAL_CI_OBSERVABILITY_TRACE_SLO_SMOKE="${output_dir}/observability-trace-slo-smoke.json" \
   FATE_LOCAL_CI_OTEL_COLLECTOR_SLO_GATE="${output_dir}/otel-collector-slo-gate.json" \
@@ -484,6 +490,7 @@ write_summary() {
   FATE_LOCAL_CI_AUDIT_HANDOFF="${output_dir}/audit-handoff" \
   FATE_LOCAL_CI_AUDIT_DRY_RUN="${output_dir}/audit-dry-run" \
   FATE_LOCAL_CI_CURRENT_AUDIT_BUNDLE="${output_dir}/current-audit-bundle" \
+  FATE_LOCAL_CI_MEASUREMENT_INFRASTRUCTURE_CERTIFICATION="${output_dir}/measurement-infrastructure-certification.json" \
   "${summary_python}" - <<'PY'
 import json
 import os
@@ -516,6 +523,7 @@ payload = {
         "productionSecurityGate": env("FATE_LOCAL_CI_PRODUCTION_SECURITY_GATE"),
         "securityExternalizationGate": env("FATE_LOCAL_CI_SECURITY_EXTERNALIZATION_GATE"),
         "retentionCleanupSmoke": env("FATE_LOCAL_CI_RETENTION_CLEANUP_SMOKE"),
+        "retentionProductionCleanupGate": env("FATE_LOCAL_CI_RETENTION_PRODUCTION_CLEANUP_GATE"),
         "externalSecretProviderGate": env("FATE_LOCAL_CI_EXTERNAL_SECRET_PROVIDER_GATE"),
         "developerDocsSmoke": env("FATE_LOCAL_CI_DEVELOPER_DOCS_SMOKE"),
         "developerPlatformGate": env("FATE_LOCAL_CI_DEVELOPER_PLATFORM_GATE"),
@@ -526,12 +534,15 @@ payload = {
         "openapi": env("FATE_LOCAL_CI_OPENAPI"),
         "providerLifecycleGate": env("FATE_LOCAL_CI_PROVIDER_LIFECYCLE_GATE"),
         "providerDependencySmoke": env("FATE_LOCAL_CI_PROVIDER_DEPENDENCY_SMOKE"),
+        "providerDriftScanner": env("FATE_LOCAL_CI_PROVIDER_DRIFT_SCANNER"),
+        "providerDriftTrendGate": env("FATE_LOCAL_CI_PROVIDER_DRIFT_TREND_GATE"),
         "observabilitySloGate": env("FATE_LOCAL_CI_OBSERVABILITY_SLO_GATE"),
         "observabilityTraceSloSmoke": env("FATE_LOCAL_CI_OBSERVABILITY_TRACE_SLO_SMOKE"),
         "otelCollectorSloGate": env("FATE_LOCAL_CI_OTEL_COLLECTOR_SLO_GATE"),
         "otelBackendSloGate": env("FATE_LOCAL_CI_OTEL_BACKEND_SLO_GATE"),
         "baziZiweiL4GoldenSmoke": env("FATE_LOCAL_CI_BAZI_ZIWEI_L4_GOLDEN_SMOKE"),
         "coreQualityCorpusGate": env("FATE_LOCAL_CI_CORE_QUALITY_CORPUS_GATE"),
+        "mingliBenchGate": env("FATE_LOCAL_CI_MINGLI_BENCH_GATE"),
         "dataSupplyChainGate": env("FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE"),
         "runtimeBackendGate": env("FATE_LOCAL_CI_RUNTIME_BACKEND_GATE"),
         "multiReplicaRuntimeEvidence": env("FATE_LOCAL_CI_MULTI_REPLICA_RUNTIME_EVIDENCE"),
@@ -560,6 +571,7 @@ payload = {
         "auditHandoff": env("FATE_LOCAL_CI_AUDIT_HANDOFF"),
         "auditDryRun": env("FATE_LOCAL_CI_AUDIT_DRY_RUN"),
         "currentAuditBundle": env("FATE_LOCAL_CI_CURRENT_AUDIT_BUNDLE"),
+        "measurementInfrastructureCertification": env("FATE_LOCAL_CI_MEASUREMENT_INFRASTRUCTURE_CERTIFICATION"),
     },
     "privacyBoundary": "只记录命令产物路径、commit 和状态，不复制测试日志全文或用户报告内容。",
     "limitations": [
