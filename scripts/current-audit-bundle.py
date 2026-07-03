@@ -47,6 +47,18 @@ LOCAL_CI_GATE_ARTIFACTS = (
         ),
         "zeroListFields": ("trendFindings",),
     },
+    {
+        "id": "evidence.runtime_proof_gate",
+        "type": "runtime_gate",
+        "filename": "runtime-proof-gate.json",
+        "kind": "fatecat.runtime_proof_gate_summary",
+        "required": True,
+        "detailFields": (
+            ("runtimeProofStatus", ("runtimeProofStatus",)),
+            ("shipGate", ("shipGate", "status")),
+            ("pending", ("shipGate", "blockingItems")),
+        ),
+    },
 )
 
 

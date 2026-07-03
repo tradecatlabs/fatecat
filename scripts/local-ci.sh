@@ -228,6 +228,9 @@ run_quick() {
   run_step "postgres public webhook live smoke preflight" bash "${script_dir}/postgres-public-webhook-live-smoke.sh" \
     --allow-missing \
     --output-json "${output_dir}/postgres-public-webhook-live-smoke.json"
+  run_step "runtime proof gate" bash "${script_dir}/runtime-proof-gate.sh" \
+    --public-webhook-summary "${output_dir}/postgres-public-webhook-live-smoke.json" \
+    --output-json "${output_dir}/runtime-proof-gate.json"
   run_step "event contract gate" bash "${script_dir}/event-contract-gate.sh" \
     --output-json "${output_dir}/event-contract-gate.json"
   run_step "release artifacts" bash "${script_dir}/release-artifacts.sh" \
@@ -483,6 +486,7 @@ write_summary() {
   FATE_LOCAL_CI_POSTGRES_EXTERNAL_WORKER_RESTART_SMOKE="${output_dir}/postgres-external-worker-restart-smoke.json" \
   FATE_LOCAL_CI_POSTGRES_WORKER_HEARTBEAT_POLLING_SMOKE="${output_dir}/postgres-worker-heartbeat-polling-smoke.json" \
   FATE_LOCAL_CI_POSTGRES_PUBLIC_WEBHOOK_LIVE_SMOKE="${output_dir}/postgres-public-webhook-live-smoke.json" \
+  FATE_LOCAL_CI_RUNTIME_PROOF_GATE="${output_dir}/runtime-proof-gate.json" \
   FATE_LOCAL_CI_EVENT_CONTRACT_GATE="${output_dir}/event-contract-gate.json" \
   FATE_LOCAL_CI_RELEASE_ARTIFACTS="${output_dir}/release-artifacts" \
   FATE_LOCAL_CI_RELEASE_ARTIFACTS_SUMMARY="${output_dir}/release-artifacts-summary.json" \

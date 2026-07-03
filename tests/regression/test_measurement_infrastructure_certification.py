@@ -78,6 +78,17 @@ def _write_evidence_dir(root: Path, *, blocked: bool) -> Path:
         {"status": "passed", "liveEvidenceStatus": "外部连通验证待执行" if blocked else "passed"},
     )
     _write_json(
+        root / "runtime-proof-gate.json",
+        {
+            "status": "passed",
+            "runtimeProofStatus": "external_connectivity_pending" if blocked else "external_live_passed",
+            "shipGate": {
+                "status": "blocked" if blocked else "passed",
+                "blockingItems": ["public_webhook_live"] if blocked else [],
+            },
+        },
+    )
+    _write_json(
         root / "live-release-gate.json",
         {
             "status": "passed",
@@ -116,6 +127,7 @@ def test_certification_contract_lists_required_evidence_files():
 
     assert contract["kind"] == "fatecat.measurement_infrastructure_certification_contract"
     assert "provider-drift-trend-gate.json" in contract["requiredEvidenceFiles"]
+    assert "runtime-proof-gate.json" in contract["requiredEvidenceFiles"]
     assert "current-audit-bundle/current-audit-bundle.json" in contract["requiredEvidenceFiles"]
     assert "Does not mean FateCat is 100% production infrastructure." in contract["nonClaims"]
 

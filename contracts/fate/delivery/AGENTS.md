@@ -19,11 +19,13 @@ delivery/
 ├── multi-surface-semantic-diff.json
 ├── release-gate.json
 ├── registry.json
+├── runtime-proof-pack.json
 ├── runtime-backends.json
 └── schemas/
     ├── async-event.schema.json
     ├── delivery-surface.schema.json
     ├── release-gate.schema.json
+    ├── runtime-proof.schema.json
     └── runtime-backend.schema.json
 ```
 
@@ -38,10 +40,12 @@ delivery/
 - `release-gate.json`：登记 live release 必需证据，覆盖 local CI、远端 CI、生产 API、HF Space、Telegram Bot、container digest、SBOM/provenance、rollback drill 和 clean git state。
 - `multi-replica-runtime-contract.json`：定义 Postgres 长期多副本 runtime evidence 的 live schema、最小副本数、最小 soak 时长、反伪造负例和 exactly-once 非声明边界。
 - `multi-surface-semantic-diff.json`：定义多交付面语义一致性 gate；要求 API direct/API job/Web direct/Web job/Bot dry-run canonical renderer 在八字与紫微报告上的 normalized semantic hash 一致，同时要求 CLI/Agent Skill 提供 non-Markdown evidence 证明复用标准 capability/command 链，证据不得保存完整报告正文。
+- `runtime-proof-pack.json`：聚合 W2 runtime proof 必需证据：runtime backend contract、Postgres public webhook live、external secret provider、multi-replica runtime 和 exactly-once 非声明边界；本地通过不等于生产 live 通过。
 - `runtime-backends.json`：登记 CalculationJob durable runtime 后端候选，当前 memory/sqlite 是本地 baseline，Postgres 已有 live smoke、outbox worker lease smoke、job worker lease primitive smoke、external worker restart smoke baseline、worker heartbeat/polling smoke baseline 与 public webhook live smoke gate baseline 但仍是 planned external backend 候选，Temporal 是 future workflow orchestrator，Redis queue 只允许作为辅助队列。
 - `schemas/async-event.schema.json`：定义 AsyncEvent 字段、CloudEvents 必备上下文字段、AsyncAPI 风格 channel/operation 字段、事件域枚举和隐私不变量。
 - `schemas/delivery-surface.schema.json`：定义交付面资源字段，覆盖 api、web、bot、cli、skill 和 hosted_web。
 - `schemas/release-gate.schema.json`：定义 ReleaseGate 证据项、check 输出、shipGate 状态和不可伪造证据边界。
+- `schemas/runtime-proof.schema.json`：定义 RuntimeProofPack contract 必填字段、component id、负例集合和 exactly-once 非声明不变量。
 - `schemas/runtime-backend.schema.json`：定义 RuntimeBackend 字段、状态、成熟度、生产资格、外部连通边界和禁止伪造声明。
 - 这里不定义命理算法，不渲染 Markdown，不保存运行时 job、真实 Bot token、真实用户记录或生产日志。
 - `partial` 表示该交付面只覆盖部分输出契约，例如 CLI 只覆盖 JSON/capability 执行，不承诺生成标准 Markdown。
@@ -50,6 +54,7 @@ delivery/
 - `DeliverySemanticDiffGate` 的本地 gate 可以通过，但只能证明 API/Web/Bot dry-run 的标准 Markdown 同源，以及 CLI/Agent Skill 的本地命令/能力链路证据；真实 Telegram Bot live、Hugging Face Space hosted Web、公网 API 和浏览器兼容性仍需独立 live evidence。
 - `RuntimeBackend` 的本地 gate 可以通过，但 `backend.postgres` 即使已有 live smoke、outbox worker lease smoke、job worker lease primitive smoke、external worker restart smoke baseline、worker heartbeat/polling smoke baseline、public webhook live smoke gate baseline 与 multi-replica runtime evidence contract baseline，也必须在外部 Vault/KMS、公网 webhook passed evidence、长期多副本 live evidence 和 exactly-once 证据完成前保持 `status=planned`，不能声明 external backend 已生产。
 - `multi-replica-runtime-contract.json` 可以验证证据格式和拒绝伪证据；`scripts/multi-replica-runtime-evidence-assembler.sh` 只能装配脱敏 evidence JSON 并复用 gate 校验，不能证明 proof refs 真实性。无真实外部多副本运行、公共 webhook、外部 secret provider 与外部 metrics 证据时必须保持 `外部连通验证待执行`。
+- `runtime-proof-pack.json` 与 `scripts/runtime-proof-gate.sh` 只聚合子 gate 和脱敏 live evidence；无真实 Postgres 公网 webhook summary、外部 secret provider evidence 与长期多副本 evidence 时，`shipGate.status` 必须保持 `blocked`。
 - `AsyncEvent` 的本地 gate 可以通过，并会校验 producer path、required consumer、additive compatibility、replay source、DLQ 策略和脱敏 replay 示例；但 `event.webhook.delivery` 在真实接收端 live smoke 完成前必须保持 `externalConnectivity=requires_real_receiver`，不能声明公网 webhook live delivery 已生产。
 - `events.asyncapi.json` 是静态契约文档，不得被解释为 Kafka、NATS、RabbitMQ、Redis Streams 或其他外部 broker 已接入。
 - `backend.redis_queue` 不得登记为 `CalculationJob` source of truth；只能作为未来辅助队列候选。

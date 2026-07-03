@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "description": "RuntimeProofPack contract shape used by scripts/runtime-proof-gate.py.",
+  "requiredTopLevelFields": [
+    "schemaVersion",
+    "apiVersion",
+    "kind",
+    "contractId",
+    "status",
+    "externalConnectivity",
+    "sourceOfTruth",
+    "requiredComponents",
+    "shipGate",
+    "localVerification",
+    "externalVerification",
+    "negativeEvidenceCases",
+    "privacyBoundary",
+    "nonClaims"
+  ],
+  "requiredComponentFields": [
+    "id",
+    "requiredForProduction",
+    "localGate",
+    "productionRequirement"
+  ],
+  "requiredComponentIds": [
+    "runtime_backend_contract",
+    "public_webhook_live",
+    "external_secret_provider",
+    "multi_replica_runtime",
+    "exactly_once_boundary"
+  ],
+  "allowedContractStatus": ["dry_run_contract"],
+  "allowedExternalConnectivity": ["external_connectivity_pending", "external_live_passed"],
+  "requiredNegativeCaseIds": [
+    "fake.public_webhook_blocked_as_live",
+    "fake.local_secret_as_external",
+    "fake.single_replica_as_runtime_proof",
+    "fake.exactly_once_overclaim"
+  ],
+  "invariants": [
+    "Runtime proof pack must aggregate existing gates instead of reimplementing runtime backend, secret provider or multi-replica evidence validation.",
+    "Blocked or allow-missing public webhook summaries must never satisfy live runtime proof.",
+    "Local Fernet, env var, static file secret or placeholder proof must never satisfy external secret provider proof.",
+    "Single replica, SQLite, memory, short-run or placeholder proof must never satisfy multi-replica runtime proof.",
+    "Runtime proof can assert at-least-once plus idempotency and no duplicate terminal job observed, but must never assert exactly-once delivery."
+  ],
+  "privacyBoundary": "Gate output must not include raw DSN, URL, token, secret, callback secret, report body, user input, production log payload or raw external account identifiers."
+}

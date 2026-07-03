@@ -303,14 +303,17 @@
       "bash scripts/postgres-external-worker-restart-smoke.sh --allow-missing",
       "bash scripts/postgres-worker-heartbeat-polling-smoke.sh --allow-missing",
       "bash scripts/postgres-public-webhook-live-smoke.sh --allow-missing",
-      "bash scripts/multi-replica-runtime-gate.sh"
+      "bash scripts/multi-replica-runtime-gate.sh",
+      "bash scripts/runtime-proof-gate.sh"
     ],
     "selectedExternalCandidate": "backend.postgres",
-    "currentProductionEligibility": "multi_replica_runtime_contract_baseline",
+    "currentProductionEligibility": "runtime_proof_pack_external_pending",
     "multiReplicaRuntimeEvidenceContract": "contracts/fate/delivery/multi-replica-runtime-contract.json",
     "multiReplicaRuntimeGateCommand": "bash scripts/multi-replica-runtime-gate.sh",
+    "runtimeProofPackContract": "contracts/fate/delivery/runtime-proof-pack.json",
+    "runtimeProofGateCommand": "bash scripts/runtime-proof-gate.sh",
     "externalConnectivity": "外部连通验证待执行",
-    "policy": "RuntimeBackend registry 只声明 durable runtime 后端候选、证据口径和迁移路径；真实 Postgres/Temporal/Redis 后端必须由独立 adapter、迁移 smoke、crash/restart smoke、worker heartbeat/polling smoke、public webhook live smoke、multi-replica runtime evidence 和外部连接证据证明。"
+    "policy": "RuntimeBackend registry 只声明 durable runtime 后端候选、证据口径和迁移路径；真实 Postgres/Temporal/Redis 后端必须由独立 adapter、迁移 smoke、crash/restart smoke、worker heartbeat/polling smoke、public webhook live smoke、external secret provider、multi-replica runtime evidence、runtime proof pack 和外部连接证据证明。"
   },
   "asyncEventRegistry": {
     "resourceType": "AsyncEventRegistry",

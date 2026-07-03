@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": "fatecat.tradecatlabs/v1",
+  "kind": "RuntimeProofPackContract",
+  "contractId": "contract.runtime_proof_pack",
+  "status": "dry_run_contract",
+  "description": "FateCat W2 runtime proof pack 聚合契约。它把 durable runtime backend、Postgres public webhook live、external secret provider、long-running multi-replica runtime 和 exactly-once 非声明边界收束成一个可审计 gate；不保存真实 DSN、endpoint、token、secret、报告正文、用户输入或生产日志。",
+  "externalConnectivity": "external_connectivity_pending",
+  "sourceOfTruth": {
+    "runtimeBackends": "contracts/fate/delivery/runtime-backends.json",
+    "publicWebhookSmoke": "scripts/postgres-public-webhook-live-smoke.sh",
+    "externalSecretProvider": "contracts/fate/security/external-secret-provider-contract.json",
+    "multiReplicaRuntime": "contracts/fate/delivery/multi-replica-runtime-contract.json",
+    "runtimeProofGate": "scripts/runtime-proof-gate.sh"
+  },
+  "requiredComponents": [
+    {
+      "id": "runtime_backend_contract",
+      "requiredForProduction": true,
+      "localGate": "bash scripts/runtime-backend-gate.sh",
+      "acceptedLocalStatus": "passed",
+      "productionRequirement": "backend.postgres must remain a candidate until external live proofs close."
+    },
+    {
+      "id": "public_webhook_live",
+      "requiredForProduction": true,
+      "localGate": "bash scripts/postgres-public-webhook-live-smoke.sh --allow-missing",
+      "liveEvidenceKind": "fatecat.postgres_public_webhook_live_smoke",
+      "acceptedLiveStatus": "passed",
+      "productionRequirement": "A real HTTPS receiver must accept a signed terminal callback through Postgres outbox."
+    },
+    {
+      "id": "external_secret_provider",
+      "requiredForProduction": true,
+      "localGate": "bash scripts/external-secret-provider-gate.sh",
+      "liveEvidenceKind": "fatecat.external_secret_provider_evidence",
+      "acceptedLiveStatus": "external_live_passed",
+      "productionRequirement": "A real Vault/KMS/secret-manager proof must cover key reference, rotation, access audit and application injection."
+    },
+    {
+      "id": "multi_replica_runtime",
+      "requiredForProduction": true,
+      "localGate": "bash scripts/multi-replica-runtime-gate.sh",
+      "liveEvidenceKind": "fatecat.multi_replica_runtime_evidence",
+      "acceptedLiveStatus": "external_live_passed",
+      "productionRequirement": "At least 2 replicas, at least 86400 seconds and at least 100 completed jobs with no duplicate terminal job observed."
+    },
+    {
+      "id": "exactly_once_boundary",
+      "requiredForProduction": true,
+      "localGate": "bash scripts/runtime-proof-gate.sh",
+      "acceptedLiveStatus": "non_claim_boundary_enforced",
+      "productionRequirement": "FateCat may claim at-least-once plus idempotency and no duplicate observed in supplied evidence, but must not claim exactly-once."
+    }
+  ],
+  "shipGate": {
+    "status": "blocked",
+    "blockingItems": [
+      "public webhook live evidence is external pending unless a passed smoke summary is supplied",
+      "external secret provider live evidence is external pending unless a validated evidence JSON is supplied",
+      "long-running multi-replica runtime evidence is external pending unless a validated evidence JSON is supplied",
+      "exactly-once delivery must not be claimed"
+    ],
+    "policy": "Local runtime proof pack pass only proves evidence grammar, aggregation and anti-overclaim gates. Production runtime proof passes only when all required live evidence is supplied and validated."
+  },
+  "localVerification": [
+    "bash scripts/runtime-proof-gate.sh --output-json <path>",
+    "bash scripts/runtime-backend-gate.sh --output-json <path>",
+    "bash scripts/postgres-public-webhook-live-smoke.sh --allow-missing --output-json <path>",
+    "bash scripts/external-secret-provider-gate.sh --output-json <path>",
+    "bash scripts/multi-replica-runtime-gate.sh --output-json <path>"
+  ],
+  "externalVerification": [
+    "bash scripts/postgres-public-webhook-live-smoke.sh --output-json <passed-webhook.json>",
+    "bash scripts/runtime-proof-gate.sh --public-webhook-summary <passed-webhook.json> --external-secret-evidence-json <secret-provider-evidence.json> --multi-replica-evidence-json <multi-replica-evidence.json> --output-json <runtime-proof.json>"
+  ],
+  "negativeEvidenceCases": [
+    {
+      "id": "fake.public_webhook_blocked_as_live",
+      "description": "Blocked public webhook preflight cannot be promoted to live runtime proof.",
+      "evidence": {
+        "kind": "fatecat.postgres_public_webhook_live_smoke",
+        "status": "blocked",
+        "liveEvidence": {
+          "publicWebhookLiveDelivery": false
+        }
+      },
+      "expectedErrorContains": "public webhook"
+    },
+    {
+      "id": "fake.local_secret_as_external",
+      "description": "Local Fernet/env-var secret handling cannot satisfy external secret provider proof.",
+      "evidence": {
+        "kind": "fatecat.external_secret_provider_evidence",
+        "status": "external_live_passed",
+        "secretProvider": {
+          "mode": "external_secret_provider",
+          "providerType": "local_fernet",
+          "verificationStatus": "passed_external_secret_provider_check",
+          "keyReferenceProofRef": "FATE_WEBHOOK_CONFIG_FERNET_KEYS",
+          "rotationProofRef": "evidence://secret-provider/rotation",
+          "accessAuditProofRef": "evidence://secret-provider/access-audit",
+          "applicationInjectionProofRef": "evidence://secret-provider/app-injection",
+          "redactionBoundary": "redacted_no_secret_values"
+        }
+      },
+      "expectedErrorContains": "secretProvider"
+    },
+    {
+      "id": "fake.single_replica_as_runtime_proof",
+      "description": "Single replica runtime cannot satisfy multi-replica runtime proof.",
+      "evidence": {
+        "kind": "fatecat.multi_replica_runtime_evidence",
+        "status": "external_live_passed",
+        "runtime": {
+          "mode": "external_postgres_multi_replica",
+          "backend": "backend.postgres",
+          "verificationStatus": "passed_multi_replica_soak",
+          "replicaCount": 1,
+          "durationSeconds": 86400,
+          "completedJobCount": 100,
+          "concurrentWorkerProofRef": "evidence://runtime/concurrent-worker",
+          "leaseContentionProofRef": "evidence://runtime/lease-contention",
+          "restartRecoveryProofRef": "evidence://runtime/restart-recovery",
+          "heartbeatContinuityProofRef": "evidence://runtime/heartbeat",
+          "noDuplicateTerminalJobProofRef": "evidence://runtime/no-duplicate-terminal",
+          "publicWebhookProofRef": "evidence://runtime/public-webhook",
+          "externalSecretProviderProofRef": "evidence://runtime/external-secret-provider",
+          "metricsProofRef": "evidence://runtime/metrics",
+          "redactionBoundary": "redacted_no_secret_values"
+        }
+      },
+      "expectedErrorContains": "replicaCount"
+    },
+    {
+      "id": "fake.exactly_once_overclaim",
+      "description": "Runtime proof pack must reject any exactly-once assertion.",
+      "evidence": {
+        "exactlyOnceClaim": true
+      },
+      "expectedErrorContains": "exactly-once"
+    }
+  ],
+  "privacyBoundary": "Runtime proof pack outputs only contract ids, check names, status, proof refs and pending external items. It must not include DSN, URL, token, secret, callback secret, KMS key value, report markdown, user input, production log payload or raw external account identifiers.",
+  "nonClaims": [
+    "does_not_connect_real_database_without_operator_inputs",
+    "does_not_verify_public_webhook_live_without_passed_smoke_summary",
+    "does_not_verify_external_secret_provider_without_live_evidence_json",
+    "does_not_verify_multi_replica_runtime_without_live_evidence_json",
+    "does_not_claim_exactly_once"
+  ]
+}

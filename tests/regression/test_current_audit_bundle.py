@@ -24,6 +24,7 @@ def _build_local_inputs(tmp_path: Path) -> dict[str, Path]:
     dry_run_dir = tmp_path / "audit-dry-run"
     proof_json = tmp_path / "current-release-proof.json"
     evidence_coverage_json = tmp_path / "evidence-coverage-trend-gate.json"
+    runtime_proof_json = tmp_path / "runtime-proof-gate.json"
     evaluation_trend_dir = tmp_path / "evaluation-trend-gate-smoke"
 
     assert (
@@ -97,6 +98,17 @@ def _build_local_inputs(tmp_path: Path) -> dict[str, Path]:
         ).returncode
         == 0
     )
+    assert (
+        _run(
+            [
+                sys.executable,
+                str(ROOT / "scripts/runtime-proof-gate.py"),
+                "--output-json",
+                str(runtime_proof_json),
+            ]
+        ).returncode
+        == 0
+    )
     return {
         "local_ci_output_dir": tmp_path,
         "release_dir": release_dir,
@@ -155,6 +167,7 @@ def test_current_audit_bundle_generates_local_blocked_bundle(tmp_path):
         "evidence.release_artifacts_manifest",
         "evidence.evidence_coverage_trend_gate",
         "evidence.evaluation_trend_gate",
+        "evidence.runtime_proof_gate",
     }
     evidence_trend = next(item for item in evidence_index if item["id"] == "evidence.evidence_coverage_trend_gate")
     assert evidence_trend["status"] == "pass"
@@ -162,6 +175,9 @@ def test_current_audit_bundle_generates_local_blocked_bundle(tmp_path):
     evaluation_trend = next(item for item in evidence_index if item["id"] == "evidence.evaluation_trend_gate")
     assert evaluation_trend["status"] == "pass"
     assert "latestStatus=passed" in evaluation_trend["detail"]
+    runtime_proof = next(item for item in evidence_index if item["id"] == "evidence.runtime_proof_gate")
+    assert runtime_proof["status"] == "pass"
+    assert "runtimeProofStatus=external_connectivity_pending" in runtime_proof["detail"]
     assert any(item["id"] == "risk.external_validations_pending" for item in risk_register)
     assert "## Evidence Index" in markdown
     assert "## Final Conclusion" in markdown

@@ -79,8 +79,9 @@ DOMAIN_SPECS = (
     DomainSpec(
         "runtime",
         "Durable runtime",
-        ("runtime-backend-gate.json", "multi-replica-runtime-gate.json"),
-        pending_markers=("liveEvidenceStatus",),
+        ("runtime-backend-gate.json", "multi-replica-runtime-gate.json", "runtime-proof-gate.json"),
+        pending_markers=("liveEvidenceStatus", "runtimeProofStatus"),
+        blocked_markers=("shipGate",),
     ),
     DomainSpec(
         "release",
