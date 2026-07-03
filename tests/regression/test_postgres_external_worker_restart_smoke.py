@@ -63,7 +63,7 @@ def test_postgres_external_worker_restart_script_and_contract_are_wired():
     assert "_job_execution_lease_owner" in report_jobs_text
     assert "claim_job_for_execution(" in report_jobs_text
     assert "release_job_execution_lease(" in report_jobs_text
-    assert postgres["implementationStatus"] == "external_worker_restart_smoke_baseline"
+    assert postgres["implementationStatus"] == "public_webhook_live_smoke_gate_baseline"
     assert postgres["capabilities"]["workerRestart"] == "expired_lease_external_worker_restart_smoke_baseline"
     assert postgres["capabilities"]["exactlyOnceClaim"] is False
     assert "bash scripts/postgres-external-worker-restart-smoke.sh" in postgres["externalVerification"]

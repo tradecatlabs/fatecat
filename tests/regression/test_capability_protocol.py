@@ -622,9 +622,10 @@ def test_delivery_surface_schema_and_registry_define_same_source_boundaries():
     assert registry["runtimeBackendRegistry"]["contract"] == "contracts/fate/delivery/runtime-backends.json"
     assert registry["runtimeBackendRegistry"]["selectedExternalCandidate"] == "backend.postgres"
     assert (
-        registry["runtimeBackendRegistry"]["currentProductionEligibility"] == "external_worker_restart_smoke_baseline"
+        registry["runtimeBackendRegistry"]["currentProductionEligibility"] == "public_webhook_live_smoke_gate_baseline"
     )
     assert runtime_schema["allowedBackendType"] == ["memory", "sqlite", "postgres", "temporal", "redis_queue"]
+    assert "public_webhook_live_smoke_gate_baseline" in runtime_schema["allowedImplementationStatus"]
     assert "adapter_baseline" in runtime_schema["allowedImplementationStatus"]
     assert "live_smoke_baseline" in runtime_schema["allowedImplementationStatus"]
     assert "external_worker_restart_smoke_baseline" in runtime_schema["allowedImplementationStatus"]

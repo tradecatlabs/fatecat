@@ -55,6 +55,8 @@ scripts/
 ├── postgres-job-store-live-smoke.py
 ├── postgres-external-worker-restart-smoke.sh
 ├── postgres-external-worker-restart-smoke.py
+├── postgres-public-webhook-live-smoke.sh
+├── postgres-public-webhook-live-smoke.py
 ├── provider-dependency-smoke.sh
 ├── provider-dependency-smoke.py
 ├── report-job-restart-recovery-smoke.sh
@@ -112,6 +114,7 @@ scripts/
 - `postgres-worker-lease-smoke.sh` / `postgres-worker-lease-smoke.py` 是 Postgres webhook outbox worker lease negative smoke；只从 `FATE_REPORT_JOB_DATABASE_URL` 读取 DSN，用两个独立 `PostgresReportJobStore`/连接模拟多 worker 竞争同一 outbox，验证 duplicate claim 只能一个成功、错误 owner release 无效、lease 过期后可重新 claim，输出脱敏 JSON，不证明 job execution worker lease、exactly-once、公网 webhook live 或外部 Vault/KMS。
 - `postgres-job-worker-lease-smoke.sh` / `postgres-job-worker-lease-smoke.py` 是 Postgres job execution worker lease primitive smoke；只从 `FATE_REPORT_JOB_DATABASE_URL` 读取 DSN，用两个独立 `PostgresReportJobStore`/连接模拟多 worker 竞争同一 queued/running job，验证 duplicate claim 只能一个成功、错误 owner release 无效、lease 过期后可重新 claim、terminal job 不可 claim，输出脱敏 JSON，不证明 exactly-once、crash/restart external worker、公网 webhook live 或外部 Vault/KMS。
 - `postgres-external-worker-restart-smoke.sh` / `postgres-external-worker-restart-smoke.py` 是 Postgres external worker restart smoke；只从 `FATE_REPORT_JOB_DATABASE_URL` 读取 DSN，用一次性 schema、stale running job、过期 execution lease、两个 `ReportJobManager` 和 task factory 模拟 worker restart 竞争恢复，验证 `executionCount=1`、终态成功和 terminal lease 清理，输出脱敏 JSON，不证明 production ready、exactly-once、公网 webhook live、外部 Vault/KMS、heartbeat/polling worker 或长期多副本运行。
+- `postgres-public-webhook-live-smoke.sh` / `postgres-public-webhook-live-smoke.py` 是 Postgres public webhook live smoke gate；只从 `FATE_REPORT_JOB_DATABASE_URL`、`FATE_WEBHOOK_LIVE_URL` 和可选 `FATE_WEBHOOK_LIVE_SECRET` 读取外部配置，用一次性 schema、`ReportJobManager`、`PostgresReportJobStore` 和 `HttpWebhookDispatcher` 向公网 HTTPS endpoint 投递一条真实终态 callback，输出脱敏 JSON。无外部配置时只能 `--allow-missing` blocked，不证明 production ready、exactly-once、外部 Vault/KMS、receiver SLA、heartbeat/polling worker 或长期多副本运行。
 - `export-openapi.sh` / `export-openapi.py`：导出本地 OpenAPI JSON，并校验开发者接入必备路径。
 - `developer-docs-smoke.sh` / `developer-docs-smoke.py`：执行开发者 OpenAPI、sandbox fixture 和 SDK 示例 smoke；只保存检查摘要，不保存报告正文或真实凭证。
 - `developer-platform-gate.sh` / `developer-platform-gate.py`：校验 developer platform contract、SDK/package baseline、sandbox token contract 与 API changelog；只证明本地契约和示例自洽，不证明 PyPI/npm SDK 发布或公网 token 服务上线。
@@ -176,4 +179,5 @@ scripts/
 - `scripts/postgres-job-store-dry-run.py -> domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py`
 - `scripts/postgres-job-store-live-smoke.py -> domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py`
 - `scripts/postgres-external-worker-restart-smoke.py -> domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py`
+- `scripts/postgres-public-webhook-live-smoke.py -> domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py + domains/experience-delivery/services/fatecat-delivery/src/webhook_callbacks.py`
 - 禁止脚本直接隐藏 secret、运行态或旧路径 fallback。

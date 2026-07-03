@@ -55,7 +55,7 @@ def test_postgres_worker_lease_script_and_contract_are_wired():
     assert "postgres-worker-lease-smoke.py" in wrapper_text
     assert "postgres-worker-lease-smoke.sh" in local_ci_text
     assert "postgresWorkerLeaseSmoke" in local_ci_text
-    assert postgres["implementationStatus"] == "external_worker_restart_smoke_baseline"
+    assert postgres["implementationStatus"] == "public_webhook_live_smoke_gate_baseline"
     assert postgres["capabilities"]["workerLease"] == "transactional_job_and_outbox_claim_with_restart_smoke_baseline"
     assert postgres["capabilities"]["workerRestart"] == "expired_lease_external_worker_restart_smoke_baseline"
     assert "bash scripts/postgres-worker-lease-smoke.sh" in postgres["externalVerification"]
