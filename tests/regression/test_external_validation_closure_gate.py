@@ -73,6 +73,41 @@ def test_external_validation_closure_gate_groups_pending_items_into_actionable_p
                 "phrase": PENDING_PHRASE,
                 "excerpt": "某个未归类外部连通验证待执行",
             },
+            {
+                "id": "p4",
+                "path": "governance/tasks/example/RESEARCH.md",
+                "line": 40,
+                "phrase": PENDING_PHRASE,
+                "excerpt": "所有外部依赖都有真实证据或明确标记外部连通验证待执行",
+            },
+            {
+                "id": "p5",
+                "path": "contracts/fate/evaluations/registry.json",
+                "line": 50,
+                "phrase": PENDING_PHRASE,
+                "excerpt": '"external_eval 必须标记 externalConnectivity=外部连通验证待执行"',
+            },
+            {
+                "id": "p6",
+                "path": "governance/tasks/provider/ACCEPTANCE.md",
+                "line": 60,
+                "phrase": PENDING_PHRASE,
+                "excerpt": "生产 provider 远端依赖 外部连通验证待执行",
+            },
+            {
+                "id": "p7",
+                "path": "contracts/fate/delivery/events.json",
+                "line": 70,
+                "phrase": PENDING_PHRASE,
+                "excerpt": '"liveEvidence": "外部连通验证待执行"',
+            },
+            {
+                "id": "p8",
+                "path": "governance/tasks/runtime/ACCEPTANCE.md",
+                "line": 80,
+                "phrase": PENDING_PHRASE,
+                "excerpt": "multi-replica runtime gate outputs 外部连通验证待执行",
+            },
         ],
     )
 
@@ -81,10 +116,15 @@ def test_external_validation_closure_gate_groups_pending_items_into_actionable_p
     assert summary["status"] == "passed"
     assert summary["kind"] == "fatecat.external_validation_closure_plan"
     assert summary["shipGate"]["status"] == "blocked"
-    assert summary["summary"]["total"] == 3
+    assert summary["summary"]["total"] == 8
     assert summary["summary"]["manualTriage"] == 1
     assert summary["summary"]["categories"]["release.production_api_live"] == 1
     assert summary["summary"]["categories"]["release.telegram_bot_live"] == 1
+    assert summary["summary"]["categories"]["governance.external_validation_policy_guardrail"] == 1
+    assert summary["summary"]["categories"]["quality.external_evaluation_live"] == 1
+    assert summary["summary"]["categories"]["provider.external_dependency_live"] == 1
+    assert summary["summary"]["categories"]["event_platform.live"] == 1
+    assert summary["summary"]["categories"]["runtime.multi_replica_live"] == 1
     assert summary["summary"]["categories"]["manual_triage"] == 1
     assert all(item["owner"] for item in summary["items"])
     assert all(item["credentialDependencies"] for item in summary["items"])
