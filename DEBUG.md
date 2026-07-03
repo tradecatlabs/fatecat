@@ -1,5 +1,61 @@
 # DEBUG.md - bootstrap build isolation network failure
 
+## 2026-07-04 CI follow-up: runtime proof registry literal drift
+
+### Bug
+
+GitHub Actions Acceptance run `28680656983` failed on commit `77d39ec30d086386f0c0018e5de6efd282c0686b` in `tests/regression/test_capability_protocol.py::test_delivery_surface_schema_and_registry_define_same_source_boundaries`.
+
+Observed failure excerpt:
+
+```text
+E   AssertionError: assert 'runtime_proof_pack_external_pending' == 'multi_replica_runtime_contract_baseline'
+- multi_replica_runtime_contract_baseline
++ runtime_proof_pack_external_pending
+```
+
+Container run `28680658235` for the same commit passed, including build, smoke, GHCR push and attestation verify.
+
+### Observations
+
+- `contracts/fate/delivery/registry.json` intentionally changed `runtimeBackendRegistry.currentProductionEligibility` to `runtime_proof_pack_external_pending`.
+- Local quick CI passed because it runs the focused regression set and does not include the full `test_capability_protocol.py` file.
+- Remote Acceptance runs full pytest and caught the remaining hard-coded old registry literal.
+- The runtime proof gate itself passed locally and in quick CI with `runtimeProofStatus=external_connectivity_pending` and `shipGate=blocked`.
+
+### Hypotheses
+
+1. The failure is a stale contract test literal, not a runtime proof implementation failure.
+   - Supports: CI diff shows only expected-vs-actual literal mismatch.
+   - Test: update the test expectation and rerun the failing test.
+2. The registry value is wrong and should remain `multi_replica_runtime_contract_baseline`.
+   - Conflicts: W2 intentionally promotes the top-level eligibility state to runtime proof pack external pending, while multi-replica remains a child gate.
+   - Test: inspect `contracts/fate/delivery/registry.json` and `runtime-proof-pack.json`.
+3. Quick CI is insufficient for this class of drift.
+   - Supports: quick CI passed 289 focused tests; remote full pytest collected 472 and failed on a file outside the quick subset.
+   - Test: run the failing full-regression test locally.
+
+### Root Cause
+
+The W2 runtime proof pack changed the delivery registry source-of-truth state, but the full acceptance contract test still asserted the previous multi-replica-only eligibility literal.
+
+### Fix
+
+Update `tests/regression/test_capability_protocol.py` to assert `runtime_proof_pack_external_pending`.
+
+### Regression Evidence
+
+```bash
+.venv/bin/python -m pytest -q tests/regression/test_capability_protocol.py::test_delivery_surface_schema_and_registry_define_same_source_boundaries
+bash scripts/acceptance.sh --with-dev --output /tmp/fatecat-acceptance-runtime-proof-fix
+```
+
+Result:
+
+- Targeted failing test passed: `1 passed`.
+- Local acceptance completed: `471 passed, 1 skipped`, ruff, mypy, API/Bot delivery smoke, lite export hygiene and exported pure preflight all passed.
+- Evidence directory: `/tmp/fatecat-acceptance-runtime-proof-fix`.
+
 ## Bug
 
 `bash scripts/acceptance.sh --with-dev --with-mingli-bench --output /tmp/fatecat-acceptance-full-test` 在 `delivery-smoke` 的 `preflight --bootstrap` 阶段失败。

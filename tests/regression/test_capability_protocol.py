@@ -675,9 +675,7 @@ def test_delivery_surface_schema_and_registry_define_same_source_boundaries():
     assert registry["releaseGate"]["contract"] == "contracts/fate/delivery/release-gate.json"
     assert registry["runtimeBackendRegistry"]["contract"] == "contracts/fate/delivery/runtime-backends.json"
     assert registry["runtimeBackendRegistry"]["selectedExternalCandidate"] == "backend.postgres"
-    assert (
-        registry["runtimeBackendRegistry"]["currentProductionEligibility"] == "multi_replica_runtime_contract_baseline"
-    )
+    assert registry["runtimeBackendRegistry"]["currentProductionEligibility"] == "runtime_proof_pack_external_pending"
     assert registry["runtimeBackendRegistry"]["multiReplicaRuntimeEvidenceContract"] == (
         "contracts/fate/delivery/multi-replica-runtime-contract.json"
     )
