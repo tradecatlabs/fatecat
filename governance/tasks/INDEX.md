@@ -191,3 +191,5 @@
 | 0101 | measurement-infrastructure-certification-aggregator-dry-run | Done | P0 | 执行 0099 Wave A A2：新增 100% 测算基础设施 certification aggregator dry-run，聚合 local-ci 产物中的 release、audit、provider trend、core quality、security、SRE、runtime、developer 和 external pending 证据，输出 passed/blocked/pending/in-progress 分域结论；默认不得把本地 dry-run 或 pending external live 伪装成 100% 完成。 | 0101-measurement-infrastructure-certification-aggregator-dry-run/ |
 
 | 0102 | measurement-infrastructure-evidence-coverage-trend | Done | P0 | 执行 0099 Wave A A3：新增八字/紫微 evidence coverage trend gate，把 rule_depth_registry、classics_rule_index、analysisEvidence、Report evidenceRefs、冲突解释和反证字段纳入 tracked baseline，对覆盖率下降、规则引用断链或证据字段回退 fail-fast；不保存完整报告正文、真实用户资料或外部生产证据。 | 0102-measurement-infrastructure-evidence-coverage-trend/ |
+
+| 0103 | measurement-infrastructure-current-audit-bundle-refresh | Done | P0 | 执行 0099 Wave A A4：基于最新 commit 重新聚合 current audit bundle，并让审计证据包显式纳入 local-ci gate artifact 摘要，尤其是 0102 新增的 evidence coverage trend gate；输出 audit markdown/json、evidence index、risk register 和 external pending list，不伪造外部 live 或第三方审计完成。 | 0103-measurement-infrastructure-current-audit-bundle-refresh/ |

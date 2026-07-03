@@ -136,7 +136,7 @@ scripts/
 - 根脚本负责 bootstrap、preflight、acceptance、delivery smoke、容器 smoke、导出卫生和生产就绪检查。
 - `audit-handoff.sh` / `audit-handoff.py` 是第三方审计交接包生成器；聚合 Git、任务索引、关键 contract、local-ci/CI 证据入口和所有 tracked + untracked non-ignored `外部连通验证待执行` occurrences，输出 Markdown/JSON，不证明外部 live 已完成。
 - `audit-handoff-dry-run.sh` / `audit-handoff-dry-run.py` 是审计交接包 dry-run verifier；消费 handoff JSON/Markdown，验证字段、区块、pending、risk、non-claim 和敏感赋值防护，输出预检报告，不替代真实第三方审计。
-- `current-audit-bundle.sh` / `current-audit-bundle.py` 是当前 commit 审计证据包装配器；消费 audit handoff、audit dry-run、current release proof、release artifacts、rollback drill 和可选 local-ci summary，输出 current audit bundle Markdown/JSON、evidence index、risk register 与 pending external validations；默认 local mode 可生成 blocked bundle，`--require-current-release` 才要求当前提交 release proof 全部通过。
+- `current-audit-bundle.sh` / `current-audit-bundle.py` 是当前 commit 审计证据包装配器；消费 audit handoff、audit dry-run、current release proof、release artifacts、rollback drill、可选 local-ci summary 和 local-ci gate artifact 摘要，输出 current audit bundle Markdown/JSON、evidence index、risk register 与 pending external validations；默认 local mode 可生成 blocked bundle，`--require-current-release` 才要求当前提交 release proof 全部通过。
 - `container-build.sh`：构建 FateCat delivery 镜像。
 - `container-smoke.sh`：启动临时容器并验证 `/health` 与真实排盘 API。
 - `container-release.sh`：构建、smoke，并在显式 `--push` 时推送 registry。

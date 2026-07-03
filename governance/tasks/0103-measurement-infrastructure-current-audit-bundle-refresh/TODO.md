@@ -1,0 +1,9 @@
+# Execution Checklist
+[x] TP-01.01 | P0 | 盘点当前 bundle 输入和 0102 evidence artifact 缺口 | Verify: `rg -n "current-audit-bundle|evidenceCoverageTrendGate" scripts tests contracts docs` | Gate: 缺口明确 | Parallelizable: Yes
+[x] TP-01.02 | P0 | 定义 local-ci gate artifact 纳入策略和 non-claim | Verify: `cat contracts/fate/audit/current-bundle.json` | Gate: contract 明确 local-ci gate artifact evidence source | Parallelizable: Yes
+[x] TP-02.01 | P0 | 实现 local-ci output dir artifact evidence | Verify: `.venv/bin/python -m pytest -q tests/regression/test_current_audit_bundle.py` | Gate: evidence index 包含 `evidence.evidence_coverage_trend_gate` | Parallelizable: No
+[x] TP-02.02 | P0 | 接入 local-ci、contract、AGENTS、tests 和 roadmap | Verify: `rg -n "local-ci-output-dir|evidence.evidence_coverage_trend_gate|0103" scripts contracts tests docs governance/tasks` | Gate: 接线与文档一致 | Parallelizable: Yes
+[x] TP-03.01 | P0 | 增加/更新 regression tests | Verify: `.venv/bin/python -m pytest -q tests/regression/test_current_audit_bundle.py` | Gate: bundle pass/blocked/required/synthetic paths 仍通过 | Parallelizable: Yes
+[x] TP-03.02 | P0 | 执行 focused tests、bundle generation、ruff、secret scan 和必要 local-ci | Verify: `bash scripts/current-audit-bundle.sh --output-dir /tmp/fatecat-current-audit-bundle-0103 ...` | Gate: current bundle 生成并包含 evidence coverage trend item | Parallelizable: No
+[x] TP-04.01 | P0 | 同步任务文档、INDEX 和验收清单 | Verify: `python3 /home/lenovo/.codex/skills/auto-tasks/scripts/validate_task_docs.py --task-dir governance/tasks/0103-measurement-infrastructure-current-audit-bundle-refresh --phase closeout` | Gate: task docs closeout validator passed | Parallelizable: No
+[x] TP-04.02 | P0 | 提交、推送并记录远端状态 | Verify: `git status --short --branch && git ls-remote origin refs/heads/main` | Gate: 本地 HEAD 与 origin/main 匹配或明确说明远端状态 | Parallelizable: No

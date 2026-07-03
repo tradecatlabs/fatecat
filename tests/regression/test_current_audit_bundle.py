@@ -23,6 +23,7 @@ def _build_local_inputs(tmp_path: Path) -> dict[str, Path]:
     handoff_dir = tmp_path / "audit-handoff"
     dry_run_dir = tmp_path / "audit-dry-run"
     proof_json = tmp_path / "current-release-proof.json"
+    evidence_coverage_json = tmp_path / "evidence-coverage-trend-gate.json"
 
     assert (
         _run([sys.executable, str(ROOT / "scripts/release-artifacts.py"), "--output-dir", str(release_dir)]).returncode
@@ -73,7 +74,19 @@ def _build_local_inputs(tmp_path: Path) -> dict[str, Path]:
         ).returncode
         == 0
     )
+    assert (
+        _run(
+            [
+                sys.executable,
+                str(ROOT / "scripts/evidence-coverage-trend-gate.py"),
+                "--output-json",
+                str(evidence_coverage_json),
+            ]
+        ).returncode
+        == 0
+    )
     return {
+        "local_ci_output_dir": tmp_path,
         "release_dir": release_dir,
         "rollback_json": rollback_json,
         "handoff_json": handoff_dir / "audit-handoff.json",
@@ -105,6 +118,8 @@ def test_current_audit_bundle_generates_local_blocked_bundle(tmp_path):
             str(inputs["rollback_json"]),
             "--release-artifacts-dir",
             str(inputs["release_dir"]),
+            "--local-ci-output-dir",
+            str(inputs["local_ci_output_dir"]),
         ]
     )
 
@@ -126,7 +141,11 @@ def test_current_audit_bundle_generates_local_blocked_bundle(tmp_path):
         "evidence.current_release_proof",
         "evidence.rollback_drill",
         "evidence.release_artifacts_manifest",
+        "evidence.evidence_coverage_trend_gate",
     }
+    evidence_trend = next(item for item in evidence_index if item["id"] == "evidence.evidence_coverage_trend_gate")
+    assert evidence_trend["status"] == "pass"
+    assert "brokenRuleRefs=0" in evidence_trend["detail"]
     assert any(item["id"] == "risk.external_validations_pending" for item in risk_register)
     assert "## Evidence Index" in markdown
     assert "## Final Conclusion" in markdown
@@ -159,6 +178,8 @@ def test_current_audit_bundle_required_mode_rejects_local_contract_proof(tmp_pat
             str(inputs["rollback_json"]),
             "--release-artifacts-dir",
             str(inputs["release_dir"]),
+            "--local-ci-output-dir",
+            str(inputs["local_ci_output_dir"]),
         ]
     )
 
@@ -233,6 +254,8 @@ def test_current_audit_bundle_required_mode_accepts_synthetic_current_proof(tmp_
             str(inputs["rollback_json"]),
             "--release-artifacts-dir",
             str(inputs["release_dir"]),
+            "--local-ci-output-dir",
+            str(inputs["local_ci_output_dir"]),
         ]
     )
 
@@ -257,5 +280,7 @@ def test_current_audit_bundle_contract_and_local_ci_are_wired():
     assert "current-audit-bundle.json" in contract["requiredOutputs"]
     assert "current audit bundle" in local_ci
     assert "currentAuditBundle" in local_ci
+    assert "--local-ci-output-dir" in local_ci
+    assert any("local-ci gate artifacts" in item for item in contract["evidenceSources"])
     assert "current-audit-bundle.sh" in scripts_agents
     assert "current-bundle.json" in audit_agents

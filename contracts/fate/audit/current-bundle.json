@@ -46,6 +46,7 @@
     "current release proof JSON",
     "release artifacts manifest/SBOM/provenance",
     "rollback drill evidence JSON",
+    "local-ci gate artifacts such as evidence coverage trend gate",
     "pending external validations from audit handoff"
   ],
   "gatePolicy": {

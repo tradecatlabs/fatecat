@@ -271,7 +271,8 @@ run_quick() {
     --audit-dry-run-json "${output_dir}/audit-dry-run/audit-dry-run.json" \
     --current-release-proof "${output_dir}/current-release-proof.json" \
     --rollback-evidence-path "${output_dir}/rollback-drill.json" \
-    --release-artifacts-dir "${output_dir}/release-artifacts"
+    --release-artifacts-dir "${output_dir}/release-artifacts" \
+    --local-ci-output-dir "${output_dir}"
   run_step "measurement infrastructure certification dry-run" bash "${script_dir}/measurement-infrastructure-certification.sh" \
     --evidence-dir "${output_dir}" \
     --output-json "${output_dir}/measurement-infrastructure-certification.json"

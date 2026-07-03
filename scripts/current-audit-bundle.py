@@ -20,6 +20,21 @@ RISK_REGISTER_FILENAME = "risk-register.json"
 PENDING_EXTERNAL_FILENAME = "pending-external-validations.json"
 PENDING_PHRASE = "外部连通验证待执行"
 FORBIDDEN_MARKERS = ("token=", "secret=", "password=", "passwd=", "private_key=", "BEGIN RSA", "BEGIN OPENSSH")
+LOCAL_CI_GATE_ARTIFACTS = (
+    {
+        "id": "evidence.evidence_coverage_trend_gate",
+        "type": "quality_gate",
+        "filename": "evidence-coverage-trend-gate.json",
+        "kind": "fatecat.evidence_coverage_trend_gate",
+        "required": True,
+        "detailFields": (
+            ("evidenceItems", ("summary", "totalEvidenceItems")),
+            ("reportEvidenceRefs", ("summary", "totalReportEvidenceRefs")),
+            ("brokenRuleRefs", ("summary", "totalBrokenRuleRefs")),
+        ),
+        "zeroListFields": ("trendFindings", "brokenRuleRefs"),
+    },
+)
 
 
 class CurrentAuditBundleError(RuntimeError):
@@ -442,6 +457,60 @@ def rollback_evidence(path_text: str, current_commit: str) -> EvidenceItem:
     )
 
 
+def _dig(payload: dict[str, Any], path: tuple[str, ...]) -> Any:
+    value: Any = payload
+    for key in path:
+        if not isinstance(value, dict):
+            return None
+        value = value.get(key)
+    return value
+
+
+def local_ci_gate_artifact_evidence(directory_text: str) -> list[EvidenceItem]:
+    if not directory_text:
+        return []
+    directory = repo_path(directory_text)
+    items: list[EvidenceItem] = []
+    for spec in LOCAL_CI_GATE_ARTIFACTS:
+        path = directory / str(spec["filename"])
+        if not path.is_file():
+            items.append(
+                path_evidence_missing(
+                    str(spec["id"]),
+                    str(spec["type"]),
+                    str(path),
+                    required=bool(spec["required"]),
+                    detail="file missing",
+                )
+            )
+            continue
+        payload = load_json(path)
+        errors: list[str] = []
+        if payload.get("kind") != spec["kind"]:
+            errors.append(f"kind must be {spec['kind']}")
+        if payload.get("status") != "passed":
+            errors.append("status must be passed")
+        for field in spec.get("zeroListFields", ()):
+            value = payload.get(str(field))
+            if isinstance(value, list) and value:
+                errors.append(f"{field} must be empty")
+        details = []
+        for label, field_path in spec.get("detailFields", ()):
+            details.append(f"{label}={_dig(payload, tuple(field_path))}")
+        items.append(
+            EvidenceItem(
+                id=str(spec["id"]),
+                type=str(spec["type"]),
+                status=status_from_errors(errors),
+                path=str(path),
+                required=bool(spec["required"]),
+                detail="; ".join(errors) if errors else "; ".join(details),
+                digest=sha256_file(path),
+            )
+        )
+    return items
+
+
 def pending_external_from_handoff(handoff: dict[str, Any]) -> list[dict[str, Any]]:
     items = handoff.get("pendingExternalValidations")
     if isinstance(items, list):
@@ -607,6 +676,7 @@ def build_bundle(args: argparse.Namespace) -> dict[str, Any]:
     evidence.append(audit_dry_run_evidence(args.audit_dry_run_json, current_commit))
     evidence.extend(release_artifacts_evidence(args.release_artifacts_dir, current_commit))
     evidence.append(rollback_evidence(args.rollback_evidence_path, current_commit))
+    evidence.extend(local_ci_gate_artifact_evidence(args.local_ci_output_dir))
     current_proof_item = current_release_proof_evidence(
         args.current_release_proof,
         current_commit,
@@ -706,6 +776,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--current-release-proof", default="", help="current-release-proof JSON")
     parser.add_argument("--rollback-evidence-path", default="", help="rollback drill evidence JSON")
     parser.add_argument("--release-artifacts-dir", default="", help="release artifacts directory")
+    parser.add_argument(
+        "--local-ci-output-dir", default="", help="local-ci output directory for gate artifact evidence"
+    )
     parser.add_argument("--require-current-release", action="store_true", help="fail unless current audit gate passes")
     return parser.parse_args(argv)
 
