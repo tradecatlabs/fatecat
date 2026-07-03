@@ -25,6 +25,7 @@
           "audienceVerificationProofRef",
           "scopesVerificationProofRef"
         ],
+        "proofRefPrefixes": ["evidence://", "artifact://", "ci-artifact://"],
         "requiredMode": "external_oidc_or_idp",
         "requiredVerificationStatus": "passed_external_oidc_check",
         "forbiddenProviderValues": ["scoped_token_rbac", "local_token", "shared_token", "FATE_API_TOKEN"],
@@ -32,6 +33,13 @@
           "FATE_API_TOKEN",
           "FATE_API_ADMIN_TOKEN",
           "FATE_API_USER_TOKENS",
+          "http://",
+          "https://",
+          "issuer=",
+          "jwks=",
+          "endpoint=",
+          "token",
+          "secret",
           "placeholder",
           "changeme",
           "dummy"
@@ -55,6 +63,7 @@
           "retentionProofRef",
           "payloadBoundary"
         ],
+        "proofRefPrefixes": ["evidence://", "artifact://", "ci-artifact://"],
         "allowedModes": ["append_only", "worm", "external_siem"],
         "requiredVerificationStatus": "passed_external_siem_check",
         "requiredPayloadBoundary": "redacted_no_payload",
@@ -88,11 +97,22 @@
           "auditAction",
           "dryRun"
         ],
+        "proofRefPrefixes": ["evidence://", "artifact://", "ci-artifact://"],
         "requiredMode": "time_based_cleanup_with_audit",
         "requiredVerificationStatus": "passed_retention_cleaner_smoke",
         "allowedDeleteModes": ["tombstone_then_purge", "hard_delete"],
         "requiredAuditActions": ["retention.cleanup.dry_run", "retention.cleanup.completed"],
-        "forbiddenProofFragments": ["production_deleted=true", "real_user_data", "report_body", "token", "secret"]
+        "forbiddenProofFragments": [
+          "http://",
+          "https://",
+          "endpoint=",
+          "payload=",
+          "production_deleted=true",
+          "real_user_data",
+          "report_body",
+          "token",
+          "secret"
+        ]
       }
     }
   },
@@ -112,6 +132,41 @@
           "jwksVerificationProofRef": "local_token",
           "audienceVerificationProofRef": "local_token",
           "scopesVerificationProofRef": "record.read"
+        }
+      },
+      "expectedErrorContains": "identity"
+    },
+    {
+      "id": "fake.raw_oidc_url",
+      "description": "真实 issuer/JWKS URL 不能直接进入仓库 evidence。",
+      "evidence": {
+        "schemaVersion": 1,
+        "kind": "fatecat.security_externalization_evidence",
+        "status": "external_live_passed",
+        "identity": {
+          "mode": "external_oidc_or_idp",
+          "provider": "company-idp",
+          "verificationStatus": "passed_external_oidc_check",
+          "issuerProofRef": "https://idp.example.invalid/.well-known/openid-configuration",
+          "jwksVerificationProofRef": "evidence://identity/jwks",
+          "audienceVerificationProofRef": "evidence://identity/audience",
+          "scopesVerificationProofRef": "evidence://identity/scopes"
+        },
+        "siem": {
+          "mode": "worm",
+          "verificationStatus": "passed_external_siem_check",
+          "externalExportProofRef": "evidence://siem/export",
+          "immutabilityProofRef": "evidence://siem/immutability",
+          "retentionProofRef": "evidence://siem/retention",
+          "payloadBoundary": "redacted_no_payload"
+        },
+        "retentionCleaner": {
+          "mode": "time_based_cleanup_with_audit",
+          "verificationStatus": "passed_retention_cleaner_smoke",
+          "smokeSummaryRef": "evidence://retention/cleaner-smoke",
+          "deleteMode": "tombstone_then_purge",
+          "auditAction": "retention.cleanup.dry_run",
+          "dryRun": true
         }
       },
       "expectedErrorContains": "identity"
@@ -173,6 +228,41 @@
           "deleteMode": "tombstone_then_purge",
           "auditAction": "retention.cleanup.completed",
           "dryRun": true
+        }
+      },
+      "expectedErrorContains": "retention"
+    },
+    {
+      "id": "fake.retention_production_deleted_marker",
+      "description": "带真实生产删除标记的 retention evidence 不能进入 staged gate。",
+      "evidence": {
+        "schemaVersion": 1,
+        "kind": "fatecat.security_externalization_evidence",
+        "status": "external_live_passed",
+        "identity": {
+          "mode": "external_oidc_or_idp",
+          "provider": "company-idp",
+          "verificationStatus": "passed_external_oidc_check",
+          "issuerProofRef": "evidence://identity/issuer",
+          "jwksVerificationProofRef": "evidence://identity/jwks",
+          "audienceVerificationProofRef": "evidence://identity/audience",
+          "scopesVerificationProofRef": "evidence://identity/scopes"
+        },
+        "siem": {
+          "mode": "worm",
+          "verificationStatus": "passed_external_siem_check",
+          "externalExportProofRef": "evidence://siem/export",
+          "immutabilityProofRef": "evidence://siem/immutability",
+          "retentionProofRef": "evidence://siem/retention",
+          "payloadBoundary": "redacted_no_payload"
+        },
+        "retentionCleaner": {
+          "mode": "time_based_cleanup_with_audit",
+          "verificationStatus": "passed_retention_cleaner_smoke",
+          "smokeSummaryRef": "evidence://retention/production_deleted=true",
+          "deleteMode": "hard_delete",
+          "auditAction": "retention.cleanup.completed",
+          "dryRun": false
         }
       },
       "expectedErrorContains": "retention"

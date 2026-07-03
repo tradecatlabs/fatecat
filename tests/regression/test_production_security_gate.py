@@ -111,12 +111,17 @@ def test_security_externalization_gate_validates_contract_and_negative_cases(tmp
     } == set(stored["controls"])
     assert {
         "fake.local_token_as_oidc",
+        "fake.raw_oidc_url",
         "fake.placeholder_siem",
         "fake.retention_without_smoke",
+        "fake.retention_production_deleted_marker",
     } == set(stored["negativeEvidenceRejected"])
     checks = {item["name"]: item for item in stored["checks"]}
     assert checks["production_security_gate"]["ok"] is True
     assert checks["contract_external_pending"]["ok"] is True
+    assert checks["identity:proof_ref_prefixes"]["ok"] is True
+    assert checks["siem:proof_ref_prefixes"]["ok"] is True
+    assert checks["retentionCleaner:proof_ref_prefixes"]["ok"] is True
     assert checks["registry_externalization_gate_command"]["ok"] is True
     assert checks["policy_externalization_contract"]["ok"] is True
 
@@ -130,7 +135,7 @@ def test_security_externalization_gate_cli_writes_summary(tmp_path):
     assert exit_code == 0
     stored = json.loads(output_json.read_text(encoding="utf-8"))
     assert stored["status"] == "passed"
-    assert len(stored["negativeEvidenceRejected"]) == 3
+    assert len(stored["negativeEvidenceRejected"]) == 5
 
 
 def test_security_externalization_gate_rejects_local_token_as_oidc():
@@ -157,6 +162,34 @@ def test_security_externalization_gate_rejects_placeholder_siem():
         assert "siem" in str(exc)
     else:
         raise AssertionError("placeholder SIEM evidence must be rejected")
+
+
+def test_security_externalization_gate_rejects_raw_oidc_url():
+    gate = _load_externalization_gate_module()
+    contract = json.loads((SECURITY_DIR / "externalization-evidence-contract.json").read_text(encoding="utf-8"))
+    fake_case = next(case for case in contract["negativeEvidenceCases"] if case["id"] == "fake.raw_oidc_url")
+
+    try:
+        gate.validate_external_evidence(fake_case["evidence"], contract)
+    except gate.GateFailure as exc:
+        assert "identity" in str(exc)
+    else:
+        raise AssertionError("raw OIDC issuer URL evidence must be rejected")
+
+
+def test_security_externalization_gate_rejects_retention_production_deleted_marker():
+    gate = _load_externalization_gate_module()
+    contract = json.loads((SECURITY_DIR / "externalization-evidence-contract.json").read_text(encoding="utf-8"))
+    fake_case = next(
+        case for case in contract["negativeEvidenceCases"] if case["id"] == "fake.retention_production_deleted_marker"
+    )
+
+    try:
+        gate.validate_external_evidence(fake_case["evidence"], contract)
+    except gate.GateFailure as exc:
+        assert "retention" in str(exc)
+    else:
+        raise AssertionError("production deletion marker evidence must be rejected")
 
 
 def test_security_externalization_gate_accepts_redacted_live_evidence(tmp_path):

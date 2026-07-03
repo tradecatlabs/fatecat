@@ -32,6 +32,7 @@ SENSITIVE_FRAGMENTS = {
     "secret=",
     "token=",
 }
+RAW_URL_PATTERN = ("http://", "https://")
 
 
 class GateFailure(RuntimeError):
@@ -63,9 +64,13 @@ def _render(payload: Any) -> str:
     return json.dumps(payload, ensure_ascii=False, sort_keys=True)
 
 
-def _assert_no_sensitive_fragments(checks: list[dict[str, Any]], name: str, payload: Any) -> None:
+def _assert_no_sensitive_fragments(
+    checks: list[dict[str, Any]], name: str, payload: Any, *, forbid_raw_url: bool = False
+) -> None:
     rendered = _render(payload).lower()
     bad = sorted(fragment for fragment in SENSITIVE_FRAGMENTS if fragment.lower() in rendered)
+    if forbid_raw_url and any(fragment in rendered for fragment in RAW_URL_PATTERN):
+        bad.append("raw_url")
     _check(checks, name, not bad, ",".join(bad) or "clean")
 
 
@@ -94,6 +99,15 @@ def _require_fields(area: str, payload: dict[str, Any], fields: list[str]) -> No
         raise GateFailure(f"{area}: missing fields {missing}")
 
 
+def _validate_proof_refs(area: str, payload: dict[str, Any], fields: list[str], prefixes: list[str]) -> None:
+    for field in fields:
+        if not field.endswith(("ProofRef", "SummaryRef")):
+            continue
+        value = str(payload.get(field) or "")
+        if not value.startswith(tuple(prefixes)):
+            raise GateFailure(f"{area}: {field} must use redacted proof ref prefix")
+
+
 def validate_external_evidence(evidence: dict[str, Any], contract: dict[str, Any]) -> None:
     status = evidence.get("status")
     if status == "external_connectivity_pending":
@@ -114,6 +128,7 @@ def validate_external_evidence(evidence: dict[str, Any], contract: dict[str, Any
         raise GateFailure("identity: verificationStatus is not passed_external_oidc_check")
     if identity["provider"] in identity_schema["forbiddenProviderValues"]:
         raise GateFailure("identity: forbidden provider")
+    _validate_proof_refs("identity", identity, identity_schema["requiredFields"], identity_schema["proofRefPrefixes"])
     if _contains_forbidden(identity, identity_schema["forbiddenProofFragments"]):
         raise GateFailure("identity: forbidden local token or placeholder proof")
 
@@ -128,6 +143,7 @@ def validate_external_evidence(evidence: dict[str, Any], contract: dict[str, Any
         raise GateFailure("siem: verificationStatus is not passed_external_siem_check")
     if siem["payloadBoundary"] != siem_schema["requiredPayloadBoundary"]:
         raise GateFailure("siem: payloadBoundary must be redacted_no_payload")
+    _validate_proof_refs("siem", siem, siem_schema["requiredFields"], siem_schema["proofRefPrefixes"])
     if _contains_forbidden(siem, siem_schema["forbiddenProofFragments"]):
         raise GateFailure("siem: forbidden endpoint, payload, token or placeholder proof")
 
@@ -144,6 +160,9 @@ def validate_external_evidence(evidence: dict[str, Any], contract: dict[str, Any
         raise GateFailure("retention: unsupported deleteMode")
     if retention["auditAction"] not in retention_schema["requiredAuditActions"]:
         raise GateFailure("retention: auditAction missing")
+    _validate_proof_refs(
+        "retention", retention, retention_schema["requiredFields"], retention_schema["proofRefPrefixes"]
+    )
     if _contains_forbidden(retention, retention_schema["forbiddenProofFragments"]):
         raise GateFailure("retention: forbidden production deletion or sensitive proof")
 
@@ -187,8 +206,13 @@ def _validate_contract(checks: list[dict[str, Any]], contract: dict[str, Any]) -
     for area, control in contract["controls"].items():
         _check(checks, f"{area}:control_id", control["controlId"] in REQUIRED_CONTROL_IDS, control["controlId"])
         _check(checks, f"{area}:dry_run_checks", bool(control.get("dryRunEvidenceChecks")), "present")
+        live_schema = control.get("liveEvidenceSchema", {})
+        _check(checks, f"{area}:live_schema", bool(live_schema.get("requiredFields")), "present")
         _check(
-            checks, f"{area}:live_schema", bool(control.get("liveEvidenceSchema", {}).get("requiredFields")), "present"
+            checks,
+            f"{area}:proof_ref_prefixes",
+            {"evidence://", "artifact://", "ci-artifact://"} <= set(live_schema.get("proofRefPrefixes", [])),
+            str(live_schema.get("proofRefPrefixes", [])),
         )
     _check(
         checks,
@@ -264,7 +288,7 @@ def run_gate(evidence_json: Path | None = None) -> dict[str, Any]:
     live_evidence_status = "外部连通验证待执行"
     if evidence_json is not None:
         evidence = _load_json(evidence_json)
-        _assert_no_sensitive_fragments(checks, "evidence_no_sensitive_fragments", evidence)
+        _assert_no_sensitive_fragments(checks, "evidence_no_sensitive_fragments", evidence, forbid_raw_url=True)
         validate_external_evidence(evidence, contract)
         live_evidence_status = (
             "external_live_passed" if evidence.get("status") == "external_live_passed" else live_evidence_status

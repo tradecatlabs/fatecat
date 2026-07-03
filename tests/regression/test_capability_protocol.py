@@ -505,6 +505,10 @@ def test_security_control_schema_and_registry_define_gate_boundaries():
         in schema["invariants"]
     )
     assert "release_gate 不得伪造当前 commit 的远端 CI、live smoke 或外部生产验证结果" in schema["invariants"]
+    assert (
+        "security externalization evidence contract 必须拒绝 scoped token 伪装 OIDC、raw OIDC/SIEM URL、placeholder SIEM 伪装不可变审计、缺 smoke 的 retention cleaner 和 production_deleted marker 伪装 live evidence"
+        in schema["invariants"]
+    )
 
     assert registry["schemas"]["securityControl"] == "contracts/fate/security/schemas/security-control.schema.json"
     assert registry["metadata"]["smokeCommand"] == "bash scripts/security-smoke.sh"
