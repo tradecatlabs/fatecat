@@ -163,6 +163,8 @@ run_quick() {
     --output-json "${output_dir}/developer-portal-gate.json"
   run_step "sandbox access gateway gate" bash "${script_dir}/sandbox-access-gateway-gate.sh" \
     --output-json "${output_dir}/sandbox-access-gateway-gate.json"
+  run_step "CLI capability smoke" bash "${script_dir}/capability-cli-smoke.sh" \
+    --output-json "${output_dir}/capability-cli-smoke.json"
   run_step "multi-surface semantic diff" bash "${script_dir}/multi-surface-semantic-diff.sh" \
     --output-json "${output_dir}/multi-surface-semantic-diff.json"
   run_step "provider lifecycle gate" bash "${script_dir}/provider-lifecycle-gate.sh" \
@@ -287,6 +289,7 @@ run_quick() {
       tests/regression/test_developer_platform_gate.py \
       tests/regression/test_developer_portal_gate.py \
       tests/regression/test_sandbox_access_gateway_gate.py \
+      tests/regression/test_capability_cli_smoke.py \
       tests/regression/test_multi_surface_semantic_diff.py \
       tests/regression/test_retention_cleanup.py \
       tests/regression/test_evaluation_dashboard.py \
@@ -434,6 +437,7 @@ write_summary() {
   FATE_LOCAL_CI_DEVELOPER_PLATFORM_GATE="${output_dir}/developer-platform-gate.json" \
   FATE_LOCAL_CI_DEVELOPER_PORTAL_GATE="${output_dir}/developer-portal-gate.json" \
   FATE_LOCAL_CI_SANDBOX_ACCESS_GATEWAY_GATE="${output_dir}/sandbox-access-gateway-gate.json" \
+  FATE_LOCAL_CI_CAPABILITY_CLI_SMOKE="${output_dir}/capability-cli-smoke.json" \
   FATE_LOCAL_CI_MULTI_SURFACE_SEMANTIC_DIFF="${output_dir}/multi-surface-semantic-diff.json" \
   FATE_LOCAL_CI_OPENAPI="${output_dir}/openapi.json" \
   FATE_LOCAL_CI_PROVIDER_LIFECYCLE_GATE="${output_dir}/provider-lifecycle-gate.json" \
@@ -511,6 +515,7 @@ payload = {
         "developerPlatformGate": env("FATE_LOCAL_CI_DEVELOPER_PLATFORM_GATE"),
         "developerPortalGate": env("FATE_LOCAL_CI_DEVELOPER_PORTAL_GATE"),
         "sandboxAccessGatewayGate": env("FATE_LOCAL_CI_SANDBOX_ACCESS_GATEWAY_GATE"),
+        "capabilityCliSmoke": env("FATE_LOCAL_CI_CAPABILITY_CLI_SMOKE"),
         "multiSurfaceSemanticDiff": env("FATE_LOCAL_CI_MULTI_SURFACE_SEMANTIC_DIFF"),
         "openapi": env("FATE_LOCAL_CI_OPENAPI"),
         "providerLifecycleGate": env("FATE_LOCAL_CI_PROVIDER_LIFECYCLE_GATE"),

@@ -34,7 +34,7 @@ FateCat 要达到 100% 测算基础设施，还差什么？这里的 100% 不是
 | Supply chain | SLSA v1.2: https://slsa.dev/spec/v1.2/ | provenance、build integrity 和 artifact 证明是发布底线。 | current commit CI、container digest、attestation verify、provenance。 |
 | SBOM | CycloneDX Specification: https://cyclonedx.org/specification/overview/ | 组件、依赖、服务和关系应机器可读。 | release SBOM、data/vendor SBOM、dependency graph、license/export policy。 |
 | Artifact attestation | GitHub Artifact Attestations: https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations | build provenance 和 artifact identity 需要可验证命令。 | 每个 release commit 需要远端 workflow、digest、attestation verify 和证据 URL。 |
-| Idempotency and webhook events | Stripe idempotent requests and webhooks: https://docs.stripe.com/api/idempotent_requests, https://docs.stripe.com/webhooks | 幂等、签名、重试和事件历史是外部副作用治理核心。 | report job idempotency、webhook signature、retry/outbox、event audit。 |
+| Idempotency and webhook events | [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and [Stripe webhook events](https://docs.stripe.com/webhooks) | 幂等、签名、重试和事件历史是外部副作用治理核心。 | report job idempotency、webhook signature、retry/outbox、event audit。 |
 
 ## Synthesis
 

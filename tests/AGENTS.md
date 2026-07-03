@@ -18,6 +18,7 @@ tests/
 	    ├── test_mingli_bench_aggregate_gate.py
 	    ├── test_mingli_bench_gate.py
 	    ├── test_multi_surface_semantic_diff.py
+	    ├── test_capability_cli_smoke.py
 	    ├── test_developer_portal_gate.py
 	    ├── test_sandbox_access_gateway_gate.py
 	    ├── test_current_audit_bundle.py
@@ -46,6 +47,7 @@ tests/
 - `regression/test_mingli_bench_aggregate_gate.py`：MingLi-Bench 离线聚合门禁合同；验证 summary 只含 stats、license/usage 和 baseline 聚合结果，不泄露题目、出生信息、标准答案或逐题结果。
 - `regression/test_mingli_bench_gate.py`：MingLi-Bench 离线 predictions evaluator smoke 与 FateCat scored baseline 产物合同；准确率只作为评测输出，不宣称模型已专业。
 - `regression/test_multi_surface_semantic_diff.py`：标准 Markdown 多交付面语义一致性 gate 合同；验证 API/Web/Bot dry-run normalized hash 同源、证据不保存报告正文、registry/local-ci/AGENTS wiring 和 capability 引擎接线。
+- `regression/test_capability_cli_smoke.py`：capability CLI 交付面合同；验证根级 CLI wrapper、production capability smoke、planned capability 拒绝、delivery registry 和 local-ci/AGENTS 接线。
 - `regression/test_developer_portal_gate.py`：developer portal / SDK release baseline 合同；验证 SDK local smoke、fixed sandbox snapshot hash、外部未上线边界和隐私片段防护。
 - `regression/test_sandbox_access_gateway_gate.py`：sandbox access gateway 合同；验证本地 gateway gate、scope enforcement、rate limit、audit 脱敏和公网 token issuer 未上线边界。
 - `regression/test_current_audit_bundle.py`：current audit bundle 合同；验证当前 commit 审计包能聚合 audit handoff、dry-run、release artifacts、rollback drill、current release proof、evidence index、risk register 和 pending external validations，且 required 模式不接受 local-contract 伪证。

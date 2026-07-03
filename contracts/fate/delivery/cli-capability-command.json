@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "resourceType": "CliCapabilityCommand",
+  "apiVersion": "fatecat.tradecatlabs/v1",
+  "id": "cli.capability_command",
+  "status": "baseline",
+  "description": "根级 capability CLI 命令基线：开发者可以通过 scripts/capability-cli.sh 调用 production capability，命令链路必须复用 fate_core.cli 与 CapabilityExecutor，不允许 CLI 自行实现测算逻辑。",
+  "entrypoint": "bash scripts/capability-cli.sh <capability_id>",
+  "supportedOutputs": ["json"],
+  "supportedCapabilities": ["bazi", "ziwei", "almanac", "meihua"],
+  "plannedCapabilityPolicy": {
+    "status": "must_reject",
+    "exampleCapabilityId": "liuyao",
+    "expectedErrorContains": "尚未生产化"
+  },
+  "canonicalChain": [
+    "scripts/capability-cli.sh",
+    "domains/fate-analysis/services/fate-core/src/fate_core/cli.py::_run_capability_execute",
+    "domains/fate-analysis/services/fate-core/src/fate_core/capabilities/executor.py::CapabilityExecutor"
+  ],
+  "verification": {
+    "smokeCommand": "bash scripts/capability-cli-smoke.sh --output-json <path>",
+    "pytest": ".venv/bin/python -m pytest -q tests/regression/test_capability_cli_smoke.py tests/regression/test_fate_core_cli.py",
+    "localCi": "bash scripts/local-ci.sh --profile quick --output <dir>"
+  },
+  "summaryContract": {
+    "kind": "fatecat.capability_cli_smoke",
+    "storedFields": [
+      "capabilityId",
+      "status",
+      "reportProfile",
+      "durationMs",
+      "stdoutSha256",
+      "stdoutBytes",
+      "dataKeys",
+      "evidenceKeys",
+      "metadataKeys"
+    ],
+    "forbiddenStoredFields": ["inputPayload", "reportBody", "token", "secret", "dsn", "webhookUrl"]
+  },
+  "privacyBoundary": "smoke 只使用北京固定脱敏样例；summary 只保存 hash、字节数、字段名和状态，不保存姓名、完整报告正文、真实出生地区、token、secret、DSN、webhook URL 或生产账号。",
+  "externalConnectivity": "not_required",
+  "nonClaims": [
+    "该命令不生成标准 Markdown 报告。",
+    "该命令通过不能证明 Web/API/Bot/Hugging Face Space/Telegram Bot live 已通过。",
+    "该命令通过不能替代 multi-surface semantic diff。"
+  ],
+  "links": {
+    "deliverySurface": "contracts/fate/delivery/registry.json#surface.cli",
+    "smokeScript": "scripts/capability-cli-smoke.sh",
+    "regressionTest": "tests/regression/test_capability_cli_smoke.py"
+  }
+}

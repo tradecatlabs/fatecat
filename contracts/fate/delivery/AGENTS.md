@@ -9,6 +9,7 @@
 ```text
 delivery/
 ├── AGENTS.md
+├── cli-capability-command.json
 ├── events.json
 ├── events.asyncapi.json
 ├── examples/
@@ -28,6 +29,7 @@ delivery/
 ## 职责边界
 
 - `registry.json`：登记 DeliverySurface 资源，记录入口、支持输出、支持报告体系、同源计算链路、验证命令、隐私边界和外部连通状态。
+- `cli-capability-command.json`：定义根级 capability CLI 命令基线；只证明 JSON capability 本地入口可执行，不证明标准 Markdown 多端同源或外部 live。
 - `events.json`：登记 AsyncEvent 资源，记录 job/webhook/evaluation/release 事件的 CloudEvents envelope、AsyncAPI 风格 channel/operation/message、脱敏示例、隐私边界和外部连通状态。
 - `events.asyncapi.json`：AsyncAPI 3.1 风格静态事件文档；供开发者和 Agent 发现事件通道，不证明外部 broker 或公网 webhook live delivery。
 - `examples/events/`：只保存合成脱敏事件示例；禁止写入真实 webhook URL、secret、token、用户输入、报告正文或生产日志。

@@ -16,6 +16,9 @@ scripts/
 ├── audit-handoff.py
 ├── bazi-ziwei-l4-golden-smoke.sh
 ├── bazi-ziwei-l4-golden-smoke.py
+├── capability-cli.sh
+├── capability-cli-smoke.sh
+├── capability-cli-smoke.py
 ├── check-public-release-policy.sh
 ├── core-quality-corpus-gate.sh
 ├── core-quality-corpus-gate.py
@@ -154,6 +157,8 @@ scripts/
 - `local-ci.sh`：本地 CI/CD 调度入口；只编排本仓脚本，不调用 GitHub Actions；成功或失败都会写 `summary.txt` 与机器可读 `summary.json`，其中 `summary.json` 是 live release gate 的 `evidence.local_ci_quick` 输入。
 - `live-release-gate.sh` / `live-release-gate.py` 是 live release evidence gate；聚合 local CI、远端 CI、生产 API、HF Space、Telegram Bot、container digest、SBOM/provenance、rollback drill 和 clean git state，输出机器可读 JSON。默认只做本地合同检查并标注外部连通验证待执行；`--local-ci-summary` 必须指向 `kind=fatecat.local_ci_summary`、`profile=quick`、`status=passed` 且 commit 匹配当前 HEAD 的 JSON；`--require-live` 才要求真实外部证据全部通过。
 - `bazi-ziwei-l4-golden-smoke.sh` / `bazi-ziwei-l4-golden-smoke.py` 是八字/紫微 L4 golden evidence 本地 smoke；`quick` 跑代表样本并进入本地 quick CI，`full` 跑当前 fixture 全量样本，不访问真实用户或外部账号。
+- `capability-cli.sh` 是根级 capability CLI 入口；只转发到 `fate_core.cli capability`，测算逻辑必须继续由 `CapabilityExecutor` 和 provider registry 执行。
+- `capability-cli-smoke.sh` / `capability-cli-smoke.py` 是 capability CLI 交付面本地 smoke；验证 bazi/ziwei/almanac/meihua production capability 可执行、planned capability 拒绝执行，并只保存 hash、字节数、字段名和状态。
 - `core-quality-corpus-gate.sh` / `core-quality-corpus-gate.py` 是八字/紫微核心质量语料门禁；校验 evaluation manifest、report diff policy、匿名 fixture 数量、北京测试样本和 registry 链接，不读取真实用户或生产数据。
 - `observability-smoke.sh` / `observability-smoke.py` 是本地观测 smoke；用 TestClient 验证 health、ready、metrics、request-id、结构化日志和 observability registry metadata。
 - `observability-slo-gate.sh` / `observability-slo-gate.py` 是本地 SLO/alert policy gate；校验 observability registry、SLO objectives、alert rules、runbook 引用和隐私边界，不读取真实生产指标或日志。

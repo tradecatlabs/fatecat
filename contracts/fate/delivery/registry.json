@@ -138,7 +138,12 @@
       "name": "fate-core CLI",
       "surfaceType": "cli",
       "status": "partial",
-      "entrypoints": ["fatecat pure-analysis", "fatecat capability", "fatecat health"],
+      "entrypoints": [
+        "fatecat pure-analysis",
+        "fatecat capability",
+        "fatecat health",
+        "bash scripts/capability-cli.sh <capability_id>"
+      ],
       "supportedOutputs": ["json"],
       "supportedReportSystems": ["bazi", "ziwei", "almanac", "meihua"],
       "canonicalChain": [
@@ -147,9 +152,13 @@
       ],
       "outputContracts": [
         "contracts/fate/capabilities/schemas/output.schema.json",
-        "contracts/fate/capabilities/schemas/capability.schema.json"
+        "contracts/fate/capabilities/schemas/capability.schema.json",
+        "contracts/fate/delivery/cli-capability-command.json"
       ],
-      "localVerification": [".venv/bin/python -m pytest -q tests/regression/test_fate_core_cli.py"],
+      "localVerification": [
+        ".venv/bin/python -m pytest -q tests/regression/test_fate_core_cli.py",
+        "bash scripts/capability-cli-smoke.sh --output-json <path>"
+      ],
       "privacyBoundary": "CLI 输出 JSON 不应包含 secret；输入文件和 stdout 由调用方本地负责。",
       "externalConnectivity": "not_required",
       "links": {
@@ -161,6 +170,8 @@
         "owner": "domains/fate-analysis/services/fate-core/src/fate_core/cli.py",
         "sameSourceScope": "CLI 直接调用 fate-core usecase/capability executor；当前不生成标准 Markdown 报告，不替代 delivery Web/API/Bot。",
         "failureMode": "CLI capability 执行若绕过 registry/provider admission，CLI 回归测试必须失败。",
+        "capabilityCommandStatus": "available",
+        "capabilityCommandSmoke": "scripts/capability-cli-smoke.sh --output-json <path>",
         "releaseImpact": "开发者本地能力验证入口",
         "risk": "CLI 的 JSON 与 Markdown 交付报告不是同一输出格式，不能用 CLI 通过证明多端 Markdown 完全一致。"
       }
