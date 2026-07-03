@@ -257,9 +257,13 @@
       "surface.web.job",
       "surface.telegram_bot.dry_run"
     ],
-    "semanticPolicy": "比较 normalized_markdown_semantic_hash；证据只保存 hash、长度、行数和归一化策略，不保存完整 Markdown 报告正文。",
+    "requiredLocalEvidenceSurfaces": [
+      "surface.cli",
+      "surface.agent_skill"
+    ],
+    "semanticPolicy": "API/Web/Bot 比较 normalized_markdown_semantic_hash；CLI/Skill 作为 non-Markdown evidence surfaces 证明 capability/command 链路同源；证据只保存 hash、长度、行数、字段名和归一化策略，不保存完整 Markdown 报告正文。",
     "externalConnectivity": "外部连通验证待执行",
-    "policy": "本地 gate 证明 API/Web/Bot dry-run 的标准 Markdown 同源；真实 Telegram live、HF Space hosted Web 和公网 API 仍需独立 live evidence。"
+    "policy": "本地 gate 证明 API/Web/Bot dry-run 的标准 Markdown 同源，并证明 CLI/Skill 复用仓库标准入口；真实 Telegram live、HF Space hosted Web 和公网 API 仍需独立 live evidence。"
   },
   "releaseGate": {
     "resourceType": "ReleaseGate",

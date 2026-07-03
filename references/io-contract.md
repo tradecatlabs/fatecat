@@ -43,7 +43,10 @@
 ## 交付层入口
 
 - CLI：`.venv/bin/fatecat pure-analysis`
+- Capability CLI：`bash scripts/capability-cli.sh <capability_id>`，内部复用 `CapabilityExecutor` 和 provider registry，只承诺 JSON/capability 输出。
 - Health：`.venv/bin/fatecat health --mode pure|delivery`
 - API：`POST /api/v1/bazi/pure-analysis`
 - API：`POST /api/v1/bazi/calculate`
 - Bot：`.venv/bin/fatecat serve bot`
+
+Markdown 仍由 delivery API/Web/Bot 报告链路生成；CLI capability JSON 不能替代标准 Markdown 多端同源证明。

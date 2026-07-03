@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import ast
 import hashlib
+import importlib.util
 import json
 import re
 import sys
@@ -18,6 +19,7 @@ DELIVERY_SRC = REPO_ROOT / "domains" / "experience-delivery" / "services" / "fat
 FATE_CORE_SRC = REPO_ROOT / "domains" / "fate-analysis" / "services" / "fate-core" / "src"
 DEFAULT_OUTPUT = REPO_ROOT / "infra" / "runtime" / "local-state" / "exports" / "multi-surface-semantic-diff.json"
 REPORT_SYSTEMS = ("bazi", "ziwei")
+CAPABILITY_CLI_SMOKE = REPO_ROOT / "scripts" / "capability-cli-smoke.py"
 FORBIDDEN_MARKERS = (
     "token=",
     "secret=",
@@ -256,6 +258,142 @@ def static_bot_chain_checks() -> list[dict[str, Any]]:
     ]
 
 
+def load_capability_cli_smoke_module():
+    spec = importlib.util.spec_from_file_location(
+        "fatecat_capability_cli_smoke_for_semantic_diff", CAPABILITY_CLI_SMOKE
+    )
+    if spec is None or spec.loader is None:
+        raise MultiSurfaceSemanticDiffError("cannot load capability CLI smoke module")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def cli_capability_evidence() -> dict[str, Any]:
+    smoke = load_capability_cli_smoke_module()
+    summary = smoke.run_smoke()
+    if summary.get("status") != "passed":
+        raise MultiSurfaceSemanticDiffError("CLI capability smoke did not pass")
+
+    capabilities = summary.get("capabilities", [])
+    if not isinstance(capabilities, list) or not capabilities:
+        raise MultiSurfaceSemanticDiffError("CLI capability smoke missing capabilities")
+
+    required = {"almanac", "bazi", "meihua", "ziwei"}
+    observed = {item.get("capabilityId") for item in capabilities if isinstance(item, dict)}
+    missing = sorted(required - observed)
+    if missing:
+        raise MultiSurfaceSemanticDiffError(f"CLI capability smoke missing capability fixture(s): {', '.join(missing)}")
+
+    planned_rejection = summary.get("plannedCapabilityRejection", {})
+    if not isinstance(planned_rejection, dict) or planned_rejection.get("actualExitCode") != 1:
+        raise MultiSurfaceSemanticDiffError("CLI capability smoke did not prove planned capability rejection")
+
+    return {
+        "surfaceId": "surface.cli",
+        "status": "passed",
+        "evidenceKind": summary.get("kind"),
+        "semanticRole": "non_markdown_capability_json_evidence",
+        "entrypoint": summary.get("entrypoint"),
+        "canonicalChain": summary.get("canonicalChain", []),
+        "capabilities": [
+            {
+                "capabilityId": item["capabilityId"],
+                "status": item["status"],
+                "reportProfile": item["reportProfile"],
+                "stdoutSha256": item["stdoutSha256"],
+                "stdoutBytes": item["stdoutBytes"],
+                "dataKeys": item["dataKeys"],
+                "evidenceKeys": item["evidenceKeys"],
+            }
+            for item in capabilities
+        ],
+        "plannedCapabilityRejection": {
+            "capabilityId": planned_rejection.get("capabilityId"),
+            "actualExitCode": planned_rejection.get("actualExitCode"),
+            "stdoutSha256": planned_rejection.get("stdoutSha256"),
+            "stdoutBytes": planned_rejection.get("stdoutBytes"),
+            "errorContains": planned_rejection.get("errorContains"),
+        },
+        "nonMarkdownBoundary": (
+            "CLI 当前证明 capability JSON 入口复用 CapabilityExecutor/provider registry；"
+            "不把 CLI 结果纳入标准 Markdown hash 相等集合。"
+        ),
+    }
+
+
+def static_skill_chain_checks() -> list[dict[str, Any]]:
+    checks: list[dict[str, Any]] = []
+    sources = {
+        "SKILL.md": (REPO_ROOT / "SKILL.md").read_text(encoding="utf-8"),
+        "references/commands.md": (REPO_ROOT / "references" / "commands.md").read_text(encoding="utf-8"),
+        "references/io-contract.md": (REPO_ROOT / "references" / "io-contract.md").read_text(encoding="utf-8"),
+    }
+    required_snippets = {
+        "SKILL.md": (
+            "FateCat 是面向 Agent 与应用开发者的测算基础设施",
+            "bash scripts/preflight.sh --mode pure --bootstrap --pretty",
+            "bash scripts/preflight.sh --mode delivery --bootstrap --pretty",
+            "bash scripts/delivery-smoke.sh --target api",
+            "bash scripts/delivery-smoke.sh --target bot",
+            "bash scripts/acceptance.sh --with-dev",
+            "bash scripts/production-readiness.sh --api-url",
+        ),
+        "references/commands.md": (
+            "bash scripts/local-ci.sh --profile quick",
+            "bash scripts/capability-cli.sh bazi",
+            "bash scripts/capability-cli-smoke.sh --output-json",
+            "bash scripts/acceptance.sh --with-dev",
+        ),
+        "references/io-contract.md": (
+            "bash scripts/capability-cli.sh <capability_id>",
+            "CapabilityExecutor",
+            "Markdown 仍由 delivery API/Web/Bot",
+        ),
+    }
+
+    for path, snippets in required_snippets.items():
+        text = sources[path]
+        missing = [snippet for snippet in snippets if snippet not in text]
+        checks.append(
+            {
+                "id": f"skill.command_chain.{path}",
+                "status": "passed" if not missing else "failed",
+                "path": path,
+                "missingSnippetCount": len(missing),
+                "missingSnippets": missing,
+            }
+        )
+    return checks
+
+
+def agent_skill_evidence() -> dict[str, Any]:
+    checks = static_skill_chain_checks()
+    errors = [f"{check['path']} missing {check['missingSnippets']}" for check in checks if check["status"] != "passed"]
+    return {
+        "surfaceId": "surface.agent_skill",
+        "status": "passed" if not errors else "failed",
+        "semanticRole": "non_markdown_skill_command_chain_evidence",
+        "checkedFiles": [check["path"] for check in checks],
+        "checks": checks,
+        "canonicalChain": [
+            "SKILL.md",
+            "references/commands.md",
+            "references/io-contract.md",
+            "scripts/preflight.sh",
+            "scripts/capability-cli.sh",
+            "scripts/delivery-smoke.sh",
+            "domains/fate-analysis/services/fate-core/src/fate_core/cli.py",
+            "domains/experience-delivery/services/fatecat-delivery/src/main.py",
+        ],
+        "nonMarkdownBoundary": (
+            "Agent Skill 是安装、调用和验收说明；标准 Markdown 仍通过 delivery API/Web/Bot 链路生成，"
+            "Skill 自身不得拼接报告正文。"
+        ),
+        "errors": errors,
+    }
+
+
 def surface_records(markdowns: list[SurfaceMarkdown]) -> tuple[list[dict[str, Any]], bool]:
     normalized_values: list[tuple[SurfaceMarkdown, str, list[str]]] = []
     for item in markdowns:
@@ -314,7 +452,9 @@ def assert_no_forbidden_markers(payload: dict[str, Any]) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Validate semantic equality across API/Web/Bot Markdown surfaces.")
+    parser = argparse.ArgumentParser(
+        description="Validate semantic equality across API/Web/Bot Markdown surfaces and CLI/Skill evidence surfaces."
+    )
     parser.add_argument("--output-json", default=str(DEFAULT_OUTPUT), help="写入机器可读语义 diff 证据 JSON。")
     parser.add_argument(
         "--report-system",
@@ -330,6 +470,7 @@ def main() -> int:
     args = parse_args()
     report_systems = tuple(dict.fromkeys(args.report_system or REPORT_SYSTEMS))
     bot_static_checks = static_bot_chain_checks()
+    cli_skill_evidence = [cli_capability_evidence(), agent_skill_evidence()]
     comparisons = [build_report_system_comparison(report_system) for report_system in report_systems]
     errors: list[str] = []
     for comparison in comparisons:
@@ -338,6 +479,9 @@ def main() -> int:
     for check in bot_static_checks:
         if check["status"] != "passed":
             errors.extend(check.get("errors", []))
+    for evidence in cli_skill_evidence:
+        if evidence["status"] != "passed":
+            errors.extend(evidence.get("errors", [f"{evidence['surfaceId']} evidence failed"]))
 
     status = "passed" if not errors else "failed"
     payload: dict[str, Any] = {
@@ -364,6 +508,10 @@ def main() -> int:
                 "surface.web.job",
                 "surface.telegram_bot.dry_run",
             ],
+            "requiredLocalEvidenceSurfaces": [
+                "surface.cli",
+                "surface.agent_skill",
+            ],
             "volatileNormalization": [
                 {
                     "field": "ziwei.inputTrace.asOf",
@@ -375,18 +523,7 @@ def main() -> int:
         },
         "comparisons": comparisons,
         "botStaticChecks": bot_static_checks,
-        "partialSurfaceAssertions": [
-            {
-                "surfaceId": "surface.cli",
-                "status": "not_in_scope",
-                "reason": "CLI 当前只承诺 JSON/capability 输出，不能作为标准 Markdown 多端同源证明。",
-            },
-            {
-                "surfaceId": "surface.agent_skill",
-                "status": "not_in_scope",
-                "reason": "Agent Skill 是安装和调用说明，Markdown 仍通过 API/Web/Bot 交付链路生成。",
-            },
-        ],
+        "nonMarkdownSurfaceEvidence": cli_skill_evidence,
         "externalPending": [
             {
                 "surfaceId": "surface.telegram_bot.live",

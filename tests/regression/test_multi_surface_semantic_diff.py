@@ -31,6 +31,7 @@ def test_multi_surface_semantic_diff_gate_outputs_hash_only_summary(tmp_path: Pa
     assert payload["status"] == "passed"
     assert payload["reportSystems"] == ["bazi", "ziwei"]
     assert payload["semanticPolicy"]["noMarkdownBodyInEvidence"] is True
+    assert payload["semanticPolicy"]["requiredLocalEvidenceSurfaces"] == ["surface.cli", "surface.agent_skill"]
     assert payload["externalPending"][0]["status"] == "外部连通验证待执行"
 
     for comparison in payload["comparisons"]:
@@ -41,6 +42,23 @@ def test_multi_surface_semantic_diff_gate_outputs_hash_only_summary(tmp_path: Pa
         assert len(semantic_hashes) == 1
         assert {surface["status"] for surface in comparison["surfaces"]} == {"passed"}
         assert all(surface["equalToBaseline"] is True for surface in comparison["surfaces"])
+
+    evidence_by_surface = {item["surfaceId"]: item for item in payload["nonMarkdownSurfaceEvidence"]}
+    assert evidence_by_surface["surface.cli"]["status"] == "passed"
+    assert evidence_by_surface["surface.cli"]["evidenceKind"] == "fatecat.capability_cli_smoke"
+    assert {item["capabilityId"] for item in evidence_by_surface["surface.cli"]["capabilities"]} == {
+        "almanac",
+        "bazi",
+        "meihua",
+        "ziwei",
+    }
+    assert evidence_by_surface["surface.cli"]["plannedCapabilityRejection"]["actualExitCode"] == 1
+    assert evidence_by_surface["surface.agent_skill"]["status"] == "passed"
+    assert set(evidence_by_surface["surface.agent_skill"]["checkedFiles"]) == {
+        "SKILL.md",
+        "references/commands.md",
+        "references/io-contract.md",
+    }
 
     text = json.dumps(payload, ensure_ascii=False)
     assert "# 命理排盘报告" not in text
@@ -62,6 +80,14 @@ def test_multi_surface_semantic_diff_contract_registry_and_local_ci_wiring():
     assert contract["resourceType"] == "DeliverySemanticDiffGate"
     assert contract["outputKind"] == "fatecat.multi_surface_semantic_diff"
     assert contract["semanticPolicy"]["rawMarkdownMustNotBeStored"] is True
+    assert {item["surfaceId"] for item in contract["requiredLocalEvidenceSurfaces"]} == {
+        "surface.cli",
+        "surface.agent_skill",
+    }
+    assert {item["surfaceId"] for item in contract["nonMarkdownSurfacePolicy"]} == {
+        "surface.cli",
+        "surface.agent_skill",
+    }
     assert "surface.telegram_bot.live" in {item["surfaceId"] for item in contract["externalPending"]}
     assert registry["multiSurfaceSemanticDiffGate"]["contract"] == (
         "contracts/fate/delivery/multi-surface-semantic-diff.json"
@@ -70,6 +96,7 @@ def test_multi_surface_semantic_diff_contract_registry_and_local_ci_wiring():
         registry, ensure_ascii=False
     )
     assert "multi-surface-semantic-diff.json" in local_ci
+    assert "capability-cli-smoke.json" in local_ci
     assert "test_multi_surface_semantic_diff.py" in local_ci
     assert "multi-surface-semantic-diff.sh" in scripts_agents
     assert "multi-surface-semantic-diff.json" in delivery_agents

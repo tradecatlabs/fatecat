@@ -78,6 +78,22 @@ bash scripts/pure-analysis.sh \
   --pretty
 ```
 
+### Capability CLI
+
+```bash
+bash scripts/capability-cli.sh bazi \
+  --input-json '{"birthDateTime":"1990-01-01 08:00:00","gender":"male","longitude":116.4074,"latitude":39.9042,"birthPlace":"北京市","name":"测试用户"}' \
+  --pretty
+```
+
+机器可读 smoke：
+
+```bash
+bash scripts/capability-cli-smoke.sh --output-json output/capability-cli-smoke.json
+```
+
+说明：`capability-cli.sh` 复用 `fate_core.cli capability`、`CapabilityExecutor` 和 provider registry，只承诺 JSON/capability 输出；标准 Markdown 仍通过 delivery API/Web/Bot 报告链路生成。
+
 ### 启动 API
 
 ```bash

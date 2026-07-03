@@ -3,7 +3,7 @@
   "apiVersion": "fatecat.tradecatlabs/v1",
   "resourceType": "DeliverySemanticDiffGate",
   "id": "gate.multi_surface_semantic_diff",
-  "description": "FateCat 标准 Markdown 多交付面语义一致性门禁。该门禁用固定北京测试样本验证 API、Web、异步任务和 Bot dry-run 都复用同一 calculation/report chain。",
+  "description": "FateCat 标准 Markdown 多交付面语义一致性门禁。该门禁用固定北京测试样本验证 API、Web、异步任务和 Bot dry-run 都复用同一 calculation/report chain；CLI 与 Agent Skill 作为 non-Markdown evidence surfaces 证明 capability/command 链路同源，不参与 Markdown hash 相等集合。",
   "command": "bash scripts/multi-surface-semantic-diff.sh --output-json <path>",
   "outputKind": "fatecat.multi_surface_semantic_diff",
   "reportSystems": ["bazi", "ziwei"],
@@ -41,6 +41,20 @@
       "source": "domains/experience-delivery/services/fatecat-delivery/src/bot.py::_build_bot_report_markdown static chain + canonical renderer dry-run"
     }
   ],
+  "requiredLocalEvidenceSurfaces": [
+    {
+      "surfaceId": "surface.cli",
+      "source": "scripts/capability-cli-smoke.sh --output-json <path>",
+      "evidenceKind": "fatecat.capability_cli_smoke",
+      "semanticRole": "non_markdown_capability_json_evidence"
+    },
+    {
+      "surfaceId": "surface.agent_skill",
+      "source": "SKILL.md + references/commands.md + references/io-contract.md",
+      "evidenceKind": "static_command_chain_evidence",
+      "semanticRole": "non_markdown_skill_command_chain_evidence"
+    }
+  ],
   "semanticPolicy": {
     "comparison": "normalized_markdown_semantic_hash",
     "rawMarkdownMustNotBeStored": true,
@@ -53,21 +67,24 @@
     ],
     "mustFailWhen": [
       "任一 required local surface 语义 hash 不一致",
+      "任一 required local evidence surface 未通过本地证据校验",
       "API/Web/Bot 标准 Markdown 绕过 calculate_delivery_result 或 generate_full_report",
+      "CLI capability JSON 绕过 CapabilityExecutor/provider registry",
+      "Agent Skill 文档声明自拼标准 Markdown 或缺失 canonical command chain",
       "输出证据保存完整 Markdown 报告正文",
       "输出证据包含 token、secret、password、private key、DSN 或 webhook URL"
     ]
   },
-  "partialSurfacePolicy": [
+  "nonMarkdownSurfacePolicy": [
     {
       "surfaceId": "surface.cli",
-      "status": "not_in_scope",
-      "reason": "CLI 当前只承诺 JSON/capability 输出，不能用于证明标准 Markdown 多端同源。"
+      "status": "evidence_required",
+      "reason": "CLI 当前只承诺 JSON/capability 输出；必须用 capability CLI smoke 证明统一 executor/provider registry，但不参与标准 Markdown hash 相等集合。"
     },
     {
       "surfaceId": "surface.agent_skill",
-      "status": "not_in_scope",
-      "reason": "Agent Skill 是安装和调用说明，Markdown 仍通过 API/Web/Bot 交付链路生成。"
+      "status": "evidence_required",
+      "reason": "Agent Skill 是安装和调用说明；必须用静态命令链证明复用仓库标准入口，Markdown 仍通过 API/Web/Bot 交付链路生成。"
     }
   ],
   "externalPending": [
