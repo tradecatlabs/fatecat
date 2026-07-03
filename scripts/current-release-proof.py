@@ -221,6 +221,51 @@ def list_run_artifacts(repo: str, run_id: int | str) -> tuple[list[dict[str, Any
     return [item for item in artifacts if isinstance(item, dict)], ""
 
 
+def list_run_jobs(repo: str, run_id: int | str) -> tuple[list[dict[str, Any]], str]:
+    payload, error = gh_json(
+        ["api", f"repos/{repo}/actions/runs/{run_id}/jobs", "--paginate"],
+        timeout_seconds=45,
+    )
+    if not isinstance(payload, dict):
+        return [], error
+    jobs = payload.get("jobs")
+    if not isinstance(jobs, list):
+        return [], "jobs field missing"
+    return [item for item in jobs if isinstance(item, dict)], ""
+
+
+def attestation_steps_from_jobs(jobs: list[dict[str, Any]]) -> tuple[bool, str]:
+    required_steps = {
+        "Attest main image": "",
+        "Verify main image attestation": "",
+    }
+    for job in jobs:
+        steps = job.get("steps")
+        if not isinstance(steps, list):
+            continue
+        for step in steps:
+            if not isinstance(step, dict):
+                continue
+            name = str(step.get("name", ""))
+            if name in required_steps:
+                required_steps[name] = str(step.get("conclusion") or step.get("status") or "")
+    missing_or_failed = [
+        f"{name}={status or 'missing'}" for name, status in required_steps.items() if status != "success"
+    ]
+    if missing_or_failed:
+        return False, "; ".join(missing_or_failed)
+    return True, "container workflow attestation steps succeeded"
+
+
+def verify_attestation_from_workflow(repo: str, run_id: int | str) -> tuple[bool, str]:
+    if not run_id:
+        return False, "container run id missing"
+    jobs, error = list_run_jobs(repo, run_id)
+    if error:
+        return False, error
+    return attestation_steps_from_jobs(jobs)
+
+
 def inspect_registry_digest(image_ref: str) -> tuple[str, str]:
     result = run_capture(
         ["docker", "buildx", "imagetools", "inspect", image_ref, "--format", "{{json .Manifest}}"],
@@ -246,6 +291,11 @@ def verify_attestation(oci_ref: str, repo: str) -> tuple[bool, str]:
     if result.returncode != 0:
         return False, redact(result.stderr or result.stdout)
     return True, redact(result.stdout)
+
+
+def is_local_attestation_command_unavailable(detail: str) -> bool:
+    lowered = detail.lower()
+    return "unknown command" in lowered and "attestation" in lowered
 
 
 def check_rollback_evidence(path_text: str, *, current_commit: str) -> ProofCheck:
@@ -443,6 +493,13 @@ def build_payload(args: argparse.Namespace) -> dict[str, Any]:
         )
     else:
         ok, detail = verify_attestation(f"{image}@{digest}", repo)
+        if not ok and is_local_attestation_command_unavailable(detail):
+            workflow_ok, workflow_detail = verify_attestation_from_workflow(repo, container_run_id)
+            if workflow_ok:
+                ok = True
+                detail = f"{workflow_detail}; local gh attestation command unavailable"
+            else:
+                detail = f"{detail}; workflow attestation evidence failed: {workflow_detail}"
         checks.append(
             ProofCheck(
                 "release.container_attestation",

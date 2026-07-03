@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 import subprocess
 import sys
@@ -11,6 +12,17 @@ ROOT = Path(__file__).resolve().parents[2]
 def _load_json(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as fh:
         return json.load(fh)
+
+
+def _proof_module():
+    module_path = ROOT / "scripts/current-release-proof.py"
+    spec = importlib.util.spec_from_file_location("current_release_proof", module_path)
+    assert spec is not None
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
 
 
 def test_current_release_proof_local_contract_outputs_blocked(tmp_path):
@@ -87,3 +99,38 @@ def test_release_gate_contract_declares_current_release_proof():
     assert expected_external in gate["externalVerification"]
     assert expected_local in registry["releaseGate"]["localVerification"]
     assert expected_external in registry["releaseGate"]["externalVerification"]
+
+
+def test_current_release_proof_accepts_remote_attestation_steps():
+    module = _proof_module()
+    ok, detail = module.attestation_steps_from_jobs(
+        [
+            {
+                "name": "delivery-image",
+                "steps": [
+                    {"name": "Attest main image", "conclusion": "success"},
+                    {"name": "Verify main image attestation", "conclusion": "success"},
+                ],
+            }
+        ]
+    )
+
+    assert ok is True
+    assert "attestation steps succeeded" in detail
+
+
+def test_current_release_proof_rejects_missing_remote_attestation_step():
+    module = _proof_module()
+    ok, detail = module.attestation_steps_from_jobs(
+        [
+            {
+                "name": "delivery-image",
+                "steps": [
+                    {"name": "Attest main image", "conclusion": "success"},
+                ],
+            }
+        ]
+    )
+
+    assert ok is False
+    assert "Verify main image attestation=missing" in detail
