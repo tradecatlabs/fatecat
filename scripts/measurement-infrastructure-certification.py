@@ -221,6 +221,7 @@ def _assert_no_forbidden(summary: dict[str, Any], contract: dict[str, Any]) -> N
 def run_gate(
     *,
     evidence_dir: Path,
+    live_release_gate_json: Path | None = None,
     current_release_proof_json: Path | None = None,
     current_audit_bundle_json: Path | None = None,
 ) -> dict[str, Any]:
@@ -228,6 +229,10 @@ def run_gate(
     if not evidence_dir.is_dir():
         raise CertificationGateError(f"evidence dir missing: {evidence_dir}")
     evidence_overrides: dict[str, Path] = {}
+    if live_release_gate_json is not None:
+        if not live_release_gate_json.is_file():
+            raise CertificationGateError(f"live release gate sidecar missing: {live_release_gate_json}")
+        evidence_overrides["live-release-gate.json"] = live_release_gate_json
     if current_release_proof_json is not None:
         if not current_release_proof_json.is_file():
             raise CertificationGateError(f"current release proof sidecar missing: {current_release_proof_json}")
@@ -295,9 +300,20 @@ def build_parser() -> argparse.ArgumentParser:
         "--output-json", type=Path, default=DEFAULT_OUTPUT_JSON, help="certification summary output JSON."
     )
     parser.add_argument(
+        "--live-release-gate-json",
+        type=Path,
+        help=(
+            "Optional sidecar live-release-gate JSON for the current HEAD. "
+            "Does not override current-release-proof or current-audit-bundle."
+        ),
+    )
+    parser.add_argument(
         "--current-release-proof-json",
         type=Path,
-        help="Optional sidecar current-release-proof JSON for the current HEAD. Does not override live-release-gate.",
+        help=(
+            "Optional sidecar current-release-proof JSON for the current HEAD. "
+            "Does not override live-release-gate or current-audit-bundle."
+        ),
     )
     parser.add_argument(
         "--current-audit-bundle-json",
@@ -317,6 +333,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         summary = run_gate(
             evidence_dir=args.evidence_dir,
+            live_release_gate_json=args.live_release_gate_json,
             current_release_proof_json=args.current_release_proof_json,
             current_audit_bundle_json=args.current_audit_bundle_json,
         )
