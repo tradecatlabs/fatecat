@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.current_audit_bundle_contract",
+  "resourceType": "CurrentAuditBundle",
+  "id": "audit.current.bundle",
+  "status": "baseline",
+  "description": "Current-commit audit bundle contract for assembling release proof, audit handoff, SBOM/provenance, rollback drill, evidence index, risk register and pending external validation list.",
+  "generator": {
+    "command": "bash scripts/current-audit-bundle.sh --output-dir <dir>",
+    "pythonEntrypoint": "scripts/current-audit-bundle.py",
+    "defaultOutputDir": "infra/runtime/local-state/exports/current-audit-bundle"
+  },
+  "requiredOutputs": [
+    "current-audit-bundle.json",
+    "CURRENT_AUDIT_BUNDLE.md",
+    "evidence-index.json",
+    "risk-register.json",
+    "pending-external-validations.json"
+  ],
+  "requiredJsonFields": [
+    "schemaVersion",
+    "kind",
+    "generatedAt",
+    "status",
+    "git",
+    "auditGate",
+    "releaseProof",
+    "evidenceIndex",
+    "pendingExternalValidations",
+    "riskRegister",
+    "outputs"
+  ],
+  "requiredMarkdownSections": [
+    "Latest Status",
+    "Evidence Index",
+    "Release Proof",
+    "Pending External Validations",
+    "Risk Register",
+    "Verification",
+    "Final Conclusion"
+  ],
+  "evidenceSources": [
+    "local-ci summary",
+    "audit handoff JSON/Markdown",
+    "audit handoff dry-run JSON",
+    "current release proof JSON",
+    "release artifacts manifest/SBOM/provenance",
+    "rollback drill evidence JSON",
+    "pending external validations from audit handoff"
+  ],
+  "gatePolicy": {
+    "localMode": "May generate a blocked bundle when current release proof is local-contract or external live evidence is pending.",
+    "requiredMode": "Must fail unless all current-commit required evidence is present, clean, and passed.",
+    "currentCommitRule": "Every supplied evidence artifact with a commit field must match git HEAD."
+  },
+  "privacyBoundary": "Current audit bundle output must not embed real tokens, secrets, DSNs, private keys, production credentials, user report bodies or non-redacted production payloads.",
+  "nonClaims": [
+    "Does not mean third-party audit passed.",
+    "Does not prove production API/HF/Bot live unless separate live evidence exists.",
+    "Does not prove real production rollback when rollback evidence is dry-run."
+  ]
+}

@@ -19,6 +19,7 @@ tests/
 	    ├── test_mingli_bench_gate.py
 	    ├── test_developer_portal_gate.py
 	    ├── test_sandbox_access_gateway_gate.py
+	    ├── test_current_audit_bundle.py
 	    ├── test_current_release_proof.py
 	    ├── test_operability_docs.py
 	    ├── test_report_job_replayable_recovery_smoke.py
@@ -44,6 +45,7 @@ tests/
 - `regression/test_mingli_bench_gate.py`：MingLi-Bench 离线 predictions evaluator smoke 与 FateCat scored baseline 产物合同；准确率只作为评测输出，不宣称模型已专业。
 - `regression/test_developer_portal_gate.py`：developer portal / SDK release baseline 合同；验证 SDK local smoke、fixed sandbox snapshot hash、外部未上线边界和隐私片段防护。
 - `regression/test_sandbox_access_gateway_gate.py`：sandbox access gateway 合同；验证本地 gateway gate、scope enforcement、rate limit、audit 脱敏和公网 token issuer 未上线边界。
+- `regression/test_current_audit_bundle.py`：current audit bundle 合同；验证当前 commit 审计包能聚合 audit handoff、dry-run、release artifacts、rollback drill、current release proof、evidence index、risk register 和 pending external validations，且 required 模式不接受 local-contract 伪证。
 - `regression/test_current_release_proof.py`：current release proof 合同；验证当前 commit 发布证据聚合 gate 的 local-contract/required 模式、ReleaseGate 登记和敏感值防护。
 - `regression/test_operability_docs.py`：公共服务 SLO、指标、告警和 runbook 的文档合同测试。
 - `regression/test_report_job_restart_recovery_smoke.py`：report job SQLite manager 重建本地 smoke 合同；验证 restart-safe failure、`job.recovered_failed`、幂等键保留和 summary 脱敏边界。

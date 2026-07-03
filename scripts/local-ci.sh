@@ -218,6 +218,13 @@ run_quick() {
   run_step "release artifacts" bash "${script_dir}/release-artifacts.sh" \
     --output-dir "${output_dir}/release-artifacts" \
     --summary-json "${output_dir}/release-artifacts-summary.json"
+  run_step "rollback drill" bash "${script_dir}/rollback-drill.sh" \
+    --output-json "${output_dir}/rollback-drill.json" \
+    --release-artifacts-dir "${output_dir}/release-artifacts"
+  run_step "current release proof local contract" bash "${script_dir}/current-release-proof.sh" \
+    --skip-remote \
+    --rollback-evidence-path "${output_dir}/rollback-drill.json" \
+    --output-json "${output_dir}/current-release-proof.json"
   run_step "evaluation dashboard smoke" bash "${script_dir}/evaluation-dashboard-smoke.sh" \
     --output-dir "${output_dir}/evaluation-dashboard-smoke"
   run_step "webhook smoke" bash "${script_dir}/webhook-smoke.sh" \
@@ -244,6 +251,14 @@ run_quick() {
     --bundle-json "${output_dir}/audit-handoff/audit-handoff.json" \
     --bundle-markdown "${output_dir}/audit-handoff/AUDIT_HANDOFF.md" \
     --output-dir "${output_dir}/audit-dry-run"
+  run_step "current audit bundle" bash "${script_dir}/current-audit-bundle.sh" \
+    --output-dir "${output_dir}/current-audit-bundle" \
+    --audit-handoff-json "${output_dir}/audit-handoff/audit-handoff.json" \
+    --audit-handoff-markdown "${output_dir}/audit-handoff/AUDIT_HANDOFF.md" \
+    --audit-dry-run-json "${output_dir}/audit-dry-run/audit-dry-run.json" \
+    --current-release-proof "${output_dir}/current-release-proof.json" \
+    --rollback-evidence-path "${output_dir}/rollback-drill.json" \
+    --release-artifacts-dir "${output_dir}/release-artifacts"
   run_step "ruff check" env RUFF_CACHE_DIR="${RUFF_CACHE_DIR:-/tmp/fatecat-ruff-cache}" \
     "${python_bin}" -m ruff check "${runtime_root}"
   run_step "ruff format check" env RUFF_CACHE_DIR="${RUFF_CACHE_DIR:-/tmp/fatecat-ruff-cache}" \
@@ -301,6 +316,7 @@ run_quick() {
       tests/regression/test_webhook_outbox_lease_smoke.py \
       tests/regression/test_report_job_replayable_recovery_smoke.py \
       tests/regression/test_report_job_restart_recovery_smoke.py \
+      tests/regression/test_current_audit_bundle.py \
       tests/regression/test_current_release_proof.py \
       tests/regression/test_live_release_gate.py \
       tests/regression/test_container_release_evidence.py \
@@ -436,6 +452,8 @@ write_summary() {
   FATE_LOCAL_CI_EVENT_CONTRACT_GATE="${output_dir}/event-contract-gate.json" \
   FATE_LOCAL_CI_RELEASE_ARTIFACTS="${output_dir}/release-artifacts" \
   FATE_LOCAL_CI_RELEASE_ARTIFACTS_SUMMARY="${output_dir}/release-artifacts-summary.json" \
+  FATE_LOCAL_CI_ROLLBACK_DRILL="${output_dir}/rollback-drill.json" \
+  FATE_LOCAL_CI_CURRENT_RELEASE_PROOF="${output_dir}/current-release-proof.json" \
   FATE_LOCAL_CI_EVALUATION_DASHBOARD_SMOKE="${output_dir}/evaluation-dashboard-smoke" \
   FATE_LOCAL_CI_WEBHOOK_SMOKE="${output_dir}/webhook-smoke.json" \
   FATE_LOCAL_CI_WEBHOOK_OUTBOX_SMOKE="${output_dir}/webhook-outbox-smoke.json" \
@@ -447,6 +465,7 @@ write_summary() {
   FATE_LOCAL_CI_LIVE_RELEASE_GATE="${output_dir}/live-release-gate.json" \
   FATE_LOCAL_CI_AUDIT_HANDOFF="${output_dir}/audit-handoff" \
   FATE_LOCAL_CI_AUDIT_DRY_RUN="${output_dir}/audit-dry-run" \
+  FATE_LOCAL_CI_CURRENT_AUDIT_BUNDLE="${output_dir}/current-audit-bundle" \
   "${summary_python}" - <<'PY'
 import json
 import os
@@ -506,6 +525,8 @@ payload = {
         "eventContractGate": env("FATE_LOCAL_CI_EVENT_CONTRACT_GATE"),
         "releaseArtifacts": env("FATE_LOCAL_CI_RELEASE_ARTIFACTS"),
         "releaseArtifactsSummary": env("FATE_LOCAL_CI_RELEASE_ARTIFACTS_SUMMARY"),
+        "rollbackDrill": env("FATE_LOCAL_CI_ROLLBACK_DRILL"),
+        "currentReleaseProof": env("FATE_LOCAL_CI_CURRENT_RELEASE_PROOF"),
         "evaluationDashboardSmoke": env("FATE_LOCAL_CI_EVALUATION_DASHBOARD_SMOKE"),
         "webhookSmoke": env("FATE_LOCAL_CI_WEBHOOK_SMOKE"),
         "webhookOutboxSmoke": env("FATE_LOCAL_CI_WEBHOOK_OUTBOX_SMOKE"),
@@ -517,6 +538,7 @@ payload = {
         "liveReleaseGate": env("FATE_LOCAL_CI_LIVE_RELEASE_GATE"),
         "auditHandoff": env("FATE_LOCAL_CI_AUDIT_HANDOFF"),
         "auditDryRun": env("FATE_LOCAL_CI_AUDIT_DRY_RUN"),
+        "currentAuditBundle": env("FATE_LOCAL_CI_CURRENT_AUDIT_BUNDLE"),
     },
     "privacyBoundary": "只记录命令产物路径、commit 和状态，不复制测试日志全文或用户报告内容。",
     "limitations": [
