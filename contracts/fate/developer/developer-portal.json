@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.developer_portal",
+  "description": "FateCat local developer portal release baseline. This contract makes the developer entrypoints, SDK release baseline, sandbox fixtures, fixed snapshots and validation commands discoverable without claiming a public hosted portal.",
+  "owner": "contracts/fate/developer",
+  "status": "local_release_baseline",
+  "externalPortalStatus": "not_implemented",
+  "privacyBoundary": "Developer portal contracts and docs must not store real tokens, secrets, production URLs, non-Beijing real places, real users, report bodies or benchmark answer details.",
+  "humanPortal": "docs/reference-materials/developer/PORTAL.md",
+  "machineContracts": {
+    "developerPlatform": "contracts/fate/developer/developer-platform.json",
+    "sdkReleaseBaseline": "contracts/fate/developer/sdk-release-baseline.json",
+    "sandboxFixtures": "contracts/fate/developer/sandbox.json",
+    "sandboxTokenContract": "contracts/fate/developer/sandbox-token-contract.json",
+    "sandboxOutputSnapshot": "contracts/fate/developer/sandbox-output-snapshot.json",
+    "apiChangelog": "contracts/fate/developer/api-changelog.json"
+  },
+  "localEntryPoints": [
+    {
+      "name": "OpenAPI",
+      "path": "/openapi.json",
+      "evidenceCommand": "bash scripts/export-openapi.sh --output infra/runtime/local-state/exports/developer/openapi.json"
+    },
+    {
+      "name": "Developer docs smoke",
+      "path": "docs/reference-materials/developer/README.md",
+      "evidenceCommand": "bash scripts/developer-docs-smoke.sh"
+    },
+    {
+      "name": "Developer portal gate",
+      "path": "docs/reference-materials/developer/PORTAL.md",
+      "evidenceCommand": "bash scripts/developer-portal-gate.sh"
+    }
+  ],
+  "requiredLocalEvidence": [
+    "OpenAPI required paths validate",
+    "SDK examples pass local syntax/package smoke",
+    "sandbox fixtures execute through FastAPI TestClient",
+    "fixed sandbox output snapshots match redacted canonical digests",
+    "API changelog contains the 0086 release-baseline entry",
+    "external public portal and public sandbox token service remain explicitly not implemented"
+  ],
+  "limitations": [
+    "Does not prove an external hosted developer portal is live.",
+    "Does not prove PyPI/npm publication.",
+    "Does not provide a public sandbox token service.",
+    "Does not store production credentials, production URLs, real user data or report bodies."
+  ]
+}

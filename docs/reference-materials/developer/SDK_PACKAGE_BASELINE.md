@@ -15,3 +15,14 @@ The current developer SDK baseline is intentionally limited to installable examp
 - No npm package is currently claimed.
 - `bash scripts/developer-docs-smoke.sh` proves local examples and sandbox fixtures, not external package publication.
 - Real SDK release requires package metadata, versioning, registry publish evidence and install smoke in a later task.
+
+## Release-Readiness Baseline
+
+The stricter local release-readiness manifest is:
+
+```text
+contracts/fate/developer/sdk-release-baseline.json
+docs/reference-materials/developer/SDK_RELEASE_BASELINE.md
+```
+
+It validates package candidate smoke and fixed sandbox snapshots, but still does not claim PyPI or npm publication.

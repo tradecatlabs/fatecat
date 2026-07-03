@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.sdk_release_baseline",
+  "description": "Local SDK/package release baseline for FateCat developer experience. This is a release-readiness manifest for installable examples and future packages, not package registry publication evidence.",
+  "owner": "contracts/fate/developer",
+  "status": "local_release_candidate",
+  "apiVersion": "v1",
+  "packageRegistryStatus": "not_published",
+  "version": "0.1.0-local",
+  "privacyBoundary": "SDK release baseline files must not include real tokens, secrets, production URLs, real user data, non-Beijing real places or report bodies.",
+  "packageCandidates": [
+    {
+      "language": "python",
+      "candidateName": "fatecat-python",
+      "status": "installable_example",
+      "sourcePath": "docs/reference-materials/developer/examples/python-client.py",
+      "packageManager": "pip",
+      "version": "0.1.0-local",
+      "smoke": {
+        "type": "python_compile",
+        "command": "python3 -m py_compile docs/reference-materials/developer/examples/python-client.py"
+      },
+      "publishEvidence": null
+    },
+    {
+      "language": "node",
+      "candidateName": "fatecat-js",
+      "status": "installable_example",
+      "sourcePath": "docs/reference-materials/developer/examples/node-client.mjs",
+      "packageManager": "npm",
+      "version": "0.1.0-local",
+      "smoke": {
+        "type": "node_syntax_or_shape",
+        "command": "node --check docs/reference-materials/developer/examples/node-client.mjs"
+      },
+      "publishEvidence": null
+    },
+    {
+      "language": "shell",
+      "candidateName": "fatecat-curl-examples",
+      "status": "installable_example",
+      "sourcePath": "docs/reference-materials/developer/examples/curl-sandbox.sh",
+      "packageManager": "none",
+      "version": "0.1.0-local",
+      "smoke": {
+        "type": "bash_syntax",
+        "command": "bash -n docs/reference-materials/developer/examples/curl-sandbox.sh"
+      },
+      "publishEvidence": null
+    },
+    {
+      "language": "agent",
+      "candidateName": "fatecat-agent-tool-call",
+      "status": "installable_example",
+      "sourcePath": "docs/reference-materials/developer/examples/agent-tool-call.json",
+      "packageManager": "none",
+      "version": "0.1.0-local",
+      "smoke": {
+        "type": "json_shape",
+        "command": "python3 -m json.tool docs/reference-materials/developer/examples/agent-tool-call.json"
+      },
+      "publishEvidence": null
+    }
+  ],
+  "releaseReadiness": {
+    "requiredBeforeRegistryPublish": [
+      "package registry account and provenance evidence",
+      "install smoke from registry package",
+      "versioned API compatibility note",
+      "sandbox token live service or explicit no-token local mode",
+      "current commit CI evidence"
+    ],
+    "localGateCommand": "bash scripts/developer-portal-gate.sh"
+  },
+  "limitations": [
+    "This is local release baseline evidence only.",
+    "No PyPI package is claimed.",
+    "No npm package is claimed.",
+    "No public sandbox token is issued by this repository."
+  ]
+}

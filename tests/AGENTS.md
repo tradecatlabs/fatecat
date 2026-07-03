@@ -17,6 +17,7 @@ tests/
 	    ├── test_catalog_contracts.py
 	    ├── test_mingli_bench_aggregate_gate.py
 	    ├── test_mingli_bench_gate.py
+	    ├── test_developer_portal_gate.py
 	    ├── test_operability_docs.py
 	    ├── test_report_job_replayable_recovery_smoke.py
 	    ├── test_report_job_restart_recovery_smoke.py
@@ -39,6 +40,7 @@ tests/
 - `regression/test_catalog_contracts.py`：组件 catalog canonical root 与 compatibility box 退役防回潮测试。
 - `regression/test_mingli_bench_aggregate_gate.py`：MingLi-Bench 离线聚合门禁合同；验证 summary 只含 stats、license/usage 和 baseline 聚合结果，不泄露题目、出生信息、标准答案或逐题结果。
 - `regression/test_mingli_bench_gate.py`：MingLi-Bench 离线 predictions evaluator smoke 与 FateCat scored baseline 产物合同；准确率只作为评测输出，不宣称模型已专业。
+- `regression/test_developer_portal_gate.py`：developer portal / SDK release baseline 合同；验证 SDK local smoke、fixed sandbox snapshot hash、外部未上线边界和隐私片段防护。
 - `regression/test_operability_docs.py`：公共服务 SLO、指标、告警和 runbook 的文档合同测试。
 - `regression/test_report_job_restart_recovery_smoke.py`：report job SQLite manager 重建本地 smoke 合同；验证 restart-safe failure、`job.recovered_failed`、幂等键保留和 summary 脱敏边界。
 - `regression/test_report_job_replayable_recovery_smoke.py`：report job SQLite 可重建执行 smoke 合同；验证带 `task_payload` 和 factory 的 active 任务重建后重新入队成功，无 payload 任务仍安全失败。

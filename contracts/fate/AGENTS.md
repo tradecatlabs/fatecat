@@ -26,8 +26,11 @@ contracts/fate/
 │   └── schemas/
 ├── developer/
 │   ├── api-changelog.json
+│   ├── developer-portal.json
 │   ├── developer-platform.json
+│   ├── sandbox-output-snapshot.json
 │   ├── sandbox-token-contract.json
+│   ├── sdk-release-baseline.json
 │   ├── sandbox.json
 │   └── AGENTS.md
 ├── evaluations/
@@ -62,6 +65,9 @@ contracts/fate/
 - `delivery/registry.json`：登记 available/partial/manual surfaces；partial surface 必须说明同源范围和未覆盖输出边界。
 - `developer/`：开发者接入契约、SDK/package baseline、sandbox fixture、sandbox token contract 与 API changelog；只保存本地可验证的北京/测试样本和发布边界，不保存真实 token、生产 URL、报告正文或真实用户数据。
 - `developer/developer-platform.json`：开发者平台机器真相源；登记 OpenAPI、SDK/package baseline、sandbox、API changelog 与 validation gate，不代表 SDK 已发布。
+- `developer/developer-portal.json`：开发者门户机器真相源；登记本地 portal release baseline、入口、机器契约和外部未上线边界，不代表公网门户上线。
+- `developer/sdk-release-baseline.json`：SDK release-readiness manifest；登记 package candidates、local smoke 和未来 registry publish 证据要求。
+- `developer/sandbox-output-snapshot.json`：sandbox 固定输出 hash 与结构断言；只保存脱敏摘要，不保存完整响应正文。
 - `developer/api-changelog.json`：API 兼容策略和变更记录；公开 breaking change 必须登记迁移说明和兼容窗口。
 - `developer/sandbox-token-contract.json`：未来公网 sandbox token 的 claim/scope/rate-limit/revocation contract；当前不发行真实 token。
 - `developer/sandbox.json`：开发者文档 smoke 与 SDK 示例的固定输入源；它不是公网 sandbox token 服务。

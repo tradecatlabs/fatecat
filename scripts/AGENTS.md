@@ -30,6 +30,8 @@ scripts/
 ├── developer-docs-smoke.py
 ├── developer-platform-gate.sh
 ├── developer-platform-gate.py
+├── developer-portal-gate.sh
+├── developer-portal-gate.py
 ├── export-openapi.sh
 ├── export-openapi.py
 ├── evaluation-dashboard.sh
@@ -133,6 +135,7 @@ scripts/
 - `export-openapi.sh` / `export-openapi.py`：导出本地 OpenAPI JSON，并校验开发者接入必备路径。
 - `developer-docs-smoke.sh` / `developer-docs-smoke.py`：执行开发者 OpenAPI、sandbox fixture 和 SDK 示例 smoke；只保存检查摘要，不保存报告正文或真实凭证。
 - `developer-platform-gate.sh` / `developer-platform-gate.py`：校验 developer platform contract、SDK/package baseline、sandbox token contract 与 API changelog；只证明本地契约和示例自洽，不证明 PyPI/npm SDK 发布或公网 token 服务上线。
+- `developer-portal-gate.sh` / `developer-portal-gate.py`：校验 developer portal、SDK release baseline、sandbox fixed output snapshot、API changelog 和 no-overclaim 边界；只证明本地 release-readiness baseline，不证明公网门户、PyPI/npm 发布或公网 sandbox token 服务上线。
 - `check-public-release-policy.sh`：检查公开 Web 工作台发布策略，防止 GitHub 自动验收回潮、HF 免费 Space 误开记录存储、container workflow 丢失 registry digest/attestation verify 或文档口径缺失。
 - `hf-space-deploy.sh`：生成 Hugging Face Docker Space 分发包，并通过 `hf` CLI 上传到指定 Space；默认目标 `tradecatlabs/fatecat`，默认拒绝非 `tradecatlabs` 认证。
 - `local-ci.sh`：本地 CI/CD 调度入口；只编排本仓脚本，不调用 GitHub Actions；成功或失败都会写 `summary.txt` 与机器可读 `summary.json`，其中 `summary.json` 是 live release gate 的 `evidence.local_ci_quick` 输入。
@@ -193,6 +196,7 @@ scripts/
 - `scripts/release-artifacts.py -> pyproject.toml + requirements.lock.txt + requirements-dev.lock.txt + infra/docker + contracts/fate/delivery`
 - `scripts/developer-docs-smoke.py -> contracts/fate/developer + docs/reference-materials/developer + FastAPI TestClient`
 - `scripts/developer-platform-gate.py -> contracts/fate/developer + docs/reference-materials/developer`
+- `scripts/developer-portal-gate.py -> contracts/fate/developer + docs/reference-materials/developer + FastAPI TestClient`
 - `scripts/audit-handoff.py -> contracts/fate/audit + governance/tasks + contracts/fate + git`
 - `scripts/audit-handoff-dry-run.py -> contracts/fate/audit + scripts/audit-handoff.py output`
 - `scripts/postgres-job-store-dry-run.py -> domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py`

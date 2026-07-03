@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "kind": "fatecat.developer_platform",
-  "description": "FateCat developer platform baseline. This contract registers OpenAPI, SDK/package baseline, sandbox fixtures, sandbox token contract, API changelog and validation gates without claiming a published SDK or live public sandbox token service.",
+  "description": "FateCat developer platform baseline. This contract registers OpenAPI, SDK/package baseline, local SDK release readiness, developer portal baseline, sandbox fixtures, sandbox token contract, API changelog and validation gates without claiming a published SDK or live public sandbox token service.",
   "owner": "contracts/fate/developer",
   "status": "baseline",
   "privacyBoundary": "Developer platform contracts and examples must not store real tokens, secrets, production URLs, real users, non-Beijing real places or report bodies.",
@@ -57,10 +57,24 @@
     "humanGuide": "docs/reference-materials/developer/SDK_PACKAGE_BASELINE.md",
     "smokeCommand": "bash scripts/developer-docs-smoke.sh"
   },
+  "sdkReleaseBaseline": {
+    "machineContract": "contracts/fate/developer/sdk-release-baseline.json",
+    "humanGuide": "docs/reference-materials/developer/SDK_RELEASE_BASELINE.md",
+    "releaseReadinessStatus": "local_release_candidate",
+    "packageRegistryStatus": "not_published",
+    "smokeCommand": "bash scripts/developer-portal-gate.sh"
+  },
+  "developerPortal": {
+    "machineContract": "contracts/fate/developer/developer-portal.json",
+    "humanGuide": "docs/reference-materials/developer/PORTAL.md",
+    "externalPortalStatus": "not_implemented",
+    "smokeCommand": "bash scripts/developer-portal-gate.sh"
+  },
   "sandbox": {
     "fixtureContract": "contracts/fate/developer/sandbox.json",
     "tokenContract": "contracts/fate/developer/sandbox-token-contract.json",
-    "fixedOutputSnapshotStatus": "future",
+    "fixedOutputSnapshot": "contracts/fate/developer/sandbox-output-snapshot.json",
+    "fixedOutputSnapshotStatus": "local_fixed_snapshot",
     "livePublicSandboxStatus": "not_implemented"
   },
   "apiChangelog": {
@@ -69,9 +83,11 @@
   },
   "validation": {
     "gateCommand": "bash scripts/developer-platform-gate.sh",
+    "portalGateCommand": "bash scripts/developer-portal-gate.sh",
     "docsSmokeCommand": "bash scripts/developer-docs-smoke.sh",
     "openapiExportCommand": "bash scripts/export-openapi.sh --output infra/runtime/local-state/exports/developer/openapi.json",
-    "localCiArtifact": "developer-platform-gate.json"
+    "localCiArtifact": "developer-platform-gate.json",
+    "localCiPortalArtifact": "developer-portal-gate.json"
   },
   "limitations": [
     "Does not prove PyPI/npm SDK publication.",

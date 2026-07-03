@@ -6,6 +6,7 @@ This changelog records developer-facing API and contract changes for the local d
 
 - `2026-07-02`: Local OpenAPI export, sandbox fixtures, curl/Python/Node/Agent examples and developer docs smoke baseline.
 - `2026-07-02`: Developer platform contract, SDK/package baseline metadata, sandbox token contract and developer platform gate.
+- `2026-07-03`: Local developer portal baseline, SDK release-readiness manifest, fixed sandbox output snapshot and developer portal gate.
 
 ## Compatibility Policy
 

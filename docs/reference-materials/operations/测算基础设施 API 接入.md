@@ -52,18 +52,22 @@ contracts/fate/developer/sandbox.json
 
 ```text
 contracts/fate/developer/developer-platform.json
+contracts/fate/developer/developer-portal.json
 ```
 
-SDK/package baseline、sandbox token contract 与 API changelog：
+SDK/package baseline、SDK release baseline、sandbox token contract、fixed snapshot 与 API changelog：
 
 ```text
 docs/reference-materials/developer/SDK_PACKAGE_BASELINE.md
+docs/reference-materials/developer/SDK_RELEASE_BASELINE.md
+contracts/fate/developer/sdk-release-baseline.json
+contracts/fate/developer/sandbox-output-snapshot.json
 contracts/fate/developer/sandbox-token-contract.json
 contracts/fate/developer/api-changelog.json
 docs/reference-materials/developer/API_CHANGELOG.md
 ```
 
-当前只是本地开发者平台 baseline；不代表 PyPI/npm SDK 已发布，也不代表公网 sandbox token 服务已上线。
+当前只是本地开发者平台与 SDK release-readiness baseline；不代表 PyPI/npm SDK 已发布，也不代表公网 developer portal 或 sandbox token 服务已上线。
 
 本地开发者文档 smoke：
 
@@ -78,6 +82,13 @@ bash scripts/developer-docs-smoke.sh \
 ```bash
 bash scripts/developer-platform-gate.sh \
   --output-json infra/runtime/local-state/exports/developer/developer-platform-gate.json
+```
+
+本地开发者门户与 SDK release baseline gate：
+
+```bash
+bash scripts/developer-portal-gate.sh \
+  --output-json infra/runtime/local-state/exports/developer/developer-portal-gate.json
 ```
 
 SDK 与 Agent 示例位于：

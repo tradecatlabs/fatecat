@@ -8,6 +8,13 @@ FateCat 的开发者接入面以本地 OpenAPI、sandbox fixture、最小 SDK �
 contracts/fate/developer/developer-platform.json
 ```
 
+本地开发者门户基线：
+
+```text
+docs/reference-materials/developer/PORTAL.md
+contracts/fate/developer/developer-portal.json
+```
+
 ## OpenAPI
 
 ```bash
@@ -48,6 +55,15 @@ docs/reference-materials/developer/SDK_PACKAGE_BASELINE.md
 
 当前只是 installable examples 和 package baseline metadata，不声明 PyPI/npm SDK 已发布。
 
+SDK release-readiness baseline：
+
+```text
+docs/reference-materials/developer/SDK_RELEASE_BASELINE.md
+contracts/fate/developer/sdk-release-baseline.json
+```
+
+该 baseline 会通过本地 gate 校验 SDK 示例、snapshot 和 portal wiring，但仍不声明 PyPI/npm 已发布。
+
 API changelog：
 
 ```text
@@ -68,4 +84,11 @@ bash scripts/developer-docs-smoke.sh \
 ```bash
 bash scripts/developer-platform-gate.sh \
   --output-json infra/runtime/local-state/exports/developer/developer-platform-gate.json
+```
+
+开发者门户与 SDK release baseline gate：
+
+```bash
+bash scripts/developer-portal-gate.sh \
+  --output-json infra/runtime/local-state/exports/developer/developer-portal-gate.json
 ```

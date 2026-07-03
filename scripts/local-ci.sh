@@ -157,6 +157,8 @@ run_quick() {
     --openapi-json "${output_dir}/openapi.json"
   run_step "developer platform gate" bash "${script_dir}/developer-platform-gate.sh" \
     --output-json "${output_dir}/developer-platform-gate.json"
+  run_step "developer portal gate" bash "${script_dir}/developer-portal-gate.sh" \
+    --output-json "${output_dir}/developer-portal-gate.json"
   run_step "provider lifecycle gate" bash "${script_dir}/provider-lifecycle-gate.sh" \
     --output-json "${output_dir}/provider-lifecycle-gate.json"
   run_step "provider dependency smoke" bash "${script_dir}/provider-dependency-smoke.sh" \
@@ -262,6 +264,7 @@ run_quick() {
       tests/regression/test_data_supply_chain_gate.py \
       tests/regression/test_developer_docs_smoke.py \
       tests/regression/test_developer_platform_gate.py \
+      tests/regression/test_developer_portal_gate.py \
       tests/regression/test_evaluation_dashboard.py \
       tests/regression/test_evaluation_history_diff.py \
       tests/regression/test_evaluation_runner.py \
@@ -402,6 +405,7 @@ write_summary() {
   FATE_LOCAL_CI_EXTERNAL_SECRET_PROVIDER_GATE="${output_dir}/external-secret-provider-gate.json" \
   FATE_LOCAL_CI_DEVELOPER_DOCS_SMOKE="${output_dir}/developer-docs-smoke.json" \
   FATE_LOCAL_CI_DEVELOPER_PLATFORM_GATE="${output_dir}/developer-platform-gate.json" \
+  FATE_LOCAL_CI_DEVELOPER_PORTAL_GATE="${output_dir}/developer-portal-gate.json" \
   FATE_LOCAL_CI_OPENAPI="${output_dir}/openapi.json" \
   FATE_LOCAL_CI_PROVIDER_LIFECYCLE_GATE="${output_dir}/provider-lifecycle-gate.json" \
   FATE_LOCAL_CI_PROVIDER_DEPENDENCY_SMOKE="${output_dir}/provider-dependency-smoke.json" \
@@ -472,6 +476,7 @@ payload = {
         "externalSecretProviderGate": env("FATE_LOCAL_CI_EXTERNAL_SECRET_PROVIDER_GATE"),
         "developerDocsSmoke": env("FATE_LOCAL_CI_DEVELOPER_DOCS_SMOKE"),
         "developerPlatformGate": env("FATE_LOCAL_CI_DEVELOPER_PLATFORM_GATE"),
+        "developerPortalGate": env("FATE_LOCAL_CI_DEVELOPER_PORTAL_GATE"),
         "openapi": env("FATE_LOCAL_CI_OPENAPI"),
         "providerLifecycleGate": env("FATE_LOCAL_CI_PROVIDER_LIFECYCLE_GATE"),
         "providerDependencySmoke": env("FATE_LOCAL_CI_PROVIDER_DEPENDENCY_SMOKE"),

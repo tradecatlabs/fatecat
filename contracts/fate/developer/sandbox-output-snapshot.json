@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.sandbox_output_snapshot",
+  "description": "Fixed local sandbox output snapshot. Responses are canonicalized and hashed after removing dynamic meta.calculatedAt values; this file stores no full response bodies.",
+  "owner": "contracts/fate/developer",
+  "status": "local_fixed_snapshot",
+  "canonicalization": {
+    "hash": "sha256",
+    "json": "sort_keys=true,separators=(',',':'),ensure_ascii=false",
+    "removedPaths": ["/meta/calculatedAt"]
+  },
+  "privacyBoundary": "Snapshot entries must store fixture ids, endpoint, method, digest and stable shape checks only. Do not store full response bodies, real users, non-Beijing real places, tokens, secrets, production URLs or report text.",
+  "fixtures": [
+    {
+      "fixtureId": "sandbox.almanac.travel.beijing.2026-05-08",
+      "capabilityId": "almanac",
+      "method": "POST",
+      "endpoint": "/capabilities/almanac/calculate",
+      "responseSha256": "0218fd40ffc7b4e350e35d7143af3b7f5086c0e64d765420bf2a6de6abecde72",
+      "stableShape": {
+        "success": true,
+        "reportProfile": "almanac",
+        "dateRangeDays": 1,
+        "dayCount": 1,
+        "firstDayTimeSlotCount": 12
+      }
+    },
+    {
+      "fixtureId": "sandbox.meihua.number.beijing.test",
+      "capabilityId": "meihua",
+      "method": "POST",
+      "endpoint": "/capabilities/meihua/calculate",
+      "responseSha256": "1207ce66289ef490fb430a1e6c0297e2503b2e285e737268d331f23078c0020c",
+      "stableShape": {
+        "success": true,
+        "reportProfile": "meihua",
+        "hexagramKeys": ["changed", "movingLine", "mutual", "original"]
+      }
+    }
+  ],
+  "limitations": [
+    "This proves local deterministic sandbox output shape and digest only.",
+    "This does not prove public sandbox availability.",
+    "This does not store report bodies."
+  ]
+}

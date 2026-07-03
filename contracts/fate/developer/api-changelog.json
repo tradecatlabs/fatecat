@@ -40,6 +40,23 @@
         "contracts/fate/developer/api-changelog.json",
         "scripts/developer-platform-gate.sh"
       ]
+    },
+    {
+      "id": "api-changelog.0086.developer-portal-sdk-release-baseline",
+      "date": "2026-07-03",
+      "apiVersion": "v1",
+      "changeType": "release_baseline",
+      "summary": "Added local developer portal baseline, SDK release-readiness manifest, fixed sandbox output snapshots and developer portal gate.",
+      "compatibility": "backward_compatible",
+      "migrationRequired": false,
+      "evidence": [
+        "contracts/fate/developer/developer-portal.json",
+        "contracts/fate/developer/sdk-release-baseline.json",
+        "contracts/fate/developer/sandbox-output-snapshot.json",
+        "docs/reference-materials/developer/PORTAL.md",
+        "docs/reference-materials/developer/SDK_RELEASE_BASELINE.md",
+        "scripts/developer-portal-gate.sh"
+      ]
     }
   ],
   "limitations": [
