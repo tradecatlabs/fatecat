@@ -62,6 +62,7 @@
     "production provider 必须声明 versionLock、lifecycle、sourcePolicy、licensePolicy、resourceManifest、promotionGate 与 deprecation",
     "production provider 的 sourcePolicy.supplyChainRefs 若指向 vendor_sources，目标条目必须 productionUseAllowed=true",
     "deprecation.status=deprecated 时必须声明 replacementProvider 或 removalNotBefore",
-    "provider drift scanner 必须同时校验 lifecycle metadata、dependency smoke、provider.validate/provider.calculate trace spans、source refs、license refs 和 vendor supply-chain refs"
+    "provider drift scanner 必须同时校验 lifecycle metadata、dependency smoke、provider.validate/provider.calculate trace spans、source refs、license refs 和 vendor supply-chain refs",
+    "provider drift trend gate 必须把当前 scanner 输出与 tracked baseline 对齐，拒绝 provider/source/license/vendor 指纹静默漂移"
   ]
 }

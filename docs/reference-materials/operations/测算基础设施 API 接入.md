@@ -205,7 +205,16 @@ bash scripts/provider-drift-scanner.sh \
 
 该 scanner 会复用 provider lifecycle gate、dependency smoke、本地 `provider.validate` / `provider.calculate` trace span 和 `vendor_sources.json`，输出 dependency/source/license drift report。任何 production provider 缺失 source refs、license evidence、vendor production permission、dependency smoke 结果或 provider trace span，都会形成 drift finding 并阻断本地门禁。它不连接外部 trace backend、不访问真实公网依赖、不读取真实 `.env`、token、secret、DSN 或生产账号。
 
-当前已完成本地 provider lifecycle baseline、本地 dependency smoke baseline 和 provider drift scanner baseline；真实公网外部依赖 live smoke、许可证人工法律复核和跨版本升级策略仍是后续任务。
+Provider drift trend gate：
+
+```bash
+bash scripts/provider-drift-trend-gate.sh \
+  --output-json infra/runtime/local-state/exports/providers/drift-trend.json
+```
+
+该 gate 会复用当前 provider drift scanner 输出，并对比 `contracts/fate/capabilities/provider-drift-baseline.json` 中的 provider/source/license/vendor 指纹。任何 provider 集合变化、source refs 变化、license evidence/许可状态回退、vendor snapshot hash 漂移或 scanner finding 未清零，都会形成 trend finding 并阻断本地门禁。合法的 provider 依赖升级或 license/source 变化必须在同一个受审变更中显式更新 baseline。
+
+当前已完成本地 provider lifecycle baseline、本地 dependency smoke baseline、provider drift scanner baseline 和 provider/source/license drift trend baseline；真实公网外部依赖 live smoke、许可证人工法律复核和跨版本升级策略仍是后续任务。
 
 ## 数据供应链门禁
 

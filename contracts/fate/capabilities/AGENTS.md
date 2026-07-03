@@ -9,7 +9,9 @@
 ```text
 capabilities/
 ├── AGENTS.md
+├── provider-drift-baseline.json
 ├── provider-drift-contract.json
+├── provider-drift-trend-contract.json
 ├── registry.json
 ├── schemas/
 │   ├── capability.schema.json
@@ -37,6 +39,8 @@ capabilities/
 
 - `registry.json`：统一能力注册表；`bazi` 是唯一默认 production 能力。
 - `provider-drift-contract.json`：production provider drift report 契约；要求 provider lifecycle、dependency smoke、trace span、source/license/vendor refs 一起参与漂移检查，不保存真实用户输入或外部凭证。
+- `provider-drift-baseline.json`：provider/source/license/vendor 指纹 baseline；任何生产 provider 来源、许可证证据或 vendor snapshot 的有意变化都必须同步更新该 baseline 并通过趋势门禁。
+- `provider-drift-trend-contract.json`：provider drift trend report 契约；要求当前 scanner 输出与 tracked baseline 对齐，拒绝 provider 集合、source refs、license evidence 或 vendor snapshot 静默漂移。
 - `schemas/`：协议说明与静态校验口径，不引入运行时算法；`provider.schema.json` 声明 Provider resource、versionLock、lifecycle、source/license/resource manifest、promotionGate 与 deprecation，`report.schema.json` 声明 Report resource envelope 和最小 `policyGate` 门禁，`resource.schema.json` 同时声明 Capability、Provider、CalculationJob、Report、Dataset、EvaluationRun、ObservabilitySignal、SecurityControl、DeliverySurface 等资源字段。
 - `errors.json`：测算基础设施标准错误码字典；API `/errors` 读取该契约。
 - `profiles/`：各能力独立报告结构；除 `bazi` 外全部 `markdownDefault=false`。

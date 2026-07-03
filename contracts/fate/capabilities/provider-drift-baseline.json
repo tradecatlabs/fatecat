@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.provider_drift_baseline",
+  "baselineId": "provider-source-license-baseline-2026-07-03",
+  "createdAt": "2026-07-03",
+  "sourceReportKind": "fatecat.provider_drift_report",
+  "providerCount": 4,
+  "capabilityCount": 4,
+  "providers": [
+    {
+      "providerId": "fate_core.usecases.calculate_almanac",
+      "capabilityIds": ["almanac"],
+      "engineVersion": "fate-core-almanac-v1",
+      "lifecycleStage": "validated",
+      "source": {
+        "sourceRefs": [
+          "domains/fate-analysis/services/fate-core/src/fate_core/usecases/calculate_almanac.py"
+        ],
+        "supplyChainRefs": [
+          "tools/reference-repos/vendor_sources.json#lunar-python"
+        ]
+      },
+      "license": {
+        "license": "MIT",
+        "licenseStatus": "project_repo_license",
+        "productionUseAllowed": true,
+        "distributionAllowed": true,
+        "evidence": ["LICENSE", "pyproject.toml"]
+      },
+      "vendorSupplyChain": [
+        {
+          "id": "lunar-python",
+          "usageRole": "production_dependency",
+          "license": "MIT",
+          "licenseStatus": "spdx",
+          "productionUseAllowed": true,
+          "snapshotSha256": "317c6743be75b504e8cd994fedaf9e07876b3a482e3d149ac2a2913130ab2127"
+        }
+      ],
+      "fingerprints": {
+        "sourceFingerprint": "sha256:67050866578cd9e9d51cb739e263e966c4c1681dcc00d17355bda71d155cb7cd",
+        "licenseFingerprint": "sha256:fa855b76a1d50c04e448bd6a1d5e1c2377c1dca4535ae94cf3d2f508bd12d6df",
+        "vendorFingerprint": "sha256:07130dc375ef16ba79bea3192c9fa6241b201fa210af5671caed6b425d1188a3",
+        "providerFingerprint": "sha256:4cead7c0dc75da3424e393d0d5628d8390992af937d93e3a074a970f47913dc1"
+      }
+    },
+    {
+      "providerId": "fate_core.usecases.calculate_meihua",
+      "capabilityIds": ["meihua"],
+      "engineVersion": "fate-core-meihua-v1",
+      "lifecycleStage": "validated",
+      "source": {
+        "sourceRefs": [
+          "domains/fate-analysis/services/fate-core/src/fate_core/usecases/calculate_meihua.py"
+        ],
+        "supplyChainRefs": []
+      },
+      "license": {
+        "license": "MIT",
+        "licenseStatus": "project_repo_license",
+        "productionUseAllowed": true,
+        "distributionAllowed": true,
+        "evidence": ["LICENSE", "pyproject.toml"]
+      },
+      "vendorSupplyChain": [],
+      "fingerprints": {
+        "sourceFingerprint": "sha256:51be0a52d66a8103485f7305ef6fccfa67f6aa2e838105c143e264db10a98027",
+        "licenseFingerprint": "sha256:fa855b76a1d50c04e448bd6a1d5e1c2377c1dca4535ae94cf3d2f508bd12d6df",
+        "vendorFingerprint": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "providerFingerprint": "sha256:70052a06a94519a6f5b80960ad4798369b5cdcad7cbf74be05bbf85499cc1d89"
+      }
+    },
+    {
+      "providerId": "fate_core.usecases.calculate_pure_analysis",
+      "capabilityIds": ["bazi"],
+      "engineVersion": "fate-core-bazi-v1",
+      "lifecycleStage": "production",
+      "source": {
+        "sourceRefs": [
+          "domains/fate-analysis/services/fate-core/src/fate_core/providers",
+          "domains/fate-analysis/services/fate-core/src/fate_core/usecases/calculate_pure_analysis.py"
+        ],
+        "supplyChainRefs": [
+          "tools/reference-repos/vendor_sources.json#lunar-python"
+        ]
+      },
+      "license": {
+        "license": "MIT",
+        "licenseStatus": "project_repo_license",
+        "productionUseAllowed": true,
+        "distributionAllowed": true,
+        "evidence": ["LICENSE", "pyproject.toml"]
+      },
+      "vendorSupplyChain": [
+        {
+          "id": "lunar-python",
+          "usageRole": "production_dependency",
+          "license": "MIT",
+          "licenseStatus": "spdx",
+          "productionUseAllowed": true,
+          "snapshotSha256": "317c6743be75b504e8cd994fedaf9e07876b3a482e3d149ac2a2913130ab2127"
+        }
+      ],
+      "fingerprints": {
+        "sourceFingerprint": "sha256:c30b72b9849cb48f5e5951b7db9281acb3596cb40505e9ea5fabefe2f73d6ee8",
+        "licenseFingerprint": "sha256:fa855b76a1d50c04e448bd6a1d5e1c2377c1dca4535ae94cf3d2f508bd12d6df",
+        "vendorFingerprint": "sha256:07130dc375ef16ba79bea3192c9fa6241b201fa210af5671caed6b425d1188a3",
+        "providerFingerprint": "sha256:23a943c92fe22a37f3f0bbd9e59f9bb6142efa311a616b96ca1fbd8f7d2a5aec"
+      }
+    },
+    {
+      "providerId": "fate_core.usecases.calculate_ziwei",
+      "capabilityIds": ["ziwei"],
+      "engineVersion": "fate-core-ziwei-v1",
+      "lifecycleStage": "production",
+      "source": {
+        "sourceRefs": [
+          "domains/fate-analysis/services/fate-core/src/fate_core/adapters/ziwei_iztro.py",
+          "domains/fate-analysis/services/fate-core/src/fate_core/usecases/calculate_ziwei.py"
+        ],
+        "supplyChainRefs": [
+          "tools/reference-repos/vendor_sources.json#iztro"
+        ]
+      },
+      "license": {
+        "license": "MIT",
+        "licenseStatus": "project_repo_license",
+        "productionUseAllowed": true,
+        "distributionAllowed": true,
+        "evidence": ["LICENSE", "pyproject.toml"]
+      },
+      "vendorSupplyChain": [
+        {
+          "id": "iztro",
+          "usageRole": "production_dependency",
+          "license": "MIT",
+          "licenseStatus": "spdx",
+          "productionUseAllowed": true,
+          "snapshotSha256": "3817f93a677e0c63b353a94fa7275199f21582a36397edc2f90685b58aae9325"
+        }
+      ],
+      "fingerprints": {
+        "sourceFingerprint": "sha256:e6b34b00ac88767de78e9b126c8c334d6760d3194a3a16387515c7393c4d713b",
+        "licenseFingerprint": "sha256:fa855b76a1d50c04e448bd6a1d5e1c2377c1dca4535ae94cf3d2f508bd12d6df",
+        "vendorFingerprint": "sha256:a75d6b67c7b3e2784edf2b678a4ca72ce925403b39ea3a0cba598c4c3cb38e0d",
+        "providerFingerprint": "sha256:ba555a2ba3f127195658ea6b59fc795efc1046348bdce656f6d1e2411fd7389b"
+      }
+    }
+  ],
+  "fingerprintPolicy": {
+    "algorithm": "sha256",
+    "canonicalization": "json-sort-keys-no-whitespace",
+    "updateRule": "Any intentional provider/source/license/vendor change must update this baseline in the same reviewed change and pass provider-drift-trend-gate."
+  },
+  "privacyBoundary": "Baseline 只保存 provider id、source path、license metadata、vendor id/hash 和指纹，不保存用户输入、报告正文、出生地区、token、secret、DSN 或外部账号。",
+  "releaseBoundary": "Baseline 是本地可复核趋势锚点，不代表法律许可证审计、真实公网 provider、外部 trace backend 或生产流量已完成验证。"
+}

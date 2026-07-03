@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "contractId": "contract.provider_source_license_drift_trend",
+  "description": "Provider/source/license 长期趋势门禁契约。该契约把单次 provider drift scanner 结果与 tracked baseline 对比，防止 provider、source refs、license evidence 或 vendor snapshot 漂移被静默接受；不连接真实公网 provider，不做法律许可证结论，不保存真实用户输入或生产凭证。",
+  "reportKind": "fatecat.provider_drift_trend_report",
+  "baselineKind": "fatecat.provider_drift_baseline",
+  "driftReportKind": "fatecat.provider_drift_report",
+  "baselinePath": "contracts/fate/capabilities/provider-drift-baseline.json",
+  "scannerCommand": "bash scripts/provider-drift-scanner.sh",
+  "gateCommand": "bash scripts/provider-drift-trend-gate.sh",
+  "requiredBaselineFields": [
+    "schemaVersion",
+    "kind",
+    "baselineId",
+    "createdAt",
+    "sourceReportKind",
+    "providerCount",
+    "capabilityCount",
+    "providers",
+    "fingerprintPolicy",
+    "privacyBoundary",
+    "releaseBoundary"
+  ],
+  "requiredProviderFields": [
+    "providerId",
+    "capabilityIds",
+    "engineVersion",
+    "lifecycleStage",
+    "source",
+    "license",
+    "vendorSupplyChain",
+    "fingerprints"
+  ],
+  "requiredFingerprintFields": [
+    "sourceFingerprint",
+    "licenseFingerprint",
+    "vendorFingerprint",
+    "providerFingerprint"
+  ],
+  "fingerprintInputs": {
+    "sourceFingerprint": ["sourceRefs", "supplyChainRefs"],
+    "licenseFingerprint": ["license", "licenseStatus", "productionUseAllowed", "distributionAllowed", "evidence"],
+    "vendorFingerprint": ["id", "usageRole", "license", "licenseStatus", "productionUseAllowed", "snapshotSha256"],
+    "providerFingerprint": ["providerId", "capabilityIds", "engineVersion", "lifecycleStage", "source", "license", "vendorSupplyChain"]
+  },
+  "requiredChecks": [
+    "scanner_report_passed",
+    "baseline_required_fields",
+    "provider_set_matches_baseline",
+    "provider_fingerprints_match_baseline",
+    "license_production_allowed",
+    "vendor_production_allowed",
+    "vendor_license_spdx"
+  ],
+  "negativeCases": [
+    "missing_provider",
+    "license_production_use_regression",
+    "vendor_snapshot_hash_drift",
+    "scanner_findings_not_zero"
+  ],
+  "forbiddenReportFragments": [
+    "token=",
+    "secret=",
+    "password=",
+    "DATABASE_URL",
+    "DB_DSN",
+    "birthPlace",
+    "测试用户",
+    "命理排盘报告",
+    "第一卷"
+  ],
+  "privacyBoundary": "趋势门禁只读取 tracked provider baseline、单次 provider drift summary 和供应链 metadata，不读取真实 .env、token、secret、DSN、用户报告正文、出生地区或生产外部账号。",
+  "releaseBoundary": "本契约通过只证明 tracked baseline 与当前本地 provider/source/license/vendor 指纹一致；不证明真实公网外部依赖、外部 trace backend、法律许可证审计或生产流量已验证。"
+}

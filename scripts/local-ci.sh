@@ -175,6 +175,9 @@ run_quick() {
     --output-json "${output_dir}/provider-dependency-smoke.json"
   run_step "provider drift scanner" bash "${script_dir}/provider-drift-scanner.sh" \
     --output-json "${output_dir}/provider-drift-scanner.json"
+  run_step "provider drift trend gate" bash "${script_dir}/provider-drift-trend-gate.sh" \
+    --scanner-report-json "${output_dir}/provider-drift-scanner.json" \
+    --output-json "${output_dir}/provider-drift-trend-gate.json"
   run_step "observability SLO gate" bash "${script_dir}/observability-slo-gate.sh" \
     --output-json "${output_dir}/observability-slo-gate.json"
   run_step "observability trace SLO smoke" bash "${script_dir}/observability-trace-slo-smoke.sh" \

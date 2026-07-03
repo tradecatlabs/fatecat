@@ -80,6 +80,8 @@ scripts/
 ├── provider-dependency-smoke.py
 ├── provider-drift-scanner.sh
 ├── provider-drift-scanner.py
+├── provider-drift-trend-gate.sh
+├── provider-drift-trend-gate.py
 ├── report-job-restart-recovery-smoke.sh
 ├── report-job-restart-recovery-smoke.py
 ├── retention-cleanup.sh
@@ -168,6 +170,7 @@ scripts/
 - `provider-dependency-smoke.sh` / `provider-dependency-smoke.py` 是 production provider 本地依赖执行 smoke；通过统一 `CapabilityExecutor` 和脱敏固定样例验证 provider validate/calculate 链路，不访问公网或真实账号。
 - `provider-lifecycle-gate.sh` / `provider-lifecycle-gate.py` 是 production provider 生命周期门禁；校验 versionLock、source/license/resource manifest、promotionGate、deprecation 和 vendor source 生产使用许可。
 - `provider-drift-scanner.sh` / `provider-drift-scanner.py` 是 production provider drift scanner；复用 provider lifecycle gate、dependency smoke、本地 provider.validate/provider.calculate span 和 vendor manifest，输出 dependency/source/license drift report，不连接外部 trace backend 或真实账号。
+- `provider-drift-trend-gate.sh` / `provider-drift-trend-gate.py` 是 provider/source/license 长期趋势门禁；复用 provider drift scanner 输出并对比 `provider-drift-baseline.json`，拒绝 provider 集合、source refs、license evidence 或 vendor snapshot 静默漂移；不连接公网 provider、不做法律许可证结论。
 - `production-security-gate.sh` / `production-security-gate.py` 是生产安全 contract gate；验证生产身份外部化、OIDC/IdP 准入、SIEM/不可变审计存储、retention 自动清理计划、外部 secret provider / Vault / KMS 准入和 OWASP API Security Top 10 回归包，不连接真实外部账号、SIEM、Vault 或 KMS。
 - `security-externalization-gate.sh` / `security-externalization-gate.py` 是安全外部化 evidence gate；先复用 production security gate，再验证 OIDC/SIEM/retention cleaner evidence contract、proof-ref 白名单、raw URL 禁入和反伪造负例，拒绝把本地 scoped token、placeholder SIEM、真实 endpoint URL 或缺 smoke 的 retention cleaner 写成 live evidence。
 - `external-secret-provider-gate.sh` / `external-secret-provider-gate.py` 是外部 secret provider evidence gate；验证 Vault/KMS/secret manager evidence contract 和反伪造负例，拒绝把本地 Fernet key ring、环境变量或 placeholder proof 写成 external live evidence。
