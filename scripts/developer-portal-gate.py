@@ -32,9 +32,9 @@ DEVELOPER_PLATFORM_GATE_PATH = REPO_ROOT / "scripts" / "developer-platform-gate.
 DEVELOPER_DOCS_SMOKE_PATH = REPO_ROOT / "scripts" / "developer-docs-smoke.py"
 
 FORBIDDEN_FRAGMENTS = [
-    "济南市历下区",
-    "深圳",
-    "张三",
+    "\u6d4e\u5357\u5e02\u5386\u4e0b\u533a",
+    "\u6df1\u5733",
+    "\u5f20\u4e09",
     "sk-live",
     "xoxb-",
     "BEGIN RSA",
