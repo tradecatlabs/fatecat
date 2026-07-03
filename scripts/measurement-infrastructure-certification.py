@@ -170,18 +170,21 @@ def _domain_status(evidence: list[dict[str, Any]], missing: list[str]) -> str:
     return "in-progress"
 
 
-def _evaluate_domain(evidence_dir: Path, spec: DomainSpec) -> dict[str, Any]:
+def _evaluate_domain(evidence_dir: Path, spec: DomainSpec, evidence_overrides: dict[str, Path]) -> dict[str, Any]:
     evidence: list[dict[str, Any]] = []
     missing: list[str] = []
     for rel_path in spec.files:
-        path = evidence_dir / rel_path
+        override_path = evidence_overrides.get(rel_path)
+        path = override_path if override_path is not None else evidence_dir / rel_path
         if not path.is_file():
             missing.append(rel_path)
             continue
         payload = _load_json(path)
         evidence.append(
             {
+                "logicalPath": rel_path,
                 "path": str(path),
+                "source": "override" if override_path is not None else "evidence_dir",
                 "status": _status_of(payload),
                 "blockingItems": _blocked_items(payload, spec.blocked_markers),
                 "pendingItems": _pending_items(payload, spec.pending_markers),
@@ -196,7 +199,9 @@ def _evaluate_domain(evidence_dir: Path, spec: DomainSpec) -> dict[str, Any]:
         "missingEvidence": missing,
         "evidence": [
             {
+                "logicalPath": item["logicalPath"],
                 "path": item["path"],
+                "source": item["source"],
                 "status": item["status"],
                 "blockingItems": item["blockingItems"],
                 "pendingItems": item["pendingItems"],
@@ -213,11 +218,16 @@ def _assert_no_forbidden(summary: dict[str, Any], contract: dict[str, Any]) -> N
         raise CertificationGateError(f"certification summary contains forbidden fragments: {', '.join(forbidden)}")
 
 
-def run_gate(*, evidence_dir: Path) -> dict[str, Any]:
+def run_gate(*, evidence_dir: Path, current_release_proof_json: Path | None = None) -> dict[str, Any]:
     contract = _load_json(CONTRACT_PATH)
     if not evidence_dir.is_dir():
         raise CertificationGateError(f"evidence dir missing: {evidence_dir}")
-    domains = [_evaluate_domain(evidence_dir, spec) for spec in DOMAIN_SPECS]
+    evidence_overrides: dict[str, Path] = {}
+    if current_release_proof_json is not None:
+        if not current_release_proof_json.is_file():
+            raise CertificationGateError(f"current release proof sidecar missing: {current_release_proof_json}")
+        evidence_overrides["current-release-proof.json"] = current_release_proof_json
+    domains = [_evaluate_domain(evidence_dir, spec, evidence_overrides) for spec in DOMAIN_SPECS]
     blocking_items: list[dict[str, Any]] = []
     external_pending: list[dict[str, Any]] = []
     failed_domains: list[str] = []
@@ -251,6 +261,7 @@ def run_gate(*, evidence_dir: Path) -> dict[str, Any]:
         "externalPending": external_pending,
         "blockingItems": blocking_items,
         "evidenceDir": str(evidence_dir),
+        "evidenceOverrides": {key: str(path) for key, path in evidence_overrides.items()},
         "privacyBoundary": contract["privacyBoundary"],
         "releaseBoundary": contract["releaseBoundary"],
         "nonClaims": contract["nonClaims"],
@@ -274,6 +285,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output-json", type=Path, default=DEFAULT_OUTPUT_JSON, help="certification summary output JSON."
     )
+    parser.add_argument(
+        "--current-release-proof-json",
+        type=Path,
+        help="Optional sidecar current-release-proof JSON for the current HEAD. Does not override live-release-gate.",
+    )
     parser.add_argument("--require-certified", action="store_true", help="Require status=passed; otherwise exit 1.")
     return parser
 
@@ -282,7 +298,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     try:
-        summary = run_gate(evidence_dir=args.evidence_dir)
+        summary = run_gate(evidence_dir=args.evidence_dir, current_release_proof_json=args.current_release_proof_json)
         write_summary(summary, args.output_json)
         print(
             json.dumps(
@@ -292,6 +308,7 @@ def main(argv: list[str] | None = None) -> int:
                     "domains": len(summary["domains"]),
                     "externalPending": len(summary["externalPending"]),
                     "blockingItems": len(summary["blockingItems"]),
+                    "evidenceOverrides": len(summary["evidenceOverrides"]),
                 },
                 ensure_ascii=False,
             )

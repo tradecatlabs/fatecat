@@ -128,6 +128,7 @@ def test_certification_contract_lists_required_evidence_files():
     assert contract["kind"] == "fatecat.measurement_infrastructure_certification_contract"
     assert "provider-drift-trend-gate.json" in contract["requiredEvidenceFiles"]
     assert "runtime-proof-gate.json" in contract["requiredEvidenceFiles"]
+    assert "evidenceOverrides" in contract["requiredOutputFields"]
     assert "current-audit-bundle/current-audit-bundle.json" in contract["requiredEvidenceFiles"]
     assert "Does not mean FateCat is 100% production infrastructure." in contract["nonClaims"]
 
@@ -181,3 +182,59 @@ def test_certification_accepts_synthetic_full_pass(tmp_path):
     stored = json.loads(output_json.read_text(encoding="utf-8"))
     assert stored["status"] == "passed"
     assert stored["certificationGate"]["canClaim100Percent"] is True
+
+
+def test_certification_accepts_current_release_proof_sidecar_without_overriding_live_gate(tmp_path):
+    module = _load_module()
+    evidence_dir = _write_evidence_dir(tmp_path / "evidence", blocked=True)
+    sidecar = tmp_path / "sidecar" / "current-release-proof.json"
+    _write_json(
+        sidecar,
+        {
+            "status": "passed",
+            "proofGate": {
+                "status": "passed",
+                "blockingItems": [],
+            },
+        },
+    )
+
+    summary = module.run_gate(evidence_dir=evidence_dir, current_release_proof_json=sidecar)
+    domains = {domain["id"]: domain for domain in summary["domains"]}
+    release = domains["release"]
+    current_proof = next(item for item in release["evidence"] if item["logicalPath"] == "current-release-proof.json")
+    live_gate = next(item for item in release["evidence"] if item["logicalPath"] == "live-release-gate.json")
+
+    assert summary["evidenceOverrides"] == {"current-release-proof.json": str(sidecar)}
+    assert release["status"] == "blocked"
+    assert current_proof["source"] == "override"
+    assert current_proof["path"] == str(sidecar)
+    assert current_proof["status"] == "passed"
+    assert current_proof["blockingItems"] == []
+    assert live_gate["source"] == "evidence_dir"
+    assert live_gate["blockingItems"] == ["evidence.telegram_bot_live"]
+    assert summary["certificationGate"]["canClaim100Percent"] is False
+
+
+def test_certification_cli_writes_sidecar_override_metadata(tmp_path):
+    module = _load_module()
+    evidence_dir = _write_evidence_dir(tmp_path / "evidence", blocked=True)
+    sidecar = tmp_path / "current-release-proof.json"
+    output_json = tmp_path / "out.json"
+    _write_json(sidecar, {"status": "passed", "proofGate": {"status": "passed", "blockingItems": []}})
+
+    exit_code = module.main(
+        [
+            "--evidence-dir",
+            str(evidence_dir),
+            "--current-release-proof-json",
+            str(sidecar),
+            "--output-json",
+            str(output_json),
+        ]
+    )
+
+    stored = json.loads(output_json.read_text(encoding="utf-8"))
+    assert exit_code == 0
+    assert stored["status"] == "blocked"
+    assert stored["evidenceOverrides"] == {"current-release-proof.json": str(sidecar)}
