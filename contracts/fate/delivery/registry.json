@@ -236,11 +236,13 @@
       "bash scripts/release-artifacts.sh --output-dir <dir>",
       "bash scripts/rollback-drill.sh --output-json <path>",
       "bash scripts/container-release-evidence.sh --output-json <path>",
+      "bash scripts/current-release-proof.sh --skip-remote --output-json <path>",
       "bash scripts/live-release-gate.sh --output-json <path>"
     ],
     "externalVerification": [
       "gh workflow run container.yml -f push_image=true",
       "gh attestation verify oci://ghcr.io/<owner>/fatecat-delivery@sha256:<64 hex> --repo <owner>/<repo>",
+      "bash scripts/current-release-proof.sh --require-current-release --rollback-evidence-path <rollback.json> --output-json <path>",
       "bash scripts/live-release-gate.sh --require-live --api-url <真实API域名> --hf-space-url <真实HF Space URL> --run-live-bot --output-json <path>"
     ],
     "shipGateStatus": "blocked",

@@ -301,6 +301,7 @@ run_quick() {
       tests/regression/test_webhook_outbox_lease_smoke.py \
       tests/regression/test_report_job_replayable_recovery_smoke.py \
       tests/regression/test_report_job_restart_recovery_smoke.py \
+      tests/regression/test_current_release_proof.py \
       tests/regression/test_live_release_gate.py \
       tests/regression/test_container_release_evidence.py \
       tests/regression/test_release_artifacts.py \

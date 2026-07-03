@@ -50,3 +50,4 @@ delivery/
 - 本地 SBOM/provenance 由 `scripts/release-artifacts.sh` 生成，只证明仓库当前 worktree 可产出发布资产 baseline，不等于远端 CI attestation 或 registry signature。
 - 本地 rollback drill 由 `scripts/rollback-drill.sh` 生成，只证明 dry-run 回滚路径、候选命令和必需文档可审计；`productionRollbackExecuted=false` 时不能宣称真实生产回滚演练已完成。
 - 本地 container evidence 由 `scripts/container-release-evidence.sh` 生成，只证明本地 Docker image build/smoke 和 `imageId`；`registryDigestPresent=false` 或 `pushExecuted=false` 时不能宣称 GHCR/registry 发布已完成。
+- 当前 commit release proof 由 `scripts/current-release-proof.sh` 聚合远端 acceptance、container workflow、GHCR digest、GitHub attestation、release artifact、rollback drill 和 git clean 状态；缺任一证据时必须保持 blocked/failed，不得用历史 commit 的 release proof 替代当前 commit。

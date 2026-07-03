@@ -160,6 +160,7 @@ scripts/
 - `release-artifacts.sh` / `release-artifacts.py` 生成本地发布资产 baseline：CycloneDX 兼容 SBOM、SLSA/in-toto 风格 provenance 和 manifest；只读取 lockfile、Dockerfile、关键 contracts/scripts 和 git metadata，不生成远端 CI attestation、registry signature 或 container digest。
 - `rollback-drill.sh` / `rollback-drill.py` 生成本地 dry-run rollback drill evidence：校验回滚相关脚本、部署文档、release artifacts 和候选命令，输出 `kind=fatecat.rollback_drill_evidence` 的 JSON；不执行真实生产回滚、registry 切换或 HF/Bot 外部操作。
 - `container-release-evidence.sh` / `container-release-evidence.py` 生成本地 container release evidence：复用 `container-build.sh` 与 `container-smoke.sh`，记录 imageId、build/smoke 状态、RepoDigests、commit 和 `pushExecuted=false`；不推送 registry，不把本地 imageId 当成 GHCR digest。真实 GHCR digest 与 GitHub artifact attestation 由 `.github/workflows/container.yml` 在手动 `push_image=true` 时生成并 verify。
+- `current-release-proof.sh` / `current-release-proof.py` 聚合当前 commit 发布证据：远端 acceptance run、container workflow、GHCR digest、GitHub attestation、release artifacts、rollback drill 和 git clean 状态。默认 `--skip-remote` 只输出 pending 合同；`--require-current-release` 才把缺失证据作为失败，不读取或输出 GitHub/registry token。
 - `secret-scan.sh` / `secret-scan.py` 是本地 secret scanner；扫描 tracked 与未跟踪非忽略的一线文本文件，输出脱敏 JSON summary，发现疑似真实密钥时阻断。
 - `security-smoke.sh` / `security-smoke.py` 是本地安全 smoke；验证 token/owner 边界、响应安全头、请求体限制、限流、registry metadata，并可串联 privacy/source/public-release 文件门禁。
 - `webhook-smoke.sh` / `webhook-smoke.py` 是 report job webhook 本地模拟器；使用可注入 transport 验证终态事件、HMAC 签名和正文/secret 不外发，不访问公网。
