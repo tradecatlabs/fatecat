@@ -58,8 +58,9 @@ def test_postgres_job_worker_lease_script_and_contract_are_wired():
     assert "postgres-job-worker-lease-smoke.py" in wrapper_text
     assert "postgres-job-worker-lease-smoke.sh" in local_ci_text
     assert "postgresJobWorkerLeaseSmoke" in local_ci_text
-    assert postgres["implementationStatus"] == "job_worker_lease_smoke_baseline"
-    assert postgres["capabilities"]["workerLease"] == "transactional_job_and_outbox_claim_negative_smoke_baseline"
+    assert postgres["implementationStatus"] == "external_worker_restart_smoke_baseline"
+    assert postgres["capabilities"]["workerLease"] == "transactional_job_and_outbox_claim_with_restart_smoke_baseline"
+    assert postgres["capabilities"]["workerRestart"] == "expired_lease_external_worker_restart_smoke_baseline"
     assert "bash scripts/postgres-job-worker-lease-smoke.sh" in postgres["externalVerification"]
     assert "bash scripts/postgres-job-worker-lease-smoke.sh --allow-missing" in postgres["localVerification"]
     assert "exactly_once" in postgres["migration"]["blockedClaims"]

@@ -1497,6 +1497,7 @@ class ReportJobManager:
         callback_policy: ReportJobWebhookPolicy | None = None,
         task_factories: dict[str, ReportJobTaskFactory] | None = None,
         webhook_redelivery_lease_seconds: float = 30.0,
+        job_execution_lease_seconds: float = 30.0,
     ) -> None:
         self.max_workers = max(1, max_workers)
         self.queue_size = max(1, queue_size)
@@ -1509,6 +1510,8 @@ class ReportJobManager:
         self.task_factories = dict(task_factories or {})
         self.webhook_redelivery_lease_seconds = max(1.0, float(webhook_redelivery_lease_seconds))
         self._webhook_redelivery_lease_owner = f"manager:{secrets.token_urlsafe(12)}"
+        self.job_execution_lease_seconds = max(1.0, float(job_execution_lease_seconds))
+        self._job_execution_lease_owner = f"manager-job:{secrets.token_urlsafe(12)}"
         self._queue: Queue[str] = Queue(maxsize=self.queue_size)
         self._jobs: dict[str, _ReportJob] = {}
         self._idempotency_index: dict[str, str] = {}
@@ -1636,6 +1639,7 @@ class ReportJobManager:
             job.error = None
             job.finished_at = now_cn().isoformat()
             self._persist_locked(job)
+            self._release_job_execution_lease_locked(job.job_id)
             self._append_event_locked(job, "job.cancelled", "报告任务已取消")
             callback_snapshot = self._snapshot_locked(job)
             callback_config = job.webhook_config
@@ -1689,7 +1693,6 @@ class ReportJobManager:
         job.finished_at = None
         if was_running and job.attempts > 0:
             job.attempts -= 1
-        self.store.save_job(job)
         try:
             self._queue.put_nowait(job.job_id)
         except Full:
@@ -1885,20 +1888,32 @@ class ReportJobManager:
             if job.status != "queued":
                 return
             task = job.task
+            if task is None:
+                return
+            claimed_job = self.store.claim_job_for_execution(
+                job,
+                lease_owner=self._job_execution_lease_owner,
+                lease_seconds=self.job_execution_lease_seconds,
+            )
+            if claimed_job is None:
+                return
             job.status = "running"
-            job.started_at = now_cn().isoformat()
+            job.started_at = claimed_job.started_at or now_cn().isoformat()
+            job.attempts = claimed_job.attempts
+            job.max_attempts = claimed_job.max_attempts
+            job.attempt_timeout_seconds = claimed_job.attempt_timeout_seconds
+            job.retry_backoff_seconds = claimed_job.retry_backoff_seconds
             self._persist_locked(job)
             self._append_event_locked(job, "job.running", "报告任务开始执行")
-
-        if task is None:
-            return
 
         while True:
             with self._lock:
                 job = self._jobs.get(job_id)
                 if not job or job.status == "cancelled":
+                    self._release_job_execution_lease_locked(job_id)
                     return
                 if job.status != "running":
+                    self._release_job_execution_lease_locked(job_id)
                     return
                 job.attempts += 1
                 attempt = job.attempts
@@ -1954,12 +1969,14 @@ class ReportJobManager:
                 job.task = None
                 job.result = None
                 self._persist_locked(job)
+                self._release_job_execution_lease_locked(job_id)
                 return
             job.status = "succeeded"
             job.result = result
             job.finished_at = now_cn().isoformat()
             job.task = None
             self._persist_locked(job)
+            self._release_job_execution_lease_locked(job_id)
             self._append_event_locked(job, "job.succeeded", "报告任务执行成功", {"attempt": job.attempts})
             callback_snapshot = self._snapshot_locked(job)
             callback_config = job.webhook_config
@@ -2027,6 +2044,7 @@ class ReportJobManager:
             job.finished_at = now_cn().isoformat()
             job.task = None
             self._persist_locked(job)
+            self._release_job_execution_lease_locked(job_id)
             self._append_event_locked(
                 job,
                 "job.failed",
@@ -2088,6 +2106,9 @@ class ReportJobManager:
 
     def _persist_webhook_outbox_locked(self, record: ReportJobWebhookOutboxRecord) -> None:
         self.store.save_webhook_outbox_record(record)
+
+    def _release_job_execution_lease_locked(self, job_id: str) -> None:
+        self.store.release_job_execution_lease(job_id, lease_owner=self._job_execution_lease_owner)
 
     def _append_event_locked(
         self,

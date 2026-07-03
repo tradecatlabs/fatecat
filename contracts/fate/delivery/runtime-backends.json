@@ -5,12 +5,12 @@
   "id": "runtime.backends",
   "description": "FateCat CalculationJob durable runtime backend registry。这里登记 memory、sqlite 与 external backend 候选，明确生产边界和迁移路径；不保存真实 DSN、凭证或生产连接结果。",
   "decision": {
-    "status": "job_worker_lease_smoke_baseline",
+    "status": "external_worker_restart_smoke_baseline",
     "selectedExternalCandidate": "backend.postgres",
-    "firstAdapterPath": "Postgres ReportJobStore adapter with transactional claim/release, migration/job live smoke, outbox worker lease negative smoke and job execution worker lease primitive smoke",
+    "firstAdapterPath": "Postgres ReportJobStore adapter with transactional claim/release, migration/job live smoke, outbox worker lease negative smoke, job execution worker lease primitive smoke and external worker restart smoke",
     "futureWorkflowOrchestrator": "backend.temporal",
     "notSelectedAsSourceOfTruth": ["backend.redis_queue"],
-    "nextTask": "0074 adds Postgres job execution worker lease primitive smoke; next task must prove crash/restart external backend worker or external webhook/Vault live evidence"
+    "nextTask": "0075 adds Postgres external worker restart smoke; next task must prove public webhook live delivery or external webhook/Vault live evidence"
   },
   "schemas": {
     "runtimeBackend": "contracts/fate/delivery/schemas/runtime-backend.schema.json",
@@ -142,9 +142,9 @@
       "maturity": "L1",
       "deploymentScope": "external_database",
       "durability": "external relational database durability after live migration/job smoke",
-      "coordination": "transactional webhook outbox and job execution row claim/release smoke baseline using conditional update",
+      "coordination": "transactional webhook outbox and job execution row claim/release plus external worker restart smoke baseline using conditional update",
       "productionEligibility": "candidate",
-      "implementationStatus": "job_worker_lease_smoke_baseline",
+      "implementationStatus": "external_worker_restart_smoke_baseline",
       "config": {
         "envVars": ["FATE_REPORT_JOB_STORE=postgres", "FATE_REPORT_JOB_DATABASE_URL"],
         "secretPolicy": "database URL must come from secret manager or environment; registry and logs must never store the DSN value"
@@ -155,7 +155,8 @@
         "idempotencyPersistence": "live_smoke_baseline",
         "taskPayloadRecovery": "live_smoke_baseline",
         "webhookOutboxPersistence": "live_smoke_baseline",
-        "workerLease": "transactional_job_and_outbox_claim_negative_smoke_baseline",
+        "workerLease": "transactional_job_and_outbox_claim_with_restart_smoke_baseline",
+        "workerRestart": "expired_lease_external_worker_restart_smoke_baseline",
         "multiReplicaReady": "planned",
         "exactlyOnceClaim": false
       },
@@ -165,24 +166,27 @@
         "live adapter smoke: bash scripts/postgres-job-store-live-smoke.sh against disposable external database",
         "outbox worker lease negative smoke: bash scripts/postgres-worker-lease-smoke.sh against disposable external database",
         "job execution worker lease primitive smoke: bash scripts/postgres-job-worker-lease-smoke.sh against disposable external database",
-        "future crash/restart external backend worker smoke with two workers"
+        "external worker restart smoke: bash scripts/postgres-external-worker-restart-smoke.sh against disposable external database",
+        "future public webhook live smoke and external secret provider evidence"
       ],
       "localVerification": [
         "bash scripts/runtime-backend-gate.sh",
         "bash scripts/postgres-job-store-dry-run.sh",
         "bash scripts/postgres-worker-lease-smoke.sh --allow-missing",
-        "bash scripts/postgres-job-worker-lease-smoke.sh --allow-missing"
+        "bash scripts/postgres-job-worker-lease-smoke.sh --allow-missing",
+        "bash scripts/postgres-external-worker-restart-smoke.sh --allow-missing"
       ],
       "externalVerification": [
         "bash scripts/postgres-job-store-live-smoke.sh",
         "bash scripts/postgres-worker-lease-smoke.sh",
         "bash scripts/postgres-job-worker-lease-smoke.sh",
+        "bash scripts/postgres-external-worker-restart-smoke.sh",
         "FATE_REPORT_JOB_POSTGRES_LIVE_EVIDENCE must point to passed fatecat.postgres_job_store_live_smoke JSON before postgres production readiness can pass"
       ],
       "privacyBoundary": "Postgres registry may name env vars and migration evidence, but must not include DSN, username, password, report body, callback URL or user input.",
       "externalConnectivity": "requires_real_database",
       "migration": {
-        "upgradePath": "Use PostgresReportJobStore behind FATE_REPORT_JOB_STORE=postgres; keep passed postgres live smoke, outbox worker lease negative smoke and job execution worker lease primitive smoke evidence, then prove crash/restart external backend worker before production eligibility can advance.",
+        "upgradePath": "Use PostgresReportJobStore behind FATE_REPORT_JOB_STORE=postgres; keep passed postgres live smoke, outbox worker lease negative smoke, job execution worker lease primitive smoke and external worker restart smoke evidence, then prove public webhook live and external secret lifecycle before production eligibility can advance.",
         "rollbackPath": "Switch back to sqlite for local single-replica baseline if external database smoke fails.",
         "blockedClaims": ["production_ready", "multi_replica_ready", "exactly_once", "public_webhook_live", "external_vault_kms"]
       },
@@ -195,7 +199,7 @@
         "owner": "domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py::PostgresReportJobStore",
         "rationale": "Postgres is the first external backend candidate because it can hold job state, event history, idempotency, outbox and worker claim state in one transactional source of truth.",
         "failureMode": "Without real database DSN, psycopg and migration/job smoke, selecting FATE_REPORT_JOB_STORE=postgres must fail instead of silently falling back.",
-        "releaseImpact": "Blocks production multi-replica durable runtime until crash/restart external backend worker, public webhook and external secret lifecycle evidence exist.",
+        "releaseImpact": "Blocks production multi-replica durable runtime until public webhook and external secret lifecycle evidence exist; exactly-once is still not claimed.",
         "risk": "External database operations require live migration, connection pooling, secret handling, lock contention and rollback evidence."
       }
     },
@@ -318,7 +322,7 @@
   "invariants": [
     "RuntimeBackend registry 不保存真实 DSN、token、secret、webhook URL、用户输入、报告正文或生产日志。",
     "memory/sqlite available 只代表本地 baseline，不代表 external backend 已生产。",
-    "backend.postgres 是首个 external backend adapter candidate；job worker lease smoke baseline 可证明 schema/job/outbox/config 真实数据库路径、webhook outbox duplicate claim negative path 和 job execution lease primitive，但 status=planned，直到 crash/restart external backend worker、外部 Vault/KMS 和公网 webhook 证据完成。",
+    "backend.postgres 是首个 external backend adapter candidate；external worker restart smoke baseline 可证明 schema/job/outbox/config 真实数据库路径、webhook outbox duplicate claim negative path、job execution lease primitive 和 expired lease restart 恢复执行，但 status=planned，直到外部 Vault/KMS 和公网 webhook 证据完成。",
     "backend.temporal 是 future workflow orchestrator，不是当前 ReportJobStore adapter。",
     "backend.redis_queue 不得作为 CalculationJob source of truth。",
     "任何 production multi-replica durable runtime 结论必须来自外部 backend adapter、迁移 smoke、crash/restart smoke 和 duplicate claim negative test。"
