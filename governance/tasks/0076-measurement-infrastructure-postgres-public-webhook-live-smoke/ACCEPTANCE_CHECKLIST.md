@@ -62,6 +62,6 @@ Verify: validators、git clean、push、GitHub Acceptance。
 
 Gate: 当前 commit 远端 CI 通过。
 
-- [ ] 任务文档 closeout。
-- [ ] 提交并推送。
-- [ ] 远端 CI 通过。
+- [x] 任务文档 closeout。
+- [x] 提交并推送。
+- [x] 远端 CI 通过。
