@@ -16,6 +16,7 @@ tests/
 	    ├── test_calendar_oracle_contract.py
 	    ├── test_catalog_contracts.py
 	    ├── test_mingli_bench_aggregate_gate.py
+	    ├── test_core_quality_corpus_gate.py
 	    ├── test_mingli_bench_gate.py
 	    ├── test_multi_surface_semantic_diff.py
 	    ├── test_capability_cli_smoke.py
@@ -45,6 +46,7 @@ tests/
 - `regression/test_calendar_oracle_contract.py`：历法/四柱 oracle 对照测试；只服务开发门禁，不允许 oracle 库进入生产源码路径。
 - `regression/test_catalog_contracts.py`：组件 catalog canonical root 与 compatibility box 退役防回潮测试。
 - `regression/test_mingli_bench_aggregate_gate.py`：MingLi-Bench 离线聚合门禁合同；验证 summary 只含 stats、license/usage 和 baseline 聚合结果，不泄露题目、出生信息、标准答案或逐题结果。
+- `regression/test_core_quality_corpus_gate.py`：八字/紫微 core quality corpus 合同；验证 evaluation manifest、紫微匿名样本数量、覆盖标签、summary-only report diff 策略、registry 接线和隐私边界。
 - `regression/test_mingli_bench_gate.py`：MingLi-Bench 离线 predictions evaluator smoke 与 FateCat scored baseline 产物合同；准确率只作为评测输出，不宣称模型已专业。
 - `regression/test_multi_surface_semantic_diff.py`：多交付面语义一致性 gate 合同；验证 API/Web/Bot dry-run normalized hash 同源、CLI capability smoke、Skill 命令链证据、证据不保存报告正文、registry/local-ci/AGENTS wiring 和 capability 引擎接线。
 - `regression/test_capability_cli_smoke.py`：capability CLI 交付面合同；验证根级 CLI wrapper、production capability smoke、planned capability 拒绝、delivery registry 和 local-ci/AGENTS 接线。

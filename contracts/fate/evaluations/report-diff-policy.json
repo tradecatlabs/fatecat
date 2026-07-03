@@ -64,7 +64,25 @@
     "maxSnapshotFailures": 0,
     "maxPrivacyViolations": 0,
     "minBaziGoldenCases": 300,
-    "minZiweiGoldenCases": 4
+    "minZiweiGoldenCases": 8,
+    "minReportProfiles": 2
+  },
+  "structuralDiff": {
+    "summaryOnly": true,
+    "requiredSummaryFields": ["policyGate", "snapshotGate", "headingCount", "requiredHeadings"],
+    "forbiddenStoredFields": ["markdown", "content", "body", "fullReport", "reportText"],
+    "profileMinimums": {
+      "bazi": {
+        "minRequiredTopLevelHeadings": 4,
+        "minRequiredCoreBlocks": 8,
+        "forbiddenDefaultBlockCountMin": 8
+      },
+      "ziwei": {
+        "minRequiredTopLevelHeadings": 3,
+        "minRequiredCoreBlocks": 4,
+        "forbiddenDefaultBlockCountMin": 3
+      }
+    }
   },
   "commands": [
     "bash scripts/bazi-ziwei-l4-golden-smoke.sh --profile quick",

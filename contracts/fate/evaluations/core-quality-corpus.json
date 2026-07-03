@@ -59,12 +59,27 @@
       "source": "synthetic_anonymous_fixture",
       "usageRole": "evaluation_only",
       "privacyClass": "anonymous_fixture",
-      "minCaseCount": 4,
+      "minCaseCount": 8,
       "requiredBirthPlace": "北京",
       "requiredInputFields": ["birthDateTime", "gender", "longitude", "latitude", "birthPlace", "name"],
-      "lockedFields": ["palaceCount", "lifePalace", "bodyPalace", "mutagenPlacementCount", "fortuneLinkCount", "requiredRuleIds"],
+      "lockedFields": ["palaceCount", "lifePalace", "bodyPalace", "mutagenPlacementCount", "fortuneLinkCount", "requiredRuleIds", "coverageTags"],
+      "requiredCoverageTags": [
+        "life_body_same_palace",
+        "life_body_split",
+        "body_in_life_palace",
+        "body_migration",
+        "body_career_palace",
+        "body_spouse_palace",
+        "lichun_boundary",
+        "midnight_birth",
+        "midday_birth",
+        "season_spring",
+        "season_winter",
+        "moon_major_star",
+        "pojun_life_palace"
+      ],
       "releaseGate": "required",
-      "risk": "紫微基础样本只锁项目当前盘面 guard 字段，不代表完整紫微流派评测。"
+      "risk": "紫微基础样本只锁项目当前盘面 guard 字段与覆盖标签，不代表完整紫微流派评测。"
     },
     {
       "id": "corpus.ziwei.rule_depth",
@@ -85,7 +100,9 @@
   "reportDiffPolicy": {
     "path": "contracts/fate/evaluations/report-diff-policy.json",
     "releaseGate": "required",
-    "gate": "policyGate=pass and snapshotGate=pass for production report profiles"
+    "gate": "policyGate=pass and snapshotGate=pass for production report profiles",
+    "requiredStructuralSummary": ["policyGate", "snapshotGate", "headingCount", "requiredHeadings"],
+    "forbiddenStoredFields": ["markdown", "content", "body", "fullReport", "reportText"]
   },
   "releaseGate": {
     "command": "bash scripts/core-quality-corpus-gate.sh",

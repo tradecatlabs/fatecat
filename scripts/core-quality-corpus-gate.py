@@ -96,9 +96,46 @@ def _validate_registry(
     _require(
         checks,
         "policy:threshold:ziwei",
-        int(policy["thresholds"]["minZiweiGoldenCases"]) >= 4,
+        int(policy["thresholds"]["minZiweiGoldenCases"]) >= 8,
         str(policy["thresholds"].get("minZiweiGoldenCases")),
     )
+    structural = policy.get("structuralDiff", {})
+    _require(checks, "policy:structural_diff:summary_only", structural.get("summaryOnly") is True, str(structural))
+    _require(
+        checks,
+        "policy:structural_diff:required_fields",
+        set(manifest["reportDiffPolicy"]["requiredStructuralSummary"])
+        <= set(structural.get("requiredSummaryFields", [])),
+        str(structural.get("requiredSummaryFields")),
+    )
+    forbidden = set(structural.get("forbiddenStoredFields", []))
+    _require(
+        checks,
+        "policy:structural_diff:no_full_body",
+        set(manifest["reportDiffPolicy"]["forbiddenStoredFields"]) <= forbidden,
+        str(sorted(forbidden)),
+    )
+    for profile_id, profile in policy["profiles"].items():
+        minimum = structural.get("profileMinimums", {}).get(profile_id, {})
+        structure = profile["structurePolicy"]
+        _require(
+            checks,
+            f"policy:structural_diff:{profile_id}:headings",
+            len(structure["requiredTopLevelHeadings"]) >= int(minimum.get("minRequiredTopLevelHeadings", 0)),
+            str(len(structure["requiredTopLevelHeadings"])),
+        )
+        _require(
+            checks,
+            f"policy:structural_diff:{profile_id}:core_blocks",
+            len(structure["requiredCoreBlocks"]) >= int(minimum.get("minRequiredCoreBlocks", 0)),
+            str(len(structure["requiredCoreBlocks"])),
+        )
+        _require(
+            checks,
+            f"policy:structural_diff:{profile_id}:forbidden_blocks",
+            len(structure["forbiddenDefaultBlocks"]) >= int(minimum.get("forbiddenDefaultBlockCountMin", 0)),
+            str(len(structure["forbiddenDefaultBlocks"])),
+        )
     return checks
 
 
@@ -118,6 +155,16 @@ def _validate_corpus(corpus: dict[str, Any]) -> dict[str, Any]:
     _require(checks, "source", data.get("source") == corpus["source"], str(data.get("source")))
     required_fields = set(corpus["requiredInputFields"])
     required_place = str(corpus["requiredBirthPlace"])
+    required_tags = set(corpus.get("requiredCoverageTags", []))
+    fixture_required_tags = set((data.get("coverageRequirements") or {}).get("requiredTags", []))
+    if required_tags or fixture_required_tags:
+        observed_tags = {str(tag) for case in cases for tag in case.get("coverageTags", [])}
+        _require(
+            checks,
+            "coverage_tags",
+            (required_tags | fixture_required_tags) <= observed_tags,
+            str(sorted((required_tags | fixture_required_tags) - observed_tags)),
+        )
     ids: set[str] = set()
     for index, case in enumerate(cases):
         case_id = str(case.get("id") or "")
@@ -128,6 +175,14 @@ def _validate_corpus(corpus: dict[str, Any]) -> dict[str, Any]:
         _require(checks, f"case:{case_id}:input", isinstance(input_payload, dict), "input present")
         missing = sorted(required_fields - set(input_payload or {}))
         _require(checks, f"case:{case_id}:required_input_fields", not missing, str(missing))
+        if required_tags or fixture_required_tags:
+            tags = case.get("coverageTags")
+            _require(
+                checks,
+                f"case:{case_id}:coverage_tags",
+                isinstance(tags, list) and all(isinstance(tag, str) and tag for tag in tags),
+                str(tags),
+            )
         _require(
             checks,
             f"case:{case_id}:birth_place",
@@ -141,6 +196,7 @@ def _validate_corpus(corpus: dict[str, Any]) -> dict[str, Any]:
         "path": corpus["path"],
         "caseCount": len(cases),
         "minCaseCount": corpus["minCaseCount"],
+        "coverageTagCount": len({str(tag) for case in cases for tag in case.get("coverageTags", [])}),
         "checks": checks,
     }
 

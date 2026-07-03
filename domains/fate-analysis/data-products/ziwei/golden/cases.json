@@ -17,12 +17,16 @@
         "lifePalace": {
           "name": "财帛",
           "earthlyBranch": "巳",
-          "majorStars": ["太阴"]
+          "majorStars": [
+            "太阴"
+          ]
         },
         "bodyPalace": {
           "name": "财帛",
           "earthlyBranch": "巳",
-          "majorStars": ["太阴"]
+          "majorStars": [
+            "太阴"
+          ]
         },
         "mutagenPlacementCount": 4,
         "fortuneLinkCount": 5,
@@ -36,7 +40,13 @@
           "ziwei.star_encyclopedia_seed",
           "ziwei.star_taxonomy"
         ]
-      }
+      },
+      "coverageTags": [
+        "life_body_same_palace",
+        "moon_major_star",
+        "early_morning",
+        "male_chart"
+      ]
     },
     {
       "id": "beijing_1988_female",
@@ -53,12 +63,17 @@
         "lifePalace": {
           "name": "财帛",
           "earthlyBranch": "午",
-          "majorStars": ["廉贞", "天相"]
+          "majorStars": [
+            "廉贞",
+            "天相"
+          ]
         },
         "bodyPalace": {
           "name": "迁移",
           "earthlyBranch": "辰",
-          "majorStars": ["贪狼"]
+          "majorStars": [
+            "贪狼"
+          ]
         },
         "mutagenPlacementCount": 4,
         "fortuneLinkCount": 5,
@@ -72,7 +87,13 @@
           "ziwei.star_encyclopedia_seed",
           "ziwei.star_taxonomy"
         ]
-      }
+      },
+      "coverageTags": [
+        "life_body_split",
+        "lianzhen_tianxiang",
+        "evening_birth",
+        "female_chart"
+      ]
     },
     {
       "id": "beijing_2001_male",
@@ -89,12 +110,17 @@
         "lifePalace": {
           "name": "父母",
           "earthlyBranch": "卯",
-          "majorStars": ["天相"]
+          "majorStars": [
+            "天相"
+          ]
         },
         "bodyPalace": {
           "name": "命宫",
           "earthlyBranch": "寅",
-          "majorStars": ["太阳", "巨门"]
+          "majorStars": [
+            "太阳",
+            "巨门"
+          ]
         },
         "mutagenPlacementCount": 4,
         "fortuneLinkCount": 5,
@@ -108,7 +134,13 @@
           "ziwei.star_encyclopedia_seed",
           "ziwei.star_taxonomy"
         ]
-      }
+      },
+      "coverageTags": [
+        "lichun_boundary",
+        "late_zi_time",
+        "body_in_life_palace",
+        "male_chart"
+      ]
     },
     {
       "id": "beijing_1976_female",
@@ -125,7 +157,10 @@
         "lifePalace": {
           "name": "兄弟",
           "earthlyBranch": "申",
-          "majorStars": ["天机", "太阴"]
+          "majorStars": [
+            "天机",
+            "太阴"
+          ]
         },
         "bodyPalace": {
           "name": "迁移",
@@ -144,7 +179,228 @@
           "ziwei.star_encyclopedia_seed",
           "ziwei.golden_case_guard"
         ]
+      },
+      "coverageTags": [
+        "season_winter",
+        "body_migration",
+        "empty_body_major_star",
+        "female_chart"
+      ]
+    },
+    {
+      "id": "beijing_1993_female_noon",
+      "coverageTags": [
+        "midday_birth",
+        "jumeng_life_palace",
+        "life_body_split",
+        "female_chart"
+      ],
+      "input": {
+        "birthDateTime": "1993-05-05 12:00:00",
+        "gender": "女",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京",
+        "name": "测试样本"
+      },
+      "expected": {
+        "palaceCount": 12,
+        "lifePalace": {
+          "name": "父母",
+          "earthlyBranch": "亥",
+          "majorStars": [
+            "巨门"
+          ]
+        },
+        "bodyPalace": {
+          "name": "命宫",
+          "earthlyBranch": "戌",
+          "majorStars": [
+            "贪狼"
+          ]
+        },
+        "mutagenPlacementCount": 4,
+        "fortuneLinkCount": 5,
+        "requiredRuleIds": [
+          "ziwei.brightness_state",
+          "ziwei.golden_case_guard",
+          "ziwei.mutagen_flow",
+          "ziwei.palace_relations",
+          "ziwei.palace_topic",
+          "ziwei.pattern_match_seed",
+          "ziwei.star_encyclopedia_seed",
+          "ziwei.star_taxonomy"
+        ]
+      }
+    },
+    {
+      "id": "beijing_1999_male_midnight",
+      "coverageTags": [
+        "midnight_birth",
+        "tianfu_life_palace",
+        "body_in_life_palace",
+        "male_chart"
+      ],
+      "input": {
+        "birthDateTime": "1999-09-09 00:30:00",
+        "gender": "男",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京",
+        "name": "测试样本"
+      },
+      "expected": {
+        "palaceCount": 12,
+        "lifePalace": {
+          "name": "子女",
+          "earthlyBranch": "巳",
+          "majorStars": [
+            "天府"
+          ]
+        },
+        "bodyPalace": {
+          "name": "命宫",
+          "earthlyBranch": "申",
+          "majorStars": [
+            "太阳",
+            "巨门"
+          ]
+        },
+        "mutagenPlacementCount": 4,
+        "fortuneLinkCount": 5,
+        "requiredRuleIds": [
+          "ziwei.brightness_state",
+          "ziwei.golden_case_guard",
+          "ziwei.mutagen_flow",
+          "ziwei.palace_relations",
+          "ziwei.palace_topic",
+          "ziwei.pattern_match_seed",
+          "ziwei.star_encyclopedia_seed",
+          "ziwei.star_taxonomy"
+        ]
+      }
+    },
+    {
+      "id": "beijing_1982_female_spring",
+      "coverageTags": [
+        "season_spring",
+        "tianji_taiyin_life",
+        "body_career_palace",
+        "female_chart"
+      ],
+      "input": {
+        "birthDateTime": "1982-03-03 03:30:00",
+        "gender": "女",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京",
+        "name": "测试样本"
+      },
+      "expected": {
+        "palaceCount": 12,
+        "lifePalace": {
+          "name": "父母",
+          "earthlyBranch": "寅",
+          "majorStars": [
+            "天机",
+            "太阴"
+          ]
+        },
+        "bodyPalace": {
+          "name": "官禄",
+          "earthlyBranch": "巳",
+          "majorStars": [
+            "天相"
+          ]
+        },
+        "mutagenPlacementCount": 4,
+        "fortuneLinkCount": 5,
+        "requiredRuleIds": [
+          "ziwei.brightness_state",
+          "ziwei.golden_case_guard",
+          "ziwei.mutagen_flow",
+          "ziwei.palace_relations",
+          "ziwei.palace_topic",
+          "ziwei.pattern_match_seed",
+          "ziwei.star_encyclopedia_seed",
+          "ziwei.star_taxonomy"
+        ]
+      }
+    },
+    {
+      "id": "beijing_2010_male_winter",
+      "coverageTags": [
+        "season_winter",
+        "pojun_life_palace",
+        "body_spouse_palace",
+        "male_chart"
+      ],
+      "input": {
+        "birthDateTime": "2010-12-12 21:45:00",
+        "gender": "男",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京",
+        "name": "测试样本"
+      },
+      "expected": {
+        "palaceCount": 12,
+        "lifePalace": {
+          "name": "田宅",
+          "earthlyBranch": "辰",
+          "majorStars": [
+            "破军"
+          ]
+        },
+        "bodyPalace": {
+          "name": "夫妻",
+          "earthlyBranch": "亥",
+          "majorStars": [
+            "天梁"
+          ]
+        },
+        "mutagenPlacementCount": 4,
+        "fortuneLinkCount": 5,
+        "requiredRuleIds": [
+          "ziwei.brightness_state",
+          "ziwei.golden_case_guard",
+          "ziwei.mutagen_flow",
+          "ziwei.palace_relations",
+          "ziwei.palace_topic",
+          "ziwei.pattern_match_seed",
+          "ziwei.star_encyclopedia_seed",
+          "ziwei.star_taxonomy"
+        ]
       }
     }
-  ]
+  ],
+  "caseCount": 8,
+  "coverageRequirements": {
+    "minCaseCount": 8,
+    "requiredTags": [
+      "life_body_same_palace",
+      "life_body_split",
+      "body_in_life_palace",
+      "body_migration",
+      "body_career_palace",
+      "body_spouse_palace",
+      "lichun_boundary",
+      "late_zi_time",
+      "midnight_birth",
+      "midday_birth",
+      "season_spring",
+      "season_winter",
+      "male_chart",
+      "female_chart",
+      "moon_major_star",
+      "lianzhen_tianxiang",
+      "jumeng_life_palace",
+      "tianfu_life_palace",
+      "tianji_taiyin_life",
+      "pojun_life_palace",
+      "empty_body_major_star"
+    ],
+    "minDistinctMajorStars": 10,
+    "riskBoundary": "紫微 basic corpus 只锁盘面结构与覆盖标签，不锁完整断语或流派判断。"
+  }
 }

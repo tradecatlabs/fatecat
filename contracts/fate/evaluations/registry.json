@@ -162,7 +162,7 @@
       },
       "metadata": {
         "owner": "contracts/fate/evaluations",
-        "verificationScope": "八字/紫微核心质量语料 manifest、匿名 fixture 数量、隐私边界和完整报告 diff 策略",
+        "verificationScope": "八字/紫微核心质量语料 manifest、匿名 fixture 数量、紫微覆盖标签、隐私边界和 summary-only 报告结构 diff 策略",
         "releaseGate": "required",
         "externalConnectivity": "not_required",
         "risk": "只证明核心语料和报告结构门禁存在；不证明真实命例准确率或专家人工验收完成。"

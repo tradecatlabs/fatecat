@@ -269,7 +269,7 @@
           "path": "domains/fate-analysis/data-products/ziwei/golden/cases.json",
           "role": "golden_fixture",
           "required": true,
-          "sha256": "db57d1e8232a6228c1be14f020a78e3981f953c1c050945d08f3783f462c3afd"
+          "sha256": "c0c438c289d39c16a008ddf650011b4313885cf41d77817657e33c69947e0ed2"
         },
         {
           "path": "domains/fate-analysis/data-products/ziwei/golden/rule_depth_cases.json",
@@ -397,7 +397,7 @@
           "path": "contracts/fate/evaluations/registry.json",
           "role": "evaluation_registry",
           "required": true,
-          "sha256": "6f43c7a4a160409d5e902001286ce4c2a7fc24467d74de8347cdff079d1e21eb"
+          "sha256": "4cf6960922525361eddbc7b23622996427582b4cd349691824889a771247ec0e"
         }
       ],
       "manifests": [

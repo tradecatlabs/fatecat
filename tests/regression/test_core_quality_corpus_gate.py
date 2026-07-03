@@ -32,7 +32,10 @@ def test_core_quality_corpus_gate_passes_and_writes_summary(tmp_path):
     assert stored["kind"] == "fatecat.core_quality_corpus_gate"
     assert stored["status"] == "passed"
     assert stored["summary"]["corpusCount"] == 5
-    assert stored["summary"]["totalCaseCount"] >= 325
+    assert stored["summary"]["totalCaseCount"] >= 329
+    ziwei_basic = next(item for item in stored["corpora"] if item["id"] == "corpus.ziwei.basic_cases")
+    assert ziwei_basic["caseCount"] >= 8
+    assert ziwei_basic["coverageTagCount"] >= 20
     assert "真实非北京地区" in stored["privacyBoundary"]
     assert any("不新增真实命例" in item for item in stored["limits"])
 
@@ -47,7 +50,9 @@ def test_core_quality_corpus_manifest_and_report_diff_policy_are_registered():
     assert registry["metadata"]["coreQualityCorpusGateCommand"] == "bash scripts/core-quality-corpus-gate.sh"
     assert manifest["releaseGate"]["required"] is True
     assert policy["thresholds"]["minBaziGoldenCases"] >= 300
-    assert policy["thresholds"]["minZiweiGoldenCases"] >= 4
+    assert policy["thresholds"]["minZiweiGoldenCases"] >= 8
+    assert policy["structuralDiff"]["summaryOnly"] is True
+    assert "fullReport" in policy["structuralDiff"]["forbiddenStoredFields"]
     assert "紫微斗数" in policy["profiles"]["bazi"]["structurePolicy"]["forbiddenDefaultBlocks"]
     assert "八字排盘详情" in policy["profiles"]["ziwei"]["structurePolicy"]["forbiddenDefaultBlocks"]
 
@@ -62,3 +67,5 @@ def test_core_quality_corpus_fixture_privacy_boundary():
         for case in data["cases"]:
             assert case["input"]["birthPlace"] == "北京"
             assert case["input"].get("name", "测试样本") == "测试样本"
+            if corpus["id"] == "corpus.ziwei.basic_cases":
+                assert case["coverageTags"]
