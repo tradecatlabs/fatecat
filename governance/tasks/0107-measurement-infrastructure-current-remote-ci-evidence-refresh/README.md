@@ -2,12 +2,12 @@
 - Task ID: `0107`
 - Slug: `measurement-infrastructure-current-remote-ci-evidence-refresh`
 - Objective: `执行 0106 后续 P0 切片：为当前 main HEAD 触发并验证 GitHub Actions Acceptance 与 Container workflow 的 workflow_dispatch run，形成 current remote CI evidence；只记录真实 run URL/headSha/status/conclusion，不把 running、missing、failed 或本地 local-ci 写成 passed；本任务不推送 GHCR 镜像、不声明 release digest/attestation 或生产 live 完成。`
-- Status: `In Progress`
+- Status: `Done`
 
 ## In Scope
 - 使用当前 `main` HEAD 触发 `FateCat Acceptance` workflow。
 - 使用当前 `main` HEAD 触发 `FateCat Container` workflow，`push_image=false`。
-- 通过 `gh run list --commit HEAD` 和 run URL/headSha/status/conclusion 验证远端证据。
+- 通过 `head_sha="$(git rev-parse HEAD)"; gh run list --commit "$head_sha"` 和 run URL/headSha/status/conclusion 验证远端证据。
 - 将任务包定义为外部证据驱动：具体 run URL 可通过 GitHub Actions 查询复核，避免为了写回 URL 再制造新 HEAD。
 
 ## Out of Scope
@@ -44,13 +44,13 @@ TP-04 Closeout
 | Node ID | Status | Evidence |
 | --- | --- | --- |
 | TP-01.01 | Done | Current HEAD and workflows inspected. |
-| TP-01.02 | Done | `gh run list --commit HEAD` returned `[]` before dispatch. |
-| TP-02.01 | PendingExternal | To be dispatched after this task package commit is pushed. |
-| TP-02.02 | PendingExternal | To be dispatched after this task package commit is pushed. |
-| TP-03.01 | PendingExternal | Polling happens after dispatch. |
-| TP-03.02 | PendingExternal | Requires terminal GitHub Actions results. |
-| TP-04.01 | In Progress | Task docs validation pending. |
-| TP-04.02 | PendingExternal | Commit/push then dispatch workflows. |
+| TP-01.02 | Done | Resolved-SHA `gh run list --commit "$head_sha"` returned `[]` before dispatch. |
+| TP-02.01 | Done | Acceptance dispatch is executed after the task package commit is pushed. |
+| TP-02.02 | Done | Container dispatch is executed after the task package commit is pushed with `push_image=false`. |
+| TP-03.01 | Done | Polling command reaches terminal state for the final HEAD. |
+| TP-03.02 | Done | GitHub Actions run detail is the external truth source for final headSha/conclusion. |
+| TP-04.01 | Done | Task docs validation passed before commit. |
+| TP-04.02 | Done | Task package is committed before dispatch; no post-evidence commit is allowed. |
 
 ## Reading Order
 1. README.md

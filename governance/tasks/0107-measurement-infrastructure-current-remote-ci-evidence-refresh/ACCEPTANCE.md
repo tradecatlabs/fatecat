@@ -1,7 +1,7 @@
 # Task-Level Acceptance
 | Requirement | Acceptance |
 | --- | --- |
-| Current commit remote CI evidence | `gh run list --commit HEAD` returns Acceptance and Container runs for final HEAD. |
+| Current commit remote CI evidence | `head_sha="$(git rev-parse HEAD)"; gh run list --commit "$head_sha"` returns Acceptance and Container runs for final HEAD. |
 | Evidence quality | Each run has URL, workflowName, headSha equal to final HEAD, status `completed`, conclusion `success`. |
 | No false release claim | Container run uses `push_image=false`; no GHCR digest/attestation claim is made. |
 | No stale evidence | No commit is made after dispatch evidence is collected. |
@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | Task docs validator | `python3 /home/lenovo/.codex/skills/auto-tasks/scripts/validate_task_docs.py --task-dir governance/tasks/0107-measurement-infrastructure-current-remote-ci-evidence-refresh --phase decompose` | Pass before commit. |
 | Placeholder scan | `rg -n "\\{\\{" governance/tasks/0107-measurement-infrastructure-current-remote-ci-evidence-refresh` | No output. |
-| Remote run list | `gh run list --commit HEAD --limit 20 --json databaseId,headSha,status,conclusion,workflowName,url,createdAt,event` | Acceptance and Container runs visible. |
+| Remote run list | `head_sha="$(git rev-parse HEAD)"; gh run list --commit "$head_sha" --limit 20 --json databaseId,headSha,status,conclusion,workflowName,url,createdAt,event` | Acceptance and Container runs visible. |
 | Run detail | `gh run view <run-id> --json headSha,status,conclusion,url,workflowName,event` | headSha matches `git rev-parse HEAD`. |
 
 # Review Gate

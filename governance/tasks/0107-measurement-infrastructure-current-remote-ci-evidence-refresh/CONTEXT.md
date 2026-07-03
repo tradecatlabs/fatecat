@@ -3,7 +3,7 @@
 | --- | --- |
 | Branch | `git status --short --branch` -> `## main...origin/main` before 0107 edits |
 | HEAD before 0107 edits | `git log -1 --oneline` -> `2411e97 docs: refresh post-0105 infrastructure plan` |
-| Existing remote CI | `gh run list --commit HEAD --limit 20 --json ...` -> `[]` |
+| Existing remote CI before 0107 dispatch | `head_sha="$(git rev-parse HEAD)"; gh run list --commit "$head_sha" --limit 20 --json ...` -> `[]` |
 | Acceptance workflow | `.github/workflows/acceptance.yml` has `workflow_dispatch` and runs `bash scripts/acceptance.sh --with-dev`. |
 | Container workflow | `.github/workflows/container.yml` has `workflow_dispatch` with `push_image=false` default and runs build + smoke. |
 
@@ -37,7 +37,7 @@ No runtime code, workflow YAML, production configuration or release artifacts ar
 | Current branch can dispatch workflows | `gh workflow run` returns permission/workflow disabled error. |
 | Acceptance/Container are sufficient for current remote CI evidence slice | Release proof still additionally requires digest/attestation, handled by later task. |
 | `push_image=false` prevents GHCR publish | Container run logs show push/attest steps executed. |
-| Final CI evidence can live outside Git | Auditors can reproduce `gh run list --commit HEAD` with run URLs and headSha. |
+| Final CI evidence can live outside Git | Auditors can reproduce `head_sha="$(git rev-parse HEAD)"; gh run list --commit "$head_sha"` with run URLs and headSha. |
 
 # Critical Ambiguities
 - Whether to run container with `push_image=true` for full release digest/attestation. This task intentionally does not; release artifact proof remains a later explicit publish task.

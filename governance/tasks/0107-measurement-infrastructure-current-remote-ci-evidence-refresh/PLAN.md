@@ -8,16 +8,16 @@
 | --- | --- | --- |
 | SPEC | Scope limited to remote Acceptance/Container dispatch, no GHCR publish | Done |
 | PLAN | Dispatch/poll/verify/timeout rules written | Done |
-| BUILD | Task package and INDEX prepared | In Progress |
-| TEST | Task docs validator and placeholder scan pass | Not Started |
-| REVIEW | No false CI/release/live claims | In Progress |
-| SHIP | Commit/push task package, dispatch workflows, report external evidence | Not Started |
+| BUILD | Task package and INDEX prepared | Done |
+| TEST | Task docs validator and placeholder scan pass | Done |
+| REVIEW | No false CI/release/live claims | Done |
+| SHIP | Commit/push task package, dispatch workflows, report external evidence | Done |
 
 # Simplest Path
 1. Commit the 0107 task package first.
 2. Dispatch `acceptance.yml` on `main`.
 3. Dispatch `container.yml` on `main` with `push_image=false`.
-4. Poll `gh run list --commit HEAD` and `gh run view` until both target workflows reach terminal states.
+4. Poll `head_sha="$(git rev-parse HEAD)"; gh run list --commit "$head_sha"` and `gh run view` until both target workflows reach terminal states.
 5. Treat success only when `headSha == git rev-parse HEAD`, `status == completed`, and `conclusion == success`.
 
 # Split Strategy
@@ -46,10 +46,7 @@ Evidence contract: run URL, workflow name, headSha, status, conclusion and creat
 # Next Executable Leaves
 | Node ID | Action |
 | --- | --- |
-| TP-04.01 | Validate task docs before commit. |
-| TP-04.02 | Commit and push task package. |
-| TP-02.01 | Dispatch acceptance after push. |
-| TP-02.02 | Dispatch container after push. |
+| - | - |
 
 # Dependency Graph
 ```text
