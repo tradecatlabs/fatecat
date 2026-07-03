@@ -38,7 +38,8 @@
       "localVerification": [
         ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k 'report or metadata or surfaces'",
         "bash scripts/webhook-smoke.sh",
-        ".venv/bin/python -m pytest -q tests/regression/test_entrypoint_consistency.py"
+        ".venv/bin/python -m pytest -q tests/regression/test_entrypoint_consistency.py",
+        "bash scripts/multi-surface-semantic-diff.sh --output-json <path>"
       ],
       "privacyBoundary": "API 响应不得输出真实 token、secret、DSN 或私钥；非北京真实地区在公开 Markdown 展示中必须脱敏。",
       "externalConnectivity": "not_required",
@@ -76,7 +77,8 @@
       ],
       "localVerification": [
         ".venv/bin/python -m pytest -q tests/regression/test_web_html.py",
-        ".venv/bin/python -m pytest -q tests/regression/test_entrypoint_consistency.py"
+        ".venv/bin/python -m pytest -q tests/regression/test_entrypoint_consistency.py",
+        "bash scripts/multi-surface-semantic-diff.sh --output-json <path>"
       ],
       "privacyBoundary": "公开 Web 示例和用户界面不得展示北京以外的真实地区名称；复制 Markdown 不得由前端自行拼装核心报告。",
       "externalConnectivity": "not_required",
@@ -111,7 +113,8 @@
       "outputContracts": ["references/live-bot-verification.md", "scripts/live-bot-smoke.sh"],
       "localVerification": [
         "bash scripts/delivery-smoke.sh --target bot --startup-timeout 8",
-        ".venv/bin/python -m pytest -q tests/regression/test_entrypoint_consistency.py"
+        ".venv/bin/python -m pytest -q tests/regression/test_entrypoint_consistency.py",
+        "bash scripts/multi-surface-semantic-diff.sh --output-json <path>"
       ],
       "privacyBoundary": "Bot 消息确认页隐藏非北京真实地区；日志和队列不得保存 token 或用户报告正文作为公开资产。",
       "externalConnectivity": "requires_real_credentials",
@@ -225,6 +228,28 @@
       }
     }
   ],
+  "multiSurfaceSemanticDiffGate": {
+    "resourceType": "DeliverySemanticDiffGate",
+    "apiVersion": "fatecat.tradecatlabs/v1",
+    "id": "gate.multi_surface_semantic_diff",
+    "contract": "contracts/fate/delivery/multi-surface-semantic-diff.json",
+    "localVerification": [
+      "bash scripts/multi-surface-semantic-diff.sh --output-json <path>",
+      ".venv/bin/python -m pytest -q tests/regression/test_multi_surface_semantic_diff.py"
+    ],
+    "reportSystems": ["bazi", "ziwei"],
+    "requiredLocalSurfaces": [
+      "surface.fastapi.direct",
+      "surface.fastapi.http",
+      "surface.fastapi.job",
+      "surface.web.direct",
+      "surface.web.job",
+      "surface.telegram_bot.dry_run"
+    ],
+    "semanticPolicy": "比较 normalized_markdown_semantic_hash；证据只保存 hash、长度、行数和归一化策略，不保存完整 Markdown 报告正文。",
+    "externalConnectivity": "外部连通验证待执行",
+    "policy": "本地 gate 证明 API/Web/Bot dry-run 的标准 Markdown 同源；真实 Telegram live、HF Space hosted Web 和公网 API 仍需独立 live evidence。"
+  },
   "releaseGate": {
     "resourceType": "ReleaseGate",
     "apiVersion": "fatecat.tradecatlabs/v1",

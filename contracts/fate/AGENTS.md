@@ -23,6 +23,7 @@ contracts/fate/
 │   ├── registry.json
 │   └── schemas/
 ├── delivery/
+│   ├── multi-surface-semantic-diff.json
 │   ├── registry.json
 │   └── schemas/
 ├── developer/
@@ -65,6 +66,7 @@ contracts/fate/
 - `data-supply-chain/registry.json`：登记 raw/canonical/derived/reference/runtime/export 分层资产；`review_required`、`source_archive_only`、`evaluation_only` 和 `reference_only` 不得被文档写成默认生产输入。
 - `delivery/`：多端交付资源注册表，登记 DeliverySurface，只做 FastAPI/Web/Bot/CLI/Skill/HF Space 的入口、同源链路、输出契约和验证边界说明，不保存用户输入或运行态报告。
 - `delivery/registry.json`：登记 available/partial/manual surfaces；partial surface 必须说明同源范围和未覆盖输出边界。
+- `delivery/multi-surface-semantic-diff.json`：标准 Markdown 多交付面语义一致性 gate 契约；只证明本地 API/Web/Bot dry-run normalized hash 同源，不证明真实 Bot/HF/公网 live。
 - `developer/`：开发者接入契约、SDK/package baseline、sandbox fixture、sandbox token contract 与 API changelog；只保存本地可验证的北京/测试样本和发布边界，不保存真实 token、生产 URL、报告正文或真实用户数据。
 - `developer/developer-platform.json`：开发者平台机器真相源；登记 OpenAPI、SDK/package baseline、sandbox、API changelog 与 validation gate，不代表 SDK 已发布。
 - `developer/developer-portal.json`：开发者门户机器真相源；登记本地 portal release baseline、入口、机器契约和外部未上线边界，不代表公网门户上线。

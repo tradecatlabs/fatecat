@@ -923,12 +923,10 @@ https://x.com/i/grok
     return CONFIRM
 
 
-def _calc_and_save_report(d: dict, lng: float, lat: float, user_id: str):
-    """同步重任务封装，供 asyncio.to_thread 调用"""
-    t0 = time.monotonic()
+def _build_bot_report_markdown(d: dict, lng: float, lat: float):
+    """Bot 报告 dry-run 与正式发送共用的标准 Markdown 生成链路。"""
     birth_dt = datetime.strptime(f"{d['birth_date']} {d['birth_time']}", "%Y-%m-%d %H:%M")
 
-    # 传递姓名与出生地，避免回退默认“命主/未知”
     report_system = d.get("report_system", "bazi")
     calculation = calculate_delivery_result(
         birth_dt=birth_dt,
@@ -939,13 +937,24 @@ def _calc_and_save_report(d: dict, lng: float, lat: float, user_id: str):
         name=d.get("name"),
         report_system=report_system,
         use_true_solar_time=True,
+        bazi_engine="capability",
     )
+    report_txt = generate_full_report(
+        calculation.data,
+        hide=calculation.report_hide,
+        report_system=calculation.report_system,
+    )
+    return calculation, report_txt
+
+
+def _calc_and_save_report(d: dict, lng: float, lat: float, user_id: str):
+    """同步重任务封装，供 asyncio.to_thread 调用"""
+    t0 = time.monotonic()
+    calculation, report_txt = _build_bot_report_markdown(d, lng, lat)
     result = calculation.data
     report_system = calculation.report_system
     display_birth_place = calculation.display_birth_place
     calc_ms = int((time.monotonic() - t0) * 1000)
-
-    report_txt = generate_full_report(result, hide=calculation.report_hide, report_system=report_system)
 
     TXT_DIR.mkdir(parents=True, exist_ok=True)
     gender_cn = "男" if d["gender"] == "male" else "女"

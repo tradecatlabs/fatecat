@@ -2152,6 +2152,7 @@ def _build_markdown_report_payload(req: BaziRequest) -> dict[str, Any]:
                 name=req.name,
                 report_system=req.options.reportSystem,
                 use_true_solar_time=req.options.useTrueSolarTime,
+                bazi_engine="capability",
             )
         )
     with trace_span("report.render_markdown", attributes=attributes):
