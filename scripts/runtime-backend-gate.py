@@ -88,6 +88,13 @@ def _validate_schema_links(
     )
     _check(
         checks,
+        "delivery_registry:multi_replica_runtime_contract",
+        delivery_registry.get("runtimeBackendRegistry", {}).get("multiReplicaRuntimeEvidenceContract")
+        == "contracts/fate/delivery/multi-replica-runtime-contract.json",
+        str(delivery_registry.get("runtimeBackendRegistry", {})),
+    )
+    _check(
+        checks,
         "resource_schema:runtime_backend_resource_type",
         "RuntimeBackend" in resource_schema.get("resourceTypes", []),
         str(resource_schema.get("resourceTypes", [])),
@@ -306,6 +313,21 @@ def _validate_registry(
     )
     _check(
         checks,
+        "postgres:multi_replica_runtime_gate_registered",
+        "bash scripts/multi-replica-runtime-gate.sh" in postgres["localVerification"]
+        and "multi-replica runtime evidence gate: bash scripts/multi-replica-runtime-gate.sh"
+        in postgres["requiredEvidence"]
+        and postgres["capabilities"].get("multiReplicaReady") == "evidence_contract_gate_ready_evidence_pending",
+        f"required={postgres['requiredEvidence']} local={postgres['localVerification']}",
+    )
+    _check(
+        checks,
+        "postgres:multi_replica_external_evidence_registered",
+        any("multi-replica runtime live evidence" in item for item in postgres["externalVerification"]),
+        str(postgres["externalVerification"]),
+    )
+    _check(
+        checks,
         "postgres:public_webhook_live_smoke_registered",
         "bash scripts/postgres-public-webhook-live-smoke.sh" in postgres["externalVerification"]
         and "bash scripts/postgres-public-webhook-live-smoke.sh --allow-missing" in postgres["localVerification"],
@@ -360,7 +382,8 @@ def run_gate() -> dict[str, Any]:
         "limits": [
             "Postgres adapter、migration/job live smoke、outbox worker lease negative smoke、job worker lease primitive smoke、external worker restart smoke baseline、worker heartbeat/polling smoke baseline 与 public webhook live smoke gate baseline 已实现，但 runtime backend gate 本身只读取 tracked contract metadata。",
             "不在 gate 内连接真实外部数据库或服务；真实或一次性 Postgres 连通由 scripts/postgres-job-store-live-smoke.sh、scripts/postgres-worker-lease-smoke.sh、scripts/postgres-job-worker-lease-smoke.sh、scripts/postgres-external-worker-restart-smoke.sh、scripts/postgres-worker-heartbeat-polling-smoke.sh 和 scripts/postgres-public-webhook-live-smoke.sh 单独证明。",
-            "不证明 exactly-once、已存在公网 webhook live passed evidence 或外部 Vault/KMS。",
+            "multi-replica runtime contract gate 只证明长期多副本证据口径和反伪造负例，不证明真实多副本 soak 已通过。",
+            "不证明 exactly-once、已存在公网 webhook live passed evidence、外部 Vault/KMS 或长期多副本运行通过。",
             "不把 SQLite local lease 解释为 external backend。",
         ],
     }

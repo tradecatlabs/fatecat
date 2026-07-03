@@ -630,12 +630,20 @@ def test_delivery_surface_schema_and_registry_define_same_source_boundaries():
     assert registry["runtimeBackendRegistry"]["contract"] == "contracts/fate/delivery/runtime-backends.json"
     assert registry["runtimeBackendRegistry"]["selectedExternalCandidate"] == "backend.postgres"
     assert (
-        registry["runtimeBackendRegistry"]["currentProductionEligibility"] == "worker_heartbeat_polling_smoke_baseline"
+        registry["runtimeBackendRegistry"]["currentProductionEligibility"] == "multi_replica_runtime_contract_baseline"
+    )
+    assert registry["runtimeBackendRegistry"]["multiReplicaRuntimeEvidenceContract"] == (
+        "contracts/fate/delivery/multi-replica-runtime-contract.json"
+    )
+    assert (
+        registry["runtimeBackendRegistry"]["multiReplicaRuntimeGateCommand"]
+        == "bash scripts/multi-replica-runtime-gate.sh"
     )
     assert (
         "bash scripts/postgres-worker-heartbeat-polling-smoke.sh --allow-missing"
         in registry["runtimeBackendRegistry"]["localVerification"]
     )
+    assert "bash scripts/multi-replica-runtime-gate.sh" in registry["runtimeBackendRegistry"]["localVerification"]
     assert runtime_schema["allowedBackendType"] == ["memory", "sqlite", "postgres", "temporal", "redis_queue"]
     assert "worker_heartbeat_polling_smoke_baseline" in runtime_schema["allowedImplementationStatus"]
     assert "public_webhook_live_smoke_gate_baseline" in runtime_schema["allowedImplementationStatus"]

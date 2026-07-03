@@ -91,6 +91,7 @@ def test_runtime_backend_contract_keeps_external_backends_planned():
         "bash scripts/postgres-public-webhook-live-smoke.sh --allow-missing"
         in backends["backend.postgres"]["localVerification"]
     )
+    assert "bash scripts/multi-replica-runtime-gate.sh" in backends["backend.postgres"]["localVerification"]
     assert "bash scripts/postgres-job-store-live-smoke.sh" in backends["backend.postgres"]["externalVerification"]
     assert "bash scripts/postgres-worker-lease-smoke.sh" in backends["backend.postgres"]["externalVerification"]
     assert "bash scripts/postgres-job-worker-lease-smoke.sh" in backends["backend.postgres"]["externalVerification"]
@@ -102,6 +103,13 @@ def test_runtime_backend_contract_keeps_external_backends_planned():
         in backends["backend.postgres"]["externalVerification"]
     )
     assert "bash scripts/postgres-public-webhook-live-smoke.sh" in backends["backend.postgres"]["externalVerification"]
+    assert any(
+        "multi-replica runtime live evidence" in item for item in backends["backend.postgres"]["externalVerification"]
+    )
+    assert (
+        backends["backend.postgres"]["capabilities"]["multiReplicaReady"]
+        == "evidence_contract_gate_ready_evidence_pending"
+    )
     assert backends["backend.sqlite"]["productionEligibility"] == "single_replica_only"
     assert backends["backend.sqlite"]["capabilities"]["multiReplicaReady"] is False
     assert backends["backend.redis_queue"]["status"] == "not_selected"
@@ -117,6 +125,13 @@ def test_runtime_backend_schema_and_resource_model_are_linked():
         "contracts/fate/delivery/schemas/runtime-backend.schema.json"
     )
     assert delivery_registry["runtimeBackendRegistry"]["contract"] == "contracts/fate/delivery/runtime-backends.json"
+    assert delivery_registry["runtimeBackendRegistry"]["multiReplicaRuntimeEvidenceContract"] == (
+        "contracts/fate/delivery/multi-replica-runtime-contract.json"
+    )
+    assert (
+        delivery_registry["runtimeBackendRegistry"]["multiReplicaRuntimeGateCommand"]
+        == "bash scripts/multi-replica-runtime-gate.sh"
+    )
     assert "RuntimeBackend" in resource_schema["resourceTypes"]
     assert "runtimeBackendResourceFields" in resource_schema
     assert "backendType" in runtime_schema["requiredRuntimeBackendFields"]

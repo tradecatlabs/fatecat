@@ -260,12 +260,15 @@
       "bash scripts/postgres-job-worker-lease-smoke.sh --allow-missing",
       "bash scripts/postgres-external-worker-restart-smoke.sh --allow-missing",
       "bash scripts/postgres-worker-heartbeat-polling-smoke.sh --allow-missing",
-      "bash scripts/postgres-public-webhook-live-smoke.sh --allow-missing"
+      "bash scripts/postgres-public-webhook-live-smoke.sh --allow-missing",
+      "bash scripts/multi-replica-runtime-gate.sh"
     ],
     "selectedExternalCandidate": "backend.postgres",
-    "currentProductionEligibility": "worker_heartbeat_polling_smoke_baseline",
+    "currentProductionEligibility": "multi_replica_runtime_contract_baseline",
+    "multiReplicaRuntimeEvidenceContract": "contracts/fate/delivery/multi-replica-runtime-contract.json",
+    "multiReplicaRuntimeGateCommand": "bash scripts/multi-replica-runtime-gate.sh",
     "externalConnectivity": "外部连通验证待执行",
-    "policy": "RuntimeBackend registry 只声明 durable runtime 后端候选、证据口径和迁移路径；真实 Postgres/Temporal/Redis 后端必须由独立 adapter、迁移 smoke、crash/restart smoke、worker heartbeat/polling smoke、public webhook live smoke 和外部连接证据证明。"
+    "policy": "RuntimeBackend registry 只声明 durable runtime 后端候选、证据口径和迁移路径；真实 Postgres/Temporal/Redis 后端必须由独立 adapter、迁移 smoke、crash/restart smoke、worker heartbeat/polling smoke、public webhook live smoke、multi-replica runtime evidence 和外部连接证据证明。"
   },
   "asyncEventRegistry": {
     "resourceType": "AsyncEventRegistry",

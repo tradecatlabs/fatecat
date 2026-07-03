@@ -1,0 +1,196 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": "fatecat.tradecatlabs/v1",
+  "contractId": "contract.multi_replica_runtime_evidence",
+  "status": "dry_run_contract",
+  "description": "FateCat Postgres durable runtime 长期多副本运行证据契约。该文件定义生产多副本 runtime evidence 的最小字段、反伪造负例和非声明边界；不保存真实 DSN、endpoint、token、secret、用户输入、报告正文或生产日志。",
+  "externalConnectivity": "external_connectivity_pending",
+  "runtimeBackend": "backend.postgres",
+  "controls": {
+    "localPostgresWorkerBaseline": {
+      "backend": "backend.postgres",
+      "baselineMode": "worker_heartbeat_polling_smoke_baseline",
+      "baselineEvidence": [
+        "bash scripts/postgres-worker-heartbeat-polling-smoke.sh --allow-missing",
+        "bash scripts/postgres-external-worker-restart-smoke.sh --allow-missing",
+        "bash scripts/postgres-job-worker-lease-smoke.sh --allow-missing"
+      ],
+      "nonClaims": [
+        "does_not_prove_long_running_multi_replica",
+        "does_not_prove_public_webhook_live_passed",
+        "does_not_prove_external_secret_provider_live",
+        "does_not_claim_exactly_once"
+      ]
+    },
+    "longRunningMultiReplica": {
+      "backend": "backend.postgres",
+      "requiredMode": "external_postgres_multi_replica",
+      "requiredVerificationStatus": "passed_multi_replica_soak",
+      "minimumReplicaCount": 2,
+      "minimumDurationSeconds": 86400,
+      "minimumCompletedJobCount": 100,
+      "requiredRedactionBoundary": "redacted_no_secret_values",
+      "liveEvidenceSchema": {
+        "requiredFields": [
+          "mode",
+          "backend",
+          "verificationStatus",
+          "replicaCount",
+          "durationSeconds",
+          "completedJobCount",
+          "concurrentWorkerProofRef",
+          "leaseContentionProofRef",
+          "restartRecoveryProofRef",
+          "heartbeatContinuityProofRef",
+          "noDuplicateTerminalJobProofRef",
+          "publicWebhookProofRef",
+          "externalSecretProviderProofRef",
+          "metricsProofRef",
+          "redactionBoundary"
+        ],
+        "forbiddenBackendValues": ["backend.memory", "backend.sqlite", "backend.redis_queue"],
+        "forbiddenProofFragments": [
+          "localhost",
+          "sqlite",
+          "memory",
+          "placeholder",
+          "dry-run",
+          "fake",
+          "sample",
+          "local only",
+          "single replica"
+        ]
+      },
+      "exactlyOncePolicy": {
+        "claimAllowed": false,
+        "allowedStatement": "No duplicate terminal job was observed in the supplied soak evidence.",
+        "forbiddenStatement": "exactly-once delivery is proven"
+      }
+    }
+  },
+  "negativeEvidenceCases": [
+    {
+      "id": "fake.single_replica_as_multi",
+      "description": "单副本运行不能伪装成多副本。",
+      "evidence": {
+        "schemaVersion": 1,
+        "kind": "fatecat.multi_replica_runtime_evidence",
+        "status": "external_live_passed",
+        "runtime": {
+          "mode": "external_postgres_multi_replica",
+          "backend": "backend.postgres",
+          "verificationStatus": "passed_multi_replica_soak",
+          "replicaCount": 1,
+          "durationSeconds": 86400,
+          "completedJobCount": 100,
+          "concurrentWorkerProofRef": "evidence://runtime/concurrent-worker",
+          "leaseContentionProofRef": "evidence://runtime/lease-contention",
+          "restartRecoveryProofRef": "evidence://runtime/restart-recovery",
+          "heartbeatContinuityProofRef": "evidence://runtime/heartbeat",
+          "noDuplicateTerminalJobProofRef": "evidence://runtime/no-duplicate-terminal",
+          "publicWebhookProofRef": "evidence://runtime/public-webhook",
+          "externalSecretProviderProofRef": "evidence://runtime/external-secret-provider",
+          "metricsProofRef": "evidence://runtime/metrics",
+          "redactionBoundary": "redacted_no_secret_values"
+        }
+      },
+      "expectedErrorContains": "replicaCount"
+    },
+    {
+      "id": "fake.short_run_as_soak",
+      "description": "短时间 smoke 不能伪装成长期 soak。",
+      "evidence": {
+        "schemaVersion": 1,
+        "kind": "fatecat.multi_replica_runtime_evidence",
+        "status": "external_live_passed",
+        "runtime": {
+          "mode": "external_postgres_multi_replica",
+          "backend": "backend.postgres",
+          "verificationStatus": "passed_multi_replica_soak",
+          "replicaCount": 2,
+          "durationSeconds": 300,
+          "completedJobCount": 100,
+          "concurrentWorkerProofRef": "evidence://runtime/concurrent-worker",
+          "leaseContentionProofRef": "evidence://runtime/lease-contention",
+          "restartRecoveryProofRef": "evidence://runtime/restart-recovery",
+          "heartbeatContinuityProofRef": "evidence://runtime/heartbeat",
+          "noDuplicateTerminalJobProofRef": "evidence://runtime/no-duplicate-terminal",
+          "publicWebhookProofRef": "evidence://runtime/public-webhook",
+          "externalSecretProviderProofRef": "evidence://runtime/external-secret-provider",
+          "metricsProofRef": "evidence://runtime/metrics",
+          "redactionBoundary": "redacted_no_secret_values"
+        }
+      },
+      "expectedErrorContains": "durationSeconds"
+    },
+    {
+      "id": "fake.sqlite_as_external_backend",
+      "description": "SQLite 本地 baseline 不能伪装成外部 Postgres 多副本。",
+      "evidence": {
+        "schemaVersion": 1,
+        "kind": "fatecat.multi_replica_runtime_evidence",
+        "status": "external_live_passed",
+        "runtime": {
+          "mode": "external_postgres_multi_replica",
+          "backend": "backend.sqlite",
+          "verificationStatus": "passed_multi_replica_soak",
+          "replicaCount": 2,
+          "durationSeconds": 86400,
+          "completedJobCount": 100,
+          "concurrentWorkerProofRef": "evidence://runtime/concurrent-worker",
+          "leaseContentionProofRef": "evidence://runtime/lease-contention",
+          "restartRecoveryProofRef": "evidence://runtime/restart-recovery",
+          "heartbeatContinuityProofRef": "evidence://runtime/heartbeat",
+          "noDuplicateTerminalJobProofRef": "evidence://runtime/no-duplicate-terminal",
+          "publicWebhookProofRef": "evidence://runtime/public-webhook",
+          "externalSecretProviderProofRef": "evidence://runtime/external-secret-provider",
+          "metricsProofRef": "evidence://runtime/metrics",
+          "redactionBoundary": "redacted_no_secret_values"
+        }
+      },
+      "expectedErrorContains": "backend"
+    },
+    {
+      "id": "fake.exactly_once_overclaim",
+      "description": "多副本 soak 证据不能顺手宣称 exactly-once。",
+      "evidence": {
+        "schemaVersion": 1,
+        "kind": "fatecat.multi_replica_runtime_evidence",
+        "status": "external_live_passed",
+        "runtime": {
+          "mode": "external_postgres_multi_replica",
+          "backend": "backend.postgres",
+          "verificationStatus": "passed_multi_replica_soak",
+          "replicaCount": 2,
+          "durationSeconds": 86400,
+          "completedJobCount": 100,
+          "concurrentWorkerProofRef": "evidence://runtime/concurrent-worker",
+          "leaseContentionProofRef": "evidence://runtime/lease-contention",
+          "restartRecoveryProofRef": "evidence://runtime/restart-recovery",
+          "heartbeatContinuityProofRef": "evidence://runtime/heartbeat",
+          "noDuplicateTerminalJobProofRef": "evidence://runtime/no-duplicate-terminal",
+          "publicWebhookProofRef": "evidence://runtime/public-webhook",
+          "externalSecretProviderProofRef": "evidence://runtime/external-secret-provider",
+          "metricsProofRef": "evidence://runtime/metrics",
+          "redactionBoundary": "redacted_no_secret_values",
+          "exactlyOnceClaim": true
+        }
+      },
+      "expectedErrorContains": "exactlyOnceClaim"
+    }
+  ],
+  "requiredBeforeProductionEligibility": [
+    "passed public webhook live evidence",
+    "passed external secret provider evidence",
+    "passed long-running multi-replica runtime evidence",
+    "explicit no duplicate terminal job evidence",
+    "SLO and metrics evidence from external observability platform"
+  ],
+  "privacyBoundary": "Evidence refs may identify redacted artifact handles only. Contract and summaries must not include raw DSN, callback URL, credential, token, private key, webhook secret, report body, user name, birth data or production log lines.",
+  "invariants": [
+    "单副本、本地 SQLite、短时间 smoke、placeholder proof 不能作为长期多副本生产证据",
+    "长期多副本 runtime evidence 可以证明未观察到重复终态 job，但不得宣称 exactly-once",
+    "缺公网 webhook live passed 或外部 secret provider passed 时，多副本 runtime 不能推进 production ready",
+    "本 contract 是证据口径和反伪造门禁，不连接真实数据库、webhook receiver、secret provider 或监控平台"
+  ]
+}

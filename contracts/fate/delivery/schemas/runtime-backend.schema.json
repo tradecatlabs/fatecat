@@ -88,9 +88,9 @@
     "RuntimeBackend 资源只登记运行后端契约，不保存用户输入、报告正文、真实 token、secret、DSN、私钥或生产日志",
     "memory 后端不得声明 durable 或 production ready",
     "sqlite 后端只允许 single_replica_only，不得声明生产级分布式 worker lease",
-    "postgres 是当前首个 external backend adapter 候选；即使 worker heartbeat/polling smoke baseline 已落地，status 也必须保持 planned，直到外部 Vault/KMS、公网 webhook passed evidence、长期多副本 worker 和 exactly-once 证据完成",
+    "postgres 是当前首个 external backend adapter 候选；即使 worker heartbeat/polling smoke baseline 与 multi-replica runtime evidence gate baseline 已落地，status 也必须保持 planned，直到外部 Vault/KMS、公网 webhook passed evidence、长期多副本 runtime live evidence 和 exactly-once 证据完成",
     "temporal 可登记为 future workflow orchestrator，但不能替代当前 ReportJobStore adapter contract",
     "redis_queue 不得作为 CalculationJob source of truth；只允许作为未来辅助队列",
-    "任何 external backend 生产通过必须由真实外部数据库或服务、迁移 smoke、crash/restart 证据、worker lease 证据、heartbeat/polling 证据、公网 webhook live passed evidence 和外部 secret lifecycle 证据共同证明"
+    "任何 external backend 生产通过必须由真实外部数据库或服务、迁移 smoke、crash/restart 证据、worker lease 证据、heartbeat/polling 证据、公网 webhook live passed evidence、外部 secret lifecycle 证据和长期多副本 runtime live evidence 共同证明"
   ]
 }
