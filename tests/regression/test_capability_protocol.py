@@ -158,6 +158,12 @@ def test_capability_schemas_define_required_protocol_boundaries():
         assert field_name in resource_schema["providerResourceFields"]
     assert provider_schema["allowedLifecycleStage"] == ["validated", "production", "deprecated"]
     assert provider_schema["allowedPromotionGateStatus"] == ["passing", "blocked", "manual"]
+    assert set(provider_schema["providerDriftScannerFields"]) >= {
+        "providerId",
+        "dependencySmoke",
+        "traceSpans",
+        "driftStatus",
+    }
     assert (
         "health.status=ready 只表示本地进程内 adapter 可用，不表示真实外部连通验证完成" in provider_schema["invariants"]
     )
@@ -165,6 +171,14 @@ def test_capability_schemas_define_required_protocol_boundaries():
         "production provider 的 sourcePolicy.supplyChainRefs 若指向 vendor_sources，目标条目必须 productionUseAllowed=true"
         in provider_schema["invariants"]
     )
+    assert (
+        "provider drift scanner 必须同时校验 lifecycle metadata、dependency smoke、provider.validate/provider.calculate trace spans、source refs、license refs 和 vendor supply-chain refs"
+        in provider_schema["invariants"]
+    )
+    provider_drift_contract = _load_json(CAPABILITY_DIR / "provider-drift-contract.json")
+    assert provider_drift_contract["reportKind"] == "fatecat.provider_drift_report"
+    assert {"provider.validate", "provider.calculate"} <= set(provider_drift_contract["requiredTraceSpanNames"])
+    assert "tools/reference-repos/vendor_sources.json" in provider_drift_contract["requiredLocalSources"]
     assert "capabilityId" in report_schema["requiredReportFields"]
     assert "sections" in report_schema["requiredReportFields"]
     assert "evidenceRefs" in report_schema["requiredReportFields"]

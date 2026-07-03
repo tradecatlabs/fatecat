@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "description": "Production provider drift scanner 的报告契约。该报告用于对比 provider lifecycle、dependency smoke、trace span、source refs、license refs 和 vendor supply-chain refs 是否发生漂移；不连接真实外部服务，不保存用户输入或报告正文。",
+  "reportKind": "fatecat.provider_drift_report",
+  "requiredReportFields": [
+    "schemaVersion",
+    "generatedAt",
+    "kind",
+    "status",
+    "providerCount",
+    "capabilityCount",
+    "spanCount",
+    "findingCount",
+    "providers",
+    "findings",
+    "checks",
+    "privacyBoundary"
+  ],
+  "requiredProviderFields": [
+    "providerId",
+    "capabilityIds",
+    "engineVersion",
+    "lifecycleStage",
+    "sourceRefs",
+    "supplyChainRefs",
+    "license",
+    "dependencySmoke",
+    "traceSpans",
+    "driftStatus"
+  ],
+  "requiredTraceSpanNames": ["provider.validate", "provider.calculate"],
+  "requiredLocalSources": [
+    "contracts/fate/capabilities/registry.json",
+    "contracts/fate/capabilities/schemas/provider.schema.json",
+    "tools/reference-repos/vendor_sources.json",
+    "contracts/fate/observability/registry.json"
+  ],
+  "forbiddenReportFragments": [
+    "token=",
+    "secret=",
+    "password=",
+    "DATABASE_URL",
+    "DB_DSN",
+    "birthPlace",
+    "测试用户",
+    "命理排盘报告",
+    "第一卷"
+  ],
+  "releaseBoundary": "本契约通过只证明本地 provider metadata、dependency smoke、span 日志和供应链 manifest 没有发生可检测漂移；不证明真实公网外部依赖、法律审计、外部 trace backend 或生产流量已经验证。"
+}

@@ -161,7 +161,16 @@ bash scripts/provider-dependency-smoke.sh \
 
 该 smoke 通过统一 `CapabilityExecutor` 和脱敏固定样例执行每个 production capability 的 `validate/calculate` 链路，验证 provider 的本地依赖、样例输入、输出关键字段和 evidence 最小结构。它不访问公网、不读取真实 `.env`、token、secret、DSN 或生产账号。
 
-当前已完成本地 provider lifecycle baseline 和本地 dependency smoke baseline；真实公网外部依赖 live smoke、provider trace span、许可证人工法律复核和跨版本升级策略仍是后续任务。
+Provider drift scanner：
+
+```bash
+bash scripts/provider-drift-scanner.sh \
+  --output-json infra/runtime/local-state/exports/providers/drift-report.json
+```
+
+该 scanner 会复用 provider lifecycle gate、dependency smoke、本地 `provider.validate` / `provider.calculate` trace span 和 `vendor_sources.json`，输出 dependency/source/license drift report。任何 production provider 缺失 source refs、license evidence、vendor production permission、dependency smoke 结果或 provider trace span，都会形成 drift finding 并阻断本地门禁。它不连接外部 trace backend、不访问真实公网依赖、不读取真实 `.env`、token、secret、DSN 或生产账号。
+
+当前已完成本地 provider lifecycle baseline、本地 dependency smoke baseline 和 provider drift scanner baseline；真实公网外部依赖 live smoke、许可证人工法律复核和跨版本升级策略仍是后续任务。
 
 ## 数据供应链门禁
 

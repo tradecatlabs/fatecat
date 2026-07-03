@@ -37,6 +37,18 @@
   "requiredResourceManifestFields": ["runtimeRefs", "contractRefs", "testRefs", "supplyChainRefs"],
   "requiredPromotionGateFields": ["status", "commands", "releaseRequired"],
   "requiredDeprecationFields": ["status", "replacementProvider", "removalNotBefore", "policy"],
+  "providerDriftScannerFields": [
+    "providerId",
+    "capabilityIds",
+    "engineVersion",
+    "lifecycleStage",
+    "sourceRefs",
+    "supplyChainRefs",
+    "license",
+    "dependencySmoke",
+    "traceSpans",
+    "driftStatus"
+  ],
   "allowedHealthStatus": ["ready", "degraded", "blocked"],
   "allowedLifecycleStage": ["validated", "production", "deprecated"],
   "allowedLifecycleStatus": ["active", "deprecated", "blocked"],
@@ -49,6 +61,7 @@
     "engineVersion 必须与对应 capability registry 中的 engine.engineVersion 一致",
     "production provider 必须声明 versionLock、lifecycle、sourcePolicy、licensePolicy、resourceManifest、promotionGate 与 deprecation",
     "production provider 的 sourcePolicy.supplyChainRefs 若指向 vendor_sources，目标条目必须 productionUseAllowed=true",
-    "deprecation.status=deprecated 时必须声明 replacementProvider 或 removalNotBefore"
+    "deprecation.status=deprecated 时必须声明 replacementProvider 或 removalNotBefore",
+    "provider drift scanner 必须同时校验 lifecycle metadata、dependency smoke、provider.validate/provider.calculate trace spans、source refs、license refs 和 vendor supply-chain refs"
   ]
 }

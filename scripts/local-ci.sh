@@ -161,6 +161,8 @@ run_quick() {
     --output-json "${output_dir}/provider-lifecycle-gate.json"
   run_step "provider dependency smoke" bash "${script_dir}/provider-dependency-smoke.sh" \
     --output-json "${output_dir}/provider-dependency-smoke.json"
+  run_step "provider drift scanner" bash "${script_dir}/provider-drift-scanner.sh" \
+    --output-json "${output_dir}/provider-drift-scanner.json"
   run_step "observability SLO gate" bash "${script_dir}/observability-slo-gate.sh" \
     --output-json "${output_dir}/observability-slo-gate.json"
   run_step "observability trace SLO smoke" bash "${script_dir}/observability-trace-slo-smoke.sh" \
@@ -397,6 +399,7 @@ write_summary() {
   FATE_LOCAL_CI_OPENAPI="${output_dir}/openapi.json" \
   FATE_LOCAL_CI_PROVIDER_LIFECYCLE_GATE="${output_dir}/provider-lifecycle-gate.json" \
   FATE_LOCAL_CI_PROVIDER_DEPENDENCY_SMOKE="${output_dir}/provider-dependency-smoke.json" \
+  FATE_LOCAL_CI_PROVIDER_DRIFT_SCANNER="${output_dir}/provider-drift-scanner.json" \
   FATE_LOCAL_CI_OBSERVABILITY_SLO_GATE="${output_dir}/observability-slo-gate.json" \
   FATE_LOCAL_CI_OBSERVABILITY_TRACE_SLO_SMOKE="${output_dir}/observability-trace-slo-smoke.json" \
   FATE_LOCAL_CI_OTEL_COLLECTOR_SLO_GATE="${output_dir}/otel-collector-slo-gate.json" \
