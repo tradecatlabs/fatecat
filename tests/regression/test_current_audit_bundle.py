@@ -24,6 +24,7 @@ def _build_local_inputs(tmp_path: Path) -> dict[str, Path]:
     dry_run_dir = tmp_path / "audit-dry-run"
     proof_json = tmp_path / "current-release-proof.json"
     evidence_coverage_json = tmp_path / "evidence-coverage-trend-gate.json"
+    evaluation_trend_dir = tmp_path / "evaluation-trend-gate-smoke"
 
     assert (
         _run([sys.executable, str(ROOT / "scripts/release-artifacts.py"), "--output-dir", str(release_dir)]).returncode
@@ -85,6 +86,17 @@ def _build_local_inputs(tmp_path: Path) -> dict[str, Path]:
         ).returncode
         == 0
     )
+    assert (
+        _run(
+            [
+                "bash",
+                str(ROOT / "scripts/evaluation-trend-gate-smoke.sh"),
+                "--output-dir",
+                str(evaluation_trend_dir),
+            ]
+        ).returncode
+        == 0
+    )
     return {
         "local_ci_output_dir": tmp_path,
         "release_dir": release_dir,
@@ -142,10 +154,14 @@ def test_current_audit_bundle_generates_local_blocked_bundle(tmp_path):
         "evidence.rollback_drill",
         "evidence.release_artifacts_manifest",
         "evidence.evidence_coverage_trend_gate",
+        "evidence.evaluation_trend_gate",
     }
     evidence_trend = next(item for item in evidence_index if item["id"] == "evidence.evidence_coverage_trend_gate")
     assert evidence_trend["status"] == "pass"
     assert "brokenRuleRefs=0" in evidence_trend["detail"]
+    evaluation_trend = next(item for item in evidence_index if item["id"] == "evidence.evaluation_trend_gate")
+    assert evaluation_trend["status"] == "pass"
+    assert "latestStatus=passed" in evaluation_trend["detail"]
     assert any(item["id"] == "risk.external_validations_pending" for item in risk_register)
     assert "## Evidence Index" in markdown
     assert "## Final Conclusion" in markdown
@@ -282,5 +298,6 @@ def test_current_audit_bundle_contract_and_local_ci_are_wired():
     assert "currentAuditBundle" in local_ci
     assert "--local-ci-output-dir" in local_ci
     assert any("local-ci gate artifacts" in item for item in contract["evidenceSources"])
+    assert any("evaluation trend gate" in item for item in contract["evidenceSources"])
     assert "current-audit-bundle.sh" in scripts_agents
     assert "current-bundle.json" in audit_agents

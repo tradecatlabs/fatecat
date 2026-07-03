@@ -194,4 +194,6 @@
 
 | 0103 | measurement-infrastructure-current-audit-bundle-refresh | Done | P0 | 执行 0099 Wave A A4：基于最新 commit 重新聚合 current audit bundle，并让审计证据包显式纳入 local-ci gate artifact 摘要，尤其是 0102 新增的 evidence coverage trend gate；输出 audit markdown/json、evidence index、risk register 和 external pending list，不伪造外部 live 或第三方审计完成。 | 0103-measurement-infrastructure-current-audit-bundle-refresh/ |
 
-| 0104 | measurement-infrastructure-evaluation-trend-store | In Progress | P0 | 执行 0099 后续本地可执行质量趋势库切片：新增 EvaluationRun history trend policy/gate/smoke，把 run-evaluations history/latest 从单次记录升级为可审计趋势门禁；拒绝最新失败、连续失败、缺失 required run 或失败命令；不保存命令输出、benchmark 标准答案、报告正文或真实凭证。 | 0104-measurement-infrastructure-evaluation-trend-store/ |
+| 0104 | measurement-infrastructure-evaluation-trend-store | Done | P0 | 执行 0099 后续本地可执行质量趋势库切片：新增 EvaluationRun history trend policy/gate/smoke，把 run-evaluations history/latest 从单次记录升级为可审计趋势门禁；拒绝最新失败、连续失败、缺失 required run 或失败命令；不保存命令输出、benchmark 标准答案、报告正文或真实凭证。 | 0104-measurement-infrastructure-evaluation-trend-store/ |
+
+| 0105 | measurement-infrastructure-current-audit-bundle-evaluation-trend | Done | P0 | 执行 0104 后续审计证据收口切片：让 current audit bundle 显式纳入 EvaluationRun evaluation trend gate artifact，把 local-ci 中的 evaluation-trend-gate-smoke/trend-gate.json 写入 evidence index；确保第三方审计能追踪 0104 质量趋势门禁，不保存命令输出、benchmark 标准答案、完整报告正文或真实凭证。 | 0105-measurement-infrastructure-current-audit-bundle-evaluation-trend/ |

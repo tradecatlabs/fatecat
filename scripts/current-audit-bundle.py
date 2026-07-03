@@ -34,6 +34,19 @@ LOCAL_CI_GATE_ARTIFACTS = (
         ),
         "zeroListFields": ("trendFindings", "brokenRuleRefs"),
     },
+    {
+        "id": "evidence.evaluation_trend_gate",
+        "type": "quality_gate",
+        "filename": "evaluation-trend-gate-smoke/trend-gate.json",
+        "kind": "fatecat.evaluation_trend_gate",
+        "required": True,
+        "detailFields": (
+            ("summaryCount", ("summaryCount",)),
+            ("latestStatus", ("latest", "status")),
+            ("consecutiveFailedSummaries", ("consecutiveFailedSummaries",)),
+        ),
+        "zeroListFields": ("trendFindings",),
+    },
 )
 
 

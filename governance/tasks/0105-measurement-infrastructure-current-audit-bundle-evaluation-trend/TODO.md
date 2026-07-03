@@ -1,0 +1,8 @@
+# Execution Checklist
+[x] TP-01.01 | P0 | 确认 0104 任务状态和 current audit bundle 覆盖缺口 | Verify: `rg -n "evaluation.*trend|evidence_coverage_trend|local-ci-output-dir" scripts/current-audit-bundle.py tests/regression/test_current_audit_bundle.py scripts/local-ci.sh` | Gate: 缺口明确且 0104 INDEX 状态需要修复 | Parallelizable: Yes
+[x] TP-01.02 | P0 | 定义 evaluation trend evidence mapping | Verify: `sed -n '1,60p' scripts/current-audit-bundle.py` | Gate: id/type/filename/kind/detail/zeroList 字段明确 | Parallelizable: Yes
+[x] TP-02.01 | P0 | 增加 current audit bundle evaluation trend artifact spec | Verify: `rg -n "evidence.evaluation_trend_gate|fatecat.evaluation_trend_gate" scripts/current-audit-bundle.py` | Gate: spec 复用 local-ci gate artifact 机制 | Parallelizable: No
+[x] TP-02.02 | P0 | 扩展 current audit bundle regression fixture 和 assertions | Verify: `.venv/bin/python -m pytest -q tests/regression/test_current_audit_bundle.py` | Gate: evidence index 包含 evaluation trend item | Parallelizable: No
+[x] TP-02.03 | P0 | 同步 contract、AGENTS、roadmap 和 task index | Verify: `rg -n "evaluation trend gate|0105|evidence.evaluation_trend_gate" contracts docs governance/tasks scripts tests` | Gate: 文档和机器契约口径一致 | Parallelizable: Yes
+[x] TP-03.01 | P0 | 执行 focused tests、bundle generation、ruff、secret scan、diff 和 task validators | Verify: `python3 /home/lenovo/.codex/skills/auto-tasks/scripts/validate_task_docs.py --task-dir governance/tasks/0105-measurement-infrastructure-current-audit-bundle-evaluation-trend --phase closeout` | Gate: 验证证据写入 STATUS/Checklist | Parallelizable: No
+[x] TP-03.02 | P0 | 关闭任务文档并准备 git delivery | Verify: `git status --short --branch` | Gate: scoped diff 清楚，提交/推送如实记录 | Parallelizable: No
