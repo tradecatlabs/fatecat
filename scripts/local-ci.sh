@@ -188,6 +188,9 @@ run_quick() {
   run_step "postgres external worker restart smoke preflight" bash "${script_dir}/postgres-external-worker-restart-smoke.sh" \
     --allow-missing \
     --output-json "${output_dir}/postgres-external-worker-restart-smoke.json"
+  run_step "postgres worker heartbeat polling smoke preflight" bash "${script_dir}/postgres-worker-heartbeat-polling-smoke.sh" \
+    --allow-missing \
+    --output-json "${output_dir}/postgres-worker-heartbeat-polling-smoke.json"
   run_step "postgres public webhook live smoke preflight" bash "${script_dir}/postgres-public-webhook-live-smoke.sh" \
     --allow-missing \
     --output-json "${output_dir}/postgres-public-webhook-live-smoke.json"
@@ -258,6 +261,7 @@ run_quick() {
       tests/regression/test_postgres_worker_lease_smoke.py \
       tests/regression/test_postgres_job_worker_lease_smoke.py \
       tests/regression/test_postgres_external_worker_restart_smoke.py \
+      tests/regression/test_postgres_worker_heartbeat_polling_smoke.py \
       tests/regression/test_postgres_public_webhook_live_smoke.py \
       tests/regression/test_event_contract_gate.py \
       tests/regression/test_secret_scan.py \
@@ -391,6 +395,7 @@ write_summary() {
   FATE_LOCAL_CI_POSTGRES_WORKER_LEASE_SMOKE="${output_dir}/postgres-worker-lease-smoke.json" \
   FATE_LOCAL_CI_POSTGRES_JOB_WORKER_LEASE_SMOKE="${output_dir}/postgres-job-worker-lease-smoke.json" \
   FATE_LOCAL_CI_POSTGRES_EXTERNAL_WORKER_RESTART_SMOKE="${output_dir}/postgres-external-worker-restart-smoke.json" \
+  FATE_LOCAL_CI_POSTGRES_WORKER_HEARTBEAT_POLLING_SMOKE="${output_dir}/postgres-worker-heartbeat-polling-smoke.json" \
   FATE_LOCAL_CI_POSTGRES_PUBLIC_WEBHOOK_LIVE_SMOKE="${output_dir}/postgres-public-webhook-live-smoke.json" \
   FATE_LOCAL_CI_EVENT_CONTRACT_GATE="${output_dir}/event-contract-gate.json" \
   FATE_LOCAL_CI_RELEASE_ARTIFACTS="${output_dir}/release-artifacts" \
@@ -454,6 +459,7 @@ payload = {
         "postgresWorkerLeaseSmoke": env("FATE_LOCAL_CI_POSTGRES_WORKER_LEASE_SMOKE"),
         "postgresJobWorkerLeaseSmoke": env("FATE_LOCAL_CI_POSTGRES_JOB_WORKER_LEASE_SMOKE"),
         "postgresExternalWorkerRestartSmoke": env("FATE_LOCAL_CI_POSTGRES_EXTERNAL_WORKER_RESTART_SMOKE"),
+        "postgresWorkerHeartbeatPollingSmoke": env("FATE_LOCAL_CI_POSTGRES_WORKER_HEARTBEAT_POLLING_SMOKE"),
         "postgresPublicWebhookLiveSmoke": env("FATE_LOCAL_CI_POSTGRES_PUBLIC_WEBHOOK_LIVE_SMOKE"),
         "eventContractGate": env("FATE_LOCAL_CI_EVENT_CONTRACT_GATE"),
         "releaseArtifacts": env("FATE_LOCAL_CI_RELEASE_ARTIFACTS"),

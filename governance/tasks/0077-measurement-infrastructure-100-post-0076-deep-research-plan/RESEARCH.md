@@ -32,7 +32,7 @@ FateCat 要达到 100% 测算基础设施，还差什么？这里的 100% 不是
 | Secure development | NIST SSDF SP 800-218: https://csrc.nist.gov/pubs/sp/800/218/final | 安全开发必须覆盖开发、保护、响应和供应链 | secret scan、dependency review、release evidence、incident response、security control registry。 |
 | Supply chain | SLSA v1.2: https://slsa.dev/spec/v1.2/ | provenance、build integrity 和 artifact 证明是发布底线 | current commit CI、container digest、attestation verify、provenance。 |
 | SBOM | CycloneDX Specification: https://cyclonedx.org/specification/overview/ | 组件、依赖、服务和关系应机器可读 | release SBOM、data/vendor SBOM、dependency graph、license/export policy。 |
-| Idempotency/webhooks | Stripe idempotency and webhooks: https://docs.stripe.com/api/idempotent_requests, https://docs.stripe.com/webhooks | 幂等、签名、重试和事件历史是外部副作用治理核心 | report job idempotency、webhook signature、retry/outbox、event audit。 |
+| Idempotency and webhook events | Stripe idempotency and webhook docs: https://docs.stripe.com/api/idempotent_requests, https://docs.stripe.com/webhooks | 幂等、签名、重试和事件历史是外部副作用治理核心 | report job idempotency、webhook signature、retry/outbox、event audit。 |
 
 ## Synthesis
 

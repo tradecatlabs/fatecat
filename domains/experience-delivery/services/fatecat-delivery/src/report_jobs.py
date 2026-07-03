@@ -17,7 +17,7 @@ from dataclasses import asdict, dataclass, is_dataclass, replace
 from datetime import datetime, timedelta
 from hashlib import sha256
 from pathlib import Path
-from queue import Full, Queue
+from queue import Empty, Full, Queue
 from threading import Event, Lock, Thread
 from typing import Any, Literal
 from urllib.parse import urlparse
@@ -186,6 +186,10 @@ class ReportJobStore:
 
     def release_job_execution_lease(self, _job_id: str, *, lease_owner: str) -> None:
         return
+
+    def renew_job_execution_lease(self, _job_id: str, *, lease_owner: str, lease_seconds: float) -> bool:
+        owner = str(lease_owner).strip()
+        return bool(owner and lease_seconds > 0)
 
     def load_job_events(self, _job_id: str) -> list[ReportJobEvent]:
         return []
@@ -1126,6 +1130,32 @@ class PostgresReportJobStore(ReportJobStore):
                 {"job_id": job_id, "lease_owner": owner, "updated_at": now_cn().isoformat()},
             )
 
+    def renew_job_execution_lease(self, job_id: str, *, lease_owner: str, lease_seconds: float) -> bool:
+        owner = str(lease_owner).strip()
+        if not owner:
+            return False
+        now = now_cn()
+        lease_ttl = max(1.0, float(lease_seconds))
+        with self._lock, self._connect() as conn:
+            row = conn.execute(
+                """
+                UPDATE report_jobs
+                SET lease_expires_at = %(lease_expires_at)s,
+                    updated_at = %(updated_at)s
+                WHERE job_id = %(job_id)s
+                  AND lease_owner = %(lease_owner)s
+                  AND status = 'running'
+                RETURNING job_id
+                """,
+                {
+                    "job_id": job_id,
+                    "lease_owner": owner,
+                    "lease_expires_at": (now + timedelta(seconds=lease_ttl)).isoformat(),
+                    "updated_at": now.isoformat(),
+                },
+            ).fetchone()
+        return row is not None
+
     def load_job_events(self, job_id: str) -> list[ReportJobEvent]:
         with self._lock, self._connect() as conn:
             rows = conn.execute(
@@ -1498,6 +1528,8 @@ class ReportJobManager:
         task_factories: dict[str, ReportJobTaskFactory] | None = None,
         webhook_redelivery_lease_seconds: float = 30.0,
         job_execution_lease_seconds: float = 30.0,
+        job_execution_heartbeat_interval_seconds: float | None = None,
+        job_store_poll_interval_seconds: float = 0.25,
     ) -> None:
         self.max_workers = max(1, max_workers)
         self.queue_size = max(1, queue_size)
@@ -1511,6 +1543,13 @@ class ReportJobManager:
         self.webhook_redelivery_lease_seconds = max(1.0, float(webhook_redelivery_lease_seconds))
         self._webhook_redelivery_lease_owner = f"manager:{secrets.token_urlsafe(12)}"
         self.job_execution_lease_seconds = max(1.0, float(job_execution_lease_seconds))
+        heartbeat_interval = (
+            float(job_execution_heartbeat_interval_seconds)
+            if job_execution_heartbeat_interval_seconds is not None
+            else self.job_execution_lease_seconds / 2
+        )
+        self.job_execution_heartbeat_interval_seconds = max(0.1, heartbeat_interval)
+        self.job_store_poll_interval_seconds = max(0.05, float(job_store_poll_interval_seconds))
         self._job_execution_lease_owner = f"manager-job:{secrets.token_urlsafe(12)}"
         self._queue: Queue[str] = Queue(maxsize=self.queue_size)
         self._jobs: dict[str, _ReportJob] = {}
@@ -1871,9 +1910,112 @@ class ReportJobManager:
                 lease_owner=self._webhook_redelivery_lease_owner,
             )
 
+    def _poll_persisted_jobs_for_execution(self) -> int:
+        if self.store.backend_name != "postgres" or not self.task_factories:
+            return 0
+        try:
+            persisted_jobs = self.store.load_jobs()
+        except Exception as exc:  # noqa: BLE001 - polling 是恢复路径，失败需降级为日志而不是杀死 worker。
+            logger.warning("报告任务持久队列轮询失败 error_type=%s", type(exc).__name__)
+            return 0
+        admitted = 0
+        with self._lock:
+            for persisted_job in persisted_jobs:
+                if persisted_job.status not in {"queued", "running"}:
+                    continue
+                local_job = self._jobs.get(persisted_job.job_id)
+                if local_job and local_job.status not in {"queued"}:
+                    continue
+                if self._queue_contains_locked(persisted_job.job_id):
+                    continue
+                target_job = local_job or persisted_job
+                if target_job.task is None:
+                    task = self._build_task_from_payload(persisted_job)
+                    if task is None:
+                        continue
+                    target_job.task = task
+                was_running = persisted_job.status == "running"
+                if was_running:
+                    target_job.attempts = max(0, persisted_job.attempts - 1)
+                    target_job.started_at = None
+                target_job.status = "queued"
+                target_job.error = None
+                target_job.finished_at = None
+                if self._queue.full():
+                    break
+                self._jobs[target_job.job_id] = target_job
+                if target_job.idempotency_key:
+                    self._idempotency_index[target_job.idempotency_key] = target_job.job_id
+                try:
+                    self._queue.put_nowait(target_job.job_id)
+                except Full:
+                    break
+                admitted += 1
+                if local_job is None:
+                    self._append_event_locked(
+                        target_job,
+                        "job.polled_requeued",
+                        "任务执行器从持久队列轮询到可恢复任务并重新入队",
+                        {
+                            "reason": "store_poll",
+                            "previousStatus": persisted_job.status,
+                            "taskPayload": True,
+                            "taskFactory": persisted_job.kind,
+                        },
+                    )
+        return admitted
+
+    def _start_job_execution_heartbeat(self, job_id: str) -> Callable[[], None]:
+        stop_event = Event()
+        interval = min(
+            self.job_execution_heartbeat_interval_seconds,
+            max(0.1, self.job_execution_lease_seconds / 2),
+        )
+
+        def heartbeat() -> None:
+            while not stop_event.wait(interval):
+                with self._lock:
+                    job = self._jobs.get(job_id)
+                    if not job or job.status != "running":
+                        return
+                renewed = self.store.renew_job_execution_lease(
+                    job_id,
+                    lease_owner=self._job_execution_lease_owner,
+                    lease_seconds=self.job_execution_lease_seconds,
+                )
+                if renewed:
+                    continue
+                with self._lock:
+                    job = self._jobs.get(job_id)
+                    if not job or job.status != "running":
+                        return
+                    self._append_event_locked(
+                        job,
+                        "job.lease_heartbeat_lost",
+                        "报告任务执行 lease heartbeat 续租失败",
+                        {
+                            "leaseOwner": self._job_execution_lease_owner,
+                            "leaseSeconds": self.job_execution_lease_seconds,
+                        },
+                    )
+                return
+
+        thread = Thread(target=heartbeat, name=f"fatecat-report-job-heartbeat-{job_id[:8]}", daemon=True)
+        thread.start()
+
+        def stop() -> None:
+            stop_event.set()
+            thread.join(timeout=min(1.0, interval))
+
+        return stop
+
     def _worker_loop(self) -> None:
         while True:
-            job_id = self._queue.get()
+            try:
+                job_id = self._queue.get(timeout=self.job_store_poll_interval_seconds)
+            except Empty:
+                self._poll_persisted_jobs_for_execution()
+                continue
             try:
                 self._run_job(job_id)
             finally:
@@ -1906,57 +2048,61 @@ class ReportJobManager:
             self._persist_locked(job)
             self._append_event_locked(job, "job.running", "报告任务开始执行")
 
-        while True:
-            with self._lock:
-                job = self._jobs.get(job_id)
-                if not job or job.status == "cancelled":
-                    self._release_job_execution_lease_locked(job_id)
+        stop_heartbeat = self._start_job_execution_heartbeat(job_id)
+        try:
+            while True:
+                with self._lock:
+                    job = self._jobs.get(job_id)
+                    if not job or job.status == "cancelled":
+                        self._release_job_execution_lease_locked(job_id)
+                        return
+                    if job.status != "running":
+                        self._release_job_execution_lease_locked(job_id)
+                        return
+                    job.attempts += 1
+                    attempt = job.attempts
+                    max_attempts = job.max_attempts
+                    timeout_seconds = job.attempt_timeout_seconds
+                    retry_backoff_seconds = job.retry_backoff_seconds
+                    self._persist_locked(job)
+
+                outcome = _run_task_attempt(task, timeout_seconds)
+
+                if outcome.timed_out:
+                    should_retry = attempt < max_attempts
+                    if self._handle_attempt_failure(
+                        job_id,
+                        ReportJobTimeoutError("报告任务执行超时"),
+                        attempt=attempt,
+                        timed_out=True,
+                        should_retry=should_retry,
+                        retryable=True,
+                        timeout_seconds=timeout_seconds,
+                    ):
+                        self._sleep_before_retry(retry_backoff_seconds)
+                        continue
                     return
-                if job.status != "running":
-                    self._release_job_execution_lease_locked(job_id)
+
+                if outcome.error is not None:
+                    non_retryable = isinstance(outcome.error, job.non_retryable_exceptions)
+                    should_retry = not non_retryable and attempt < max_attempts
+                    if self._handle_attempt_failure(
+                        job_id,
+                        outcome.error,
+                        attempt=attempt,
+                        timed_out=False,
+                        should_retry=should_retry,
+                        retryable=not non_retryable,
+                        timeout_seconds=timeout_seconds,
+                    ):
+                        self._sleep_before_retry(retry_backoff_seconds)
+                        continue
                     return
-                job.attempts += 1
-                attempt = job.attempts
-                max_attempts = job.max_attempts
-                timeout_seconds = job.attempt_timeout_seconds
-                retry_backoff_seconds = job.retry_backoff_seconds
-                self._persist_locked(job)
 
-            outcome = _run_task_attempt(task, timeout_seconds)
-
-            if outcome.timed_out:
-                should_retry = attempt < max_attempts
-                if self._handle_attempt_failure(
-                    job_id,
-                    ReportJobTimeoutError("报告任务执行超时"),
-                    attempt=attempt,
-                    timed_out=True,
-                    should_retry=should_retry,
-                    retryable=True,
-                    timeout_seconds=timeout_seconds,
-                ):
-                    self._sleep_before_retry(retry_backoff_seconds)
-                    continue
+                self._finish_job_success(job_id, outcome.result)
                 return
-
-            if outcome.error is not None:
-                non_retryable = isinstance(outcome.error, job.non_retryable_exceptions)
-                should_retry = not non_retryable and attempt < max_attempts
-                if self._handle_attempt_failure(
-                    job_id,
-                    outcome.error,
-                    attempt=attempt,
-                    timed_out=False,
-                    should_retry=should_retry,
-                    retryable=not non_retryable,
-                    timeout_seconds=timeout_seconds,
-                ):
-                    self._sleep_before_retry(retry_backoff_seconds)
-                    continue
-                return
-
-            self._finish_job_success(job_id, outcome.result)
-            return
+        finally:
+            stop_heartbeat()
 
     def _finish_job_success(self, job_id: str, result: Any) -> None:
         callback_snapshot = None
@@ -2301,6 +2447,10 @@ class ReportJobManager:
                 outbox_id,
                 type(exc).__name__,
             )
+
+    def _queue_contains_locked(self, job_id: str) -> bool:
+        with self._queue.mutex:
+            return job_id in self._queue.queue
 
     def _queue_position_locked(self, job_id: str) -> int | None:
         with self._queue.mutex:

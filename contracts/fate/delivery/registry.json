@@ -259,12 +259,13 @@
       "bash scripts/postgres-worker-lease-smoke.sh --allow-missing",
       "bash scripts/postgres-job-worker-lease-smoke.sh --allow-missing",
       "bash scripts/postgres-external-worker-restart-smoke.sh --allow-missing",
+      "bash scripts/postgres-worker-heartbeat-polling-smoke.sh --allow-missing",
       "bash scripts/postgres-public-webhook-live-smoke.sh --allow-missing"
     ],
     "selectedExternalCandidate": "backend.postgres",
-    "currentProductionEligibility": "public_webhook_live_smoke_gate_baseline",
+    "currentProductionEligibility": "worker_heartbeat_polling_smoke_baseline",
     "externalConnectivity": "外部连通验证待执行",
-    "policy": "RuntimeBackend registry 只声明 durable runtime 后端候选、证据口径和迁移路径；真实 Postgres/Temporal/Redis 后端必须由独立 adapter、迁移 smoke、crash/restart smoke、public webhook live smoke 和外部连接证据证明。"
+    "policy": "RuntimeBackend registry 只声明 durable runtime 后端候选、证据口径和迁移路径；真实 Postgres/Temporal/Redis 后端必须由独立 adapter、迁移 smoke、crash/restart smoke、worker heartbeat/polling smoke、public webhook live smoke 和外部连接证据证明。"
   },
   "asyncEventRegistry": {
     "resourceType": "AsyncEventRegistry",

@@ -69,7 +69,7 @@ def test_postgres_public_webhook_live_script_and_contract_are_wired():
     assert "postgres-public-webhook-live-smoke.py" in wrapper_text
     assert "postgres-public-webhook-live-smoke.sh" in local_ci_text
     assert "postgresPublicWebhookLiveSmoke" in local_ci_text
-    assert postgres["implementationStatus"] == "public_webhook_live_smoke_gate_baseline"
+    assert postgres["implementationStatus"] == "worker_heartbeat_polling_smoke_baseline"
     assert postgres["status"] == "planned"
     assert postgres["capabilities"]["publicWebhookLive"] == "external_smoke_gate_ready_evidence_pending"
     assert postgres["capabilities"]["exactlyOnceClaim"] is False

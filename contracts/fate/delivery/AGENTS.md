@@ -30,7 +30,7 @@ delivery/
 - `events.asyncapi.json`：AsyncAPI 3.1 风格静态事件文档；供开发者和 Agent 发现事件通道，不证明外部 broker 或公网 webhook live delivery。
 - `examples/events/`：只保存合成脱敏事件示例；禁止写入真实 webhook URL、secret、token、用户输入、报告正文或生产日志。
 - `release-gate.json`：登记 live release 必需证据，覆盖 local CI、远端 CI、生产 API、HF Space、Telegram Bot、container digest、SBOM/provenance、rollback drill 和 clean git state。
-- `runtime-backends.json`：登记 CalculationJob durable runtime 后端候选，当前 memory/sqlite 是本地 baseline，Postgres 已有 live smoke、outbox worker lease smoke、job worker lease primitive smoke、external worker restart smoke baseline 与 public webhook live smoke gate baseline 但仍是 planned external backend 候选，Temporal 是 future workflow orchestrator，Redis queue 只允许作为辅助队列。
+- `runtime-backends.json`：登记 CalculationJob durable runtime 后端候选，当前 memory/sqlite 是本地 baseline，Postgres 已有 live smoke、outbox worker lease smoke、job worker lease primitive smoke、external worker restart smoke baseline、worker heartbeat/polling smoke baseline 与 public webhook live smoke gate baseline 但仍是 planned external backend 候选，Temporal 是 future workflow orchestrator，Redis queue 只允许作为辅助队列。
 - `schemas/async-event.schema.json`：定义 AsyncEvent 字段、CloudEvents 必备上下文字段、AsyncAPI 风格 channel/operation 字段、事件域枚举和隐私不变量。
 - `schemas/delivery-surface.schema.json`：定义交付面资源字段，覆盖 api、web、bot、cli、skill 和 hosted_web。
 - `schemas/release-gate.schema.json`：定义 ReleaseGate 证据项、check 输出、shipGate 状态和不可伪造证据边界。
@@ -39,7 +39,7 @@ delivery/
 - `partial` 表示该交付面只覆盖部分输出契约，例如 CLI 只覆盖 JSON/capability 执行，不承诺生成标准 Markdown。
 - `manual` 表示需要用户部署、真实域名、真实 token 或外部平台权限，仓库内不能伪造通过。
 - `ReleaseGate` 的本地 contract gate 可以通过，但缺真实外部证据时 `shipGate.status` 必须保持 `blocked`。
-- `RuntimeBackend` 的本地 gate 可以通过，但 `backend.postgres` 即使已有 live smoke、outbox worker lease smoke、job worker lease primitive smoke、external worker restart smoke baseline 与 public webhook live smoke gate baseline，也必须在外部 Vault/KMS、公网 webhook passed evidence、heartbeat/polling worker、长期多副本运行和 exactly-once 证据完成前保持 `status=planned`，不能声明 external backend 已生产。
+- `RuntimeBackend` 的本地 gate 可以通过，但 `backend.postgres` 即使已有 live smoke、outbox worker lease smoke、job worker lease primitive smoke、external worker restart smoke baseline、worker heartbeat/polling smoke baseline 与 public webhook live smoke gate baseline，也必须在外部 Vault/KMS、公网 webhook passed evidence、长期多副本运行和 exactly-once 证据完成前保持 `status=planned`，不能声明 external backend 已生产。
 - `AsyncEvent` 的本地 gate 可以通过，但 `event.webhook.delivery` 在真实接收端 live smoke 完成前必须保持 `externalConnectivity=requires_real_receiver`，不能声明公网 webhook live delivery 已生产。
 - `events.asyncapi.json` 是静态契约文档，不得被解释为 Kafka、NATS、RabbitMQ、Redis Streams 或其他外部 broker 已接入。
 - `backend.redis_queue` 不得登记为 `CalculationJob` source of truth；只能作为未来辅助队列候选。
