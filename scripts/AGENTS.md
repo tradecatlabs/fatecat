@@ -187,6 +187,7 @@ scripts/
 - `report-job-restart-recovery-smoke.sh` / `report-job-restart-recovery-smoke.py` 是 report job SQLite 重建恢复本地 smoke；验证旧 `queued` / `running` 任务被安全标记为 failed、写入 `job.recovered_failed`、保留幂等键且 summary 不泄露报告正文、姓名、出生地区或 secret；不证明跨进程继续执行、external backend 或多副本 worker。
 - `retention-cleanup.sh` / `retention-cleanup.py` 是本地 retention cleanup runner；默认 dry-run，只在显式 `--execute` 时按保留期清理 SQLite records 和过期终态 report jobs，summary 只输出计数、模式和 cutoff，不输出用户或任务明文。
 - `retention-cleanup-smoke.sh` / `retention-cleanup-smoke.py` 是 retention cleanup 合成 smoke；用北京/测试 fixture 验证 dry-run、execute、records 删除、report job 关联行删除和脱敏边界，不证明生产 scheduler、Postgres production cleanup live 或外部 SIEM retention。
+- `retention-production-cleanup-gate.sh` / `retention-production-cleanup-gate.py` 是 retention production cleanup staged gate；聚合 production scheduler、Postgres cleanup 和 SIEM/log retention 的脱敏证据口径，默认输出 blocked/pending 并拒绝 raw URL、placeholder proof、缺 smoke summary、production_deleted marker 或敏感值，不连接真实数据库、scheduler、SIEM 或执行生产删除。
 - `common.sh` 负责解析 runtime root；只允许已就绪的企业根作为运行根。
 - `run-evaluations.sh` / `run-evaluations.py` 是 `contracts/fate/evaluations/registry.json` 的本地 EvaluationRun 执行器；默认跑本地必跑评测，输出 summary JSON，只允许白名单命令。
 - `compare-evaluations.sh` / `compare-evaluations.py` 是本地 Evaluation summary diff 工具；按 `contracts/fate/evaluations/diff-policy.json` 判定新增失败、缺失 run 和失败命令。

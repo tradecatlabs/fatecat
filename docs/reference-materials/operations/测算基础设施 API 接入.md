@@ -471,6 +471,15 @@ bash scripts/security-externalization-gate.sh \
 
 默认不提供 `--evidence-json` 时，该 gate 只证明仓库内 contract 和反伪造样例可验证，并输出 `外部连通验证待执行`。真实 OIDC、SIEM、不可变审计存储和 retention cleaner live evidence 必须由外部环境单独提供；仓库内不得用本地 token、策略文件或占位 URL 替代。
 
+Retention production cleanup staged gate：
+
+```bash
+bash scripts/retention-production-cleanup-gate.sh \
+  --output-json infra/runtime/local-state/exports/security/retention-production-cleanup-gate.json
+```
+
+0098 新增 `contracts/fate/security/retention-production-cleanup-staged.json`，用于聚合 production scheduler、Postgres cleanup 和 SIEM/log retention 的脱敏 staged evidence contract。默认不提供 `--evidence-json` 时只输出 `shipGate=blocked` 与 `外部连通验证待执行`；提供脱敏 evidence 时也只验证 proof-ref 结构和反伪造边界，不连接真实 Postgres、scheduler 或 SIEM，不执行生产删除，不保存真实 DSN、endpoint、token、secret、用户输入、报告正文、生产日志或真实删除结果。
+
 外部 secret provider evidence contract / negative gate：
 
 ```bash

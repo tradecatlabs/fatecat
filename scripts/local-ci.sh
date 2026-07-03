@@ -150,6 +150,8 @@ run_quick() {
     --output-json "${output_dir}/security-externalization-gate.json"
   run_step "retention cleanup smoke" bash "${script_dir}/retention-cleanup-smoke.sh" \
     --output-json "${output_dir}/retention-cleanup-smoke.json"
+  run_step "retention production cleanup staged gate" bash "${script_dir}/retention-production-cleanup-gate.sh" \
+    --output-json "${output_dir}/retention-production-cleanup-gate.json"
   run_step "external secret provider gate" bash "${script_dir}/external-secret-provider-gate.sh" \
     --output-json "${output_dir}/external-secret-provider-gate.json"
   run_step "privacy fixtures" bash "${script_dir}/check-privacy-fixtures.sh"
@@ -292,6 +294,7 @@ run_quick() {
       tests/regression/test_capability_cli_smoke.py \
       tests/regression/test_multi_surface_semantic_diff.py \
       tests/regression/test_retention_cleanup.py \
+      tests/regression/test_retention_production_cleanup_gate.py \
       tests/regression/test_evaluation_dashboard.py \
       tests/regression/test_evaluation_history_diff.py \
       tests/regression/test_evaluation_runner.py \

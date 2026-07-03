@@ -149,6 +149,8 @@
     "externalizationEvidenceContract": "contracts/fate/security/externalization-evidence-contract.json",
     "retentionCleanupSmokeCommand": "bash scripts/retention-cleanup-smoke.sh --output-json <path>",
     "retentionCleanupContract": "contracts/fate/security/retention-cleanup.json",
+    "retentionProductionCleanupStagedGate": "bash scripts/retention-production-cleanup-gate.sh",
+    "retentionProductionCleanupStagedContract": "contracts/fate/security/retention-production-cleanup-staged.json",
     "externalSecretProviderGateCommand": "bash scripts/external-secret-provider-gate.sh",
     "externalSecretProviderEvidenceContract": "contracts/fate/security/external-secret-provider-contract.json",
     "quickCiRequired": true,

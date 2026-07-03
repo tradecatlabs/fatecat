@@ -58,6 +58,7 @@ tests/
 - `regression/test_report_job_restart_recovery_smoke.py`：report job SQLite manager 重建本地 smoke 合同；验证 restart-safe failure、`job.recovered_failed`、幂等键保留和 summary 脱敏边界。
 - `regression/test_report_job_replayable_recovery_smoke.py`：report job SQLite 可重建执行 smoke 合同；验证带 `task_payload` 和 factory 的 active 任务重建后重新入队成功，无 payload 任务仍安全失败。
 - `regression/test_retention_cleanup.py`：retention cleanup 本地合同测试；验证 SQLite records/report jobs dry-run/execute 合成 smoke、CLI 缺库安全跳过、contract/registry/local-ci/AGENTS 接线和 summary 脱敏边界。
+- `regression/test_retention_production_cleanup_gate.py`：retention production cleanup staged gate 合同；验证 scheduler、Postgres cleanup、SIEM/log retention evidence contract、blocked/pending 默认状态、脱敏 live fixture、反伪造负例和 local-ci/AGENTS 接线。
 - `regression/test_event_contract_gate.py`：异步事件 contract gate 测试；验证 CloudEvents/AsyncAPI registry、producer/consumer compatibility、replay/DLQ 策略、脱敏 replay 示例和缺 required consumer / producer path 的负向拒绝。
 - `regression/test_webhook_outbox_smoke.py`：report job webhook SQLite outbox 本地 smoke 合同；验证 success/failure outbox record、manager 重建可读和 summary 脱敏边界。
 - `regression/test_webhook_outbox_redelivery_smoke.py`：report job webhook SQLite outbox 自动重投 smoke 合同；验证 failed outbox record 在 manager 重建后通过运行时 resolver 自动重投成功，resolver 缺失时跳过且 summary 脱敏。

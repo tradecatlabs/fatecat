@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": "fatecat.tradecatlabs/v1",
+  "resourceType": "RetentionProductionCleanupStagedGate",
+  "id": "contract.retention_production_cleanup_staged",
+  "description": "Retention production cleanup staged evidence gate；聚合 scheduler、Postgres cleanup 和 SIEM/log retention 的脱敏证据口径。默认只输出 blocked/pending，不连接真实服务，不执行生产删除。",
+  "status": "staged_contract",
+  "controlId": "control.retention_cleanup_plan",
+  "dependsOn": [
+    "contracts/fate/security/retention-cleanup.json",
+    "contracts/fate/security/externalization-evidence-contract.json",
+    "contracts/fate/security/production-security-policy.json"
+  ],
+  "commands": {
+    "gate": "bash scripts/retention-production-cleanup-gate.sh --output-json <path>",
+    "localSmoke": "bash scripts/retention-cleanup-smoke.sh --output-json <path>"
+  },
+  "requiredEvidenceAreas": {
+    "scheduler": {
+      "requiredFields": ["mode", "verificationStatus", "scheduleProofRef", "dryRunProofRef", "auditAction"],
+      "requiredMode": "production_scheduler",
+      "requiredVerificationStatus": "passed_scheduler_smoke",
+      "requiredAuditActions": ["retention.cleanup.dry_run", "retention.cleanup.completed"]
+    },
+    "postgresCleanup": {
+      "requiredFields": [
+        "mode",
+        "verificationStatus",
+        "smokeSummaryRef",
+        "databaseProofRef",
+        "deleteMode",
+        "dryRun",
+        "auditAction"
+      ],
+      "requiredMode": "postgres_retention_cleanup",
+      "requiredVerificationStatus": "passed_postgres_cleanup_smoke",
+      "allowedDeleteModes": ["tombstone_then_purge", "hard_delete"],
+      "requiredAuditActions": ["retention.cleanup.dry_run", "retention.cleanup.completed"]
+    },
+    "siemRetention": {
+      "requiredFields": [
+        "mode",
+        "verificationStatus",
+        "retentionProofRef",
+        "immutabilityProofRef",
+        "payloadBoundary"
+      ],
+      "allowedModes": ["append_only", "worm", "external_siem"],
+      "requiredVerificationStatus": "passed_siem_retention_check",
+      "requiredPayloadBoundary": "redacted_no_payload"
+    }
+  },
+  "proofRefPrefixes": ["evidence://", "artifact://", "ci-artifact://"],
+  "forbiddenFragments": [
+    "http://",
+    "https://",
+    "endpoint=",
+    "payload=",
+    "DATABASE_URL",
+    "DB_DSN",
+    "production_deleted=true",
+    "real_user_data",
+    "report_body",
+    "token",
+    "secret",
+    "password"
+  ],
+  "negativeEvidenceCases": [
+    {
+      "id": "fake.retention_raw_url",
+      "description": "raw URL proof ref 不能作为 production retention evidence。",
+      "evidence": {
+        "schemaVersion": 1,
+        "kind": "fatecat.retention_production_cleanup_evidence",
+        "status": "external_live_passed",
+        "scheduler": {
+          "mode": "production_scheduler",
+          "verificationStatus": "passed_scheduler_smoke",
+          "scheduleProofRef": "https://scheduler.example.invalid/job",
+          "dryRunProofRef": "evidence://retention/scheduler-dry-run",
+          "auditAction": "retention.cleanup.dry_run"
+        }
+      },
+      "expectedErrorContains": "evidence"
+    },
+    {
+      "id": "fake.retention_missing_postgres_smoke",
+      "description": "缺少 Postgres cleanup smoke summary 不能作为生产 cleanup evidence。",
+      "evidence": {
+        "schemaVersion": 1,
+        "kind": "fatecat.retention_production_cleanup_evidence",
+        "status": "external_live_passed",
+        "scheduler": {
+          "mode": "production_scheduler",
+          "verificationStatus": "passed_scheduler_smoke",
+          "scheduleProofRef": "evidence://retention/scheduler",
+          "dryRunProofRef": "evidence://retention/scheduler-dry-run",
+          "auditAction": "retention.cleanup.dry_run"
+        },
+        "postgresCleanup": {
+          "mode": "postgres_retention_cleanup",
+          "verificationStatus": "passed_postgres_cleanup_smoke",
+          "databaseProofRef": "evidence://retention/postgres-db",
+          "deleteMode": "tombstone_then_purge",
+          "dryRun": true,
+          "auditAction": "retention.cleanup.dry_run"
+        },
+        "siemRetention": {
+          "mode": "worm",
+          "verificationStatus": "passed_siem_retention_check",
+          "retentionProofRef": "evidence://siem/retention",
+          "immutabilityProofRef": "evidence://siem/immutability",
+          "payloadBoundary": "redacted_no_payload"
+        }
+      },
+      "expectedErrorContains": "postgres"
+    },
+    {
+      "id": "fake.retention_production_deleted_marker",
+      "description": "production_deleted marker 不能作为 staged evidence。",
+      "evidence": {
+        "schemaVersion": 1,
+        "kind": "fatecat.retention_production_cleanup_evidence",
+        "status": "external_live_passed",
+        "scheduler": {
+          "mode": "production_scheduler",
+          "verificationStatus": "passed_scheduler_smoke",
+          "scheduleProofRef": "evidence://retention/scheduler",
+          "dryRunProofRef": "evidence://retention/scheduler-dry-run",
+          "auditAction": "retention.cleanup.completed"
+        },
+        "postgresCleanup": {
+          "mode": "postgres_retention_cleanup",
+          "verificationStatus": "passed_postgres_cleanup_smoke",
+          "smokeSummaryRef": "evidence://retention/production_deleted=true",
+          "databaseProofRef": "evidence://retention/postgres-db",
+          "deleteMode": "hard_delete",
+          "dryRun": false,
+          "auditAction": "retention.cleanup.completed"
+        },
+        "siemRetention": {
+          "mode": "worm",
+          "verificationStatus": "passed_siem_retention_check",
+          "retentionProofRef": "evidence://siem/retention",
+          "immutabilityProofRef": "evidence://siem/immutability",
+          "payloadBoundary": "redacted_no_payload"
+        }
+      },
+      "expectedErrorContains": "evidence"
+    }
+  ],
+  "pendingExternalValidation": [
+    "生产 scheduler / cron / worker 编排 live evidence",
+    "Postgres production cleanup live smoke",
+    "外部 SIEM / WORM / 不可变审计存储 retention proof"
+  ],
+  "privacyBoundary": "contract、gate output 和 evidence fixture 只保存脱敏 proof refs、状态、模式和计数；不得保存真实 DSN、endpoint、token、secret、用户输入、报告正文、生产日志或真实生产删除结果。"
+}

@@ -415,9 +415,11 @@
         "contracts/fate/security/production-security-policy.json",
         "contracts/fate/security/externalization-evidence-contract.json",
         "contracts/fate/security/retention-cleanup.json",
+        "contracts/fate/security/retention-production-cleanup-staged.json",
         "domains/experience-delivery/services/fatecat-delivery/src/retention_cleanup.py",
         "scripts/retention-cleanup.sh",
         "scripts/retention-cleanup-smoke.sh",
+        "scripts/retention-production-cleanup-gate.sh",
         "scripts/production-security-gate.sh",
         "scripts/security-externalization-gate.sh",
         "scripts/production-readiness.sh",
@@ -426,6 +428,7 @@
       "localVerification": [
         "bash scripts/production-security-gate.sh",
         "bash scripts/security-externalization-gate.sh",
+        "bash scripts/retention-production-cleanup-gate.sh",
         "bash scripts/retention-cleanup-smoke.sh --output-json <path>"
       ],
       "privacyBoundary": "retention cleanup contract 只登记保留天数、删除模式和审计要求，不保存用户记录、请求体、报告正文或 secret。",
@@ -445,7 +448,9 @@
         "targetRecordMode": "time_based_cleanup_with_audit",
         "localCleanerStatus": "available",
         "localCleanerCommand": "bash scripts/retention-cleanup-smoke.sh --output-json <path>",
-        "localCleanerSummaryKind": "fatecat.retention_cleanup_smoke"
+        "localCleanerSummaryKind": "fatecat.retention_cleanup_smoke",
+        "productionCleanupStagedGate": "bash scripts/retention-production-cleanup-gate.sh",
+        "productionCleanupStagedContract": "contracts/fate/security/retention-production-cleanup-staged.json"
       }
     },
     {
@@ -682,6 +687,9 @@
     "securityExternalizationGateCommand": "bash scripts/security-externalization-gate.sh",
     "securityExternalizationEvidenceContract": "contracts/fate/security/externalization-evidence-contract.json",
     "securityExternalizationGateScope": "本地验证 OIDC/SIEM/retention cleaner 外部化证据契约和反伪造负例；不连接真实 IdP、SIEM、不可变审计平台或生产数据库。",
+    "retentionProductionCleanupStagedGateCommand": "bash scripts/retention-production-cleanup-gate.sh",
+    "retentionProductionCleanupStagedContract": "contracts/fate/security/retention-production-cleanup-staged.json",
+    "retentionProductionCleanupStagedGateScope": "本地验证 production scheduler、Postgres cleanup 和 SIEM/log retention 的脱敏 staged evidence contract 与反伪造负例；不连接真实数据库、scheduler、SIEM 或执行生产删除。",
     "externalSecretProviderGateCommand": "bash scripts/external-secret-provider-gate.sh",
     "externalSecretProviderEvidenceContract": "contracts/fate/security/external-secret-provider-contract.json",
     "externalSecretProviderGateScope": "本地验证外部 secret provider / Vault / KMS 证据契约和反伪造负例；不连接真实 Vault、KMS、secret manager 或云账号。"
