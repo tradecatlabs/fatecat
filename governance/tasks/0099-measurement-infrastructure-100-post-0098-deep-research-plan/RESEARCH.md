@@ -21,8 +21,9 @@ FateCat 要达到 100% 测算基础设施，剩余工作不是继续堆更多预
 | 事实 | 证据 | 对计划的影响 |
 | --- | --- | --- |
 | 当前分支 | `git status --short --branch` -> `## main...origin/main` | 计划只针对当前分支/current worktree。 |
-| 当前基准提交 | `eee30ece7da5fa580eb970db11e3b7e559727a56` / `eee30ec test: add event consumer replay contracts` | 0099 基于 0097 后，且 0098 在当前 worktree 中。 |
-| 当前 worktree | `contracts/fate/security/*`、`scripts/local-ci.sh`、0098 task docs、0099 task docs等修改/新增 | 0098 本地 closeout 已通过；后续需做版本控制收口和下一波任务。 |
+| 任务初始基准提交 | `eee30ece7da5fa580eb970db11e3b7e559727a56` / `eee30ec test: add event consumer replay contracts` | 0099 调研最初基于 0097 后状态展开。 |
+| 当前收口提交 | `48590ab1b6e6a0d7bb914057d5e1958b7360fdd9` / `48590ab test: add retention cleanup staged gate` | 0098 staged gate 与 0099 深度调研计划已提交并推送到 `origin/main`。 |
+| 当前 worktree | `git status --short --branch` -> `## main...origin/main` | 本地与远端分支对齐，工作树干净；远端 Actions 尚未观察到当前 `48590ab` 的 workflow run。 |
 | 0096 已完成 | `governance/tasks/0096-*` | Core corpus/report diff 首轮扩容已完成。 |
 | 0097 已完成 | `governance/tasks/0097-*`，commit `eee30ec` | Event consumer/replay contract 首轮已完成。 |
 | 0098 本地 closeout | `bash scripts/local-ci.sh --profile quick --output /tmp/fatecat-local-ci-0098-final-pass` -> 275 passed | Retention production cleanup staged gate 本地可验证；外部 scheduler/Postgres/SIEM live 仍待执行。 |
