@@ -280,6 +280,9 @@ run_quick() {
     --rollback-evidence-path "${output_dir}/rollback-drill.json" \
     --release-artifacts-dir "${output_dir}/release-artifacts" \
     --local-ci-output-dir "${output_dir}"
+  run_step "external validation closure gate" bash "${script_dir}/external-validation-closure-gate.sh" \
+    --pending-external-json "${output_dir}/current-audit-bundle/pending-external-validations.json" \
+    --output-json "${output_dir}/external-validation-closure-gate.json"
   run_step "measurement infrastructure certification dry-run" bash "${script_dir}/measurement-infrastructure-certification.sh" \
     --evidence-dir "${output_dir}" \
     --output-json "${output_dir}/measurement-infrastructure-certification.json"
@@ -347,6 +350,7 @@ run_quick() {
       tests/regression/test_report_job_replayable_recovery_smoke.py \
       tests/regression/test_report_job_restart_recovery_smoke.py \
       tests/regression/test_current_audit_bundle.py \
+      tests/regression/test_external_validation_closure_gate.py \
       tests/regression/test_measurement_infrastructure_certification.py \
       tests/regression/test_current_release_proof.py \
       tests/regression/test_live_release_gate.py \
@@ -505,6 +509,7 @@ write_summary() {
   FATE_LOCAL_CI_AUDIT_HANDOFF="${output_dir}/audit-handoff" \
   FATE_LOCAL_CI_AUDIT_DRY_RUN="${output_dir}/audit-dry-run" \
   FATE_LOCAL_CI_CURRENT_AUDIT_BUNDLE="${output_dir}/current-audit-bundle" \
+  FATE_LOCAL_CI_EXTERNAL_VALIDATION_CLOSURE_GATE="${output_dir}/external-validation-closure-gate.json" \
   FATE_LOCAL_CI_MEASUREMENT_INFRASTRUCTURE_CERTIFICATION="${output_dir}/measurement-infrastructure-certification.json" \
   "${summary_python}" - <<'PY'
 import json
@@ -588,6 +593,7 @@ payload = {
         "auditHandoff": env("FATE_LOCAL_CI_AUDIT_HANDOFF"),
         "auditDryRun": env("FATE_LOCAL_CI_AUDIT_DRY_RUN"),
         "currentAuditBundle": env("FATE_LOCAL_CI_CURRENT_AUDIT_BUNDLE"),
+        "externalValidationClosureGate": env("FATE_LOCAL_CI_EXTERNAL_VALIDATION_CLOSURE_GATE"),
         "measurementInfrastructureCertification": env("FATE_LOCAL_CI_MEASUREMENT_INFRASTRUCTURE_CERTIFICATION"),
     },
     "privacyBoundary": "只记录命令产物路径、commit 和状态，不复制测试日志全文或用户报告内容。",

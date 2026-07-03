@@ -27,6 +27,8 @@ scripts/
 ├── container-smoke.sh
 ├── current-audit-bundle.sh
 ├── current-audit-bundle.py
+├── external-validation-closure-gate.sh
+├── external-validation-closure-gate.py
 ├── data-supply-chain-gate.sh
 ├── data-supply-chain-gate.py
 ├── event-contract-gate.sh
@@ -142,6 +144,7 @@ scripts/
 - `audit-handoff.sh` / `audit-handoff.py` 是第三方审计交接包生成器；聚合 Git、任务索引、关键 contract、local-ci/CI 证据入口和所有 tracked + untracked non-ignored `外部连通验证待执行` occurrences，输出 Markdown/JSON，不证明外部 live 已完成。
 - `audit-handoff-dry-run.sh` / `audit-handoff-dry-run.py` 是审计交接包 dry-run verifier；消费 handoff JSON/Markdown，验证字段、区块、pending、risk、non-claim 和敏感赋值防护，输出预检报告，不替代真实第三方审计。
 - `current-audit-bundle.sh` / `current-audit-bundle.py` 是当前 commit 审计证据包装配器；消费 audit handoff、audit dry-run、current release proof、release artifacts、rollback drill、可选 local-ci summary 和 local-ci gate artifact 摘要，当前覆盖 evidence coverage trend gate 与 evaluation trend gate，输出 current audit bundle Markdown/JSON、evidence index、risk register 与 pending external validations；默认 local mode 可生成 blocked bundle，`--require-current-release` 才要求当前提交 release proof 全部通过。
+- `external-validation-closure-gate.sh` / `external-validation-closure-gate.py` 是外部待验证项关闭计划门禁；消费 current audit bundle 的 `pending-external-validations.json`，为每个 occurrence 生成 owner、凭证依赖、required evidence、复核命令和关闭条件，输出 blocked ship gate；不连接真实外部系统，不证明外部 live 已完成。
 - `container-build.sh`：构建 FateCat delivery 镜像。
 - `container-smoke.sh`：启动临时容器并验证 `/health` 与真实排盘 API。
 - `container-release.sh`：构建、smoke，并在显式 `--push` 时推送 registry。

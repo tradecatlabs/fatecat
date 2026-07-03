@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.external_validation_closure_contract",
+  "resourceType": "ExternalValidationClosurePlan",
+  "id": "audit.external.validation.closure",
+  "status": "baseline",
+  "description": "外部待验证项关闭计划契约。该 gate 消费 audit handoff/current audit bundle 的 pending-external-validations.json，把每个 occurrence 映射为 owner、凭证依赖、关闭条件、复核命令和隐私边界；不连接真实外部系统，不把 pending live 写成 passed。",
+  "generator": {
+    "command": "bash scripts/external-validation-closure-gate.sh --pending-external-json <pending-external-validations.json> --output-json <path>",
+    "pythonEntrypoint": "scripts/external-validation-closure-gate.py",
+    "defaultOutput": "infra/runtime/local-state/exports/audit/external-validation-closure-gate.json"
+  },
+  "requiredInput": {
+    "pendingExternalJson": "current audit bundle 或 audit handoff 输出的 pending external validation occurrence array",
+    "requiredFieldsPerInputItem": ["path", "line", "excerpt"]
+  },
+  "requiredOutputFields": [
+    "schemaVersion",
+    "kind",
+    "generatedAt",
+    "status",
+    "source",
+    "summary",
+    "shipGate",
+    "items",
+    "privacyBoundary",
+    "nonClaims"
+  ],
+  "requiredFieldsPerClosureItem": [
+    "id",
+    "source",
+    "category",
+    "owner",
+    "status",
+    "credentialDependencies",
+    "requiredEvidence",
+    "verificationCommands",
+    "closureCondition",
+    "privacyBoundary"
+  ],
+  "allowedStatuses": ["passed", "failed"],
+  "allowedItemStatuses": ["external_connectivity_pending", "manual_triage_required"],
+  "categoryPolicy": {
+    "manualTriageAllowed": true,
+    "manualTriageMeaning": "无法由规则自动识别的 occurrence 仍必须有 owner、关闭条件和人工复核命令；不得丢弃。",
+    "shipGate": "只要 pending item 数量大于 0，shipGate.status 必须为 blocked。"
+  },
+  "privacyBoundary": "输出只允许保存脱敏路径、行号、短 excerpt、hash、owner 类别、凭证类型和复核命令模板；不得保存真实 token、secret、DSN、私钥、生产日志正文、用户报告正文或外部账号数据。",
+  "nonClaims": [
+    "Does not prove any external live validation has passed.",
+    "Does not replace third-party audit review.",
+    "Does not authorize production credential use.",
+    "Does not close production API/HF/Bot/OIDC/SIEM/OTel/Vault/KMS/Postgres/webhook validations without separate real evidence."
+  ]
+}
