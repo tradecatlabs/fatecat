@@ -42,7 +42,7 @@ delivery/
 - `manual` 表示需要用户部署、真实域名、真实 token 或外部平台权限，仓库内不能伪造通过。
 - `ReleaseGate` 的本地 contract gate 可以通过，但缺真实外部证据时 `shipGate.status` 必须保持 `blocked`。
 - `RuntimeBackend` 的本地 gate 可以通过，但 `backend.postgres` 即使已有 live smoke、outbox worker lease smoke、job worker lease primitive smoke、external worker restart smoke baseline、worker heartbeat/polling smoke baseline、public webhook live smoke gate baseline 与 multi-replica runtime evidence contract baseline，也必须在外部 Vault/KMS、公网 webhook passed evidence、长期多副本 live evidence 和 exactly-once 证据完成前保持 `status=planned`，不能声明 external backend 已生产。
-- `multi-replica-runtime-contract.json` 可以验证证据格式和拒绝伪证据；无真实外部多副本运行、公共 webhook、外部 secret provider 与外部 metrics 证据时必须保持 `外部连通验证待执行`。
+- `multi-replica-runtime-contract.json` 可以验证证据格式和拒绝伪证据；`scripts/multi-replica-runtime-evidence-assembler.sh` 只能装配脱敏 evidence JSON 并复用 gate 校验，不能证明 proof refs 真实性。无真实外部多副本运行、公共 webhook、外部 secret provider 与外部 metrics 证据时必须保持 `外部连通验证待执行`。
 - `AsyncEvent` 的本地 gate 可以通过，但 `event.webhook.delivery` 在真实接收端 live smoke 完成前必须保持 `externalConnectivity=requires_real_receiver`，不能声明公网 webhook live delivery 已生产。
 - `events.asyncapi.json` 是静态契约文档，不得被解释为 Kafka、NATS、RabbitMQ、Redis Streams 或其他外部 broker 已接入。
 - `backend.redis_queue` 不得登记为 `CalculationJob` source of truth；只能作为未来辅助队列候选。

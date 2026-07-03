@@ -176,6 +176,9 @@ run_quick() {
     --output-json "${output_dir}/data-supply-chain-gate.json"
   run_step "runtime backend gate" bash "${script_dir}/runtime-backend-gate.sh" \
     --output-json "${output_dir}/runtime-backend-gate.json"
+  run_step "multi-replica runtime evidence assembler" bash "${script_dir}/multi-replica-runtime-evidence-assembler.sh" \
+    --pending \
+    --output-json "${output_dir}/multi-replica-runtime-evidence.json"
   run_step "multi-replica runtime gate" bash "${script_dir}/multi-replica-runtime-gate.sh" \
     --output-json "${output_dir}/multi-replica-runtime-gate.json"
   run_step "postgres job store dry-run" bash "${script_dir}/postgres-job-store-dry-run.sh" \
@@ -261,6 +264,7 @@ run_quick() {
       tests/regression/test_provider_lifecycle_gate.py \
       tests/regression/test_production_security_gate.py \
       tests/regression/test_runtime_backend_gate.py \
+      tests/regression/test_multi_replica_runtime_evidence_assembler.py \
       tests/regression/test_multi_replica_runtime_gate.py \
       tests/regression/test_postgres_job_store_adapter.py \
       tests/regression/test_postgres_job_store_live_smoke.py \
@@ -397,6 +401,7 @@ write_summary() {
   FATE_LOCAL_CI_CORE_QUALITY_CORPUS_GATE="${output_dir}/core-quality-corpus-gate.json" \
   FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE="${output_dir}/data-supply-chain-gate.json" \
   FATE_LOCAL_CI_RUNTIME_BACKEND_GATE="${output_dir}/runtime-backend-gate.json" \
+  FATE_LOCAL_CI_MULTI_REPLICA_RUNTIME_EVIDENCE="${output_dir}/multi-replica-runtime-evidence.json" \
   FATE_LOCAL_CI_MULTI_REPLICA_RUNTIME_GATE="${output_dir}/multi-replica-runtime-gate.json" \
   FATE_LOCAL_CI_POSTGRES_JOB_STORE_DRY_RUN="${output_dir}/postgres-job-store-dry-run.json" \
   FATE_LOCAL_CI_POSTGRES_JOB_STORE_LIVE_SMOKE="${output_dir}/postgres-job-store-live-smoke.json" \
@@ -463,6 +468,7 @@ payload = {
         "coreQualityCorpusGate": env("FATE_LOCAL_CI_CORE_QUALITY_CORPUS_GATE"),
         "dataSupplyChainGate": env("FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE"),
         "runtimeBackendGate": env("FATE_LOCAL_CI_RUNTIME_BACKEND_GATE"),
+        "multiReplicaRuntimeEvidence": env("FATE_LOCAL_CI_MULTI_REPLICA_RUNTIME_EVIDENCE"),
         "multiReplicaRuntimeGate": env("FATE_LOCAL_CI_MULTI_REPLICA_RUNTIME_GATE"),
         "postgresJobStoreDryRun": env("FATE_LOCAL_CI_POSTGRES_JOB_STORE_DRY_RUN"),
         "postgresJobStoreLiveSmoke": env("FATE_LOCAL_CI_POSTGRES_JOB_STORE_LIVE_SMOKE"),
