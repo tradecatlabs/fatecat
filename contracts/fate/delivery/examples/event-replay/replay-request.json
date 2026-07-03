@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.event_replay_request",
+  "mode": "local_contract_only",
+  "reason": "synthetic_contract_test",
+  "requestedBy": "contract.fixture",
+  "eventRef": {
+    "id": "evt_job_demo_001_terminal",
+    "source": "/fatecat/job",
+    "type": "com.tradecatlabs.fatecat.job.terminal.v1",
+    "subject": "job/job_demo_001"
+  },
+  "consumer": "api.polling_client",
+  "idempotencyKey": "evt_job_demo_001_terminal",
+  "redactedPayloadRef": "contracts/fate/delivery/examples/events/job-terminal.json",
+  "externalConnectivity": "not_required",
+  "privacyBoundary": "Synthetic replay request only; no real user input, report body, callback URL, credential, production log or raw event stream is stored."
+}

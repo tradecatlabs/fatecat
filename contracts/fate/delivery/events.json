@@ -34,6 +34,60 @@
     "channels": ["job.events", "webhook.events", "evaluation.events", "release.events"],
     "operations": ["sendJobEvents", "sendWebhookEvents", "sendEvaluationEvents", "sendReleaseEvents"]
   },
+  "consumerCompatibility": {
+    "policy": "producer_consumer_contract",
+    "status": "local_contract_only",
+    "minimumRequiredConsumersPerEvent": 1,
+    "compatibilityRules": [
+      "消费者必须接受未知 additive CloudEvents context 字段和 data 字段。",
+      "消费者必须用 CloudEvents id/source/type 做幂等或去重边界。",
+      "消费者不得依赖完整报告正文、真实用户输入、webhook URL、secret、token 或生产日志。",
+      "未来外部 broker 或公网 webhook live 前，必须保留 local contract 与 live evidence 分离。"
+    ],
+    "negativeCases": [
+      "missing_cloudevents_context_rejected",
+      "unknown_event_type_rejected",
+      "sensitive_payload_rejected",
+      "consumer_without_required_contract_rejected"
+    ],
+    "externalConnectivity": "not_required"
+  },
+  "replayPolicy": {
+    "status": "local_contract_only",
+    "eventIdempotency": {
+      "keyFields": ["id", "source", "type"],
+      "duplicateBehavior": "consumer_must_ignore_or_replace_by_event_id"
+    },
+    "ordering": {
+      "scope": "subject",
+      "guarantee": "best_effort_local_contract_only"
+    },
+    "sources": ["synthetic_examples", "report_job_event_history", "webhook_outbox_records", "evaluation_summary", "release_gate_summary"],
+    "deadLetter": {
+      "status": "contract_baseline",
+      "terminalConsumer": "event.dead_letter_review",
+      "requiredFields": [
+        "eventId",
+        "eventType",
+        "source",
+        "subject",
+        "consumer",
+        "reason",
+        "attempts",
+        "firstSeenAt",
+        "lastAttemptAt",
+        "redactedPayloadRef"
+      ],
+      "retryExhaustedAction": "operator_review_or_replay_after_contract_fix",
+      "privacyBoundary": "DLQ 示例只保存脱敏事件引用、失败分类和 redactedPayloadRef，不保存完整事件正文、真实 webhook URL、secret、token、用户输入或生产日志。"
+    },
+    "examples": {
+      "replayRequest": "contracts/fate/delivery/examples/event-replay/replay-request.json",
+      "deadLetterRecord": "contracts/fate/delivery/examples/event-replay/dead-letter-record.json"
+    },
+    "privacyBoundary": "Replay policy 只声明脱敏 replay request、DLQ record 和 idempotency 规则；不保存真实事件流、报告正文、出生地区、webhook URL、secret、token 或生产日志。",
+    "externalConnectivity": "not_required"
+  },
   "channels": {
     "job.events": {
       "name": "job.events",
@@ -102,6 +156,23 @@
       "example": "contracts/fate/delivery/examples/events/job-created.json",
       "producer": "domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py",
       "consumers": ["api.polling_client", "future.event_subscriber"],
+      "consumerContract": {
+        "mode": "polling_status_projection",
+        "requiredConsumers": ["api.polling_client"],
+        "acceptsAdditiveFields": true,
+        "idempotencyKey": "id",
+        "negativeCases": [
+          "missing_cloudevents_context_rejected",
+          "unknown_event_type_rejected",
+          "sensitive_payload_rejected",
+          "consumer_without_required_contract_rejected"
+        ],
+        "replay": {
+          "supported": true,
+          "source": "report_job_event_history",
+          "deadLetterEligible": false
+        }
+      },
       "deliverySemantics": "local_contract_only",
       "privacyBoundary": "Example contains only job id/status/reportSystem and excludes user input, report markdown, webhook URL, secret and token.",
       "externalConnectivity": "not_required",
@@ -130,6 +201,23 @@
       "example": "contracts/fate/delivery/examples/events/job-terminal.json",
       "producer": "domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py",
       "consumers": ["api.polling_client", "webhook.dispatcher", "future.event_subscriber"],
+      "consumerContract": {
+        "mode": "terminal_status_projection",
+        "requiredConsumers": ["api.polling_client", "webhook.dispatcher"],
+        "acceptsAdditiveFields": true,
+        "idempotencyKey": "id",
+        "negativeCases": [
+          "missing_cloudevents_context_rejected",
+          "unknown_event_type_rejected",
+          "sensitive_payload_rejected",
+          "consumer_without_required_contract_rejected"
+        ],
+        "replay": {
+          "supported": true,
+          "source": "report_job_event_history",
+          "deadLetterEligible": true
+        }
+      },
       "deliverySemantics": "local_contract_only",
       "privacyBoundary": "Example contains terminal status and availability flags only; report body, user input, webhook URL, secret and token are excluded.",
       "externalConnectivity": "not_required",
@@ -158,6 +246,23 @@
       "example": "contracts/fate/delivery/examples/events/webhook-delivery.json",
       "producer": "domains/experience-delivery/services/fatecat-delivery/src/webhook_callbacks.py",
       "consumers": ["webhook.outbox", "future.event_subscriber"],
+      "consumerContract": {
+        "mode": "webhook_outbox_delivery_projection",
+        "requiredConsumers": ["webhook.outbox"],
+        "acceptsAdditiveFields": true,
+        "idempotencyKey": "id",
+        "negativeCases": [
+          "missing_cloudevents_context_rejected",
+          "unknown_event_type_rejected",
+          "sensitive_payload_rejected",
+          "consumer_without_required_contract_rejected"
+        ],
+        "replay": {
+          "supported": true,
+          "source": "webhook_outbox_records",
+          "deadLetterEligible": true
+        }
+      },
       "deliverySemantics": "at_least_once_live_required",
       "privacyBoundary": "Example records status, attempt count and targetHostHash only; it never includes callback URL, webhook secret, token, report markdown or user input.",
       "externalConnectivity": "requires_real_receiver",
@@ -184,8 +289,25 @@
       "resourceRef": "EvaluationRun",
       "payloadSchema": "contracts/fate/evaluations/schemas/evaluation-run.schema.json",
       "example": "contracts/fate/delivery/examples/events/evaluation-run-completed.json",
-      "producer": "scripts/evaluation-runner.py",
+      "producer": "scripts/run-evaluations.py",
       "consumers": ["evaluation.dashboard", "future.event_subscriber"],
+      "consumerContract": {
+        "mode": "evaluation_dashboard_projection",
+        "requiredConsumers": ["evaluation.dashboard"],
+        "acceptsAdditiveFields": true,
+        "idempotencyKey": "id",
+        "negativeCases": [
+          "missing_cloudevents_context_rejected",
+          "unknown_event_type_rejected",
+          "sensitive_payload_rejected",
+          "consumer_without_required_contract_rejected"
+        ],
+        "replay": {
+          "supported": true,
+          "source": "evaluation_summary",
+          "deadLetterEligible": true
+        }
+      },
       "deliverySemantics": "local_contract_only",
       "privacyBoundary": "Example contains run id/status/counts and artifact path only; benchmark answers, user input, secret, token and production logs are excluded.",
       "externalConnectivity": "not_required",
@@ -214,6 +336,23 @@
       "example": "contracts/fate/delivery/examples/events/release-gate-completed.json",
       "producer": "scripts/live-release-gate.py",
       "consumers": ["release.audit", "future.event_subscriber"],
+      "consumerContract": {
+        "mode": "release_audit_projection",
+        "requiredConsumers": ["release.audit"],
+        "acceptsAdditiveFields": true,
+        "idempotencyKey": "id",
+        "negativeCases": [
+          "missing_cloudevents_context_rejected",
+          "unknown_event_type_rejected",
+          "sensitive_payload_rejected",
+          "consumer_without_required_contract_rejected"
+        ],
+        "replay": {
+          "supported": true,
+          "source": "release_gate_summary",
+          "deadLetterEligible": true
+        }
+      },
       "deliverySemantics": "local_contract_only",
       "privacyBoundary": "Example contains gate status, commit and evidence counts only; user input, secret, token, registry credentials, production logs and report body are excluded.",
       "externalConnectivity": "not_required",

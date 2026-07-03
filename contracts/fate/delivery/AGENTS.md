@@ -13,6 +13,7 @@ delivery/
 ├── events.json
 ├── events.asyncapi.json
 ├── examples/
+│   ├── event-replay/
 │   └── events/
 ├── multi-replica-runtime-contract.json
 ├── multi-surface-semantic-diff.json
@@ -30,9 +31,10 @@ delivery/
 
 - `registry.json`：登记 DeliverySurface 资源，记录入口、支持输出、支持报告体系、同源计算链路、验证命令、隐私边界和外部连通状态。
 - `cli-capability-command.json`：定义根级 capability CLI 命令基线；只证明 JSON capability 本地入口可执行，不证明标准 Markdown 多端同源或外部 live。
-- `events.json`：登记 AsyncEvent 资源，记录 job/webhook/evaluation/release 事件的 CloudEvents envelope、AsyncAPI 风格 channel/operation/message、脱敏示例、隐私边界和外部连通状态。
+- `events.json`：登记 AsyncEvent 资源，记录 job/webhook/evaluation/release 事件的 CloudEvents envelope、AsyncAPI 风格 channel/operation/message、consumer contract、replay/DLQ 策略、脱敏示例、隐私边界和外部连通状态。
 - `events.asyncapi.json`：AsyncAPI 3.1 风格静态事件文档；供开发者和 Agent 发现事件通道，不证明外部 broker 或公网 webhook live delivery。
 - `examples/events/`：只保存合成脱敏事件示例；禁止写入真实 webhook URL、secret、token、用户输入、报告正文或生产日志。
+- `examples/event-replay/`：只保存合成脱敏 replay request 与 dead-letter record；用于本地 contract gate 验证 consumer/replay/DLQ 策略，不保存完整事件流、真实接收端、用户输入、报告正文、secret、token 或生产日志。
 - `release-gate.json`：登记 live release 必需证据，覆盖 local CI、远端 CI、生产 API、HF Space、Telegram Bot、container digest、SBOM/provenance、rollback drill 和 clean git state。
 - `multi-replica-runtime-contract.json`：定义 Postgres 长期多副本 runtime evidence 的 live schema、最小副本数、最小 soak 时长、反伪造负例和 exactly-once 非声明边界。
 - `multi-surface-semantic-diff.json`：定义多交付面语义一致性 gate；要求 API direct/API job/Web direct/Web job/Bot dry-run canonical renderer 在八字与紫微报告上的 normalized semantic hash 一致，同时要求 CLI/Agent Skill 提供 non-Markdown evidence 证明复用标准 capability/command 链，证据不得保存完整报告正文。
@@ -48,7 +50,7 @@ delivery/
 - `DeliverySemanticDiffGate` 的本地 gate 可以通过，但只能证明 API/Web/Bot dry-run 的标准 Markdown 同源，以及 CLI/Agent Skill 的本地命令/能力链路证据；真实 Telegram Bot live、Hugging Face Space hosted Web、公网 API 和浏览器兼容性仍需独立 live evidence。
 - `RuntimeBackend` 的本地 gate 可以通过，但 `backend.postgres` 即使已有 live smoke、outbox worker lease smoke、job worker lease primitive smoke、external worker restart smoke baseline、worker heartbeat/polling smoke baseline、public webhook live smoke gate baseline 与 multi-replica runtime evidence contract baseline，也必须在外部 Vault/KMS、公网 webhook passed evidence、长期多副本 live evidence 和 exactly-once 证据完成前保持 `status=planned`，不能声明 external backend 已生产。
 - `multi-replica-runtime-contract.json` 可以验证证据格式和拒绝伪证据；`scripts/multi-replica-runtime-evidence-assembler.sh` 只能装配脱敏 evidence JSON 并复用 gate 校验，不能证明 proof refs 真实性。无真实外部多副本运行、公共 webhook、外部 secret provider 与外部 metrics 证据时必须保持 `外部连通验证待执行`。
-- `AsyncEvent` 的本地 gate 可以通过，但 `event.webhook.delivery` 在真实接收端 live smoke 完成前必须保持 `externalConnectivity=requires_real_receiver`，不能声明公网 webhook live delivery 已生产。
+- `AsyncEvent` 的本地 gate 可以通过，并会校验 producer path、required consumer、additive compatibility、replay source、DLQ 策略和脱敏 replay 示例；但 `event.webhook.delivery` 在真实接收端 live smoke 完成前必须保持 `externalConnectivity=requires_real_receiver`，不能声明公网 webhook live delivery 已生产。
 - `events.asyncapi.json` 是静态契约文档，不得被解释为 Kafka、NATS、RabbitMQ、Redis Streams 或其他外部 broker 已接入。
 - `backend.redis_queue` 不得登记为 `CalculationJob` source of truth；只能作为未来辅助队列候选。
 - `evidence.local_ci_quick` 只接受 `scripts/local-ci.sh --profile quick` 生成的 `summary.json`，且必须满足 `kind=fatecat.local_ci_summary`、`profile=quick`、`status=passed`、`commit` 匹配当前 `HEAD`；文件存在本身不能作为通过证据。

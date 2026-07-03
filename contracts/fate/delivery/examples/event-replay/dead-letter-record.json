@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.event_dead_letter_record",
+  "mode": "local_contract_only",
+  "eventId": "evt_webhook_demo_001_delivery",
+  "eventType": "com.tradecatlabs.fatecat.webhook.delivery.v1",
+  "source": "/fatecat/webhook",
+  "subject": "webhook/outbox_demo_001",
+  "consumer": "future.event_subscriber",
+  "reason": "consumer_contract_rejected_missing_required_context",
+  "attempts": 3,
+  "firstSeenAt": "2026-07-02T00:02:00Z",
+  "lastAttemptAt": "2026-07-02T00:05:00Z",
+  "redactedPayloadRef": "contracts/fate/delivery/examples/events/webhook-delivery.json",
+  "action": "operator_review_or_replay_after_contract_fix",
+  "externalConnectivity": "not_required",
+  "privacyBoundary": "Synthetic dead-letter record only; stores redacted references and failure classification, not real user input, report body, callback URL, credential, production log or raw event stream."
+}

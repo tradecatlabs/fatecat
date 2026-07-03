@@ -11,6 +11,8 @@
     "asyncApi",
     "channels",
     "operations",
+    "consumerCompatibility",
+    "replayPolicy",
     "events",
     "metadata"
   ],
@@ -53,6 +55,7 @@
     "example",
     "producer",
     "consumers",
+    "consumerContract",
     "deliverySemantics",
     "privacyBoundary",
     "externalConnectivity",
@@ -93,6 +96,52 @@
     "at_least_once_live_required",
     "not_delivered"
   ],
+  "requiredConsumerCompatibilityFields": [
+    "policy",
+    "status",
+    "minimumRequiredConsumersPerEvent",
+    "compatibilityRules",
+    "negativeCases",
+    "externalConnectivity"
+  ],
+  "requiredConsumerContractFields": [
+    "mode",
+    "requiredConsumers",
+    "acceptsAdditiveFields",
+    "idempotencyKey",
+    "negativeCases",
+    "replay"
+  ],
+  "requiredConsumerReplayFields": [
+    "supported",
+    "source",
+    "deadLetterEligible"
+  ],
+  "requiredReplayPolicyFields": [
+    "status",
+    "eventIdempotency",
+    "ordering",
+    "sources",
+    "deadLetter",
+    "examples",
+    "privacyBoundary",
+    "externalConnectivity"
+  ],
+  "requiredDeadLetterPolicyFields": [
+    "status",
+    "terminalConsumer",
+    "requiredFields",
+    "retryExhaustedAction",
+    "privacyBoundary"
+  ],
+  "allowedReplayPolicyStatus": [
+    "local_contract_only",
+    "external_connectivity_pending"
+  ],
+  "allowedDeadLetterStatus": [
+    "contract_baseline",
+    "external_connectivity_pending"
+  ],
   "eventTypePrefixes": [
     "job.",
     "webhook.",
@@ -111,6 +160,8 @@
   "invariants": [
     "每个事件必须声明 CloudEvents 必备上下文字段 id/source/specversion/type 的示例值。",
     "每个事件必须映射到 registry.channels 与 registry.operations 中存在的 channel/operation。",
+    "每个事件必须声明至少一个非 future 的 required consumer，并证明消费者接受 additive 字段。",
+    "replay/DLQ 策略只能保存脱敏示例、引用和摘要，不得保存完整 payload、真实 webhook URL 或生产事件日志。",
     "事件示例不得包含真实 webhook URL、secret、token、password、用户输入、出生地区、报告正文或生产日志。",
     "本契约只证明事件协议可发现、可验证和可文档化，不证明真实 broker 或公网 webhook live delivery。"
   ]

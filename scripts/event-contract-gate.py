@@ -121,6 +121,32 @@ def _validate_schema_links(
     _check(checks, "asyncapi:version", asyncapi.get("asyncapi") == "3.1.0", str(asyncapi.get("asyncapi")))
 
 
+def _validate_replay_example(path_value: str, *, kind: str, checks: list[dict[str, Any]]) -> dict[str, Any]:
+    path = _safe_repo_path(path_value)
+    _check(checks, f"replay_example:{kind}:exists", path.is_file(), path_value)
+    example = _load_json(path)
+    _check(
+        checks,
+        f"replay_example:{kind}:kind",
+        str(example.get("kind", "")).startswith("fatecat.event_"),
+        str(example.get("kind")),
+    )
+    _check(checks, f"replay_example:{kind}:redacted_ref", "redactedPayloadRef" in example, str(example.keys()))
+    _check(
+        checks,
+        f"replay_example:{kind}:no_sensitive_values",
+        not _contains_sensitive_example_value(example),
+        path_value,
+    )
+    _check(
+        checks,
+        f"replay_example:{kind}:local_only",
+        example.get("externalConnectivity") == "not_required",
+        str(example.get("externalConnectivity")),
+    )
+    return example
+
+
 def _validate_registry(
     *,
     registry: dict[str, Any],
@@ -165,6 +191,88 @@ def _validate_registry(
         async_api_contract["status"],
     )
 
+    consumer_policy = registry["consumerCompatibility"]
+    missing_consumer_policy = sorted(set(schema["requiredConsumerCompatibilityFields"]) - set(consumer_policy))
+    _check(checks, "consumer_policy:required_fields", not missing_consumer_policy, str(missing_consumer_policy))
+    _check(
+        checks,
+        "consumer_policy:local_contract_only",
+        consumer_policy["status"] == "local_contract_only",
+        consumer_policy["status"],
+    )
+    _check(
+        checks,
+        "consumer_policy:min_required_consumers",
+        int(consumer_policy["minimumRequiredConsumersPerEvent"]) >= 1,
+        str(consumer_policy["minimumRequiredConsumersPerEvent"]),
+    )
+    required_negative_cases = set(consumer_policy["negativeCases"])
+    _check(
+        checks,
+        "consumer_policy:negative_cases",
+        {
+            "missing_cloudevents_context_rejected",
+            "unknown_event_type_rejected",
+            "sensitive_payload_rejected",
+            "consumer_without_required_contract_rejected",
+        }
+        <= required_negative_cases,
+        str(sorted(required_negative_cases)),
+    )
+    _check(
+        checks,
+        "consumer_policy:external_connectivity",
+        consumer_policy["externalConnectivity"] == "not_required",
+        consumer_policy["externalConnectivity"],
+    )
+
+    replay_policy = registry["replayPolicy"]
+    missing_replay_policy = sorted(set(schema["requiredReplayPolicyFields"]) - set(replay_policy))
+    _check(checks, "replay_policy:required_fields", not missing_replay_policy, str(missing_replay_policy))
+    _check(
+        checks,
+        "replay_policy:status",
+        replay_policy["status"] in set(schema["allowedReplayPolicyStatus"]),
+        replay_policy["status"],
+    )
+    _check(
+        checks,
+        "replay_policy:idempotency_fields",
+        {"id", "source", "type"} <= set(replay_policy["eventIdempotency"].get("keyFields", [])),
+        str(replay_policy["eventIdempotency"]),
+    )
+    replay_sources = set(replay_policy["sources"])
+    _check(
+        checks,
+        "replay_policy:sources",
+        {"synthetic_examples", "report_job_event_history"} <= replay_sources,
+        str(sorted(replay_sources)),
+    )
+    dead_letter = replay_policy["deadLetter"]
+    missing_dead_letter = sorted(set(schema["requiredDeadLetterPolicyFields"]) - set(dead_letter))
+    _check(checks, "dead_letter:required_fields", not missing_dead_letter, str(missing_dead_letter))
+    _check(
+        checks,
+        "dead_letter:status",
+        dead_letter["status"] in set(schema["allowedDeadLetterStatus"]),
+        dead_letter["status"],
+    )
+    _check(
+        checks,
+        "dead_letter:required_payload_ref",
+        "redactedPayloadRef" in set(dead_letter["requiredFields"]),
+        str(dead_letter["requiredFields"]),
+    )
+    replay_examples = replay_policy["examples"]
+    _check(
+        checks,
+        "replay_policy:examples",
+        {"replayRequest", "deadLetterRecord"} <= set(replay_examples),
+        str(replay_examples),
+    )
+    for example_kind, example_path in replay_examples.items():
+        _validate_replay_example(str(example_path), kind=str(example_kind), checks=checks)
+
     channels = registry["channels"]
     operations = registry["operations"]
     events = registry["events"]
@@ -187,6 +295,9 @@ def _validate_registry(
     event_type_prefixes = tuple(schema["eventTypePrefixes"])
     domain_counts = dict.fromkeys(required_domains, 0)
     live_required = 0
+    consumer_contract_count = 0
+    required_consumer_count = 0
+    dead_letter_eligible_count = 0
 
     for channel_id, channel in channels.items():
         missing_channel = sorted(set(schema["requiredChannelFields"]) - set(channel))
@@ -273,6 +384,69 @@ def _validate_registry(
             event["externalConnectivity"] in allowed_connectivity,
             event["externalConnectivity"],
         )
+        producer_path = _safe_repo_path(event["producer"])
+        _check(checks, f"{event_id}:producer_exists", producer_path.is_file(), event["producer"])
+        consumer_contract = event["consumerContract"]
+        missing_consumer_contract = sorted(set(schema["requiredConsumerContractFields"]) - set(consumer_contract))
+        _check(
+            checks,
+            f"{event_id}:consumer_contract_required_fields",
+            not missing_consumer_contract,
+            str(missing_consumer_contract),
+        )
+        required_consumers = list(consumer_contract["requiredConsumers"])
+        consumer_contract_count += 1
+        required_consumer_count += len(required_consumers)
+        _check(checks, f"{event_id}:required_consumers_present", bool(required_consumers), str(required_consumers))
+        _check(
+            checks,
+            f"{event_id}:required_consumers_declared",
+            set(required_consumers) <= set(event["consumers"]),
+            str({"required": required_consumers, "consumers": event["consumers"]}),
+        )
+        _check(
+            checks,
+            f"{event_id}:required_consumers_not_future_only",
+            any(not str(consumer).startswith("future.") for consumer in required_consumers),
+            str(required_consumers),
+        )
+        _check(
+            checks,
+            f"{event_id}:accepts_additive_fields",
+            consumer_contract["acceptsAdditiveFields"] is True,
+            str(consumer_contract["acceptsAdditiveFields"]),
+        )
+        _check(
+            checks,
+            f"{event_id}:consumer_idempotency_key",
+            consumer_contract["idempotencyKey"] == "id",
+            str(consumer_contract["idempotencyKey"]),
+        )
+        _check(
+            checks,
+            f"{event_id}:consumer_negative_cases",
+            required_negative_cases <= set(consumer_contract["negativeCases"]),
+            str(consumer_contract["negativeCases"]),
+        )
+        consumer_replay = consumer_contract["replay"]
+        missing_consumer_replay = sorted(set(schema["requiredConsumerReplayFields"]) - set(consumer_replay))
+        _check(
+            checks,
+            f"{event_id}:consumer_replay_required_fields",
+            not missing_consumer_replay,
+            str(missing_consumer_replay),
+        )
+        _check(
+            checks, f"{event_id}:consumer_replay_supported", consumer_replay["supported"] is True, str(consumer_replay)
+        )
+        _check(
+            checks,
+            f"{event_id}:consumer_replay_source_allowed",
+            consumer_replay["source"] in replay_sources,
+            str(consumer_replay["source"]),
+        )
+        if consumer_replay["deadLetterEligible"] is True:
+            dead_letter_eligible_count += 1
         if event["externalConnectivity"] == "requires_real_receiver":
             live_required += 1
             _check(
@@ -322,6 +496,11 @@ def _validate_registry(
         str(domain_counts),
     )
     _check(checks, "events:webhook_live_pending", live_required >= 1, str(live_required))
+    _check(checks, "events:consumer_contracts", consumer_contract_count == len(events), str(consumer_contract_count))
+    _check(
+        checks, "events:required_consumer_count", required_consumer_count >= len(events), str(required_consumer_count)
+    )
+    _check(checks, "events:dead_letter_eligible", dead_letter_eligible_count >= 1, str(dead_letter_eligible_count))
 
     return {
         "eventCount": len(events),
@@ -330,6 +509,13 @@ def _validate_registry(
         "messageCount": len(asyncapi_messages),
         "domainCounts": domain_counts,
         "liveRequiredCount": live_required,
+        "consumerContractCount": consumer_contract_count,
+        "requiredConsumerCount": required_consumer_count,
+        "deadLetterEligibleCount": dead_letter_eligible_count,
+        "replayPolicyStatus": replay_policy["status"],
+        "deadLetterStatus": dead_letter["status"],
+        "replayExampleCount": len(replay_examples),
+        "negativeCaseCount": len(required_negative_cases),
         "asyncApiVersion": asyncapi["asyncapi"],
     }
 
