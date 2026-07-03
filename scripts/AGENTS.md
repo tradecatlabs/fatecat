@@ -48,6 +48,8 @@ scripts/
 ├── observability-trace-slo-smoke.py
 ├── otel-collector-slo-gate.sh
 ├── otel-collector-slo-gate.py
+├── otel-backend-slo-gate.sh
+├── otel-backend-slo-gate.py
 ├── preflight.sh
 ├── postgres-job-store-dry-run.sh
 ├── postgres-job-store-dry-run.py
@@ -137,6 +139,7 @@ scripts/
 - `observability-slo-gate.sh` / `observability-slo-gate.py` 是本地 SLO/alert policy gate；校验 observability registry、SLO objectives、alert rules、runbook 引用和隐私边界，不读取真实生产指标或日志。
 - `observability-trace-slo-smoke.sh` / `observability-trace-slo-smoke.py` 是本地 trace/SLO smoke；验证 W3C `traceparent` 传播、OpenTelemetry 语义兼容 span 日志、API/provider/report trace、SLO policy 和 alert rules，不接外部 collector。
 - `otel-collector-slo-gate.sh` / `otel-collector-slo-gate.py` 是 OTel collector/SLO adapter contract gate；校验 dry-run collector config、SLO evidence contract、registry/schema 链接和外部 pending 边界，不启动真实 collector 或访问 trace backend。
+- `otel-backend-slo-gate.sh` / `otel-backend-slo-gate.py` 是 OTel backend/SLO staged evidence gate；校验外部 collector runtime、trace backend、metrics backend、SLO dashboard、alert route、error budget 和 incident drill proof refs 的脱敏 schema、反伪造负例和隐私边界，不连接真实监控平台。
 - `provider-dependency-smoke.sh` / `provider-dependency-smoke.py` 是 production provider 本地依赖执行 smoke；通过统一 `CapabilityExecutor` 和脱敏固定样例验证 provider validate/calculate 链路，不访问公网或真实账号。
 - `provider-lifecycle-gate.sh` / `provider-lifecycle-gate.py` 是 production provider 生命周期门禁；校验 versionLock、source/license/resource manifest、promotionGate、deprecation 和 vendor source 生产使用许可。
 - `production-security-gate.sh` / `production-security-gate.py` 是生产安全 contract gate；验证生产身份外部化、OIDC/IdP 准入、SIEM/不可变审计存储、retention 自动清理计划、外部 secret provider / Vault / KMS 准入和 OWASP API Security Top 10 回归包，不连接真实外部账号、SIEM、Vault 或 KMS。
@@ -192,4 +195,5 @@ scripts/
 - `scripts/postgres-public-webhook-live-smoke.py -> domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py + domains/experience-delivery/services/fatecat-delivery/src/webhook_callbacks.py`
 - `scripts/multi-replica-runtime-evidence-assembler.py -> scripts/multi-replica-runtime-gate.py`
 - `scripts/multi-replica-runtime-gate.py -> contracts/fate/delivery/multi-replica-runtime-contract.json + contracts/fate/delivery/runtime-backends.json`
+- `scripts/otel-backend-slo-gate.py -> contracts/fate/observability/otel-backend-slo-evidence-contract.json + contracts/fate/observability/registry.json`
 - 禁止脚本直接隐藏 secret、运行态或旧路径 fallback。

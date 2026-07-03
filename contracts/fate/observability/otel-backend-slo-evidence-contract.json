@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": "fatecat.tradecatlabs/v1",
+  "kind": "OtelBackendSloEvidenceContract",
+  "contractId": "contract.otel_backend_slo_evidence",
+  "status": "dry_run_contract",
+  "description": "FateCat OTel backend/SLO staged evidence 契约。该契约只定义外部 collector/runtime/backend/SLO/alert proof refs 的脱敏证据口径，不保存真实生产指标、trace、日志、dashboard URL 或告警数据。",
+  "externalConnectivity": "external_connectivity_pending",
+  "links": {
+    "registry": "contracts/fate/observability/registry.json",
+    "collectorDryRunConfig": "contracts/fate/observability/otel-collector.dry-run.yaml",
+    "sloEvidenceContract": "contracts/fate/observability/slo-evidence-contract.json",
+    "sloPolicy": "contracts/fate/observability/slo-policy.json",
+    "alertRules": "contracts/fate/observability/alert-rules.json",
+    "gate": "bash scripts/otel-backend-slo-gate.sh"
+  },
+  "controls": {
+    "dryRunBaseline": {
+      "controlId": "control.otel_backend_slo",
+      "baselineMode": "local_otel_collector_slo_dry_run_contract",
+      "localVerification": [
+        "bash scripts/otel-collector-slo-gate.sh --output-json infra/runtime/local-state/exports/observability/otel-collector-slo-gate.json",
+        "bash scripts/observability-trace-slo-smoke.sh --output-json infra/runtime/local-state/exports/observability/trace-slo-smoke.json",
+        "bash scripts/observability-slo-gate.sh --output-json infra/runtime/local-state/exports/observability/slo-gate.json"
+      ],
+      "nonClaims": [
+        "does_not_prove_collector_runtime_live",
+        "does_not_prove_trace_backend_live",
+        "does_not_prove_metrics_backend_live",
+        "does_not_prove_alert_live",
+        "does_not_prove_production_error_budget",
+        "does_not_prove_incident_drill"
+      ]
+    },
+    "externalBackendSlo": {
+      "controlId": "control.otel_backend_slo",
+      "requiredMode": "external_otel_backend_slo",
+      "requiredVerificationStatus": "passed_external_otel_backend_slo_check",
+      "requiredRedactionBoundary": "redacted_no_secret_values",
+      "allowedBackendTypes": [
+        "grafana_stack",
+        "grafana_cloud",
+        "prometheus_tempo_loki",
+        "datadog",
+        "new_relic",
+        "honeycomb",
+        "cloud_monitoring",
+        "opentelemetry_backend"
+      ],
+      "liveEvidenceSchema": {
+        "requiredFields": [
+          "mode",
+          "backendType",
+          "verificationStatus",
+          "releaseCommitProofRef",
+          "collectorRuntimeProofRef",
+          "traceBackendProofRef",
+          "metricsBackendProofRef",
+          "sloDashboardProofRef",
+          "alertRouteProofRef",
+          "productionTrafficWindowProofRef",
+          "errorBudgetProofRef",
+          "incidentDrillProofRef",
+          "redactionBoundary"
+        ],
+        "proofRefPrefixes": ["evidence://", "artifact://", "ci-artifact://"],
+        "forbiddenBackendValues": ["local", "localhost", "dry_run", "debug", "memory"],
+        "forbiddenProofFragments": [
+          "dry-run",
+          "fake",
+          "localhost",
+          "local only",
+          "placeholder",
+          "sample",
+          "debug exporter",
+          "metrics snapshot",
+          "trace payload",
+          "production logs"
+        ]
+      }
+    }
+  },
+  "negativeEvidenceCases": [
+    {
+      "id": "fake.local_collector_as_backend",
+      "expectedErrorContains": "forbidden",
+      "evidence": {
+        "schemaVersion": 1,
+        "kind": "fatecat.otel_backend_slo_evidence",
+        "status": "external_live_passed",
+        "observabilityBackend": {
+          "mode": "external_otel_backend_slo",
+          "backendType": "localhost",
+          "verificationStatus": "passed_external_otel_backend_slo_check",
+          "releaseCommitProofRef": "evidence://observability/release",
+          "collectorRuntimeProofRef": "evidence://observability/localhost-collector",
+          "traceBackendProofRef": "evidence://observability/trace",
+          "metricsBackendProofRef": "evidence://observability/metrics",
+          "sloDashboardProofRef": "evidence://observability/dashboard",
+          "alertRouteProofRef": "evidence://observability/alert",
+          "productionTrafficWindowProofRef": "evidence://observability/traffic",
+          "errorBudgetProofRef": "evidence://observability/error-budget",
+          "incidentDrillProofRef": "evidence://observability/incident",
+          "redactionBoundary": "redacted_no_secret_values"
+        }
+      }
+    },
+    {
+      "id": "fake.placeholder_dashboard",
+      "expectedErrorContains": "forbidden",
+      "evidence": {
+        "schemaVersion": 1,
+        "kind": "fatecat.otel_backend_slo_evidence",
+        "status": "external_live_passed",
+        "observabilityBackend": {
+          "mode": "external_otel_backend_slo",
+          "backendType": "grafana_stack",
+          "verificationStatus": "passed_external_otel_backend_slo_check",
+          "releaseCommitProofRef": "evidence://observability/release",
+          "collectorRuntimeProofRef": "evidence://observability/collector",
+          "traceBackendProofRef": "evidence://observability/trace",
+          "metricsBackendProofRef": "evidence://observability/metrics",
+          "sloDashboardProofRef": "evidence://observability/placeholder-dashboard",
+          "alertRouteProofRef": "evidence://observability/alert",
+          "productionTrafficWindowProofRef": "evidence://observability/traffic",
+          "errorBudgetProofRef": "evidence://observability/error-budget",
+          "incidentDrillProofRef": "evidence://observability/incident",
+          "redactionBoundary": "redacted_no_secret_values"
+        }
+      }
+    },
+    {
+      "id": "fake.missing_error_budget",
+      "expectedErrorContains": "missing fields",
+      "evidence": {
+        "schemaVersion": 1,
+        "kind": "fatecat.otel_backend_slo_evidence",
+        "status": "external_live_passed",
+        "observabilityBackend": {
+          "mode": "external_otel_backend_slo",
+          "backendType": "grafana_stack",
+          "verificationStatus": "passed_external_otel_backend_slo_check",
+          "releaseCommitProofRef": "evidence://observability/release",
+          "collectorRuntimeProofRef": "evidence://observability/collector",
+          "traceBackendProofRef": "evidence://observability/trace",
+          "metricsBackendProofRef": "evidence://observability/metrics",
+          "sloDashboardProofRef": "evidence://observability/dashboard",
+          "alertRouteProofRef": "evidence://observability/alert",
+          "productionTrafficWindowProofRef": "evidence://observability/traffic",
+          "incidentDrillProofRef": "evidence://observability/incident",
+          "redactionBoundary": "redacted_no_secret_values"
+        }
+      }
+    },
+    {
+      "id": "fake.incident_drill_overclaim_without_alert",
+      "expectedErrorContains": "missing fields",
+      "evidence": {
+        "schemaVersion": 1,
+        "kind": "fatecat.otel_backend_slo_evidence",
+        "status": "external_live_passed",
+        "observabilityBackend": {
+          "mode": "external_otel_backend_slo",
+          "backendType": "grafana_stack",
+          "verificationStatus": "passed_external_otel_backend_slo_check",
+          "releaseCommitProofRef": "evidence://observability/release",
+          "collectorRuntimeProofRef": "evidence://observability/collector",
+          "traceBackendProofRef": "evidence://observability/trace",
+          "metricsBackendProofRef": "evidence://observability/metrics",
+          "sloDashboardProofRef": "evidence://observability/dashboard",
+          "productionTrafficWindowProofRef": "evidence://observability/traffic",
+          "errorBudgetProofRef": "evidence://observability/error-budget",
+          "incidentDrillProofRef": "evidence://observability/incident",
+          "redactionBoundary": "redacted_no_secret_values"
+        }
+      }
+    }
+  ],
+  "privacyBoundary": "Evidence must contain only redacted proof refs; it must not contain user input, birth place, report body, token, secret, DSN, webhook URL, raw dashboard/backend URL, production logs, metrics snapshot or trace payload.",
+  "metadata": {
+    "owner": "contracts/fate/observability",
+    "gate": "bash scripts/otel-backend-slo-gate.sh --output-json <path>",
+    "releaseGate": "required_staged_contract",
+    "risk": "本契约不证明真实 collector runtime、trace backend、metrics backend、alert live、production error budget 或 incident drill 已完成。"
+  }
+}

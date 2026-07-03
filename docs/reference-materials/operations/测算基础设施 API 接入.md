@@ -351,6 +351,15 @@ bash scripts/otel-collector-slo-gate.sh \
 
 0064 新增 `contracts/fate/observability/otel-collector.dry-run.yaml` 和 `contracts/fate/observability/slo-evidence-contract.json`，用于描述 OTLP receiver、memory/batch/resource processors、debug/prometheus exporter、traces/metrics/logs pipelines、dry-run evidence 和 live evidence pending 清单。该 gate 只解析本地 YAML/JSON contract，并复用本地 SLO/alert policy gate；它不启动真实 OpenTelemetry Collector，不连接 trace backend、metrics backend、Alertmanager、Grafana、PagerDuty 或云监控，也不证明真实生产流量 error budget 已计算。
 
+OTel backend / SLO staged evidence gate：
+
+```bash
+bash scripts/otel-backend-slo-gate.sh \
+  --output-json infra/runtime/local-state/exports/observability/otel-backend-slo-gate.json
+```
+
+0082 新增 `contracts/fate/observability/otel-backend-slo-evidence-contract.json`，用于描述外部 collector runtime、trace backend、metrics backend、SLO dashboard、alert route、production traffic window、error budget 和 incident drill 的脱敏 proof refs。该 gate 默认只输出 `外部连通验证待执行`，并拒绝 localhost、placeholder、raw URL、token/secret、生产指标快照、trace payload 或缺失关键 proof 的伪证；它不连接真实监控平台，也不证明 production SLO、alert live 或 incident drill 已完成。
+
 ## 安全控制资源入口
 
 ```bash

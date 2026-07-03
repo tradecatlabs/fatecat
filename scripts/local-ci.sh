@@ -167,6 +167,8 @@ run_quick() {
     --output-json "${output_dir}/observability-trace-slo-smoke.json"
   run_step "OTel collector SLO gate" bash "${script_dir}/otel-collector-slo-gate.sh" \
     --output-json "${output_dir}/otel-collector-slo-gate.json"
+  run_step "OTel backend SLO staged gate" bash "${script_dir}/otel-backend-slo-gate.sh" \
+    --output-json "${output_dir}/otel-backend-slo-gate.json"
   run_step "bazi ziwei L4 golden smoke" bash "${script_dir}/bazi-ziwei-l4-golden-smoke.sh" \
     --profile quick \
     --output-json "${output_dir}/bazi-ziwei-l4-golden-smoke.json"
@@ -260,6 +262,7 @@ run_quick() {
       tests/regression/test_external_secret_provider_gate.py \
       tests/regression/test_observability_smoke.py \
       tests/regression/test_observability_trace_slo.py \
+      tests/regression/test_otel_backend_slo_gate.py \
       tests/regression/test_provider_dependency_smoke.py \
       tests/regression/test_provider_lifecycle_gate.py \
       tests/regression/test_production_security_gate.py \
@@ -397,6 +400,7 @@ write_summary() {
   FATE_LOCAL_CI_OBSERVABILITY_SLO_GATE="${output_dir}/observability-slo-gate.json" \
   FATE_LOCAL_CI_OBSERVABILITY_TRACE_SLO_SMOKE="${output_dir}/observability-trace-slo-smoke.json" \
   FATE_LOCAL_CI_OTEL_COLLECTOR_SLO_GATE="${output_dir}/otel-collector-slo-gate.json" \
+  FATE_LOCAL_CI_OTEL_BACKEND_SLO_GATE="${output_dir}/otel-backend-slo-gate.json" \
   FATE_LOCAL_CI_BAZI_ZIWEI_L4_GOLDEN_SMOKE="${output_dir}/bazi-ziwei-l4-golden-smoke.json" \
   FATE_LOCAL_CI_CORE_QUALITY_CORPUS_GATE="${output_dir}/core-quality-corpus-gate.json" \
   FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE="${output_dir}/data-supply-chain-gate.json" \
@@ -464,6 +468,7 @@ payload = {
         "observabilitySloGate": env("FATE_LOCAL_CI_OBSERVABILITY_SLO_GATE"),
         "observabilityTraceSloSmoke": env("FATE_LOCAL_CI_OBSERVABILITY_TRACE_SLO_SMOKE"),
         "otelCollectorSloGate": env("FATE_LOCAL_CI_OTEL_COLLECTOR_SLO_GATE"),
+        "otelBackendSloGate": env("FATE_LOCAL_CI_OTEL_BACKEND_SLO_GATE"),
         "baziZiweiL4GoldenSmoke": env("FATE_LOCAL_CI_BAZI_ZIWEI_L4_GOLDEN_SMOKE"),
         "coreQualityCorpusGate": env("FATE_LOCAL_CI_CORE_QUALITY_CORPUS_GATE"),
         "dataSupplyChainGate": env("FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE"),

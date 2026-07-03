@@ -8,7 +8,8 @@
     "sloPolicy": "contracts/fate/observability/slo-policy.json",
     "alertRules": "contracts/fate/observability/alert-rules.json",
     "otelCollectorDryRunConfig": "contracts/fate/observability/otel-collector.dry-run.yaml",
-    "sloEvidenceContract": "contracts/fate/observability/slo-evidence-contract.json"
+    "sloEvidenceContract": "contracts/fate/observability/slo-evidence-contract.json",
+    "otelBackendSloEvidenceContract": "contracts/fate/observability/otel-backend-slo-evidence-contract.json"
   },
   "signals": [
     {
@@ -303,6 +304,42 @@
         "runtimeImpact": "none at request time",
         "risk": "当前只证明 SLO evidence 口径可审计；不代表真实 error budget、dashboard、alert live 或 incident drill 已完成。"
       }
+    },
+    {
+      "resourceType": "ObservabilitySignal",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "signal.otel_backend_slo_evidence",
+      "name": "OTel backend and SLO staged evidence",
+      "signalType": "slo",
+      "status": "available",
+      "endpoint": "contracts/fate/observability/otel-backend-slo-evidence-contract.json",
+      "fields": [
+        "controls.externalBackendSlo.liveEvidenceSchema",
+        "negativeEvidenceCases",
+        "proofRefPrefixes",
+        "forbiddenProofFragments",
+        "privacyBoundary",
+        "externalConnectivity"
+      ],
+      "localVerification": [
+        "bash scripts/otel-backend-slo-gate.sh --output-json infra/runtime/local-state/exports/observability/otel-backend-slo-gate.json"
+      ],
+      "privacyBoundary": "OTel backend/SLO staged evidence 只允许保存脱敏 proof refs；不得包含真实 backend URL、dashboard URL、token、secret、DSN、生产日志、metrics snapshot、trace payload、用户输入、出生地区或报告正文。",
+      "externalConnectivity": "external_connectivity_pending",
+      "links": {
+        "self": "/observability/signal.otel_backend_slo_evidence",
+        "collection": "/observability",
+        "schema": "contracts/fate/observability/schemas/observability-signal.schema.json",
+        "otelBackendSloEvidenceContract": "contracts/fate/observability/otel-backend-slo-evidence-contract.json",
+        "sloEvidenceContract": "contracts/fate/observability/slo-evidence-contract.json"
+      },
+      "metadata": {
+        "owner": "contracts/fate/observability",
+        "verificationScope": "OTel backend/SLO live evidence schema、proof ref 边界、反伪造负例和隐私边界",
+        "storage": "contract file only; no real production telemetry data",
+        "runtimeImpact": "none at request time",
+        "risk": "当前只证明 OTel backend/SLO staged evidence 口径可审计；不代表真实 collector runtime、trace backend、metrics backend、SLO dashboard、alert live、production error budget 或 incident drill 已完成。"
+      }
     }
   ],
   "metadata": {
@@ -316,9 +353,12 @@
     "traceSloSmokeCommand": "bash scripts/observability-trace-slo-smoke.sh",
     "sloGateCommand": "bash scripts/observability-slo-gate.sh",
     "otelCollectorSloGateCommand": "bash scripts/otel-collector-slo-gate.sh",
+    "otelBackendSloGateCommand": "bash scripts/otel-backend-slo-gate.sh",
     "otelCollectorConfig": "contracts/fate/observability/otel-collector.dry-run.yaml",
     "sloEvidenceContract": "contracts/fate/observability/slo-evidence-contract.json",
+    "otelBackendSloEvidenceContract": "contracts/fate/observability/otel-backend-slo-evidence-contract.json",
     "traceBoundary": "W3C traceparent 与 OpenTelemetry 语义兼容本地 span 日志已可本地验证；外部 collector/exporter/backend 仍为外部连通验证待执行。",
-    "otelCollectorBoundary": "0064 只提供 dry-run collector config 和 SLO evidence contract；真实 collector runtime、trace backend、metrics backend、alert live 与 production error budget 仍为外部连通验证待执行。"
+    "otelCollectorBoundary": "0064 只提供 dry-run collector config 和 SLO evidence contract；真实 collector runtime、trace backend、metrics backend、alert live 与 production error budget 仍为外部连通验证待执行。",
+    "otelBackendSloBoundary": "0082 只提供 OTel backend/SLO staged evidence contract 和反伪造 gate；真实 collector runtime、trace backend、metrics backend、SLO dashboard、alert live、production error budget 和 incident drill 仍为外部连通验证待执行。"
   }
 }
