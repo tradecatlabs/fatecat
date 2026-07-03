@@ -288,12 +288,14 @@
       "implementationRefs": [
         "domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py::ReportJobManager.cleanup_expired",
         "domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py::SQLiteReportJobStore",
+        "domains/experience-delivery/services/fatecat-delivery/src/retention_cleanup.py",
         "domains/experience-delivery/services/fatecat-delivery/src/main.py::AUDIT_EVENT_RETENTION_DAYS",
         "domains/experience-delivery/services/fatecat-delivery/src/main.py::RECORD_RETENTION_DAYS",
         "domains/experience-delivery/services/fatecat-delivery/src/main.py::delete_record"
       ],
       "localVerification": [
-        ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k 'audit_event or retention'"
+        ".venv/bin/python -m pytest -q tests/regression/test_api_contracts.py -k 'audit_event or retention'",
+        "bash scripts/retention-cleanup-smoke.sh --output-json <path>"
       ],
       "privacyBoundary": "retention policy 只登记 TTL/显式删除口径，不保存用户数据、请求体、报告正文或 secret。",
       "externalConnectivity": "not_required",
@@ -307,7 +309,7 @@
         "threatModel": "报告任务、审计事件和用户记录缺少可见保留边界",
         "failureMode": "job TTL、job store backend、audit retention days、record retention mode 必须在 registry 或 audit_event 中可复核",
         "releaseImpact": "本地回归阻断；公网生产仍需外部日志/数据库 retention 方案",
-        "risk": "SQLite job store 只适合单副本本地持久化；当前记录数据默认是显式删除模式，自动按年龄清理记录、外部日志 retention 和多副本任务系统仍需后续生产化。"
+        "risk": "SQLite job store 只适合单副本本地持久化；记录数据仍保留显式删除 baseline，当前已具备本地 SQLite records/report jobs 按年龄清理 smoke，但外部日志 retention、生产 scheduler、Postgres production cleanup live 和多副本任务系统仍需后续生产化。"
       }
     },
     {
@@ -412,6 +414,10 @@
       "implementationRefs": [
         "contracts/fate/security/production-security-policy.json",
         "contracts/fate/security/externalization-evidence-contract.json",
+        "contracts/fate/security/retention-cleanup.json",
+        "domains/experience-delivery/services/fatecat-delivery/src/retention_cleanup.py",
+        "scripts/retention-cleanup.sh",
+        "scripts/retention-cleanup-smoke.sh",
         "scripts/production-security-gate.sh",
         "scripts/security-externalization-gate.sh",
         "scripts/production-readiness.sh",
@@ -419,7 +425,8 @@
       ],
       "localVerification": [
         "bash scripts/production-security-gate.sh",
-        "bash scripts/security-externalization-gate.sh"
+        "bash scripts/security-externalization-gate.sh",
+        "bash scripts/retention-cleanup-smoke.sh --output-json <path>"
       ],
       "privacyBoundary": "retention cleanup contract 只登记保留天数、删除模式和审计要求，不保存用户记录、请求体、报告正文或 secret。",
       "externalConnectivity": "external_connectivity_pending",
@@ -433,9 +440,12 @@
         "threatModel": "记录、报告任务和审计事件长期保留，缺少按时间清理、审计和删除模式约束",
         "failureMode": "声明按年龄自动清理时必须具备清理器、回归测试和审计事件；否则只能标注显式删除 baseline",
         "releaseImpact": "生产持久记录能力发布前人工/外部环境阻断",
-        "risk": "当前记录数据默认显式删除；time-based record cleanup scheduler、外部日志 retention 和删除审计仍待后续实现。",
+        "risk": "当前已有本地 SQLite records/report jobs time-based cleanup smoke；production scheduler、Postgres production cleanup live、外部日志 retention 和删除审计 live evidence 仍待后续实现。",
         "currentRecordMode": "explicit_delete",
-        "targetRecordMode": "time_based_cleanup_with_audit"
+        "targetRecordMode": "time_based_cleanup_with_audit",
+        "localCleanerStatus": "available",
+        "localCleanerCommand": "bash scripts/retention-cleanup-smoke.sh --output-json <path>",
+        "localCleanerSummaryKind": "fatecat.retention_cleanup_smoke"
       }
     },
     {

@@ -43,6 +43,7 @@ contracts/fate/
 │   └── schemas/
 ├── security/
 │   ├── registry.json
+│   ├── retention-cleanup.json
 │   └── schemas/
 ├── classics_rule_index.json
 ├── evidence_schema.json
@@ -81,6 +82,7 @@ contracts/fate/
 - `observability/registry.json`：登记 available/planned signals；planned 信号不得被文档写成生产已验证能力。
 - `security/`：安全、隐私与发布门禁资源注册表，登记 SecurityControl，只做 token/CORS/限流/请求体/响应头/隐私扫描/source hygiene/release gate/production readiness 的发现和边界说明，不保存真实凭证。
 - `security/registry.json`：登记 available/manual controls；需要真实域名、真实 token、Bot live smoke 或云端权限的控制必须标注外部连通验证待执行。
+- `security/retention-cleanup.json`：登记本地 SQLite retention cleanup baseline 的命令、summary、smoke 与脱敏边界；不代表生产 scheduler、生产数据库或外部 SIEM retention 已验证。
 - `future_features.json`：记录不再进入标准报告、后续需按新功能重新设计契约的候选能力。
 - `evidence_schema.json`：综合八字机器可读 evidence 字段契约；默认不渲染到 Markdown。
 - `weight_policy.json`：综合八字核心、动态、辅助、民俗权重边界。

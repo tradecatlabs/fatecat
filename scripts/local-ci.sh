@@ -148,6 +148,8 @@ run_quick() {
     --output-json "${output_dir}/production-security-gate.json"
   run_step "security externalization gate" bash "${script_dir}/security-externalization-gate.sh" \
     --output-json "${output_dir}/security-externalization-gate.json"
+  run_step "retention cleanup smoke" bash "${script_dir}/retention-cleanup-smoke.sh" \
+    --output-json "${output_dir}/retention-cleanup-smoke.json"
   run_step "external secret provider gate" bash "${script_dir}/external-secret-provider-gate.sh" \
     --output-json "${output_dir}/external-secret-provider-gate.json"
   run_step "privacy fixtures" bash "${script_dir}/check-privacy-fixtures.sh"
@@ -286,6 +288,7 @@ run_quick() {
       tests/regression/test_developer_portal_gate.py \
       tests/regression/test_sandbox_access_gateway_gate.py \
       tests/regression/test_multi_surface_semantic_diff.py \
+      tests/regression/test_retention_cleanup.py \
       tests/regression/test_evaluation_dashboard.py \
       tests/regression/test_evaluation_history_diff.py \
       tests/regression/test_evaluation_runner.py \
@@ -425,6 +428,7 @@ write_summary() {
   FATE_LOCAL_CI_SECRET_SCAN="${output_dir}/secret-scan.json" \
   FATE_LOCAL_CI_PRODUCTION_SECURITY_GATE="${output_dir}/production-security-gate.json" \
   FATE_LOCAL_CI_SECURITY_EXTERNALIZATION_GATE="${output_dir}/security-externalization-gate.json" \
+  FATE_LOCAL_CI_RETENTION_CLEANUP_SMOKE="${output_dir}/retention-cleanup-smoke.json" \
   FATE_LOCAL_CI_EXTERNAL_SECRET_PROVIDER_GATE="${output_dir}/external-secret-provider-gate.json" \
   FATE_LOCAL_CI_DEVELOPER_DOCS_SMOKE="${output_dir}/developer-docs-smoke.json" \
   FATE_LOCAL_CI_DEVELOPER_PLATFORM_GATE="${output_dir}/developer-platform-gate.json" \
@@ -501,6 +505,7 @@ payload = {
         "secretScan": env("FATE_LOCAL_CI_SECRET_SCAN"),
         "productionSecurityGate": env("FATE_LOCAL_CI_PRODUCTION_SECURITY_GATE"),
         "securityExternalizationGate": env("FATE_LOCAL_CI_SECURITY_EXTERNALIZATION_GATE"),
+        "retentionCleanupSmoke": env("FATE_LOCAL_CI_RETENTION_CLEANUP_SMOKE"),
         "externalSecretProviderGate": env("FATE_LOCAL_CI_EXTERNAL_SECRET_PROVIDER_GATE"),
         "developerDocsSmoke": env("FATE_LOCAL_CI_DEVELOPER_DOCS_SMOKE"),
         "developerPlatformGate": env("FATE_LOCAL_CI_DEVELOPER_PLATFORM_GATE"),

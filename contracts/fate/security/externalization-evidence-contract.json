@@ -84,7 +84,7 @@
       "currentRecordMode": "explicit_delete",
       "productionTargetMode": "time_based_cleanup_with_audit",
       "dryRunEvidenceChecks": [
-        "Retention policy 登记不等于自动清理器已实现。",
+        "本地 SQLite retention cleanup smoke 可以证明 records/report jobs 的合成 fixture 清理路径，但不证明生产 scheduler、生产数据库或外部 SIEM retention 已完成。",
         "live evidence 必须提供清理器 smoke summary、删除模式和审计动作。",
         "任何证据不得表示真实生产数据已经在本地测试中被删除。"
       ],

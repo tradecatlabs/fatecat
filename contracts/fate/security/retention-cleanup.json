@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": "fatecat.tradecatlabs/v1",
+  "resourceType": "RetentionCleanupContract",
+  "id": "contract.retention_cleanup",
+  "description": "FateCat 本地 retention cleanup baseline 契约；只覆盖 SQLite records/report jobs 的 dry-run/execute smoke 和脱敏 summary，不声明生产调度、生产数据库或外部 SIEM retention 已完成。",
+  "status": "local_sqlite_baseline",
+  "controlId": "control.retention_cleanup_plan",
+  "commands": {
+    "dryRun": "bash scripts/retention-cleanup.sh --output-json <path>",
+    "execute": "bash scripts/retention-cleanup.sh --execute --output-json <path>",
+    "smoke": "bash scripts/retention-cleanup-smoke.sh --output-json <path>"
+  },
+  "localTargets": [
+    {
+      "target": "records",
+      "backend": "sqlite",
+      "source": "infra/runtime/local-state/databases/bazi.sqlite",
+      "retentionField": "created_at",
+      "deleteMode": "hard_delete",
+      "summaryFields": ["target", "status", "retentionDays", "candidateCount", "deletedCount", "deleteMode", "dryRun", "cutoff"],
+      "privacyBoundary": "summary 只能保存计数、模式和 cutoff，不保存 recordId、userId、姓名、出生地区、请求体、报告正文或 secret。"
+    },
+    {
+      "target": "reportJobs",
+      "backend": "sqlite",
+      "source": "infra/runtime/local-state/databases/report_jobs.sqlite",
+      "retentionField": "expires_at",
+      "terminalStatuses": ["succeeded", "failed", "expired", "cancelled"],
+      "summaryFields": [
+        "target",
+        "status",
+        "ttlSeconds",
+        "candidateCount",
+        "relatedCandidateRows",
+        "deletedRows",
+        "deleteMode",
+        "dryRun",
+        "cutoff",
+        "terminalStatuses"
+      ],
+      "privacyBoundary": "summary 只能保存候选/删除行数和终态集合，不保存 jobId、报告正文、webhook URL、callback secret 或 target host。"
+    },
+    {
+      "target": "auditEvents",
+      "backend": "structured_log_only",
+      "status": "external_connectivity_pending",
+      "privacyBoundary": "本地只声明 audit_event 是结构化日志；外部 SIEM/不可变审计存储 retention 必须用 live evidence 证明。"
+    }
+  ],
+  "requiredSummary": {
+    "kind": "fatecat.retention_cleanup_summary",
+    "status": "passed",
+    "auditActions": ["retention.cleanup.dry_run", "retention.cleanup.completed"],
+    "forbiddenFragments": [
+      "recordId=",
+      "jobId=",
+      "userId=",
+      "birthPlace=",
+      "report_body",
+      "token=",
+      "secret=",
+      "password=",
+      "BEGIN RSA",
+      "BEGIN OPENSSH"
+    ]
+  },
+  "requiredSmoke": {
+    "kind": "fatecat.retention_cleanup_smoke",
+    "command": "bash scripts/retention-cleanup-smoke.sh --output-json <path>",
+    "requiredChecks": [
+      "dry_run_passed",
+      "execute_passed",
+      "old_record_removed",
+      "old_terminal_job_removed",
+      "fresh_terminal_job_kept",
+      "old_running_job_kept",
+      "related_event_removed",
+      "related_outbox_removed",
+      "related_delivery_config_removed"
+    ]
+  },
+  "externalConnectivityPending": [
+    "生产 scheduler / cron / worker 编排",
+    "Postgres production retention live smoke",
+    "外部 SIEM / WORM / 不可变审计存储 retention",
+    "真实生产删除审计 proof refs"
+  ],
+  "privacyBoundary": "contract、脚本输出和 CI artifact 不得保存真实用户输入、报告正文、token、secret、DSN、webhook URL 或生产删除结果。"
+}

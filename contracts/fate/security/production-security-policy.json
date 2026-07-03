@@ -41,7 +41,11 @@
       "FATE_REPORT_JOB_TTL_SECONDS"
     ],
     "allowedDeleteModes": ["tombstone_then_purge", "hard_delete"],
-    "localBoundary": "当前记录默认显式删除；若声明按年龄自动清理，必须有单独任务实现清理器、回归测试和审计事件。",
+    "localCleanerMode": "sqlite_records_and_report_jobs_smoke",
+    "localCleanerCommand": "bash scripts/retention-cleanup-smoke.sh --output-json <path>",
+    "localCleanerSummaryKind": "fatecat.retention_cleanup_smoke",
+    "localDeleteMode": "hard_delete",
+    "localBoundary": "当前已有本地 SQLite records/report jobs 按年龄清理 smoke；若声明生产自动清理，仍必须提供 scheduler、生产数据库、外部 SIEM/不可变审计存储和删除审计 live evidence。",
     "externalConnectivity": "external_connectivity_pending"
   },
   "secretProvider": {
@@ -143,6 +147,8 @@
     "localCommand": "bash scripts/production-security-gate.sh",
     "externalizationGateCommand": "bash scripts/security-externalization-gate.sh",
     "externalizationEvidenceContract": "contracts/fate/security/externalization-evidence-contract.json",
+    "retentionCleanupSmokeCommand": "bash scripts/retention-cleanup-smoke.sh --output-json <path>",
+    "retentionCleanupContract": "contracts/fate/security/retention-cleanup.json",
     "externalSecretProviderGateCommand": "bash scripts/external-secret-provider-gate.sh",
     "externalSecretProviderEvidenceContract": "contracts/fate/security/external-secret-provider-contract.json",
     "quickCiRequired": true,

@@ -143,6 +143,42 @@ def run_gate() -> dict[str, Any]:
         "cleanup" in policy["retention"]["targetRecordMode"],
         policy["retention"]["targetRecordMode"],
     )
+    _check(
+        checks,
+        "retention_local_cleaner_mode",
+        policy["retention"].get("localCleanerMode") == "sqlite_records_and_report_jobs_smoke",
+        policy["retention"].get("localCleanerMode", ""),
+    )
+    _check(
+        checks,
+        "retention_local_cleaner_command",
+        policy["retention"].get("localCleanerCommand")
+        == "bash scripts/retention-cleanup-smoke.sh --output-json <path>",
+        policy["retention"].get("localCleanerCommand", ""),
+    )
+    _check(
+        checks,
+        "retention_cleanup_contract_exists",
+        (SECURITY_DIR / "retention-cleanup.json").is_file(),
+        "contracts/fate/security/retention-cleanup.json",
+    )
+    _check(
+        checks,
+        "retention_cleanup_registry_smoke_wired",
+        "bash scripts/retention-cleanup-smoke.sh --output-json <path>" in retention["localVerification"],
+        "bash scripts/retention-cleanup-smoke.sh --output-json <path>",
+    )
+    _check(
+        checks,
+        "retention_cleanup_registry_implementation_wired",
+        {
+            "contracts/fate/security/retention-cleanup.json",
+            "domains/experience-delivery/services/fatecat-delivery/src/retention_cleanup.py",
+            "scripts/retention-cleanup-smoke.sh",
+        }
+        <= set(retention["implementationRefs"]),
+        "required retention cleanup refs present",
+    )
 
     secret_provider = controls["control.external_secret_provider_kms"]
     _check(
@@ -200,6 +236,19 @@ def run_gate() -> dict[str, Any]:
         "policy_release_gate_command",
         policy["releaseGate"]["localCommand"] == "bash scripts/production-security-gate.sh",
         policy["releaseGate"].get("localCommand", ""),
+    )
+    _check(
+        checks,
+        "policy_retention_cleanup_contract",
+        policy["releaseGate"].get("retentionCleanupContract") == "contracts/fate/security/retention-cleanup.json",
+        policy["releaseGate"].get("retentionCleanupContract", ""),
+    )
+    _check(
+        checks,
+        "policy_retention_cleanup_smoke_command",
+        policy["releaseGate"].get("retentionCleanupSmokeCommand")
+        == "bash scripts/retention-cleanup-smoke.sh --output-json <path>",
+        policy["releaseGate"].get("retentionCleanupSmokeCommand", ""),
     )
     _check(checks, "policy_quick_ci_required", policy["releaseGate"]["quickCiRequired"] is True, "required")
     _check(

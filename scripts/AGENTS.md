@@ -79,6 +79,10 @@ scripts/
 ├── provider-drift-scanner.py
 ├── report-job-restart-recovery-smoke.sh
 ├── report-job-restart-recovery-smoke.py
+├── retention-cleanup.sh
+├── retention-cleanup.py
+├── retention-cleanup-smoke.sh
+├── retention-cleanup-smoke.py
 ├── provider-lifecycle-gate.sh
 ├── provider-lifecycle-gate.py
 ├── production-security-gate.sh
@@ -176,6 +180,8 @@ scripts/
 - `webhook-outbox-lease-smoke.sh` / `webhook-outbox-lease-smoke.py` 是 report job webhook SQLite outbox lease 本地 smoke；验证 failed outbox 只能被一个本地 lease owner claim，错误 owner release 无效，release 后可重新 claim，manager 重建后通过 encrypted config 只重投一次；不证明 external backend、生产级分布式 worker lease、多副本锁、真实公网 live callback、外部 Vault/KMS 或 exactly-once。
 - `report-job-replayable-recovery-smoke.sh` / `report-job-replayable-recovery-smoke.py` 是 report job SQLite 可重建执行本地 smoke；验证带 `task_payload` 和 factory 的 active 任务重建后重新入队成功，无 payload 任务仍安全失败；不证明 external backend、分布式 worker lease、多副本锁或 exactly-once。
 - `report-job-restart-recovery-smoke.sh` / `report-job-restart-recovery-smoke.py` 是 report job SQLite 重建恢复本地 smoke；验证旧 `queued` / `running` 任务被安全标记为 failed、写入 `job.recovered_failed`、保留幂等键且 summary 不泄露报告正文、姓名、出生地区或 secret；不证明跨进程继续执行、external backend 或多副本 worker。
+- `retention-cleanup.sh` / `retention-cleanup.py` 是本地 retention cleanup runner；默认 dry-run，只在显式 `--execute` 时按保留期清理 SQLite records 和过期终态 report jobs，summary 只输出计数、模式和 cutoff，不输出用户或任务明文。
+- `retention-cleanup-smoke.sh` / `retention-cleanup-smoke.py` 是 retention cleanup 合成 smoke；用北京/测试 fixture 验证 dry-run、execute、records 删除、report job 关联行删除和脱敏边界，不证明生产 scheduler、Postgres production cleanup live 或外部 SIEM retention。
 - `common.sh` 负责解析 runtime root；只允许已就绪的企业根作为运行根。
 - `run-evaluations.sh` / `run-evaluations.py` 是 `contracts/fate/evaluations/registry.json` 的本地 EvaluationRun 执行器；默认跑本地必跑评测，输出 summary JSON，只允许白名单命令。
 - `compare-evaluations.sh` / `compare-evaluations.py` 是本地 Evaluation summary diff 工具；按 `contracts/fate/evaluations/diff-policy.json` 判定新增失败、缺失 run 和失败命令。
@@ -215,6 +221,7 @@ scripts/
 - `scripts/postgres-job-store-live-smoke.py -> domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py`
 - `scripts/postgres-external-worker-restart-smoke.py -> domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py`
 - `scripts/postgres-public-webhook-live-smoke.py -> domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py + domains/experience-delivery/services/fatecat-delivery/src/webhook_callbacks.py`
+- `scripts/retention-cleanup.py -> domains/experience-delivery/services/fatecat-delivery/src/retention_cleanup.py`
 - `scripts/multi-replica-runtime-evidence-assembler.py -> scripts/multi-replica-runtime-gate.py`
 - `scripts/multi-replica-runtime-gate.py -> contracts/fate/delivery/multi-replica-runtime-contract.json + contracts/fate/delivery/runtime-backends.json`
 - `scripts/otel-backend-slo-gate.py -> contracts/fate/observability/otel-backend-slo-evidence-contract.json + contracts/fate/observability/registry.json`

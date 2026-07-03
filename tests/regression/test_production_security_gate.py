@@ -51,6 +51,9 @@ def test_production_security_gate_validates_identity_siem_retention_and_owasp(tm
     assert checks["identity_external_pending"]["ok"] is True
     assert checks["siem_external_pending"]["ok"] is True
     assert checks["retention_current_mode_explicit_delete"]["ok"] is True
+    assert checks["retention_local_cleaner_command"]["ok"] is True
+    assert checks["retention_cleanup_contract_exists"]["ok"] is True
+    assert checks["retention_cleanup_registry_smoke_wired"]["ok"] is True
     assert checks["secret_provider_external_pending"]["ok"] is True
     assert checks["owasp_top10_complete"]["ok"] is True
     assert checks["policy_blocks_without_external_evidence"]["ok"] is True
@@ -74,6 +77,8 @@ def test_production_security_policy_maps_all_owasp_api_top10_items():
     assert policy["siem"]["immutableAuditRequired"] is True
     assert policy["retention"]["currentRecordMode"] == "explicit_delete"
     assert policy["retention"]["targetRecordMode"] == "time_based_cleanup_with_audit"
+    assert policy["retention"]["localCleanerMode"] == "sqlite_records_and_report_jobs_smoke"
+    assert policy["retention"]["localCleanerSummaryKind"] == "fatecat.retention_cleanup_smoke"
     assert policy["secretProvider"]["baselineMode"] == "local_fernet_encrypted_config_vault"
     assert policy["secretProvider"]["productionTargetMode"] == "external_secret_provider_or_kms"
     assert {item["id"] for item in policy["owaspApiSecurityTop10_2023"]} == {

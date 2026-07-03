@@ -12,6 +12,7 @@ security/
 ├── external-secret-provider-contract.json
 ├── externalization-evidence-contract.json
 ├── production-security-policy.json
+├── retention-cleanup.json
 ├── secret-scan-allowlist.json
 ├── registry.json
 └── schemas/
@@ -24,14 +25,16 @@ security/
 - `schemas/security-control.schema.json`：定义安全控制资源字段，覆盖 audit_log、auth、cors、rate_limit、request_limit、headers、identity、siem、owasp_api_regression、privacy、rbac、retention、secret_provider、source_hygiene、secret_scan、release_gate 和 production_readiness。
 - `production-security-policy.json`：定义生产身份外部化、OIDC/IdP 准入、SIEM/不可变审计存储、retention 自动清理计划、外部 secret provider / Vault / KMS 准入和 OWASP API Security Top 10 回归包策略；它是 contract，不保存真实外部配置。
 - `externalization-evidence-contract.json`：定义 OIDC/SIEM/retention cleaner live evidence 的机器契约、proof-ref 白名单和反伪造负例；通过只表示证据结构可验证，不表示真实外部平台已接入。
+- `retention-cleanup.json`：定义本地 SQLite records/report jobs retention cleanup baseline 的命令、summary、smoke、脱敏边界和外部待验证项；不保存生产删除证据。
 - `external-secret-provider-contract.json`：定义外部 secret provider / Vault / KMS live evidence 的机器契约和反伪造负例；通过只表示证据结构可验证，不表示真实外部 secret manager 已接入。
 - `scripts/security-smoke.sh`：本地安全 smoke 入口；验证 token/owner 边界、响应安全头、请求体限制、限流、registry metadata，并可串联 privacy/source/public-release 文件门禁。
 - `scripts/production-security-gate.sh`：本地生产安全 contract gate；验证 OIDC/SIEM/retention/secret provider/OWASP 策略完整性，不连接真实 OIDC、SIEM、Vault、KMS 或外部账号。
 - `scripts/security-externalization-gate.sh`：本地安全外部化 evidence gate；验证 OIDC/SIEM/retention cleaner 证据契约、proof-ref 白名单、raw URL 禁入和伪造证据拒绝，不连接真实 IdP、SIEM 或生产数据库。
+- `scripts/retention-cleanup-smoke.sh`：本地 retention cleanup 合成 smoke；验证 SQLite records/report jobs dry-run 与 execute 路径，并确保 summary 不输出用户明文、报告正文或 secret。
 - `scripts/external-secret-provider-gate.sh`：本地外部 secret provider evidence gate；验证 Vault/KMS/secret manager 证据契约和伪造证据拒绝，不连接真实 Vault、KMS、secret manager 或云账号。
 - `scripts/secret-scan.sh`：本地 secret scanner 入口；扫描一线文本文件中的疑似真实 token、API key、私钥、DSN 和 webhook，只输出脱敏 finding summary。
 - `secret-scan-allowlist.json`：记录已知占位符、reference repo/archive 排除边界和允许的示例片段；不得写入真实 secret。
 - 这里不得保存真实 token、secret、DSN、私钥、证书、生产账号或 webhook 地址。
 - scoped RBAC 仅覆盖本地记录接口的 admin/user/owner/scope 边界，不得写成 OAuth/OIDC、外部 IdP 或生产 IAM 已完成。
-- 生产身份、SIEM、retention cleanup 和 secret provider 控制在当前仓库内只能登记准入 contract；真实 OIDC/IdP、SIEM、不可变审计存储、按年龄自动清理、外部 Vault/KMS、key rotation 和 access audit 必须保留为外部或后续实现验证；live evidence 只能保存脱敏 proof refs，不得保存真实 issuer/JWKS/SIEM endpoint。
+- 生产身份、SIEM、retention cleanup 和 secret provider 控制在当前仓库内只能登记准入 contract；当前 retention cleanup 只证明本地 SQLite records/report jobs smoke，真实 OIDC/IdP、SIEM、不可变审计存储、生产 scheduler、生产数据库清理、外部 Vault/KMS、key rotation 和 access audit 必须保留为外部或后续实现验证；live evidence 只能保存脱敏 proof refs，不得保存真实 issuer/JWKS/SIEM endpoint。
 - `external_connectivity_pending` 只表示需要真实域名、真实 token、Bot 或生产权限验证，不得写成已生产通过。
