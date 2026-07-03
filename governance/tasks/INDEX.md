@@ -207,3 +207,5 @@
 | 0109 | measurement-infrastructure-100-post-0108-deep-research-plan | Done | P0 | 基于当前 main worktree、0108 release artifact proof 任务状态、现有基础设施契约与外部官方资料，制作 FateCat 达到 100% 测算基础设施所需的完整实现计划、任务树、验收门禁、外部阻断项和不可伪造证据口径；本任务只做调研与计划落盘，不实现业务代码。 | 0109-measurement-infrastructure-100-post-0108-deep-research-plan/ |
 
 | 0110 | measurement-infrastructure-current-release-truth-finalizer | Done | P0 | 执行 0109 后续 W0 切片：修正 0108 任务索引重复状态，提交后为最终 main HEAD 重新触发 Acceptance 与 Container release workflow，生成本地 dry-run rollback evidence，并运行 current-release-proof 聚合当前 commit 的远端 CI、release artifact、GHCR digest、attestation 和 rollback 证据；最终证明不写回 Git，避免制造新 HEAD。 | 0110-measurement-infrastructure-current-release-truth-finalizer/ |
+
+| 0111 | measurement-infrastructure-control-plane-resource-gate | Done | P0 | 执行 0109 后续 W1 切片：新增 control-plane 资源注册表、schema 与 gate，把 Capability、Provider、ReleaseGate、EvaluationRun 纳入统一 spec/status/admission/drift 对账视图；复用既有 capability/provider/evaluation/release 契约和 provider lifecycle gate，不保存运行结果、生产凭证或报告正文，并接入 local-ci quick 与回归测试。 | 0111-measurement-infrastructure-control-plane-resource-gate/ |

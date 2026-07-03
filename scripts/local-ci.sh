@@ -167,6 +167,8 @@ run_quick() {
     --output-json "${output_dir}/sandbox-access-gateway-gate.json"
   run_step "CLI capability smoke" bash "${script_dir}/capability-cli-smoke.sh" \
     --output-json "${output_dir}/capability-cli-smoke.json"
+  run_step "control plane gate" bash "${script_dir}/control-plane-gate.sh" \
+    --output-json "${output_dir}/control-plane-gate.json"
   run_step "multi-surface semantic diff" bash "${script_dir}/multi-surface-semantic-diff.sh" \
     --output-json "${output_dir}/multi-surface-semantic-diff.json"
   run_step "provider lifecycle gate" bash "${script_dir}/provider-lifecycle-gate.sh" \

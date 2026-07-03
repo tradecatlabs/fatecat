@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "description": "FateCat control-plane resource contract. It defines the shared spec/status/admission/drift envelope for infrastructure resources without storing runtime proof payloads.",
+  "requiredRegistryFields": ["schemaVersion", "apiVersion", "description", "resources", "schemas", "metadata"],
+  "requiredResourceFields": ["resourceType", "apiVersion", "id", "spec", "status", "links", "metadata"],
+  "allowedResourceTypes": ["Capability", "Provider", "ReleaseGate", "EvaluationRun"],
+  "requiredSpecFields": ["source", "owner", "desiredState", "admission", "gate"],
+  "requiredStatusFields": ["phase", "lastKnownStatePolicy", "reconciliation"],
+  "allowedPhase": ["available", "blocked", "manual", "planned"],
+  "allowedLastKnownStatePolicy": [
+    "computed_by_control_plane_gate",
+    "tracked_by_external_gate",
+    "external_connectivity_pending",
+    "not_embedded"
+  ],
+  "requiredAdmissionFields": ["executable", "reason", "promotion", "deprecation"],
+  "requiredGateFields": ["command", "requiredForRelease", "scope"],
+  "requiredReconciliationFields": ["status", "summary", "driftPolicy"],
+  "allowedReconciliationStatus": ["in_sync", "blocked", "pending_external"],
+  "invariants": [
+    "ControlPlane resources are discovery and reconciliation envelopes; they must not duplicate full source registries.",
+    "Capability default admission must keep planned capabilities discoverable but non-executable.",
+    "Provider reconciliation must point at provider lifecycle gate instead of reimplementing source/license/vendor checks.",
+    "ReleaseGate control-plane status may be available while live shipGate remains blocked by external connectivity.",
+    "EvaluationRun resources must remain evaluation-only and must not inject benchmark answers into production providers.",
+    "ControlPlane registry must not store token, secret, DSN, production log, report body, user birth data, container registry token, or webhook secret.",
+    "A control-plane gate pass proves registry/spec/status alignment only; it does not prove production API, HF Space, Bot, OIDC, SIEM, OTel, Vault, KMS, or live rollback completion."
+  ]
+}

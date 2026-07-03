@@ -1,0 +1,220 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": "fatecat.tradecatlabs/v1",
+  "description": "FateCat control-plane registry. It reconciles existing infrastructure resources into a shared spec/status/admission/drift view.",
+  "schemas": {
+    "controlPlane": "contracts/fate/control-plane/schemas/control-plane.schema.json",
+    "resource": "contracts/fate/capabilities/schemas/resource.schema.json",
+    "capability": "contracts/fate/capabilities/schemas/capability.schema.json",
+    "provider": "contracts/fate/capabilities/schemas/provider.schema.json",
+    "releaseGate": "contracts/fate/delivery/schemas/release-gate.schema.json",
+    "evaluationRun": "contracts/fate/evaluations/schemas/evaluation-run.schema.json"
+  },
+  "resources": [
+    {
+      "resourceType": "Capability",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.capabilities",
+      "spec": {
+        "source": {
+          "registry": "contracts/fate/capabilities/registry.json",
+          "profiles": "contracts/fate/capabilities/profiles",
+          "schema": "contracts/fate/capabilities/schemas/capability.schema.json"
+        },
+        "owner": "contracts/fate/capabilities",
+        "desiredState": {
+          "totalCapabilities": 9,
+          "productionCapabilities": 4,
+          "plannedCapabilities": 5,
+          "defaultCapabilityId": "bazi",
+          "productionRequiresPassingTestGate": true,
+          "plannedProviderPrefix": "planned."
+        },
+        "admission": {
+          "executable": true,
+          "reason": "production capabilities are executable through CapabilityExecutor; planned capabilities remain discoverable but blocked",
+          "promotion": "status can move to production only after testGate.status=passing, provider lifecycle metadata exists, and profile remains standalone unless bazi",
+          "deprecation": "capabilities must be removed through registry/profile/test updates, not hidden by front-end filtering"
+        },
+        "gate": {
+          "command": "python -m pytest -q tests/regression/test_capability_protocol.py",
+          "requiredForRelease": true,
+          "scope": "capability registry/profile/schema/admission invariants"
+        }
+      },
+      "status": {
+        "phase": "available",
+        "lastKnownStatePolicy": "computed_by_control_plane_gate",
+        "reconciliation": {
+          "status": "in_sync",
+          "summary": "Control-plane gate recomputes capability counts and default/planned/production admission rules from source registry.",
+          "driftPolicy": "fail if counts, default capability, production test gates, planned engine/provider or markdown default drift"
+        }
+      },
+      "links": {
+        "self": "/control-plane/control.capabilities",
+        "collection": "/control-plane",
+        "source": "contracts/fate/capabilities/registry.json",
+        "gate": "scripts/control-plane-gate.sh"
+      },
+      "metadata": {
+        "risk": "A pass proves registry alignment only; it does not prove prediction accuracy.",
+        "privacyBoundary": "No user input, report body, token, secret or DSN is read."
+      }
+    },
+    {
+      "resourceType": "Provider",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.providers",
+      "spec": {
+        "source": {
+          "runtime": "fate_core.capabilities.list_providers",
+          "schema": "contracts/fate/capabilities/schemas/provider.schema.json",
+          "vendorManifest": "tools/reference-repos/vendor_sources.json"
+        },
+        "owner": "domains/fate-analysis/services/fate-core/src/fate_core/capabilities",
+        "desiredState": {
+          "productionProviderCount": 4,
+          "coverage": "one production provider for each production capability provider id",
+          "lifecycleGate": "scripts/provider-lifecycle-gate.sh"
+        },
+        "admission": {
+          "executable": true,
+          "reason": "providers are executable only when their owning production capability is executable",
+          "promotion": "provider lifecycle gate must pass before a provider can support production capability promotion",
+          "deprecation": "provider deprecation requires replacementProvider or removalNotBefore in provider metadata"
+        },
+        "gate": {
+          "command": "bash scripts/provider-lifecycle-gate.sh",
+          "requiredForRelease": true,
+          "scope": "provider metadata, lifecycle, source, license, manifest, promotion and deprecation"
+        }
+      },
+      "status": {
+        "phase": "available",
+        "lastKnownStatePolicy": "computed_by_control_plane_gate",
+        "reconciliation": {
+          "status": "in_sync",
+          "summary": "Control-plane gate compares runtime providers with production capabilities and delegates depth checks to provider lifecycle gate.",
+          "driftPolicy": "fail if provider count, provider id coverage or provider lifecycle gate drifts"
+        }
+      },
+      "links": {
+        "self": "/control-plane/control.providers",
+        "collection": "/control-plane",
+        "source": "domains/fate-analysis/services/fate-core/src/fate_core/capabilities",
+        "gate": "scripts/provider-lifecycle-gate.sh"
+      },
+      "metadata": {
+        "risk": "Provider health is in-process unless externalConnectivity evidence exists in downstream gates.",
+        "privacyBoundary": "No production credential, user report, external API payload or private DSN is read."
+      }
+    },
+    {
+      "resourceType": "ReleaseGate",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.release_gate",
+      "spec": {
+        "source": {
+          "registry": "contracts/fate/delivery/release-gate.json",
+          "schema": "contracts/fate/delivery/schemas/release-gate.schema.json"
+        },
+        "owner": "contracts/fate/delivery",
+        "desiredState": {
+          "requiredEvidenceCount": 10,
+          "shipGatePolicy": "live shipGate remains blocked until all required external evidence is present",
+          "currentReleaseProof": "scripts/current-release-proof.sh"
+        },
+        "admission": {
+          "executable": false,
+          "reason": "release gate is an operator gate, not a user-executable calculation capability",
+          "promotion": "live release can pass only when required evidence has real external proof",
+          "deprecation": "release evidence categories must be retired through release-gate schema and tests"
+        },
+        "gate": {
+          "command": "bash scripts/current-release-proof.sh --skip-remote --output-json <path>",
+          "requiredForRelease": true,
+          "scope": "release evidence categories, shipGate policy and current-release-proof contract"
+        }
+      },
+      "status": {
+        "phase": "available",
+        "lastKnownStatePolicy": "tracked_by_external_gate",
+        "reconciliation": {
+          "status": "pending_external",
+          "summary": "Contract is available; live shipGate remains blocked until external API/HF/Bot/registry/rollback evidence is present.",
+          "driftPolicy": "fail if required evidence count, shipGate, privacy boundary or external verification entries drift"
+        }
+      },
+      "links": {
+        "self": "/control-plane/control.release_gate",
+        "collection": "/control-plane",
+        "source": "contracts/fate/delivery/release-gate.json",
+        "gate": "scripts/current-release-proof.sh"
+      },
+      "metadata": {
+        "risk": "Local control-plane pass does not mean production live release is allowed.",
+        "privacyBoundary": "No GitHub token, registry token, production log, user input or report body is stored."
+      }
+    },
+    {
+      "resourceType": "EvaluationRun",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "control.evaluation_runs",
+      "spec": {
+        "source": {
+          "registry": "contracts/fate/evaluations/registry.json",
+          "schema": "contracts/fate/evaluations/schemas/evaluation-run.schema.json"
+        },
+        "owner": "contracts/fate/evaluations",
+        "desiredState": {
+          "datasetCount": 5,
+          "evaluationRunCount": 5,
+          "requiredRunIds": [
+            "run.local_ci_quick",
+            "run.solar_terms_golden",
+            "run.evaluation_dashboard_smoke",
+            "run.core_quality_corpus_gate",
+            "run.mingli_bench_offline"
+          ]
+        },
+        "admission": {
+          "executable": true,
+          "reason": "EvaluationRun resources are executable through whitelisted commands only",
+          "promotion": "new evaluation runs must declare datasetIds, commands, releaseRequired and lastKnownStatusPolicy",
+          "deprecation": "retired evaluation runs must be removed with downstream dashboard/trend gates updated"
+        },
+        "gate": {
+          "command": "bash scripts/run-evaluations.sh",
+          "requiredForRelease": true,
+          "scope": "evaluation registry, dataset links, command whitelist and last-known-status policy"
+        }
+      },
+      "status": {
+        "phase": "available",
+        "lastKnownStatePolicy": "computed_by_control_plane_gate",
+        "reconciliation": {
+          "status": "in_sync",
+          "summary": "Control-plane gate checks dataset/run counts, required run ids and evaluation-only boundaries.",
+          "driftPolicy": "fail if dataset/run count, required run ids, dataset links or releaseRequired policy drift"
+        }
+      },
+      "links": {
+        "self": "/control-plane/control.evaluation_runs",
+        "collection": "/control-plane",
+        "source": "contracts/fate/evaluations/registry.json",
+        "gate": "scripts/run-evaluations.sh"
+      },
+      "metadata": {
+        "risk": "Evaluation registry does not store current benchmark results and must not feed benchmark answers into production.",
+        "privacyBoundary": "No benchmark answer text, report body, user data or external credential is stored."
+      }
+    }
+  ],
+  "metadata": {
+    "owner": "contracts/fate/control-plane",
+    "gateCommand": "bash scripts/control-plane-gate.sh",
+    "externalConnectivity": "not_required_for_contract_reconciliation",
+    "privacyBoundary": "Control-plane registry stores only paths, policies and status summaries; it does not store secrets, DSN, tokens, production logs, user birth data or report bodies."
+  }
+}

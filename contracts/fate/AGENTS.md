@@ -14,6 +14,9 @@ contracts/fate/
 │   ├── errors.json
 │   ├── schemas/
 │   └── profiles/
+├── control-plane/
+│   ├── registry.json
+│   └── schemas/
 ├── audit/
 │   ├── current-bundle.json
 │   ├── dry-run.json
@@ -61,6 +64,8 @@ contracts/fate/
 - `capabilities/`：统一测算能力协议与注册表；默认能力只能是 `bazi`，其他体系必须独立输出或保持 planned。
 - `capabilities/registry.json` 的每个能力必须声明 `maturity`、`engine.engineVersion`、`evidencePolicy` 和 `testGate`；这些字段是测算基础设施成熟度、可复现计算和发布门禁的审计入口。
 - `capabilities/errors.json`：标准错误码字典，服务层只负责读取和映射，不在业务代码里另起一套错误事实源。
+- `control-plane/`：控制面资源对账契约；把 Capability、Provider、ReleaseGate、EvaluationRun 纳入统一 spec/status/admission/drift 视图，只做发现和对账，不保存运行结果或生产凭证。
+- `control-plane/registry.json`：登记控制面资源来源、期望状态、准入策略、验证命令和当前状态口径；最终发布证明仍由 `current-release-proof` 等外部 gate 生成，不写回该 registry。
 - `audit/`：第三方审计交接契约；只登记 audit handoff bundle 输出结构、证据来源和外部待验证项策略，不保存真实生产证据或用户报告正文。
 - `audit/handoff.json`：审计包 generator 的机器真相源；要求 Markdown/JSON 输出完整列出 tracked 和 untracked non-ignored `外部连通验证待执行` occurrence。
 - `audit/dry-run.json`：审计包 dry-run verifier 的机器真相源；要求本地预检结构完整，同时在外部 live 证据缺失时保持 ship gate blocked。
