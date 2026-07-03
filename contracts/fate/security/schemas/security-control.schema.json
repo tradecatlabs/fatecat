@@ -37,6 +37,7 @@
     "privacy",
     "rbac",
     "retention",
+    "secret_provider",
     "webhook_signature",
     "source_hygiene",
     "secret_scan",
@@ -76,5 +77,7 @@
     "owasp_api_regression 控制必须映射 OWASP API Security Top 10 2023 的 10 个风险项到本地检查或明确外部待验证项"
     ,
     "security externalization evidence contract 必须拒绝 scoped token 伪装 OIDC、placeholder SIEM 伪装不可变审计、缺 smoke 的 retention cleaner 伪装 live evidence"
+    ,
+    "secret_provider 控制必须明确 local Fernet 只是本地 encrypted-at-rest baseline，不能把它伪装成外部 Vault/KMS 或生产密钥生命周期 evidence"
   ]
 }

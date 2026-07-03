@@ -10,7 +10,7 @@
     "firstAdapterPath": "Postgres ReportJobStore adapter with transactional claim/release, migration/job live smoke, outbox worker lease negative smoke, job execution worker lease primitive smoke, external worker restart smoke, public webhook live smoke gate and worker heartbeat/polling smoke baseline",
     "futureWorkflowOrchestrator": "backend.temporal",
     "notSelectedAsSourceOfTruth": ["backend.redis_queue"],
-    "nextTask": "0078 adds Postgres worker heartbeat/polling smoke baseline; next task must provide real passed public webhook live evidence, external Vault/KMS, long-running multi-replica runtime or exactly-once evidence before production eligibility can advance"
+    "nextTask": "0078 adds Postgres worker heartbeat/polling smoke baseline and 0079 adds external secret provider evidence gate baseline; next task must provide real passed public webhook live evidence, external Vault/KMS live evidence, long-running multi-replica runtime or exactly-once evidence before production eligibility can advance"
   },
   "schemas": {
     "runtimeBackend": "contracts/fate/delivery/schemas/runtime-backend.schema.json",
@@ -171,7 +171,8 @@
         "external worker restart smoke: bash scripts/postgres-external-worker-restart-smoke.sh against disposable external database",
         "worker heartbeat/polling smoke: bash scripts/postgres-worker-heartbeat-polling-smoke.sh against disposable external database",
         "public webhook live smoke gate: bash scripts/postgres-public-webhook-live-smoke.sh against disposable external database and public HTTPS endpoint",
-        "future passed public webhook live evidence and external secret provider evidence"
+        "external secret provider evidence gate: bash scripts/external-secret-provider-gate.sh",
+        "future passed public webhook live evidence and external secret provider live evidence"
       ],
       "localVerification": [
         "bash scripts/runtime-backend-gate.sh",
@@ -180,7 +181,8 @@
         "bash scripts/postgres-job-worker-lease-smoke.sh --allow-missing",
         "bash scripts/postgres-external-worker-restart-smoke.sh --allow-missing",
         "bash scripts/postgres-worker-heartbeat-polling-smoke.sh --allow-missing",
-        "bash scripts/postgres-public-webhook-live-smoke.sh --allow-missing"
+        "bash scripts/postgres-public-webhook-live-smoke.sh --allow-missing",
+        "bash scripts/external-secret-provider-gate.sh"
       ],
       "externalVerification": [
         "bash scripts/postgres-job-store-live-smoke.sh",
@@ -189,12 +191,13 @@
         "bash scripts/postgres-external-worker-restart-smoke.sh",
         "bash scripts/postgres-worker-heartbeat-polling-smoke.sh",
         "bash scripts/postgres-public-webhook-live-smoke.sh",
-        "FATE_REPORT_JOB_POSTGRES_LIVE_EVIDENCE must point to passed fatecat.postgres_job_store_live_smoke JSON before postgres production readiness can pass"
+        "FATE_REPORT_JOB_POSTGRES_LIVE_EVIDENCE must point to passed fatecat.postgres_job_store_live_smoke JSON before postgres production readiness can pass",
+        "external Vault/KMS/secret manager live evidence must satisfy contracts/fate/security/external-secret-provider-contract.json before postgres production readiness can pass"
       ],
       "privacyBoundary": "Postgres registry may name env vars and migration evidence, but must not include DSN, username, password, report body, callback URL or user input.",
       "externalConnectivity": "requires_real_database",
       "migration": {
-        "upgradePath": "Use PostgresReportJobStore behind FATE_REPORT_JOB_STORE=postgres; keep passed postgres live smoke, outbox worker lease negative smoke, job execution worker lease primitive smoke, external worker restart smoke and worker heartbeat/polling smoke evidence, run postgres public webhook live smoke against a real HTTPS endpoint, then prove external secret lifecycle before production eligibility can advance.",
+        "upgradePath": "Use PostgresReportJobStore behind FATE_REPORT_JOB_STORE=postgres; keep passed postgres live smoke, outbox worker lease negative smoke, job execution worker lease primitive smoke, external worker restart smoke, worker heartbeat/polling smoke evidence and external secret provider gate evidence, run postgres public webhook live smoke against a real HTTPS endpoint, then prove external secret lifecycle with real Vault/KMS/secret manager live evidence before production eligibility can advance.",
         "rollbackPath": "Switch back to sqlite for local single-replica baseline if external database smoke fails.",
         "blockedClaims": ["production_ready", "multi_replica_ready", "exactly_once", "public_webhook_live", "external_vault_kms"]
       },
@@ -330,7 +333,7 @@
   "invariants": [
     "RuntimeBackend registry 不保存真实 DSN、token、secret、webhook URL、用户输入、报告正文或生产日志。",
     "memory/sqlite available 只代表本地 baseline，不代表 external backend 已生产。",
-    "backend.postgres 是首个 external backend adapter candidate；worker heartbeat/polling smoke baseline 可证明 schema/job/outbox/config 真实数据库路径、webhook outbox duplicate claim negative path、job execution lease primitive、expired lease restart 恢复执行、长任务 execution lease heartbeat 和 persisted job polling；public webhook live smoke gate 只提供外部验证入口，status 仍为 planned，直到外部 Vault/KMS、公网 webhook passed evidence、长期多副本 worker 和 exactly-once 证据完成。",
+    "backend.postgres 是首个 external backend adapter candidate；worker heartbeat/polling smoke baseline 可证明 schema/job/outbox/config 真实数据库路径、webhook outbox duplicate claim negative path、job execution lease primitive、expired lease restart 恢复执行、长任务 execution lease heartbeat 和 persisted job polling；external secret provider gate baseline 只证明 Vault/KMS evidence schema 和反伪造边界；public webhook live smoke gate 只提供外部验证入口，status 仍为 planned，直到外部 Vault/KMS live passed、公网 webhook passed evidence、长期多副本 worker 和 exactly-once 证据完成。",
     "backend.temporal 是 future workflow orchestrator，不是当前 ReportJobStore adapter。",
     "backend.redis_queue 不得作为 CalculationJob source of truth。",
     "任何 production multi-replica durable runtime 结论必须来自外部 backend adapter、迁移 smoke、crash/restart smoke、duplicate claim negative test、公网 webhook live passed evidence 和外部 secret lifecycle evidence。"

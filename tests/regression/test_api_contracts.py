@@ -2525,6 +2525,7 @@ def test_security_controls_are_discoverable_and_linked():
         "control.production_identity_oidc",
         "control.external_siem_immutable_audit",
         "control.retention_cleanup_plan",
+        "control.external_secret_provider_kms",
         "control.owasp_api_security_regression",
         "control.audit_event_log",
         "control.retention_policy",
@@ -2566,6 +2567,13 @@ def test_security_controls_are_discoverable_and_linked():
     assert cleanup["controlType"] == "retention"
     assert cleanup["status"] == "manual"
     assert "FATE_RECORD_RETENTION_AUTO_CLEANUP_ENABLED" in cleanup["envVars"]
+
+    secret_provider = controls["control.external_secret_provider_kms"]
+    assert secret_provider["controlType"] == "secret_provider"
+    assert secret_provider["status"] == "manual"
+    assert secret_provider["externalConnectivity"] == "external_connectivity_pending"
+    assert "FATE_EXTERNAL_SECRET_PROVIDER_EVIDENCE" in secret_provider["envVars"]
+    assert "external-secret-provider-gate.sh" in " ".join(secret_provider["localVerification"])
 
     owasp = controls["control.owasp_api_security_regression"]
     assert owasp["controlType"] == "owasp_api_regression"

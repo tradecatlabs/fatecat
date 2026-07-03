@@ -44,12 +44,14 @@ def test_production_security_gate_validates_identity_siem_retention_and_owasp(tm
         "control.production_identity_oidc",
         "control.external_siem_immutable_audit",
         "control.retention_cleanup_plan",
+        "control.external_secret_provider_kms",
         "control.owasp_api_security_regression",
     } == set(stored["controls"])
     checks = {item["name"]: item for item in stored["checks"]}
     assert checks["identity_external_pending"]["ok"] is True
     assert checks["siem_external_pending"]["ok"] is True
     assert checks["retention_current_mode_explicit_delete"]["ok"] is True
+    assert checks["secret_provider_external_pending"]["ok"] is True
     assert checks["owasp_top10_complete"]["ok"] is True
     assert checks["policy_blocks_without_external_evidence"]["ok"] is True
 
@@ -72,6 +74,8 @@ def test_production_security_policy_maps_all_owasp_api_top10_items():
     assert policy["siem"]["immutableAuditRequired"] is True
     assert policy["retention"]["currentRecordMode"] == "explicit_delete"
     assert policy["retention"]["targetRecordMode"] == "time_based_cleanup_with_audit"
+    assert policy["secretProvider"]["baselineMode"] == "local_fernet_encrypted_config_vault"
+    assert policy["secretProvider"]["productionTargetMode"] == "external_secret_provider_or_kms"
     assert {item["id"] for item in policy["owaspApiSecurityTop10_2023"]} == {
         "API1",
         "API2",

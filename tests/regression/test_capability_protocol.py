@@ -465,6 +465,7 @@ def test_security_control_schema_and_registry_define_gate_boundaries():
         "privacy",
         "rbac",
         "retention",
+        "secret_provider",
         "webhook_signature",
         "source_hygiene",
         "secret_scan",
@@ -490,6 +491,7 @@ def test_security_control_schema_and_registry_define_gate_boundaries():
         "control.production_identity_oidc",
         "control.external_siem_immutable_audit",
         "control.retention_cleanup_plan",
+        "control.external_secret_provider_kms",
         "control.owasp_api_security_regression",
         "control.audit_event_log",
         "control.retention_policy",
@@ -544,6 +546,12 @@ def test_security_control_schema_and_registry_define_gate_boundaries():
     assert cleanup["status"] == "manual"
     assert "FATE_RECORD_RETENTION_AUTO_CLEANUP_ENABLED" in cleanup["envVars"]
     assert cleanup["metadata"]["currentRecordMode"] == "explicit_delete"
+
+    secret_provider = controls["control.external_secret_provider_kms"]
+    assert secret_provider["controlType"] == "secret_provider"
+    assert secret_provider["status"] == "manual"
+    assert "FATE_EXTERNAL_SECRET_PROVIDER_EVIDENCE" in secret_provider["envVars"]
+    assert "外部 Vault/KMS" in secret_provider["metadata"]["risk"]
 
     owasp = controls["control.owasp_api_security_regression"]
     assert owasp["controlType"] == "owasp_api_regression"

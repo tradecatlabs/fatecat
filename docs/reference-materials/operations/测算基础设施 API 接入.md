@@ -367,8 +367,8 @@ curl -sS http://127.0.0.1:8001/security/control.production_readiness_external \
 
 | 字段 | 含义 |
 | --- | --- |
-| `SecurityControl` | token 权限、scoped RBAC、生产身份/OIDC 准入、CORS、限流、请求体限制、响应安全头、隐私扫描、source hygiene、secret scan、audit log、SIEM、retention、OWASP API 回归包、release gate、production readiness 等控制资源 |
-| `controlType` | `audit_log` / `auth` / `cors` / `rate_limit` / `request_limit` / `headers` / `identity` / `siem` / `owasp_api_regression` / `privacy` / `rbac` / `retention` / `source_hygiene` / `secret_scan` / `release_gate` / `production_readiness` |
+| `SecurityControl` | token 权限、scoped RBAC、生产身份/OIDC 准入、CORS、限流、请求体限制、响应安全头、隐私扫描、source hygiene、secret scan、audit log、SIEM、retention、secret provider、OWASP API 回归包、release gate、production readiness 等控制资源 |
+| `controlType` | `audit_log` / `auth` / `cors` / `rate_limit` / `request_limit` / `headers` / `identity` / `siem` / `owasp_api_regression` / `privacy` / `rbac` / `retention` / `secret_provider` / `source_hygiene` / `secret_scan` / `release_gate` / `production_readiness` |
 | `status` | `available` 表示仓库内已有实现和本地验证命令；`manual` 表示必须由真实外部环境执行 |
 | `envVars` | 控制相关环境变量名，只列变量名，不列真实值 |
 | `implementationRefs` | 代码或脚本入口 |
@@ -376,7 +376,7 @@ curl -sS http://127.0.0.1:8001/security/control.production_readiness_external \
 | `privacyBoundary` | 该控制不得泄露的内容边界 |
 | `externalConnectivity` | 是否需要真实域名、真实凭证、人工权限或外部生产验证 |
 
-当前 available controls 包括记录接口 token、scoped RBAC、CORS allowlist、限流、请求体大小限制、响应安全头、结构化 audit_event、retention policy baseline、OWASP API security regression gate、隐私示例扫描、source hygiene、secret scan 和 public release policy。`control.production_identity_oidc`、`control.external_siem_immutable_audit`、`control.retention_cleanup_plan` 和 `control.production_readiness_external` 是 manual controls：必须使用真实 OIDC/IdP、真实 SIEM/不可变审计存储、真实 retention 清理实现、真实 API 域名、真实 token、真实 Bot 权限执行外部验证，否则只能标注外部连通验证待执行。
+当前 available controls 包括记录接口 token、scoped RBAC、CORS allowlist、限流、请求体大小限制、响应安全头、结构化 audit_event、retention policy baseline、OWASP API security regression gate、隐私示例扫描、source hygiene、secret scan 和 public release policy。`control.production_identity_oidc`、`control.external_siem_immutable_audit`、`control.retention_cleanup_plan`、`control.external_secret_provider_kms` 和 `control.production_readiness_external` 是 manual controls：必须使用真实 OIDC/IdP、真实 SIEM/不可变审计存储、真实 retention 清理实现、真实 Vault/KMS/secret manager、真实 API 域名、真实 token、真实 Bot 权限执行外部验证，否则只能标注外部连通验证待执行。
 
 本地 RBAC baseline：
 
@@ -398,6 +398,7 @@ bash scripts/production-security-gate.sh \
 - `control.production_identity_oidc`：公网多租户身份必须外部化到 OIDC/IdP；当前 scoped token 只是本地 baseline。
 - `control.external_siem_immutable_audit`：生产审计需要外部 SIEM 或不可变审计存储；当前不连接真实 SIEM。
 - `control.retention_cleanup_plan`：记录按年龄自动清理需要独立清理器、回归测试和审计事件；当前记录默认显式删除。
+- `control.external_secret_provider_kms`：公网多副本和外部 backend 的生产密钥生命周期必须外部化到 Vault/KMS/secret manager；当前 Fernet key ring 只是本地 encrypted-at-rest baseline。
 - `control.owasp_api_security_regression`：把 OWASP API Security Top 10 2023 的 10 个风险项映射到本地检查或明确外部待验证项。
 
 gate output 只保存检查名、状态和摘要，不输出真实 token、secret、DSN、SIEM endpoint、请求体、用户输入或报告正文。
@@ -416,6 +417,21 @@ bash scripts/security-externalization-gate.sh \
 - 没有 smoke summary、delete mode 和 audit action 的 retention cleaner 不能写成 live evidence。
 
 默认不提供 `--evidence-json` 时，该 gate 只证明仓库内 contract 和反伪造样例可验证，并输出 `外部连通验证待执行`。真实 OIDC、SIEM、不可变审计存储和 retention cleaner live evidence 必须由外部环境单独提供；仓库内不得用本地 token、策略文件或占位 URL 替代。
+
+外部 secret provider evidence contract / negative gate：
+
+```bash
+bash scripts/external-secret-provider-gate.sh \
+  --output-json infra/runtime/local-state/exports/security/external-secret-provider-gate.json
+```
+
+0079 新增 `contracts/fate/security/external-secret-provider-contract.json`，用于定义外部 Vault/KMS/secret manager 的 live evidence 必备字段、隐私边界和负向伪造样例。该 gate 验证：
+
+- 本地 Fernet key ring、`FATE_WEBHOOK_CONFIG_FERNET_KEYS` 或环境变量不能作为外部 Vault/KMS live proof。
+- placeholder key reference、dummy proof、明文 `secret=` / `token=` / `password=` 不能进入 evidence。
+- 缺少 key reference、rotation、access audit 或 application injection proof 的证据不能写成生产密钥生命周期已完成。
+
+默认不提供 `--evidence-json` 时，该 gate 只证明仓库内 contract 和反伪造样例可验证，并输出 `外部连通验证待执行`。真实外部 secret provider live evidence 必须由外部环境单独提供；仓库内不得用本地 Fernet、静态文件、环境变量或占位 provider 替代。
 
 本地安全 smoke：
 
@@ -761,6 +777,8 @@ bash scripts/webhook-config-vault-smoke.sh \
 ```
 
 该 smoke 使用临时 SQLite 和运行时生成的 Fernet key，证明 failed outbox 的 callback URL/secret 只以 ciphertext 落库、raw SQLite 和 summary 不包含 URL/secret/报告正文/姓名/地区、key rotation 会把旧 key id 切到 active key，manager 重建后不依赖外部 `delivery_resolver` 也能重投，成功后 encrypted config 被删除。
+
+0079 之后，外部 Vault/KMS/secret manager 的证据不再只停留在文档描述，而由 `external-secret-provider-gate` 定义统一 evidence schema 和反伪造负例。注意：`webhook-config-vault-smoke.sh` 仍只证明本地 Fernet encrypted-at-rest baseline，不证明外部 Vault/KMS、生产 key rotation、access audit 或 application secret injection 已完成。
 
 本地 webhook outbox lease smoke：
 

@@ -133,8 +133,9 @@ scripts/
 - `otel-collector-slo-gate.sh` / `otel-collector-slo-gate.py` 是 OTel collector/SLO adapter contract gate；校验 dry-run collector config、SLO evidence contract、registry/schema 链接和外部 pending 边界，不启动真实 collector 或访问 trace backend。
 - `provider-dependency-smoke.sh` / `provider-dependency-smoke.py` 是 production provider 本地依赖执行 smoke；通过统一 `CapabilityExecutor` 和脱敏固定样例验证 provider validate/calculate 链路，不访问公网或真实账号。
 - `provider-lifecycle-gate.sh` / `provider-lifecycle-gate.py` 是 production provider 生命周期门禁；校验 versionLock、source/license/resource manifest、promotionGate、deprecation 和 vendor source 生产使用许可。
-- `production-security-gate.sh` / `production-security-gate.py` 是生产安全 contract gate；验证生产身份外部化、OIDC/IdP 准入、SIEM/不可变审计存储、retention 自动清理计划和 OWASP API Security Top 10 回归包，不连接真实外部账号或 SIEM。
+- `production-security-gate.sh` / `production-security-gate.py` 是生产安全 contract gate；验证生产身份外部化、OIDC/IdP 准入、SIEM/不可变审计存储、retention 自动清理计划、外部 secret provider / Vault / KMS 准入和 OWASP API Security Top 10 回归包，不连接真实外部账号、SIEM、Vault 或 KMS。
 - `security-externalization-gate.sh` / `security-externalization-gate.py` 是安全外部化 evidence gate；先复用 production security gate，再验证 OIDC/SIEM/retention cleaner evidence contract 和反伪造负例，拒绝把本地 scoped token、placeholder SIEM 或缺 smoke 的 retention cleaner 写成 live evidence。
+- `external-secret-provider-gate.sh` / `external-secret-provider-gate.py` 是外部 secret provider evidence gate；验证 Vault/KMS/secret manager evidence contract 和反伪造负例，拒绝把本地 Fernet key ring、环境变量或 placeholder proof 写成 external live evidence。
 - `public-release-gate.sh`：公开 Web 工作台发布前本地门禁；串联 quick CI、发布策略、delivery smoke、生产静态准入和 live release evidence gate，可选验证线上 API URL。
 - `release-artifacts.sh` / `release-artifacts.py` 生成本地发布资产 baseline：CycloneDX 兼容 SBOM、SLSA/in-toto 风格 provenance 和 manifest；只读取 lockfile、Dockerfile、关键 contracts/scripts 和 git metadata，不生成远端 CI attestation、registry signature 或 container digest。
 - `rollback-drill.sh` / `rollback-drill.py` 生成本地 dry-run rollback drill evidence：校验回滚相关脚本、部署文档、release artifacts 和候选命令，输出 `kind=fatecat.rollback_drill_evidence` 的 JSON；不执行真实生产回滚、registry 切换或 HF/Bot 外部操作。

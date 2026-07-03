@@ -44,6 +44,19 @@
     "localBoundary": "当前记录默认显式删除；若声明按年龄自动清理，必须有单独任务实现清理器、回归测试和审计事件。",
     "externalConnectivity": "external_connectivity_pending"
   },
+  "secretProvider": {
+    "baselineMode": "local_fernet_encrypted_config_vault",
+    "productionTargetMode": "external_secret_provider_or_kms",
+    "requiredForPublicMultiReplica": true,
+    "admissionEnvVars": [
+      "FATE_EXTERNAL_SECRET_PROVIDER",
+      "FATE_EXTERNAL_SECRET_PROVIDER_EVIDENCE",
+      "FATE_WEBHOOK_CONFIG_FERNET_KEYS",
+      "FATE_WEBHOOK_CONFIG_ACTIVE_KEY_ID"
+    ],
+    "localBoundary": "FATE_WEBHOOK_CONFIG_FERNET_KEYS 只允许作为本地 encrypted-at-rest key ring baseline；不得宣称为外部 Vault/KMS、secret manager、生产 key rotation 或 access audit。",
+    "externalConnectivity": "external_connectivity_pending"
+  },
   "owaspApiSecurityTop10_2023": [
     {
       "id": "API1",
@@ -130,11 +143,14 @@
     "localCommand": "bash scripts/production-security-gate.sh",
     "externalizationGateCommand": "bash scripts/security-externalization-gate.sh",
     "externalizationEvidenceContract": "contracts/fate/security/externalization-evidence-contract.json",
+    "externalSecretProviderGateCommand": "bash scripts/external-secret-provider-gate.sh",
+    "externalSecretProviderEvidenceContract": "contracts/fate/security/external-secret-provider-contract.json",
     "quickCiRequired": true,
     "blocksPublicReleaseWithoutExternalEvidence": [
       "external_oidc_or_idp",
       "external_siem_or_immutable_audit_storage",
       "time_based_record_retention_cleanup",
+      "external_secret_provider_or_kms",
       "production_live_smoke"
     ]
   },

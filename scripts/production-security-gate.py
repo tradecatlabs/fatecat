@@ -17,6 +17,7 @@ REQUIRED_CONTROL_IDS = {
     "control.production_identity_oidc",
     "control.external_siem_immutable_audit",
     "control.retention_cleanup_plan",
+    "control.external_secret_provider_kms",
     "control.owasp_api_security_regression",
 }
 REQUIRED_OWASP_IDS = {f"API{index}" for index in range(1, 11)}
@@ -62,6 +63,12 @@ def run_gate() -> dict[str, Any]:
         "schema_allows_owasp_regression",
         "owasp_api_regression" in schema["allowedControlType"],
         "owasp_api_regression",
+    )
+    _check(
+        checks,
+        "schema_allows_secret_provider",
+        "secret_provider" in schema["allowedControlType"],
+        "secret_provider",
     )
     _check(
         checks,
@@ -137,6 +144,34 @@ def run_gate() -> dict[str, Any]:
         policy["retention"]["targetRecordMode"],
     )
 
+    secret_provider = controls["control.external_secret_provider_kms"]
+    _check(
+        checks,
+        "secret_provider_control_type",
+        secret_provider["controlType"] == "secret_provider",
+        secret_provider["controlType"],
+    )
+    _check(checks, "secret_provider_manual_status", secret_provider["status"] == "manual", secret_provider["status"])
+    _check(
+        checks,
+        "secret_provider_external_pending",
+        secret_provider["externalConnectivity"] == "external_connectivity_pending",
+        secret_provider["externalConnectivity"],
+    )
+    _check(
+        checks,
+        "secret_provider_envs",
+        set(policy["secretProvider"]["admissionEnvVars"]) <= set(secret_provider["envVars"]),
+        str(sorted(set(policy["secretProvider"]["admissionEnvVars"]) - set(secret_provider["envVars"]))),
+    )
+    _check(
+        checks,
+        "secret_provider_boundary_names_local_fernet",
+        "FATE_WEBHOOK_CONFIG_FERNET_KEYS" in policy["secretProvider"]["localBoundary"]
+        and "不得宣称" in policy["secretProvider"]["localBoundary"],
+        policy["secretProvider"]["localBoundary"],
+    )
+
     owasp = controls["control.owasp_api_security_regression"]
     _check(checks, "owasp_control_type", owasp["controlType"] == "owasp_api_regression", owasp["controlType"])
     _check(checks, "owasp_available", owasp["status"] == "available", owasp["status"])
@@ -174,6 +209,7 @@ def run_gate() -> dict[str, Any]:
             "external_oidc_or_idp",
             "external_siem_or_immutable_audit_storage",
             "time_based_record_retention_cleanup",
+            "external_secret_provider_or_kms",
             "production_live_smoke",
         }
         <= set(policy["releaseGate"]["blocksPublicReleaseWithoutExternalEvidence"]),
