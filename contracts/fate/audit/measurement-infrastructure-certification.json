@@ -4,14 +4,15 @@
   "resourceType": "MeasurementInfrastructureCertification",
   "id": "audit.measurement.infrastructure.certification",
   "status": "baseline",
-  "description": "100% 测算基础设施 certification aggregator dry-run 契约。该聚合器消费本地 local-ci 产物和现有 gate summary，也可显式消费独立生成的 current-release-proof sidecar JSON；输出分域 passed/blocked/pending/in-progress 结论；不把本地 dry-run、blocked ship gate 或 pending external live 伪装成 100% 完成。",
+  "description": "100% 测算基础设施 certification aggregator dry-run 契约。该聚合器消费本地 local-ci 产物和现有 gate summary，也可显式消费独立生成的 current-release-proof 与 current-audit-bundle sidecar JSON；输出分域 passed/blocked/pending/in-progress 结论；不把本地 dry-run、blocked ship gate、pending external live 或 sidecar 证据伪装成 100% 完成。",
   "generator": {
-    "command": "bash scripts/measurement-infrastructure-certification.sh --evidence-dir <local-ci-output-dir> [--current-release-proof-json <current-release-proof.json>] --output-json <path>",
+    "command": "bash scripts/measurement-infrastructure-certification.sh --evidence-dir <local-ci-output-dir> [--current-release-proof-json <current-release-proof.json>] [--current-audit-bundle-json <current-audit-bundle.json>] --output-json <path>",
     "pythonEntrypoint": "scripts/measurement-infrastructure-certification.py",
     "defaultOutput": "infra/runtime/local-state/exports/certification/measurement-infrastructure-certification.json"
   },
   "optionalEvidenceOverrides": {
-    "current-release-proof.json": "允许显式传入当前 HEAD 的独立 release proof sidecar；该 override 只替换 current-release-proof.json，不替换 live-release-gate.json。"
+    "current-release-proof.json": "允许显式传入当前 HEAD 的独立 release proof sidecar；该 override 只替换 current-release-proof.json，不替换 live-release-gate.json。",
+    "current-audit-bundle/current-audit-bundle.json": "允许显式传入当前 HEAD 的独立 current audit bundle sidecar；该 override 只替换 audit domain 的 current-audit-bundle JSON，不替换 release proof 或 live-release-gate。"
   },
   "requiredEvidenceFiles": [
     "provider-drift-trend-gate.json",

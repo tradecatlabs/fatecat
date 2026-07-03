@@ -218,7 +218,12 @@ def _assert_no_forbidden(summary: dict[str, Any], contract: dict[str, Any]) -> N
         raise CertificationGateError(f"certification summary contains forbidden fragments: {', '.join(forbidden)}")
 
 
-def run_gate(*, evidence_dir: Path, current_release_proof_json: Path | None = None) -> dict[str, Any]:
+def run_gate(
+    *,
+    evidence_dir: Path,
+    current_release_proof_json: Path | None = None,
+    current_audit_bundle_json: Path | None = None,
+) -> dict[str, Any]:
     contract = _load_json(CONTRACT_PATH)
     if not evidence_dir.is_dir():
         raise CertificationGateError(f"evidence dir missing: {evidence_dir}")
@@ -227,6 +232,10 @@ def run_gate(*, evidence_dir: Path, current_release_proof_json: Path | None = No
         if not current_release_proof_json.is_file():
             raise CertificationGateError(f"current release proof sidecar missing: {current_release_proof_json}")
         evidence_overrides["current-release-proof.json"] = current_release_proof_json
+    if current_audit_bundle_json is not None:
+        if not current_audit_bundle_json.is_file():
+            raise CertificationGateError(f"current audit bundle sidecar missing: {current_audit_bundle_json}")
+        evidence_overrides["current-audit-bundle/current-audit-bundle.json"] = current_audit_bundle_json
     domains = [_evaluate_domain(evidence_dir, spec, evidence_overrides) for spec in DOMAIN_SPECS]
     blocking_items: list[dict[str, Any]] = []
     external_pending: list[dict[str, Any]] = []
@@ -290,6 +299,14 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         help="Optional sidecar current-release-proof JSON for the current HEAD. Does not override live-release-gate.",
     )
+    parser.add_argument(
+        "--current-audit-bundle-json",
+        type=Path,
+        help=(
+            "Optional sidecar current-audit-bundle JSON for the current HEAD. "
+            "Does not override release proof or live-release-gate."
+        ),
+    )
     parser.add_argument("--require-certified", action="store_true", help="Require status=passed; otherwise exit 1.")
     return parser
 
@@ -298,7 +315,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     try:
-        summary = run_gate(evidence_dir=args.evidence_dir, current_release_proof_json=args.current_release_proof_json)
+        summary = run_gate(
+            evidence_dir=args.evidence_dir,
+            current_release_proof_json=args.current_release_proof_json,
+            current_audit_bundle_json=args.current_audit_bundle_json,
+        )
         write_summary(summary, args.output_json)
         print(
             json.dumps(

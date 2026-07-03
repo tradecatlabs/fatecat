@@ -238,3 +238,78 @@ def test_certification_cli_writes_sidecar_override_metadata(tmp_path):
     assert exit_code == 0
     assert stored["status"] == "blocked"
     assert stored["evidenceOverrides"] == {"current-release-proof.json": str(sidecar)}
+
+
+def test_certification_accepts_current_audit_bundle_sidecar_without_overriding_release_domain(tmp_path):
+    module = _load_module()
+    evidence_dir = _write_evidence_dir(tmp_path / "evidence", blocked=True)
+    sidecar = tmp_path / "sidecar" / "current-audit-bundle.json"
+    _write_json(
+        sidecar,
+        {
+            "status": "passed",
+            "auditGate": {
+                "status": "passed",
+                "blockingItems": [],
+            },
+            "pendingExternalValidationCount": 0,
+        },
+    )
+
+    summary = module.run_gate(evidence_dir=evidence_dir, current_audit_bundle_json=sidecar)
+    domains = {domain["id"]: domain for domain in summary["domains"]}
+    audit = domains["audit"]
+    release = domains["release"]
+    audit_bundle = next(
+        item for item in audit["evidence"] if item["logicalPath"] == "current-audit-bundle/current-audit-bundle.json"
+    )
+    current_proof = next(item for item in release["evidence"] if item["logicalPath"] == "current-release-proof.json")
+
+    assert summary["evidenceOverrides"] == {"current-audit-bundle/current-audit-bundle.json": str(sidecar)}
+    assert audit["status"] == "passed"
+    assert audit_bundle["source"] == "override"
+    assert audit_bundle["path"] == str(sidecar)
+    assert audit_bundle["blockingItems"] == []
+    assert audit_bundle["pendingItems"] == []
+    assert release["status"] == "blocked"
+    assert current_proof["source"] == "evidence_dir"
+    assert current_proof["blockingItems"] == ["release.git_clean"]
+    assert summary["certificationGate"]["canClaim100Percent"] is False
+
+
+def test_certification_cli_writes_multiple_sidecar_override_metadata(tmp_path):
+    module = _load_module()
+    evidence_dir = _write_evidence_dir(tmp_path / "evidence", blocked=True)
+    release_sidecar = tmp_path / "current-release-proof.json"
+    audit_sidecar = tmp_path / "current-audit-bundle.json"
+    output_json = tmp_path / "out.json"
+    _write_json(release_sidecar, {"status": "passed", "proofGate": {"status": "passed", "blockingItems": []}})
+    _write_json(
+        audit_sidecar,
+        {
+            "status": "passed",
+            "auditGate": {"status": "passed", "blockingItems": []},
+            "pendingExternalValidationCount": 0,
+        },
+    )
+
+    exit_code = module.main(
+        [
+            "--evidence-dir",
+            str(evidence_dir),
+            "--current-release-proof-json",
+            str(release_sidecar),
+            "--current-audit-bundle-json",
+            str(audit_sidecar),
+            "--output-json",
+            str(output_json),
+        ]
+    )
+
+    stored = json.loads(output_json.read_text(encoding="utf-8"))
+    assert exit_code == 0
+    assert stored["status"] == "blocked"
+    assert stored["evidenceOverrides"] == {
+        "current-release-proof.json": str(release_sidecar),
+        "current-audit-bundle/current-audit-bundle.json": str(audit_sidecar),
+    }
