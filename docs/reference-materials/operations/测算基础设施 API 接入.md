@@ -12,6 +12,7 @@
 | `/capabilities` | GET | 统一 capability 注册表 |
 | `/capabilities/{capability_id}` | GET | 单个 capability 资源详情、schema、links、准入状态 |
 | `/capabilities/{capability_id}/calculate` | POST | 执行生产化 capability |
+| `/sandbox/capabilities/{capability_id}/calculate` | POST | 本地 sandbox gateway，验证 sandbox token scope 后执行白名单 capability |
 | `/providers` | GET | production provider 资源注册表 |
 | `/providers/{provider_id}` | GET | 单个 Provider resource 详情、metadata、health、links |
 | `/evaluations` | GET | Dataset 与 EvaluationRun 评测资源注册表 |
@@ -61,6 +62,7 @@ SDK/package baseline、SDK release baseline、sandbox token contract、fixed sna
 docs/reference-materials/developer/SDK_PACKAGE_BASELINE.md
 docs/reference-materials/developer/SDK_RELEASE_BASELINE.md
 contracts/fate/developer/sdk-release-baseline.json
+contracts/fate/developer/sandbox-access-gateway.json
 contracts/fate/developer/sandbox-output-snapshot.json
 contracts/fate/developer/sandbox-token-contract.json
 contracts/fate/developer/api-changelog.json
@@ -90,6 +92,15 @@ bash scripts/developer-platform-gate.sh \
 bash scripts/developer-portal-gate.sh \
   --output-json infra/runtime/local-state/exports/developer/developer-portal-gate.json
 ```
+
+本地 sandbox access gateway gate：
+
+```bash
+bash scripts/sandbox-access-gateway-gate.sh \
+  --output-json infra/runtime/local-state/exports/developer/sandbox-access-gateway-gate.json
+```
+
+该 gate 会临时设置环境变量形式的本地 smoke token，验证缺 token 拒绝、错 scope 拒绝、白名单 capability 执行、限流和 audit 脱敏。它不代表公网 sandbox token issuer、revocation service 或生产 API gateway 已上线。
 
 SDK 与 Agent 示例位于：
 
@@ -126,6 +137,19 @@ curl -sS -X POST http://127.0.0.1:8001/capabilities/almanac/calculate \
   -H 'Content-Type: application/json' \
   -d '{"dateRange":{"start":"2026-05-08","end":"2026-05-08"},"eventType":"出行","place":"北京"}'
 ```
+
+本地 sandbox gateway 调用示例：
+
+```bash
+export FATE_SANDBOX_TOKENS='sandbox-test-user:<local-smoke-token>:capability:calculate:almanac'
+
+curl -sS -X POST http://127.0.0.1:8001/sandbox/capabilities/almanac/calculate \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <local-smoke-token>' \
+  -d '{"dateRange":{"start":"2026-05-08","end":"2026-05-08"},"eventType":"出行","place":"北京"}'
+```
+
+`FATE_SANDBOX_TOKENS` 仅用于本地 smoke，格式为 `subject:<local-smoke-credential>:scope1|scope2`；不得把本地凭证当成公网发行证据或生产密钥治理证据。
 
 返回结构固定包含：
 

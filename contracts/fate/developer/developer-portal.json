@@ -12,6 +12,7 @@
     "sdkReleaseBaseline": "contracts/fate/developer/sdk-release-baseline.json",
     "sandboxFixtures": "contracts/fate/developer/sandbox.json",
     "sandboxTokenContract": "contracts/fate/developer/sandbox-token-contract.json",
+    "sandboxAccessGateway": "contracts/fate/developer/sandbox-access-gateway.json",
     "sandboxOutputSnapshot": "contracts/fate/developer/sandbox-output-snapshot.json",
     "apiChangelog": "contracts/fate/developer/api-changelog.json"
   },
@@ -20,6 +21,11 @@
       "name": "OpenAPI",
       "path": "/openapi.json",
       "evidenceCommand": "bash scripts/export-openapi.sh --output infra/runtime/local-state/exports/developer/openapi.json"
+    },
+    {
+      "name": "Sandbox gateway gate",
+      "path": "contracts/fate/developer/sandbox-access-gateway.json",
+      "evidenceCommand": "bash scripts/sandbox-access-gateway-gate.sh"
     },
     {
       "name": "Developer docs smoke",
@@ -36,6 +42,7 @@
     "OpenAPI required paths validate",
     "SDK examples pass local syntax/package smoke",
     "sandbox fixtures execute through FastAPI TestClient",
+    "sandbox access gateway enforces token scope, rate limit and audit redaction locally",
     "fixed sandbox output snapshots match redacted canonical digests",
     "API changelog contains the 0086 release-baseline entry",
     "external public portal and public sandbox token service remain explicitly not implemented"

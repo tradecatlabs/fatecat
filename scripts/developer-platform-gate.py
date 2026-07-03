@@ -13,6 +13,7 @@ DEVELOPER_ROOT = REPO_ROOT / "contracts" / "fate" / "developer"
 DEFAULT_PLATFORM = DEVELOPER_ROOT / "developer-platform.json"
 DEFAULT_SANDBOX = DEVELOPER_ROOT / "sandbox.json"
 DEFAULT_TOKEN_CONTRACT = DEVELOPER_ROOT / "sandbox-token-contract.json"
+DEFAULT_SANDBOX_GATEWAY = DEVELOPER_ROOT / "sandbox-access-gateway.json"
 DEFAULT_CHANGELOG = DEVELOPER_ROOT / "api-changelog.json"
 DEFAULT_OUTPUT_JSON = (
     REPO_ROOT / "infra" / "runtime" / "local-state" / "exports" / "developer" / "developer-platform-gate.json"
@@ -107,13 +108,19 @@ def _validate_sdk_package_baseline(platform: dict[str, Any], checks: list[dict[s
 
 
 def _validate_sandbox_token_contract(
-    contract: dict[str, Any], sandbox: dict[str, Any], checks: list[dict[str, Any]]
+    contract: dict[str, Any], sandbox: dict[str, Any], gateway_path: Path, checks: list[dict[str, Any]]
 ) -> None:
     _check(checks, "token:schema", contract.get("schemaVersion") == 1, str(contract.get("schemaVersion")))
     _check(checks, "token:kind", contract.get("kind") == "fatecat.sandbox_token_contract", str(contract.get("kind")))
     _check(checks, "token:status", contract["status"] == "contract_only", contract["status"])
     _check(
         checks, "token:live_status", contract["liveServiceStatus"] == "not_implemented", contract["liveServiceStatus"]
+    )
+    _check(
+        checks,
+        "token:local_gateway_link",
+        contract["localGatewayContract"] == _rel(gateway_path),
+        contract["localGatewayContract"],
     )
     _check(
         checks,
@@ -151,12 +158,54 @@ def _validate_sandbox_token_contract(
             scope["allowedEndpoint"].startswith("/capabilities/"),
             scope["allowedEndpoint"],
         )
+        _check(
+            checks,
+            f"token:scope:{scope['scope']}:gateway_endpoint",
+            scope["localGatewayEndpoint"].startswith("/sandbox/capabilities/"),
+            scope["localGatewayEndpoint"],
+        )
     _check(
         checks,
         "token:negative_rules",
         len(contract.get("negativeRules", [])) >= 3,
         str(contract.get("negativeRules", [])),
     )
+
+
+def _validate_sandbox_gateway_contract(
+    gateway: dict[str, Any], token_contract: dict[str, Any], sandbox: dict[str, Any], checks: list[dict[str, Any]]
+) -> None:
+    _check(checks, "gateway:schema", gateway.get("schemaVersion") == 1, str(gateway.get("schemaVersion")))
+    _check(checks, "gateway:kind", gateway.get("kind") == "fatecat.sandbox_access_gateway", str(gateway.get("kind")))
+    _check(checks, "gateway:status", gateway["status"] == "local_gateway_baseline", gateway["status"])
+    _check(
+        checks,
+        "gateway:live_public_token_service",
+        gateway["livePublicTokenServiceStatus"] == "not_implemented",
+        gateway["livePublicTokenServiceStatus"],
+    )
+    _check(
+        checks,
+        "gateway:gate_command",
+        gateway["validation"]["gateCommand"] == "bash scripts/sandbox-access-gateway-gate.sh",
+        gateway["validation"]["gateCommand"],
+    )
+    token_scopes = {item["scope"] for item in token_contract["scopes"]}
+    fixture_ids = {item["id"] for item in sandbox["fixtures"]}
+    for rule in gateway.get("scopeRules", []):
+        _check(checks, f"gateway:scope:{rule['scope']}:token", rule["scope"] in token_scopes, rule["scope"])
+        _check(
+            checks,
+            f"gateway:scope:{rule['scope']}:fixture",
+            rule["fixtureId"] in fixture_ids,
+            rule["fixtureId"],
+        )
+        _check(
+            checks,
+            f"gateway:scope:{rule['scope']}:endpoint",
+            rule["gatewayEndpoint"].startswith("/sandbox/capabilities/"),
+            rule["gatewayEndpoint"],
+        )
 
 
 def _validate_api_changelog(changelog: dict[str, Any], checks: list[dict[str, Any]]) -> None:
@@ -234,11 +283,13 @@ def run_gate(
     platform_path: Path = DEFAULT_PLATFORM,
     sandbox_path: Path = DEFAULT_SANDBOX,
     sandbox_auth_contract_path: Path = DEFAULT_TOKEN_CONTRACT,
+    sandbox_gateway_path: Path = DEFAULT_SANDBOX_GATEWAY,
     changelog_path: Path = DEFAULT_CHANGELOG,
 ) -> dict[str, Any]:
     platform = _load_json(platform_path)
     sandbox = _load_json(sandbox_path)
     token_contract = _load_json(sandbox_auth_contract_path)
+    sandbox_gateway = _load_json(sandbox_gateway_path)
     changelog = _load_json(changelog_path)
     checks: list[dict[str, Any]] = []
 
@@ -251,6 +302,18 @@ def run_gate(
         "platform:token_contract_link",
         platform["sandbox"]["tokenContract"] == _rel(sandbox_auth_contract_path),
         platform["sandbox"]["tokenContract"],
+    )
+    _check(
+        checks,
+        "platform:sandbox_gateway_link",
+        platform["sandbox"]["accessGatewayContract"] == _rel(sandbox_gateway_path),
+        platform["sandbox"]["accessGatewayContract"],
+    )
+    _check(
+        checks,
+        "platform:sandbox_gateway_command",
+        platform["validation"]["sandboxGatewayGateCommand"] == "bash scripts/sandbox-access-gateway-gate.sh",
+        platform["validation"]["sandboxGatewayGateCommand"],
     )
     _check(
         checks,
@@ -273,7 +336,8 @@ def run_gate(
 
     sdk_packages = _validate_sdk_package_baseline(platform, checks)
     sandbox_fixtures = _validate_sandbox(sandbox, checks)
-    _validate_sandbox_token_contract(token_contract, sandbox, checks)
+    _validate_sandbox_token_contract(token_contract, sandbox, sandbox_gateway_path, checks)
+    _validate_sandbox_gateway_contract(sandbox_gateway, token_contract, sandbox, checks)
     _validate_api_changelog(changelog, checks)
 
     return {
@@ -283,6 +347,7 @@ def run_gate(
         "status": "passed",
         "platform": _rel(platform_path),
         "sandboxTokenContract": _rel(sandbox_auth_contract_path),
+        "sandboxAccessGateway": _rel(sandbox_gateway_path),
         "apiChangelog": _rel(changelog_path),
         "summary": {
             "sdkPackageCandidates": len(sdk_packages),
@@ -290,6 +355,7 @@ def run_gate(
             "checks": len(checks),
             "publishedSdkPackages": 0,
             "liveSandboxTokenService": False,
+            "localSandboxGateway": True,
         },
         "sdkPackages": sdk_packages,
         "sandboxFixtures": sandbox_fixtures,
@@ -311,6 +377,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--sandbox-token-contract", type=Path, default=DEFAULT_TOKEN_CONTRACT, help="sandbox token contract path"
     )
+    parser.add_argument(
+        "--sandbox-gateway", type=Path, default=DEFAULT_SANDBOX_GATEWAY, help="sandbox access gateway contract path"
+    )
     parser.add_argument("--api-changelog", type=Path, default=DEFAULT_CHANGELOG, help="API changelog contract path")
     parser.add_argument("--output-json", type=Path, default=DEFAULT_OUTPUT_JSON, help="gate summary output path")
     return parser
@@ -324,6 +393,7 @@ def main(argv: list[str] | None = None) -> int:
             platform_path=args.platform,
             sandbox_path=args.sandbox,
             sandbox_auth_contract_path=args.sandbox_token_contract,
+            sandbox_gateway_path=args.sandbox_gateway,
             changelog_path=args.api_changelog,
         )
         write_summary(summary, args.output_json)

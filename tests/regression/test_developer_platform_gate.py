@@ -31,7 +31,9 @@ def test_developer_platform_gate_locks_sdk_sandbox_and_changelog_contracts(tmp_p
     assert stored["summary"]["sandboxFixtures"] >= 2
     assert stored["summary"]["publishedSdkPackages"] == 0
     assert stored["summary"]["liveSandboxTokenService"] is False
+    assert stored["summary"]["localSandboxGateway"] is True
     assert stored["sandboxTokenContract"] == "contracts/fate/developer/sandbox-token-contract.json"
+    assert stored["sandboxAccessGateway"] == "contracts/fate/developer/sandbox-access-gateway.json"
     assert stored["apiChangelog"] == "contracts/fate/developer/api-changelog.json"
     assert any("PyPI/npm" in item for item in stored["limitations"])
     assert any("sandbox token" in item for item in stored["limitations"])
@@ -47,9 +49,11 @@ def test_developer_platform_contract_explicitly_disclaims_live_public_sdk_and_to
     assert platform["sdkPackageBaseline"]["releaseStatus"] == "baseline_not_published"
     assert platform["sdkPackageBaseline"]["packageRegistryStatus"] == "not_published"
     assert platform["sandbox"]["livePublicSandboxStatus"] == "not_implemented"
+    assert platform["sandbox"]["accessGatewayContract"] == "contracts/fate/developer/sandbox-access-gateway.json"
     assert platform["apiChangelog"]["machineContract"] == "contracts/fate/developer/api-changelog.json"
     assert token_contract["status"] == "contract_only"
     assert token_contract["liveServiceStatus"] == "not_implemented"
+    assert token_contract["localGatewayContract"] == "contracts/fate/developer/sandbox-access-gateway.json"
     assert token_contract["tokenMaterialPolicy"] == "no_real_tokens_in_repo"
     assert changelog["currentApiVersion"] == "v1"
     assert "api-changelog.0067.developer-platform-contract" in {entry["id"] for entry in changelog["entries"]}

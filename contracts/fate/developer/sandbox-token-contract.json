@@ -4,6 +4,8 @@
   "description": "Contract for a future public developer sandbox token. The current repository only defines the contract and local checks; it does not store or issue real sandbox tokens.",
   "status": "contract_only",
   "liveServiceStatus": "not_implemented",
+  "localGatewayStatus": "local_gateway_baseline",
+  "localGatewayContract": "contracts/fate/developer/sandbox-access-gateway.json",
   "tokenMaterialPolicy": "no_real_tokens_in_repo",
   "privacyBoundary": "Do not store real token values, secrets, account identifiers, production URLs, webhook secrets, DSNs or user data in this repository.",
   "authorizationHeaderShape": "Authorization: Bearer <sandbox-token>",
@@ -20,12 +22,14 @@
       "scope": "capability:calculate:almanac",
       "capabilityId": "almanac",
       "allowedEndpoint": "/capabilities/almanac/calculate",
+      "localGatewayEndpoint": "/sandbox/capabilities/almanac/calculate",
       "sandboxFixtureId": "sandbox.almanac.travel.beijing.2026-05-08"
     },
     {
       "scope": "capability:calculate:meihua",
       "capabilityId": "meihua",
       "allowedEndpoint": "/capabilities/meihua/calculate",
+      "localGatewayEndpoint": "/sandbox/capabilities/meihua/calculate",
       "sandboxFixtureId": "sandbox.meihua.number.beijing.test"
     }
   ],

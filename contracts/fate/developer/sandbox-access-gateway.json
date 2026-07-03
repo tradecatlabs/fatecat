@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.sandbox_access_gateway",
+  "description": "Local executable sandbox access gateway baseline. It validates sandbox token shape, scope enforcement, rate limit visibility and redacted audit evidence without claiming a public token issuer.",
+  "owner": "contracts/fate/developer",
+  "status": "local_gateway_baseline",
+  "livePublicTokenServiceStatus": "not_implemented",
+  "externalIssuerStatus": "not_implemented",
+  "privacyBoundary": "Gateway evidence must not store real token values, secrets, account identifiers, production URLs, webhook secrets, DSNs, user data, report bodies or non-Beijing real places.",
+  "tokenMaterialPolicy": "no_real_tokens_in_repo",
+  "configuration": {
+    "envVar": "FATE_SANDBOX_TOKENS",
+    "format": "subject:token:scope1|scope2",
+    "storageBoundary": "Environment-only local smoke input; never commit token material.",
+    "publicIssuer": "future external sandbox issuer"
+  },
+  "entrypoints": [
+    {
+      "method": "POST",
+      "path": "/sandbox/capabilities/{capability_id}/calculate",
+      "canonicalAlias": "/api/v1/sandbox/capabilities/{capability_id}/calculate",
+      "auth": "Authorization: Bearer <sandbox-token>",
+      "localAlternateAuthHeader": "X-FateCat-Sandbox-Token"
+    }
+  ],
+  "scopeRules": [
+    {
+      "scope": "capability:calculate:almanac",
+      "capabilityId": "almanac",
+      "fixtureId": "sandbox.almanac.travel.beijing.2026-05-08",
+      "gatewayEndpoint": "/sandbox/capabilities/almanac/calculate"
+    },
+    {
+      "scope": "capability:calculate:meihua",
+      "capabilityId": "meihua",
+      "fixtureId": "sandbox.meihua.number.beijing.test",
+      "gatewayEndpoint": "/sandbox/capabilities/meihua/calculate"
+    }
+  ],
+  "runtimeControls": {
+    "scopeEnforcement": "required",
+    "rateLimit": {
+      "source": "FATE_RATE_LIMIT_PER_MINUTE",
+      "localEvidenceRequired": true
+    },
+    "audit": {
+      "action": "sandbox.capability.calculate",
+      "redaction": "actor subject and target are hashed; token values are never logged"
+    },
+    "metrics": {
+      "source": "/metrics",
+      "requiredMetric": "fatecat_requests_total"
+    }
+  },
+  "validation": {
+    "gateCommand": "bash scripts/sandbox-access-gateway-gate.sh",
+    "localCiArtifact": "sandbox-access-gateway-gate.json",
+    "requiredChecks": [
+      "missing sandbox token is rejected",
+      "wrong scope is rejected",
+      "allowed scope executes a fixture through CapabilityExecutor",
+      "rate limit rejects the second request when configured to one request per minute",
+      "audit event is emitted without token material",
+      "OpenAPI exposes the sandbox gateway path"
+    ]
+  },
+  "negativeRules": [
+    "FATE_API_TOKEN and record-scoped user tokens cannot be reported as sandbox token issuer evidence.",
+    "Local FATE_SANDBOX_TOKENS smoke input cannot be reported as public sandbox token service evidence.",
+    "Docs smoke or fixed snapshots cannot be reported as token issuance, revocation or external gateway evidence.",
+    "Gateway evidence must not include raw token strings, raw subject identifiers, callback URLs or report bodies."
+  ],
+  "evidenceRequiredBeforeLive": [
+    "external sandbox token issuer",
+    "sandbox-only scope enforcement live smoke",
+    "rate limit live smoke",
+    "revocation live smoke",
+    "no production data access proof"
+  ]
+}

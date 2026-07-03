@@ -48,6 +48,7 @@ def test_developer_portal_contracts_are_release_baseline_not_publication_claims(
     portal = json.loads((ROOT / "contracts/fate/developer/developer-portal.json").read_text(encoding="utf-8"))
     platform = json.loads((ROOT / "contracts/fate/developer/developer-platform.json").read_text(encoding="utf-8"))
     sdk = json.loads((ROOT / "contracts/fate/developer/sdk-release-baseline.json").read_text(encoding="utf-8"))
+    gateway = json.loads((ROOT / "contracts/fate/developer/sandbox-access-gateway.json").read_text(encoding="utf-8"))
     snapshot = json.loads((ROOT / "contracts/fate/developer/sandbox-output-snapshot.json").read_text(encoding="utf-8"))
     changelog = json.loads((ROOT / "contracts/fate/developer/api-changelog.json").read_text(encoding="utf-8"))
 
@@ -56,9 +57,13 @@ def test_developer_portal_contracts_are_release_baseline_not_publication_claims(
     assert platform["developerPortal"]["machineContract"] == "contracts/fate/developer/developer-portal.json"
     assert platform["sdkReleaseBaseline"]["machineContract"] == "contracts/fate/developer/sdk-release-baseline.json"
     assert platform["sandbox"]["fixedOutputSnapshotStatus"] == "local_fixed_snapshot"
+    assert portal["machineContracts"]["sandboxAccessGateway"] == "contracts/fate/developer/sandbox-access-gateway.json"
+    assert gateway["status"] == "local_gateway_baseline"
+    assert gateway["livePublicTokenServiceStatus"] == "not_implemented"
     assert sdk["status"] == "local_release_candidate"
     assert sdk["packageRegistryStatus"] == "not_published"
     assert all(item["publishEvidence"] is None for item in sdk["packageCandidates"])
     assert snapshot["status"] == "local_fixed_snapshot"
     assert "full response bodies" in snapshot["privacyBoundary"]
     assert "api-changelog.0086.developer-portal-sdk-release-baseline" in {entry["id"] for entry in changelog["entries"]}
+    assert "api-changelog.0087.sandbox-access-gateway-baseline" in {entry["id"] for entry in changelog["entries"]}

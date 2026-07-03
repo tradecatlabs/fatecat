@@ -1,6 +1,6 @@
 # FateCat Developer Sandbox
 
-FateCat 的开发者接入面以本地 OpenAPI、sandbox fixture、最小 SDK 示例、SDK/package baseline、sandbox token contract 和 API changelog 为基线。
+FateCat 的开发者接入面以本地 OpenAPI、sandbox fixture、最小 SDK 示例、SDK/package baseline、sandbox token contract、本地 sandbox access gateway 和 API changelog 为基线。
 
 机器契约入口：
 
@@ -39,6 +39,14 @@ contracts/fate/developer/sandbox-token-contract.json
 ```
 
 当前仓库只定义 token contract，不发行真实 sandbox token。
+
+本地 sandbox access gateway 的 scope、限流、审计和门禁口径位于：
+
+```text
+contracts/fate/developer/sandbox-access-gateway.json
+```
+
+该 gateway 只使用环境变量中的本地 smoke token 验证运行时访问控制语义，不声明公网 token issuer、revocation service 或生产 API key 服务已上线。
 
 ## 示例
 
@@ -91,4 +99,11 @@ bash scripts/developer-platform-gate.sh \
 ```bash
 bash scripts/developer-portal-gate.sh \
   --output-json infra/runtime/local-state/exports/developer/developer-portal-gate.json
+```
+
+Sandbox access gateway gate：
+
+```bash
+bash scripts/sandbox-access-gateway-gate.sh \
+  --output-json infra/runtime/local-state/exports/developer/sandbox-access-gateway-gate.json
 ```

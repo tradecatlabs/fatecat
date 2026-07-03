@@ -21,6 +21,7 @@ DEFAULT_PORTAL = DEVELOPER_ROOT / "developer-portal.json"
 DEFAULT_PLATFORM = DEVELOPER_ROOT / "developer-platform.json"
 DEFAULT_SDK_RELEASE = DEVELOPER_ROOT / "sdk-release-baseline.json"
 DEFAULT_SANDBOX = DEVELOPER_ROOT / "sandbox.json"
+DEFAULT_SANDBOX_GATEWAY = DEVELOPER_ROOT / "sandbox-access-gateway.json"
 DEFAULT_SNAPSHOT = DEVELOPER_ROOT / "sandbox-output-snapshot.json"
 DEFAULT_CHANGELOG = DEVELOPER_ROOT / "api-changelog.json"
 DEFAULT_OUTPUT_JSON = (
@@ -168,6 +169,7 @@ def _validate_portal(portal: dict[str, Any], platform: dict[str, Any], checks: l
         _rel(DEFAULT_SDK_RELEASE),
         _rel(DEFAULT_SANDBOX),
         "contracts/fate/developer/sandbox-token-contract.json",
+        _rel(DEFAULT_SANDBOX_GATEWAY),
         _rel(DEFAULT_SNAPSHOT),
         _rel(DEFAULT_CHANGELOG),
     }

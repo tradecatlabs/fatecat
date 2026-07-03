@@ -57,6 +57,21 @@
         "docs/reference-materials/developer/SDK_RELEASE_BASELINE.md",
         "scripts/developer-portal-gate.sh"
       ]
+    },
+    {
+      "id": "api-changelog.0087.sandbox-access-gateway-baseline",
+      "date": "2026-07-03",
+      "apiVersion": "v1",
+      "changeType": "runtime_gateway_baseline",
+      "summary": "Added local sandbox access gateway baseline for scoped capability execution, rate-limit evidence and redacted audit events without claiming a public token issuer.",
+      "compatibility": "backward_compatible",
+      "migrationRequired": false,
+      "evidence": [
+        "contracts/fate/developer/sandbox-access-gateway.json",
+        "contracts/fate/developer/sandbox-token-contract.json",
+        "scripts/sandbox-access-gateway-gate.sh",
+        "tests/regression/test_sandbox_access_gateway_gate.py"
+      ]
     }
   ],
   "limitations": [

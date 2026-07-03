@@ -73,6 +73,9 @@
   "sandbox": {
     "fixtureContract": "contracts/fate/developer/sandbox.json",
     "tokenContract": "contracts/fate/developer/sandbox-token-contract.json",
+    "accessGatewayContract": "contracts/fate/developer/sandbox-access-gateway.json",
+    "accessGatewayStatus": "local_gateway_baseline",
+    "accessGatewayCommand": "bash scripts/sandbox-access-gateway-gate.sh",
     "fixedOutputSnapshot": "contracts/fate/developer/sandbox-output-snapshot.json",
     "fixedOutputSnapshotStatus": "local_fixed_snapshot",
     "livePublicSandboxStatus": "not_implemented"
@@ -84,10 +87,12 @@
   "validation": {
     "gateCommand": "bash scripts/developer-platform-gate.sh",
     "portalGateCommand": "bash scripts/developer-portal-gate.sh",
+    "sandboxGatewayGateCommand": "bash scripts/sandbox-access-gateway-gate.sh",
     "docsSmokeCommand": "bash scripts/developer-docs-smoke.sh",
     "openapiExportCommand": "bash scripts/export-openapi.sh --output infra/runtime/local-state/exports/developer/openapi.json",
     "localCiArtifact": "developer-platform-gate.json",
-    "localCiPortalArtifact": "developer-portal-gate.json"
+    "localCiPortalArtifact": "developer-portal-gate.json",
+    "localCiSandboxGatewayArtifact": "sandbox-access-gateway-gate.json"
   },
   "limitations": [
     "Does not prove PyPI/npm SDK publication.",

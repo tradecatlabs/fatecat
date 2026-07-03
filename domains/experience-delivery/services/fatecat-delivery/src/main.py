@@ -214,6 +214,8 @@ RECORD_SCOPES = frozenset(
 )
 ADMIN_RECORD_SCOPES = RECORD_SCOPES
 DEFAULT_USER_RECORD_SCOPES = RECORD_SCOPES
+SANDBOX_TOKEN_CONTRACT_PATH = ASSETS_DIR / "developer" / "sandbox-token-contract.json"
+SANDBOX_SCOPE_PREFIX = "capability:calculate:"
 
 
 @dataclass(frozen=True)
@@ -347,6 +349,43 @@ def _user_token_principals() -> list[tuple[str, ApiPrincipal]]:
     return principals
 
 
+def _sandbox_allowed_scopes() -> frozenset[str]:
+    try:
+        contract = json.loads(SANDBOX_TOKEN_CONTRACT_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return frozenset()
+    scopes = {
+        item.get("scope")
+        for item in contract.get("scopes", [])
+        if isinstance(item, dict) and isinstance(item.get("scope"), str)
+    }
+    return frozenset(scopes)
+
+
+def _parse_sandbox_scope_list(raw: str) -> frozenset[str]:
+    allowed_scopes = _sandbox_allowed_scopes()
+    requested = {item.strip() for item in raw.split("|") if item.strip()}
+    return frozenset(scope for scope in requested if scope in allowed_scopes)
+
+
+def _sandbox_token_principals() -> list[tuple[str, ApiPrincipal]]:
+    raw = os.getenv("FATE_SANDBOX_TOKENS", "").strip()
+    if not raw:
+        return []
+
+    principals: list[tuple[str, ApiPrincipal]] = []
+    for item in raw.split(","):
+        parts = item.strip().split(":", 2)
+        if len(parts) != 3:
+            continue
+        subject = parts[0].strip()
+        token = parts[1].strip()
+        scopes = _parse_sandbox_scope_list(parts[2])
+        if subject and token and scopes:
+            principals.append((token, ApiPrincipal(role="sandbox", user_id=subject, scopes=scopes)))
+    return principals
+
+
 def _require_record_access(x_api_key: str | None, authorization: str | None) -> ApiPrincipal:
     if not _records_enabled():
         raise HTTPException(status_code=403, detail="记录接口未启用")
@@ -364,6 +403,34 @@ def _require_record_access(x_api_key: str | None, authorization: str | None) -> 
         if secrets.compare_digest(supplied, token):
             return principal
     raise HTTPException(status_code=403, detail="未授权")
+
+
+def _sandbox_scope_for_capability(capability_id: str) -> str:
+    return f"{SANDBOX_SCOPE_PREFIX}{capability_id}"
+
+
+def _require_sandbox_capability_access(
+    capability_id: str,
+    x_sandbox_token: str | None,
+    authorization: str | None,
+) -> ApiPrincipal:
+    required_scope = _sandbox_scope_for_capability(capability_id)
+    if required_scope not in _sandbox_allowed_scopes():
+        raise HTTPException(status_code=403, detail="sandbox capability 未开放")
+
+    principals = _sandbox_token_principals()
+    if not principals:
+        raise HTTPException(status_code=403, detail="sandbox token gateway 未启用")
+
+    supplied = _extract_auth_token(x_sandbox_token, authorization)
+    if not supplied:
+        raise HTTPException(status_code=403, detail="sandbox token 缺失")
+
+    for token, principal in principals:
+        if secrets.compare_digest(supplied, token):
+            _require_scope(principal, required_scope)
+            return principal
+    raise HTTPException(status_code=403, detail="sandbox token 无效")
 
 
 def _require_scope(principal: ApiPrincipal, scope: str) -> None:
@@ -1557,24 +1624,31 @@ def get_measurement_provider(provider_id: str):
     return get_prediction_provider(provider_id)
 
 
+def _capability_execution_payload(capability_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    result = _run_with_calculation_slot(
+        lambda: CapabilityExecutor().execute(CapabilityInput(capability_id=capability_id, payload=payload))
+    )
+    return {
+        "success": True,
+        "capabilityId": result.capability_id,
+        "status": result.status,
+        "reportProfile": result.report_profile,
+        "data": result.data,
+        "evidence": result.evidence,
+        "risk": result.risk,
+        "metadata": result.metadata,
+        "report": _capability_report_payload(result),
+    }
+
+
 @app.post("/api/v1/capabilities/{capability_id}")
 def execute_prediction_capability(capability_id: str, payload: dict[str, Any]):
     """执行已生产化的独立 capability。"""
     try:
-        result = _run_with_calculation_slot(
-            lambda: CapabilityExecutor().execute(CapabilityInput(capability_id=capability_id, payload=payload))
-        )
+        data = _capability_execution_payload(capability_id, payload)
         return attach_branding(
             {
-                "success": True,
-                "capabilityId": result.capability_id,
-                "status": result.status,
-                "reportProfile": result.report_profile,
-                "data": result.data,
-                "evidence": result.evidence,
-                "risk": result.risk,
-                "metadata": result.metadata,
-                "report": _capability_report_payload(result),
+                **data,
                 "meta": {"calculatedAt": now_cn().isoformat()},
             }
         )
@@ -1586,6 +1660,58 @@ def execute_prediction_capability(capability_id: str, payload: dict[str, Any]):
 def calculate_measurement_capability(capability_id: str, payload: dict[str, Any]):
     """基础设施口径 capability 执行别名。"""
     return execute_prediction_capability(capability_id, payload)
+
+
+@app.post("/api/v1/sandbox/capabilities/{capability_id}/calculate")
+def calculate_sandbox_capability(
+    capability_id: str,
+    payload: dict[str, Any],
+    x_fatecat_sandbox_token: str | None = Header(default=None, alias="X-FateCat-Sandbox-Token"),
+    authorization: str | None = Header(default=None),
+):
+    """本地 sandbox gateway：验证 sandbox token scope 后执行白名单 capability。"""
+    principal = _require_sandbox_capability_access(capability_id, x_fatecat_sandbox_token, authorization)
+    required_scope = _sandbox_scope_for_capability(capability_id)
+    try:
+        data = _capability_execution_payload(capability_id, payload)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+    _log_audit_event(
+        "sandbox.capability.calculate",
+        principal=principal,
+        target_type="Capability",
+        target_id=capability_id,
+        metadata={
+            "scope": required_scope,
+            "sandbox": True,
+            "reportProfile": data.get("reportProfile"),
+            "liveServiceStatus": "local_gateway_only",
+        },
+    )
+    return attach_branding(
+        {
+            **data,
+            "sandbox": {
+                "authorized": True,
+                "scope": required_scope,
+                "subjectHash": _audit_hash(principal.user_id or "sandbox"),
+                "liveServiceStatus": "local_gateway_only",
+            },
+            "meta": {"calculatedAt": now_cn().isoformat()},
+        }
+    )
+
+
+@app.post("/sandbox/capabilities/{capability_id}/calculate")
+def calculate_measurement_sandbox_capability(
+    capability_id: str,
+    payload: dict[str, Any],
+    x_fatecat_sandbox_token: str | None = Header(default=None, alias="X-FateCat-Sandbox-Token"),
+    authorization: str | None = Header(default=None),
+):
+    """基础设施口径 sandbox gateway 别名。"""
+    return calculate_sandbox_capability(capability_id, payload, x_fatecat_sandbox_token, authorization)
 
 
 @app.get("/api/v1/errors")
@@ -1756,11 +1882,14 @@ def service_metadata():
                     "developerPlatform": "contracts/fate/developer/developer-platform.json",
                     "sdkPackageBaseline": "docs/reference-materials/developer/SDK_PACKAGE_BASELINE.md",
                     "sandboxTokenContract": "contracts/fate/developer/sandbox-token-contract.json",
+                    "sandboxAccessGateway": "contracts/fate/developer/sandbox-access-gateway.json",
                     "apiChangelog": "contracts/fate/developer/api-changelog.json",
                     "developerPlatformGate": "bash scripts/developer-platform-gate.sh",
+                    "sandboxGatewayGate": "bash scripts/sandbox-access-gateway-gate.sh",
                     "capabilityList": "/capabilities",
                     "capabilityDetail": "/capabilities/{capability_id}",
                     "capabilityCalculate": "/capabilities/{capability_id}/calculate",
+                    "sandboxCapabilityCalculate": "/sandbox/capabilities/{capability_id}/calculate",
                     "providerList": "/providers",
                     "providerDetail": "/providers/{provider_id}",
                     "evaluationList": "/evaluations",
