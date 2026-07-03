@@ -299,7 +299,7 @@ bash scripts/evaluation-nightly.sh \
 
 dashboard 只展示 summary、run、命令、exit code、duration 和 diff 摘要；不展示 stdout/stderr tail、benchmark 标准答案、报告正文、真实 token、secret、DSN 或真实用户输入。GitHub 定时入口为 `.github/workflows/evaluation-nightly.yml`，仅上传 artifact，不自动部署，不访问真实生产凭证。
 
-MingLi-Bench 被登记为 offline/evaluation_only benchmark：`bash scripts/run-mingli-bench.sh --stats` 不联网；完整 predictions 评测依赖本地 reference repo 和显式生成命令，不属于默认 production release 必跑门禁。
+MingLi-Bench 被登记为 offline/evaluation_only benchmark：`bash scripts/mingli-bench-gate.sh --year 2025 --sample 5` 不联网，输出脱敏聚合 gate summary；`run-mingli-bench.sh` 和 `generate-mingli-predictions.sh` 仍可用于本地临时 prompt/predictions/accuracy 调试，但逐题结果和 benchmark 标准答案不得进入 CI、dashboard 或生产报告。
 
 ## 观测资源入口
 

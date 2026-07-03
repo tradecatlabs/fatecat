@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.mingli_bench_gate_contract",
+  "description": "MingLi-Bench 离线 benchmark 聚合门禁契约。该契约只允许输出数据集统计、FateCat baseline 聚合准确率、license/usage 边界和 no-leak 检查，不保存题目、出生信息、标准答案或逐题结果。",
+  "reportKind": "fatecat.mingli_bench_gate",
+  "requiredReportFields": [
+    "schemaVersion",
+    "generatedAt",
+    "kind",
+    "status",
+    "coreCorpus",
+    "benchmark",
+    "licenseBoundary",
+    "evaluationBoundary",
+    "noLeak",
+    "checks",
+    "findings",
+    "privacyBoundary",
+    "limits"
+  ],
+  "requiredBenchmarkFields": [
+    "dataset",
+    "totalQuestions",
+    "availableYears",
+    "categories",
+    "sample",
+    "baseline"
+  ],
+  "forbiddenReportFragments": [
+    "\"birth_info\"",
+    "\"question\"",
+    "\"options\"",
+    "\"answer\"",
+    "\"expected\"",
+    "\"predicted\"",
+    "\"results\"",
+    "\"fourPillars\"",
+    "MingLi-Bench 匿名样本",
+    "token=",
+    "secret=",
+    "password=",
+    "DATABASE_URL",
+    "DB_DSN"
+  ],
+  "requiredLocalSources": [
+    "contracts/fate/evaluations/core-quality-corpus.json",
+    "contracts/fate/evaluations/report-diff-policy.json",
+    "contracts/fate/evaluations/registry.json",
+    "contracts/fate/data-supply-chain/registry.json",
+    "tools/reference-repos/vendor_sources.json",
+    "tools/reference-repos/github/MingLi-Bench-main/data/data.json",
+    "tools/reference-repos/github/MingLi-Bench-main/LICENSE"
+  ],
+  "releaseBoundary": "该门禁只证明本地核心语料、MingLi-Bench 离线 stats、FateCat baseline 聚合评分、license/usage/no-leak 边界可复核；不证明外部模型评测、专家人工准确率、生产公网服务或上游仓库当前 HEAD 已同步。"
+}

@@ -186,11 +186,14 @@
       },
       "paths": [
         "tools/reference-repos/github/MingLi-Bench-main/data/data.json",
+        "contracts/fate/evaluations/mingli-bench-gate.json",
+        "scripts/mingli-bench-gate.sh",
         "scripts/run-mingli-bench.sh",
         "scripts/generate-mingli-predictions.sh",
         "domains/fate-analysis/services/fate-core/src/fate_core/evaluation/mingli_baseline.py"
       ],
       "commands": [
+        "bash scripts/mingli-bench-gate.sh --year 2025 --sample 5",
         "bash scripts/run-mingli-bench.sh --stats",
         "bash scripts/generate-mingli-predictions.sh --output-jsonl infra/runtime/local-state/exports/mingli-predictions.jsonl --sample 5"
       ],
@@ -327,11 +330,11 @@
       "resourceType": "EvaluationRun",
       "apiVersion": "fatecat.tradecatlabs/v1",
       "id": "run.mingli_bench_offline",
-      "name": "MingLi-Bench 离线 benchmark smoke",
+      "name": "MingLi-Bench 离线 aggregate benchmark smoke",
       "runType": "offline_benchmark",
       "gateType": "optional",
       "datasetIds": ["dataset.mingli_bench_offline"],
-      "commands": ["bash scripts/run-mingli-bench.sh --stats"],
+      "commands": ["bash scripts/mingli-bench-gate.sh --year 2025 --sample 5"],
       "releaseRequired": false,
       "localAvailability": "requires_reference_repo",
       "lastKnownStatusPolicy": "not_embedded",
@@ -342,9 +345,9 @@
         "datasets": "/evaluations/dataset.mingli_bench_offline"
       },
       "metadata": {
-        "owner": "scripts/run-mingli-bench.sh",
-        "verificationScope": "离线 stats、prompt 输出和 predictions 评估入口",
-        "resultStorage": "可选输出到 infra/runtime/local-state/exports/mingli-bench/evaluation.json",
+        "owner": "scripts/mingli-bench-gate.sh",
+        "verificationScope": "离线 stats、core corpus summary、FateCat baseline 聚合评分、license/usage/no-leak 边界",
+        "resultStorage": "可选输出到 infra/runtime/local-state/exports/evaluations/mingli-bench-gate.json",
         "externalConnectivity": "not_required_for_offline_stats",
         "risk": "依赖 reference repo；不是默认 release 必跑门禁，也不代表线上模型评测已完成。"
       }

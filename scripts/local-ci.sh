@@ -176,6 +176,10 @@ run_quick() {
     --output-json "${output_dir}/bazi-ziwei-l4-golden-smoke.json"
   run_step "core quality corpus gate" bash "${script_dir}/core-quality-corpus-gate.sh" \
     --output-json "${output_dir}/core-quality-corpus-gate.json"
+  run_step "MingLi-Bench aggregate gate" bash "${script_dir}/mingli-bench-gate.sh" \
+    --year 2025 \
+    --sample 5 \
+    --output-json "${output_dir}/mingli-bench-gate.json"
   run_step "data supply chain gate" bash "${script_dir}/data-supply-chain-gate.sh" \
     --output-json "${output_dir}/data-supply-chain-gate.json"
   run_step "runtime backend gate" bash "${script_dir}/runtime-backend-gate.sh" \
@@ -262,6 +266,8 @@ run_quick() {
       tests/regression/test_evaluation_history_diff.py \
       tests/regression/test_evaluation_runner.py \
       tests/regression/test_external_secret_provider_gate.py \
+      tests/regression/test_mingli_bench_aggregate_gate.py \
+      tests/regression/test_mingli_bench_gate.py \
       tests/regression/test_observability_smoke.py \
       tests/regression/test_observability_trace_slo.py \
       tests/regression/test_otel_backend_slo_gate.py \
@@ -406,6 +412,7 @@ write_summary() {
   FATE_LOCAL_CI_OTEL_BACKEND_SLO_GATE="${output_dir}/otel-backend-slo-gate.json" \
   FATE_LOCAL_CI_BAZI_ZIWEI_L4_GOLDEN_SMOKE="${output_dir}/bazi-ziwei-l4-golden-smoke.json" \
   FATE_LOCAL_CI_CORE_QUALITY_CORPUS_GATE="${output_dir}/core-quality-corpus-gate.json" \
+  FATE_LOCAL_CI_MINGLI_BENCH_GATE="${output_dir}/mingli-bench-gate.json" \
   FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE="${output_dir}/data-supply-chain-gate.json" \
   FATE_LOCAL_CI_RUNTIME_BACKEND_GATE="${output_dir}/runtime-backend-gate.json" \
   FATE_LOCAL_CI_MULTI_REPLICA_RUNTIME_EVIDENCE="${output_dir}/multi-replica-runtime-evidence.json" \

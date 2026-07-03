@@ -103,6 +103,8 @@ scripts/
 ├── compare-evaluations.py
 ├── run-evaluations.sh
 ├── run-evaluations.py
+├── mingli-bench-gate.sh
+├── mingli-bench-gate.py
 ├── generate-mingli-predictions.sh
 ├── run-mingli-bench.sh
 └── ...
@@ -167,6 +169,7 @@ scripts/
 - `evaluation-dashboard.sh` / `evaluation-dashboard.py` 把 EvaluationRun summary 与可选 diff 渲染为静态 HTML dashboard；只展示状态、命令、exit code、duration 和 diff 摘要，不渲染 stdout/stderr tail、benchmark 标准答案、报告正文或真实凭证。
 - `evaluation-dashboard-smoke.sh` 使用 dry-run EvaluationRun summary 验证 dashboard renderer 和隐私边界；进入 quick CI，不执行重型评测。
 - `evaluation-nightly.sh` 执行 releaseRequired EvaluationRun、记录 history/latest、生成 diff 和 dashboard artifact；默认不执行 reference repo benchmark，不访问外部模型 API。
+- `mingli-bench-gate.sh` / `mingli-bench-gate.py` 是 MingLi-Bench 离线聚合门禁；校验 core corpus、vendor license/usage、EvaluationRun 边界和 FateCat baseline 汇总，不保存逐题结果或标准答案。
 - `generate-mingli-predictions.sh` 是 `fate_core.evaluation.mingli_baseline` 的薄封装，不承载领域评测规则。
 - `run-mingli-bench.sh` 负责离线 FortuneTellingBench 统计、提示词生成和预测结果评估，不调用外部模型 API。
 - 脚本不得保活退役路径；任何旧路径只能出现在防回潮门禁、历史证据或迁移账本中。

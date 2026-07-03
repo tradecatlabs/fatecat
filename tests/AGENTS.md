@@ -15,6 +15,7 @@ tests/
 	    ├── test_bazi_golden_coverage_matrix.py
 	    ├── test_calendar_oracle_contract.py
 	    ├── test_catalog_contracts.py
+	    ├── test_mingli_bench_aggregate_gate.py
 	    ├── test_mingli_bench_gate.py
 	    ├── test_operability_docs.py
 	    ├── test_report_job_replayable_recovery_smoke.py
@@ -36,6 +37,7 @@ tests/
 - `regression/test_bazi_golden_coverage_matrix.py`：300+ 八字匿名结构 golden 矩阵合同、requiredTags 代表集回放，以及 `FATECAT_RUN_FULL_GOLDEN_MATRIX=1` 全量 release gate；全量可用 `FATECAT_GOLDEN_SHARD_TOTAL` / `FATECAT_GOLDEN_SHARD_INDEX` 分片。
 - `regression/test_calendar_oracle_contract.py`：历法/四柱 oracle 对照测试；只服务开发门禁，不允许 oracle 库进入生产源码路径。
 - `regression/test_catalog_contracts.py`：组件 catalog canonical root 与 compatibility box 退役防回潮测试。
+- `regression/test_mingli_bench_aggregate_gate.py`：MingLi-Bench 离线聚合门禁合同；验证 summary 只含 stats、license/usage 和 baseline 聚合结果，不泄露题目、出生信息、标准答案或逐题结果。
 - `regression/test_mingli_bench_gate.py`：MingLi-Bench 离线 predictions evaluator smoke 与 FateCat scored baseline 产物合同；准确率只作为评测输出，不宣称模型已专业。
 - `regression/test_operability_docs.py`：公共服务 SLO、指标、告警和 runbook 的文档合同测试。
 - `regression/test_report_job_restart_recovery_smoke.py`：report job SQLite manager 重建本地 smoke 合同；验证 restart-safe failure、`job.recovered_failed`、幂等键保留和 summary 脱敏边界。
