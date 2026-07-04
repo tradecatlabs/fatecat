@@ -17,7 +17,8 @@ The full 0149 external evidence objective remains blocked until a real redacted 
 | Gate default pending | `bash scripts/core-quality-human-review-gate.sh --output-json /tmp/core-quality-human-review-gate.json` | exit 0, gate blocked-as-expected |
 | Focused tests | `PYTHONPATH=domains/fate-analysis/services/fate-core/src python3 -m pytest -q tests/regression/test_core_quality_human_review_gate.py tests/regression/test_measurement_infrastructure_certification.py` | passed |
 | Task docs | `python3 /home/lenovo/.codex/skills/auto-tasks/scripts/validate_task_docs.py --task-dir governance/tasks/0149-measurement-infrastructure-core-quality-human-review-intake --phase decompose` | `ok: true` |
-| Quick local CI | `bash scripts/local-ci.sh --profile quick --output /tmp/fatecat-local-ci-0149-<sha>` | passed |
+| Quick local CI | `bash scripts/local-ci.sh --profile quick --output /tmp/fatecat-local-ci-0149-final` | passed |
+| Remote Acceptance | `gh run view 28717205411 --json headSha,status,conclusion,url` | success for `6e99cf24bb086d0ee73418feea0a3e21bf48cd9c` |
 
 # Review Gate
 - PASS if local intake infrastructure is complete and external evidence remains honestly blocked.
@@ -47,7 +48,7 @@ The local infrastructure slice can ship after validation, commit, push and remot
 | TP-04.01 | Remains blocked until real expert disposition bundle exists. |
 | TP-04.02 | Remains blocked until external benchmark aggregate and no-leak signoff exist. |
 | TP-05.01 | Local validation passes. |
-| TP-05.02 | Commit, push and remote Acceptance complete. |
+| TP-05.02 | Commit `6e99cf2` pushed and remote Acceptance `28717205411` completed successfully. |
 
 # Anti-Goals
 - 不得伪造专家评审或外部 benchmark。

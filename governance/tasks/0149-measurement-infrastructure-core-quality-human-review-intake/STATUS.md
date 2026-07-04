@@ -2,7 +2,6 @@
 - Overall Status: `Blocked`
 
 # Next Executable Leaves
-- TP-05.02 for commit, push and remote Acceptance.
 - TP-04.01 and TP-04.02 remain blocked on external human/operator evidence.
 
 # Task Package Status Table
@@ -19,9 +18,9 @@
 | TP-04 | ROOT | 1 | TP-03 | No | Blocked | No real external evidence bundle supplied | external expert/benchmark/no-leak evidence missing | Operator supplies redacted bundle |
 | TP-04.01 | TP-04 | 2 | TP-03.02 | No | Blocked | pending | expert rubric disposition missing | accepted review bundle |
 | TP-04.02 | TP-04 | 2 | TP-04.01 | No | Blocked | pending | benchmark aggregate and no-leak signoff missing | accepted review bundle |
-| TP-05 | ROOT | 1 | TP-03 | No | In Progress | local validation complete; delivery pending | remote Acceptance not complete | run TP-05.02 |
+| TP-05 | ROOT | 1 | TP-03 | No | Done | commit `6e99cf2` pushed to `origin/main`; remote Acceptance passed | - | - |
 | TP-05.01 | TP-05 | 2 | TP-03.02 | No | Done | JSON syntax passed; gate smoke passed; 25 focused tests passed; quick local CI passed with 395 focused regression tests; task docs validation passed | - | - |
-| TP-05.02 | TP-05 | 2 | TP-05.01 | Yes | Not Started | pending | commit/push/remote Acceptance pending | commit, push and verify remote Acceptance |
+| TP-05.02 | TP-05 | 2 | TP-05.01 | No | Done | commit `6e99cf2` pushed; GitHub Acceptance `28717205411` completed success for `6e99cf24bb086d0ee73418feea0a3e21bf48cd9c` | - | - |
 
 # Blockers
 - `expert_rubric_disposition_bundle_missing`
@@ -36,5 +35,6 @@
 | default gate | blocked-as-expected without evidence |
 | accepted synthetic tests | implemented and covered by focused regression tests |
 | local validation | `bash scripts/local-ci.sh --profile quick --output /tmp/fatecat-local-ci-0149-final` passed; 395 focused regression tests passed |
+| remote validation | GitHub Acceptance `28717205411` passed: `https://github.com/tradecatlabs/fatecat/actions/runs/28717205411` |
 | external evidence | 外部连通验证待执行 / 人工证据待执行 |
 | certification | must remain blocked until accepted external bundle and final release/audit closure |

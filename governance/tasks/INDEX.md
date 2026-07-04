@@ -260,3 +260,5 @@
 | 0148 | measurement-infrastructure-100-post-0147-deep-research-plan | Done | P0 | 基于当前 main、0145-0147 交付事实、远端 CI 状态和外部基础设施一手资料，刷新 FateCat 达到 100% 测算基础设施所需的完整实现计划、剩余任务树、验收门禁和不可伪造证据口径；本任务只落盘调研与规划，不执行外部 live。 | 0148-measurement-infrastructure-100-post-0147-deep-research-plan/ |
 
 | 0149 | measurement-infrastructure-core-quality-human-review-intake | Blocked | P0 | 执行 0148 后续 0149：把八字/紫微专家评审、外部 benchmark 聚合和 no-leak signoff 从自然语言待办推进为机器可执行 intake gate、本地 CI 接线和 certification 阻断输入；本地验证已通过，真实专家评审与外部 benchmark 仍需脱敏 evidence bundle，不能伪造完成。 | 0149-measurement-infrastructure-core-quality-human-review-intake/ |
+
+| 0150 | measurement-infrastructure-100-post-0149-deep-research-plan | Done | P0 | 基于当前 main、0149 core quality human review intake 已完成本地与远端交付但真实专家/benchmark/no-leak 证据仍阻断的事实，结合成熟基础设施官方资料，刷新 FateCat 达到 100% 测算基础设施所需的剩余任务树、验收门禁、外部阻断项和不可伪造证据口径；本任务只做调研与计划落盘，不执行生产 live、不伪造专家评审或 100% 完成。 | 0150-measurement-infrastructure-100-post-0149-deep-research-plan/ |

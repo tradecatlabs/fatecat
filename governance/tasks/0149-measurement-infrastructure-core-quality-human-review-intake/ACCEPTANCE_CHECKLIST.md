@@ -81,8 +81,8 @@ Verify: terminal evidence.
 Gate: no failed local check remains.
 
 ### TP-05.02 GitHub delivery
-- [ ] Commit created and pushed.
-- [ ] Remote Acceptance triggered for current commit.
-- [ ] Remote Acceptance completed successfully.
+- [x] Commit created and pushed.
+- [x] Remote Acceptance triggered for current commit.
+- [x] Remote Acceptance completed successfully.
 Verify: Git status and GitHub Actions run URL.
 Gate: current commit remote Acceptance success.

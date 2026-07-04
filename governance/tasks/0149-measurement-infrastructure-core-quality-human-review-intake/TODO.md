@@ -7,7 +7,7 @@
 [ ] TP-04.01 | P0 | Collect real expert rubric disposition bundle | Verify: future accepted gate summary | Gate: all rubric dimensions accepted with redacted refs | Parallelizable: No
 [ ] TP-04.02 | P0 | Collect external benchmark aggregate and no-leak signoff | Verify: future accepted gate summary | Gate: benchmark/no-leak gates passed without detail leakage | Parallelizable: No
 [x] TP-05.01 | P0 | Run validation commands | Verify: json/tool/pytest/local-ci/task-doc outputs | Gate: all local checks passed | Parallelizable: No
-[ ] TP-05.02 | P0 | Commit, push and remote Acceptance | Verify: git status and GitHub Actions URL | Gate: current commit remote Acceptance success | Parallelizable: No
+[x] TP-05.02 | P0 | Commit, push and remote Acceptance | Verify: git status and GitHub Actions URL | Gate: current commit remote Acceptance success | Parallelizable: No
 
 说明：
 - TP-04.01 和 TP-04.02 是真实外部/人工证据，不得用 synthetic fixture 替代。
