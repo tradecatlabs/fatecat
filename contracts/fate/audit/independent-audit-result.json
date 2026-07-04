@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.independent_audit_result_contract",
+  "id": "audit.independent_audit_result",
+  "description": "独立第三方审计结果 intake 契约。该契约只定义审计人员交付的脱敏、可追溯结果如何进入 FateCat 本地证据链；它不生成审计结论、不替代审计人员、不执行外部连通验证、不声明 100% 测算基础设施完成。",
+  "entrypoints": {
+    "command": "bash scripts/independent-audit-result-gate.sh --independent-audit-result-json <independent-audit-result-bundle.json> --output-json <path>",
+    "pendingCommand": "bash scripts/independent-audit-result-gate.sh --output-json <path>",
+    "pythonEntrypoint": "scripts/independent-audit-result-gate.py",
+    "defaultOutput": "infra/runtime/local-state/exports/audit/independent-audit-result-gate.json"
+  },
+  "inputBundle": {
+    "kind": "fatecat.independent_audit_result_bundle",
+    "privacyBoundary": "redacted_no_secret_values",
+    "requiredTopLevelFields": [
+      "schemaVersion",
+      "kind",
+      "source",
+      "auditor",
+      "result",
+      "reviewedArtifacts",
+      "privacyBoundary"
+    ],
+    "sourceRequiredFields": [
+      "commit"
+    ],
+    "auditorRequiredFields": [
+      "auditorRole",
+      "organizationRef",
+      "identityProofRef",
+      "signedAt",
+      "signedResultArtifactSha256"
+    ],
+    "resultRequiredFields": [
+      "decision",
+      "scopeHash",
+      "reportArtifactSha256",
+      "criticalFindings",
+      "highFindings",
+      "mediumFindings",
+      "lowFindings",
+      "redactionStatus"
+    ],
+    "acceptedDecisions": [
+      "accepted_no_findings",
+      "accepted_with_findings"
+    ],
+    "rejectedDecisions": [
+      "rejected"
+    ]
+  },
+  "outputKind": "fatecat.independent_audit_result_gate",
+  "requiredOutputFields": [
+    "schemaVersion",
+    "kind",
+    "status",
+    "generatedAt",
+    "source",
+    "summary",
+    "independentAuditResult",
+    "auditResultGate",
+    "shipGate",
+    "privacyBoundary",
+    "nonClaims"
+  ],
+  "auditResultGatePolicy": {
+    "noInput": "没有 independent audit result bundle 时，gate 必须输出 status=external_audit_result_pending 且 auditResultGate.status=blocked。",
+    "acceptedInput": "只有 bundle 绑定当前 commit、脱敏边界正确、hash/身份引用完整、decision 为 accepted_no_findings 或 accepted_with_findings 时，auditResultGate.status 才能 passed。",
+    "rejectedInput": "审计人员明确 rejected 时，bundle 可被结构化接收，但 auditResultGate.status 必须 blocked。",
+    "productionBoundary": "本 gate accepted 不等于生产 100% 或 release passed；最终仍需要 release/certification/third-party rehearsal 聚合 gate 判定。"
+  },
+  "privacyBoundary": "只保存审计人员角色、脱敏组织引用、脱敏身份/签名 artifact 引用、hash、计数、decision、reviewed artifact hash 和当前 commit；不得保存真实姓名、真实账号、真实 URL、token、secret、DSN、webhook secret、报告正文、用户输入、生产日志或第三方账号数据。",
+  "forbiddenFragments": [
+    "token=",
+    "secret=",
+    "password=",
+    "passwd=",
+    "private_key=",
+    "BEGIN RSA",
+    "BEGIN OPENSSH",
+    "DATABASE_URL=",
+    "DB_DSN=",
+    "api_key=",
+    "webhook_secret=",
+    "authorization:",
+    "https://",
+    "http://",
+    "placeholder proof",
+    "fake proof",
+    "dummy proof",
+    "localhost proof"
+  ],
+  "nonClaims": [
+    "Does not create, simulate or replace an independent auditor result.",
+    "Does not execute production API, HF Space, Telegram Bot, Postgres, OTel, IdP, SIEM, Vault/KMS, developer portal or sandbox live checks.",
+    "Does not prove production live, external connectivity, legal license review, OIDC/SIEM completion, or 100% measurement infrastructure readiness.",
+    "Does not expose raw auditor identity, raw report text, raw URL, token, secret, DSN, webhook secret, production log or customer data."
+  ],
+  "releaseBoundary": "status=accepted 只表示独立审计结果 bundle 的结构、脱敏和当前 commit 绑定被本地 gate 接受；shipGate 默认保持 blocked，最终生产放行必须由 release/certification/third-party audit rehearsal 聚合判定。"
+}

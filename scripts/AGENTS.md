@@ -14,6 +14,8 @@ scripts/
 ├── audit-handoff-dry-run.py
 ├── audit-handoff.sh
 ├── audit-handoff.py
+├── independent-audit-result-gate.sh
+├── independent-audit-result-gate.py
 ├── third-party-audit-rehearsal.sh
 ├── third-party-audit-rehearsal.py
 ├── bazi-ziwei-l4-golden-smoke.sh
@@ -170,7 +172,8 @@ scripts/
 - `audit-handoff.sh` / `audit-handoff.py` 是第三方审计交接包生成器；聚合 Git、任务索引、关键 contract、local-ci/CI 证据入口和所有 tracked + untracked non-ignored `外部连通验证待执行` occurrences，输出 Markdown/JSON，不证明外部 live 已完成。
 - `audit-handoff-dry-run.sh` / `audit-handoff-dry-run.py` 是审计交接包 dry-run verifier；消费 handoff JSON/Markdown，验证字段、区块、pending、risk、non-claim 和敏感赋值防护，输出预检报告，不替代真实第三方审计。
 - `current-audit-bundle.sh` / `current-audit-bundle.py` 是当前 commit 审计证据包装配器；消费 audit handoff、audit dry-run、current release proof、release artifacts、rollback drill、可选 local-ci summary 和 local-ci gate artifact 摘要，当前覆盖 evidence coverage trend gate 与 evaluation trend gate，输出 current audit bundle Markdown/JSON、evidence index、risk register 与 pending external validations；默认 local mode 可生成 blocked bundle，`--require-current-release` 才要求当前提交 release proof 全部通过。
-- `third-party-audit-rehearsal.sh` / `third-party-audit-rehearsal.py` 是第三方审计预演包生成器；消费 current audit bundle、audit dry-run、current release proof、certification、external closure evidence summary、tracker import package、tracker issue evidence template 和 tracker issue evidence gate，输出给独立审计人员复核的 checklist、证据索引和阻断项；它不替代真实第三方审计、不执行外部 live、不创建真实 issue、不声明 100% 完成。
+- `independent-audit-result-gate.sh` / `independent-audit-result-gate.py` 是独立审计结果 intake 门禁；消费可选第三方审计人员脱敏 result bundle，验证当前 commit 绑定、hash、签名 artifact、身份引用和隐私边界，默认无输入时输出 pending/blocked；不生成审计结论、不执行外部 live、不声明 100% 完成。
+- `third-party-audit-rehearsal.sh` / `third-party-audit-rehearsal.py` 是第三方审计预演包生成器；消费 current audit bundle、audit dry-run、current release proof、certification、external closure evidence summary、tracker import package、tracker issue evidence template、tracker issue evidence gate 和 independent audit result gate，输出给独立审计人员复核的 checklist、证据索引和阻断项；它不替代真实第三方审计、不执行外部 live、不创建真实 issue、不声明 100% 完成。
 - `external-validation-closure-gate.sh` / `external-validation-closure-gate.py` 是外部待验证项关闭计划门禁；消费 current audit bundle 的 `pending-external-validations.json`，为每个 occurrence 生成 owner、凭证依赖、required evidence、复核命令和关闭条件，输出 blocked ship gate；不连接真实外部系统，不证明外部 live 已完成。
 - `external-validation-closure-work-queue.sh` / `external-validation-closure-work-queue.py` 是外部待验证项 owner/category 工作队列门禁；消费 closure plan，输出 assignee、proofRef、lastCheckedAt、staleReason、closeConditionResult 和 occurrence refs；空 proofRef 必须保持 blocked，不连接真实 API、Bot、Postgres、OIDC、SIEM、OTel、Vault/KMS、developer portal 或第三方审计系统。
 - `external-validation-proof-ref-gate.sh` / `external-validation-proof-ref-gate.py` 是外部验证 proof-ref evidence upload 结构门禁；消费 work queue 和可选 operator 脱敏 evidence bundle，校验证据句柄、hash、时间窗、redaction、current commit 与 work item 绑定；schema accepted 不等于 production live passed，`shipGate` 必须继续 blocked。

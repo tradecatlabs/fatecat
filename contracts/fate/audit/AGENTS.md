@@ -24,6 +24,7 @@ audit/
 ├── external-validation-operator-execution-packet.json
 ├── external-validation-proof-ref.json
 ├── handoff.json
+├── independent-audit-result.json
 ├── measurement-infrastructure-certification.json
 ├── production-live-delivery-evidence-bundle.json
 ├── production-live-operator-execution-packet.json
@@ -50,12 +51,13 @@ audit/
 - `external-validation-live-proof-gate.json`：定义外部验证 live proof gate 契约，校验 operator 脱敏 live evidence 与 work item、proof-ref、category runbook 和当前 commit 的绑定；不执行真实生产请求，不替代第三方审计。
 - `external-validation-operator-execution-packet.json`：定义外部验证 operator execution packet 契约，为当前 22 个 external validation category 生成统一脱敏操作包、proof-ref 模板、domain 分组和最终复核命令。
 - `external-validation-proof-ref.json`：定义外部验证 proof-ref 与 evidence upload 契约，只校验证据句柄、hash、时间窗、redaction、current commit 与 work item 绑定，不证明外部 live 已通过。
+- `independent-audit-result.json`：定义独立第三方审计结果 intake 契约，校验脱敏 result bundle 的当前 commit 绑定、审计人员角色/身份引用、签名 artifact hash、reviewed artifact hash、decision 和隐私边界；不生成审计结论、不替代审计人员、不证明生产 live。
 - `schemas/external-validation-live-evidence.schema.json`：定义 operator 提供的脱敏 live evidence bundle 结构。
 - `schemas/external-validation-proof-ref.schema.json`：定义 operator 提供的脱敏 proof-ref bundle 结构。
 - `measurement-infrastructure-certification.json`：定义 100% 测算基础设施 certification aggregator dry-run 的输入证据、分域状态、blocked/pending 语义和禁止 100% 伪声明策略；audit domain 必须同时覆盖 current audit bundle、proof-ref、runbook、operator packet、live proof、closure trend/summary，以及 tracker import/template/issue evidence gate。
 - `production-live-delivery-evidence-bundle.json`：定义生产交付 live evidence bundle 装配契约，把 production API、HF Space、Telegram Bot、公网 webhook 和多端 live parity 的脱敏 summary 转成 live proof gate 可校验的 evidence bundle。
 - `production-live-operator-execution-packet.json`：定义生产 live operator execution packet 契约，把 work queue、proof-ref gate、category runbooks、live proof gate 和 delivery evidence bundle 串成可执行但不含敏感值的操作包。
-- `third-party-audit-rehearsal.json`：定义第三方审计预演包契约，聚合 current audit bundle、audit dry-run、current release proof、certification、external closure evidence summary、tracker import package、tracker issue evidence template 和 tracker issue evidence gate，输出审计人员可复核的 checklist、证据索引、阻断项和外部待验证项。
+- `third-party-audit-rehearsal.json`：定义第三方审计预演包契约，聚合 current audit bundle、audit dry-run、current release proof、certification、external closure evidence summary、tracker import package、tracker issue evidence template、tracker issue evidence gate 和 independent audit result gate，输出审计人员可复核的 checklist、证据索引、阻断项和外部待验证项。
 - 审计包生成器位于 `scripts/audit-handoff.py`，只聚合仓库内证据、Git 状态、任务索引和明确标记的外部待验证项。
 - dry-run verifier 位于 `scripts/audit-handoff-dry-run.py`，只做本地审计前置检查，不替代真实第三方审计。
 - current audit bundle generator 位于 `scripts/current-audit-bundle.py`，只聚合当前 commit 的 release proof、audit handoff、dry-run、SBOM/provenance、rollback dry-run、local-ci gate artifact 摘要、evidence index、risk register 和外部待验证项；local-ci gate artifact 当前覆盖 evidence coverage trend gate 与 evaluation trend gate；`auditGate=passed` 只代表当前提交审计包证据齐备，不代表第三方审计已通过。
@@ -68,11 +70,12 @@ audit/
 - external validation tracker import package generator 位于 `scripts/external-validation-tracker-import-package.py`，消费 issue export，输出独立 issue body files、import manifest 和人工可复核的 tracker CLI command text；它不创建真实 issue、不执行 `gh`、不请求网络、不保存真实 URL/token/DSN/webhook secret、不证明 live passed。
 - external validation tracker issue evidence template generator 位于 `scripts/external-validation-tracker-issue-evidence-template.py`，消费 tracker import package，输出 operator 可填写的脱敏 evidence bundle skeleton；它不创建真实 issue、不执行 `gh`、不请求网络、不证明 live passed。
 - external validation tracker issue evidence gate 位于 `scripts/external-validation-tracker-issue-evidence-gate.py`，消费 tracker import package 和可选 operator 脱敏 issue evidence bundle；它只验证 tracker issue ref/hash/work item 绑定，不创建真实 issue、不执行 `gh`、不请求网络、不证明 live passed。
+- independent audit result gate 位于 `scripts/independent-audit-result-gate.py`，消费可选第三方审计人员脱敏 result bundle；无输入时保持 external_audit_result_pending，结构接受只代表该审计结果已绑定当前 commit，不代表最终 release/certification 通过。
 - external validation closure trend dashboard 位于 `scripts/external-validation-closure-trend-dashboard.py`，消费 closure plan、work queue、proof-ref gate、category runbooks 和可选 live proof gate，输出本地 owner/category/status dashboard 与 stale alert；alert 只是待办提醒，不发送外部通知，不关闭 proof-ref/category live/第三方审计阻断。
 - external validation live proof gate 位于 `scripts/external-validation-live-proof-gate.py`，消费 work queue、proof-ref gate、category runbooks 和可选 operator 脱敏 live evidence bundle；只接受已 schema-accepted proof-ref 对应的 live proof，并继续保持第三方审计/认证阻断。
 - external validation operator execution packet generator 位于 `scripts/external-validation-operator-execution-packet.py`，消费外部验证三件套，输出覆盖所有 category 的 operator 步骤、required credential 名称、proof-ref bundle 模板、domain 分组和最终复核命令；它不执行外部请求、不保存真实 URL/token/DSN/webhook secret、不证明 live passed。
 - production live delivery evidence bundle assembler 位于 `scripts/production-live-delivery-evidence-bundle.py`，消费 delivery live summary JSON 和外部验证三件套，默认无真实 summary 时只输出 pending bundle；有真实脱敏 summary 时仅输出 proof id、artifact hash 和 source binding，不复制 URL/token/DSN/webhook secret。
 - production live operator execution packet generator 位于 `scripts/production-live-operator-execution-packet.py`，消费外部验证三件套，输出 operator 步骤、必需环境变量名、proof-ref bundle 模板和最终 gate 命令；它不执行真实外部请求，不保存 URL/token/DSN/webhook secret，不证明 live passed。
 - measurement infrastructure certification aggregator 位于 `scripts/measurement-infrastructure-certification.py`，默认消费 local-ci 产物目录中已有 gate summary，也可显式接收 `live-release-gate.json`、`current-release-proof.json` 和 `current-audit-bundle.json` sidecar；sidecar 只覆盖对应逻辑证据文件，不跨文件覆盖 release proof、audit bundle 或外部 live 证据。audit domain 必须把 external validation tracker import package、tracker issue evidence template 与 tracker issue evidence gate 纳入阻断判断；当前 release/audit/live evidence 未闭合时必须输出 `status=blocked`，不得支持 100% 完成声明。
-- third-party audit rehearsal generator 位于 `scripts/third-party-audit-rehearsal.py`，消费 current audit bundle、audit dry-run、current release proof、certification、closure evidence summary、tracker import package、tracker issue evidence template 和 tracker issue evidence gate，输出 JSON/Markdown 预演包；`status=passed` 只表示预演包结构生成成功，`rehearsalGate` 在外部 live、tracker issue evidence 或独立审计缺失时必须保持 blocked。
+- third-party audit rehearsal generator 位于 `scripts/third-party-audit-rehearsal.py`，消费 current audit bundle、audit dry-run、current release proof、certification、closure evidence summary、tracker import package、tracker issue evidence template、tracker issue evidence gate 和 independent audit result gate，输出 JSON/Markdown 预演包；`status=passed` 只表示预演包结构生成成功，`rehearsalGate` 在外部 live、tracker issue evidence 或独立审计结果 gate 未通过时必须保持 blocked。
 - 这里不声明真实生产 API、Bot、OIDC、SIEM、监控平台、developer portal 或 sandbox token 已完成 live 验证。

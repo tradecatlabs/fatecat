@@ -104,6 +104,23 @@ def _fixtures(tmp_path: Path) -> dict[str, Path]:
         },
         "shipGate": {"status": "blocked", "blockingItems": ["external_validation_live_proof_gate_required"]},
     }
+    independent_audit_gate = {
+        "kind": "fatecat.independent_audit_result_gate",
+        "status": "external_audit_result_pending",
+        "summary": {
+            "resultSupplied": False,
+            "acceptedResults": 0,
+            "pendingResults": 1,
+            "rejectedResults": 0,
+            "decision": "missing",
+            "reviewedArtifacts": 0,
+        },
+        "auditResultGate": {
+            "status": "blocked",
+            "blockingItems": ["independent_audit_result_required"],
+        },
+        "shipGate": {"status": "blocked", "blockingItems": ["release_aggregate_gate_required"]},
+    }
     return {
         "current_audit_bundle": _write(tmp_path / "current-audit-bundle.json", current_audit_bundle),
         "audit_dry_run": _write(tmp_path / "audit-dry-run.json", audit_dry_run),
@@ -119,6 +136,7 @@ def _fixtures(tmp_path: Path) -> dict[str, Path]:
         "tracker_issue_gate": _write(
             tmp_path / "external-validation-tracker-issue-evidence-gate.json", tracker_issue_gate
         ),
+        "independent_audit_gate": _write(tmp_path / "independent-audit-result-gate.json", independent_audit_gate),
     }
 
 
@@ -132,6 +150,7 @@ def test_contract_declares_rehearsal_boundaries() -> None:
     assert "external-validation-tracker-import-package.json" in contract["requiredInputs"]
     assert "external-validation-tracker-issue-evidence-template.json" in contract["requiredInputs"]
     assert "external-validation-tracker-issue-evidence-gate.json" in contract["requiredInputs"]
+    assert "independent-audit-result-gate.json" in contract["requiredInputs"]
     assert contract["requiredKinds"]["trackerImportPackage"] == "fatecat.external_validation_tracker_import_package"
     assert (
         contract["requiredKinds"]["trackerIssueEvidenceTemplate"]
@@ -141,6 +160,7 @@ def test_contract_declares_rehearsal_boundaries() -> None:
         contract["requiredKinds"]["trackerIssueEvidenceGate"]
         == "fatecat.external_validation_tracker_issue_evidence_gate"
     )
+    assert contract["requiredKinds"]["independentAuditResultGate"] == "fatecat.independent_audit_result_gate"
     assert "Does not replace third-party audit." in contract["nonClaims"]
     assert "rehearsalGate" in contract["requiredOutputFields"]
     assert "https://" in contract["forbiddenFragments"]
@@ -161,6 +181,7 @@ def test_build_report_keeps_rehearsal_blocked_with_external_pending(tmp_path: Pa
         tracker_import_package_json=fixtures["tracker_import_package"],
         tracker_issue_evidence_template_json=fixtures["tracker_issue_template"],
         tracker_issue_evidence_gate_json=fixtures["tracker_issue_gate"],
+        independent_audit_result_gate_json=fixtures["independent_audit_gate"],
         output_json=output_json,
         output_markdown=output_markdown,
     )
@@ -168,13 +189,14 @@ def test_build_report_keeps_rehearsal_blocked_with_external_pending(tmp_path: Pa
     assert report["kind"] == "fatecat.third_party_audit_rehearsal"
     assert report["status"] == "passed"
     assert report["rehearsalGate"]["status"] == "blocked"
-    assert report["summary"]["evidenceInputs"] == 8
+    assert report["summary"]["evidenceInputs"] == 9
     assert report["summary"]["externalPending"] == 2
     assert any(item["id"] == "third_party.independent_result" for item in report["auditorChecklist"])
     evidence_ids = {item["id"] for item in report["evidenceIndex"]}
     assert "external_validation_tracker_import_package" in evidence_ids
     assert "external_validation_tracker_issue_evidence_template" in evidence_ids
     assert "external_validation_tracker_issue_evidence_gate" in evidence_ids
+    assert "independent_audit_result_gate" in evidence_ids
     checklist_ids = {item["id"] for item in report["auditorChecklist"]}
     assert "tracker.import_package_gate" in checklist_ids
     assert "tracker.issue_evidence_template_gate" in checklist_ids
@@ -183,6 +205,58 @@ def test_build_report_keeps_rehearsal_blocked_with_external_pending(tmp_path: Pa
     assert "external_validation_tracker_issue_evidence_gate" in markdown
     assert "third-party audit passed" not in json.dumps(report, ensure_ascii=False).lower()
     assert "https://" not in json.dumps(report, ensure_ascii=False)
+
+
+def test_build_report_accepts_independent_audit_result_gate_without_clearing_external_pending(
+    tmp_path: Path,
+) -> None:
+    module = _load_module()
+    fixtures = _fixtures(tmp_path)
+    independent_gate = json.loads(fixtures["independent_audit_gate"].read_text(encoding="utf-8"))
+    independent_gate.update(
+        {
+            "status": "accepted",
+            "summary": {
+                "resultSupplied": True,
+                "acceptedResults": 1,
+                "pendingResults": 0,
+                "rejectedResults": 0,
+                "decision": "accepted_with_findings",
+                "reviewedArtifacts": 3,
+            },
+            "auditResultGate": {"status": "passed", "blockingItems": []},
+            "shipGate": {"status": "blocked", "blockingItems": ["release_aggregate_gate_required"]},
+        }
+    )
+    fixtures["independent_audit_gate"].write_text(
+        json.dumps(independent_gate, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    report, markdown = module.build_report(
+        current_audit_bundle_json=fixtures["current_audit_bundle"],
+        audit_dry_run_json=fixtures["audit_dry_run"],
+        current_release_proof_json=fixtures["current_release_proof"],
+        certification_json=fixtures["certification"],
+        closure_evidence_summary_json=fixtures["closure_summary"],
+        tracker_import_package_json=fixtures["tracker_import_package"],
+        tracker_issue_evidence_template_json=fixtures["tracker_issue_template"],
+        tracker_issue_evidence_gate_json=fixtures["tracker_issue_gate"],
+        independent_audit_result_gate_json=fixtures["independent_audit_gate"],
+        output_json=tmp_path / "third-party-audit-rehearsal.json",
+        output_markdown=tmp_path / "THIRD_PARTY_AUDIT_REHEARSAL.md",
+    )
+
+    independent_item = next(
+        item for item in report["auditorChecklist"] if item["id"] == "third_party.independent_result"
+    )
+    blocking_ids = {item["id"] for item in report["blockingItems"]}
+
+    assert independent_item["status"] == "passed"
+    assert "third_party.independent_result" not in blocking_ids
+    assert report["rehearsalGate"]["status"] == "blocked"
+    assert report["summary"]["externalPending"] == 2
+    assert "Independent audit result intake was structurally accepted" in markdown
 
 
 def test_cli_writes_json_and_markdown(tmp_path: Path) -> None:
@@ -210,6 +284,8 @@ def test_cli_writes_json_and_markdown(tmp_path: Path) -> None:
             str(fixtures["tracker_issue_template"]),
             "--tracker-issue-evidence-gate-json",
             str(fixtures["tracker_issue_gate"]),
+            "--independent-audit-result-gate-json",
+            str(fixtures["independent_audit_gate"]),
             "--output-json",
             str(output_json),
             "--output-markdown",
@@ -245,6 +321,7 @@ def test_rejects_raw_url_in_output(tmp_path: Path) -> None:
             tracker_import_package_json=fixtures["tracker_import_package"],
             tracker_issue_evidence_template_json=fixtures["tracker_issue_template"],
             tracker_issue_evidence_gate_json=fixtures["tracker_issue_gate"],
+            independent_audit_result_gate_json=fixtures["independent_audit_gate"],
             output_json=tmp_path / "out.json",
             output_markdown=tmp_path / "out.md",
         )
@@ -262,7 +339,9 @@ def test_local_ci_and_agents_wiring() -> None:
 
     assert "third-party audit rehearsal" in local_ci
     assert "third-party-audit-rehearsal.json" in local_ci
+    assert "independent-audit-result-gate.json" in local_ci
     assert "test_third_party_audit_rehearsal.py" in local_ci
     assert "third-party-audit-rehearsal.py" in scripts_agents
     assert "third-party-audit-rehearsal.json" in audit_agents
+    assert "independent-audit-result.json" in audit_agents
     assert "test_third_party_audit_rehearsal.py" in tests_agents

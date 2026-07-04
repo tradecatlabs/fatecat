@@ -22,6 +22,7 @@ OUTPUT_KIND = "fatecat.third_party_audit_rehearsal"
 TRACKER_IMPORT_KIND = "fatecat.external_validation_tracker_import_package"
 TRACKER_ISSUE_TEMPLATE_KIND = "fatecat.external_validation_tracker_issue_evidence_bundle_template"
 TRACKER_ISSUE_GATE_KIND = "fatecat.external_validation_tracker_issue_evidence_gate"
+INDEPENDENT_AUDIT_RESULT_GATE_KIND = "fatecat.independent_audit_result_gate"
 SENSITIVE_RE = re.compile(
     r"(token\s*=|secret\s*=|password\s*=|passwd\s*=|DATABASE_URL\s*=|DB_DSN\s*=|"
     r"api[_-]?key\s*=|private[_-]?key|BEGIN (?:RSA|OPENSSH|PRIVATE)|authorization\s*:)",
@@ -137,6 +138,7 @@ def _build_evidence_index(
     tracker_import_package_json: Path,
     tracker_issue_evidence_template_json: Path,
     tracker_issue_evidence_gate_json: Path,
+    independent_audit_result_gate_json: Path | None,
     current_audit_bundle: dict[str, Any],
     audit_dry_run: dict[str, Any],
     current_release_proof: dict[str, Any],
@@ -145,6 +147,7 @@ def _build_evidence_index(
     tracker_import_package: dict[str, Any],
     tracker_issue_evidence_template: dict[str, Any],
     tracker_issue_evidence_gate: dict[str, Any],
+    independent_audit_result_gate: dict[str, Any] | None,
 ) -> list[dict[str, Any]]:
     release_git = current_release_proof.get("git", {})
     audit_git = current_audit_bundle.get("git", {})
@@ -153,7 +156,7 @@ def _build_evidence_index(
     tracker_import_summary = tracker_import_package.get("summary", {})
     tracker_template_summary = tracker_issue_evidence_template.get("summary", {})
     tracker_gate_summary = tracker_issue_evidence_gate.get("summary", {})
-    return [
+    evidence = [
         {
             **_input_item("current_audit_bundle", current_audit_bundle_json, current_audit_bundle),
             "gate": _gate_status(current_audit_bundle, "auditGate"),
@@ -224,6 +227,25 @@ def _build_evidence_index(
             "blockingItems": _gate_blocking_count(tracker_issue_evidence_gate, "issueEvidenceGate"),
         },
     ]
+    if independent_audit_result_gate_json is not None and independent_audit_result_gate is not None:
+        independent_summary = independent_audit_result_gate.get("summary", {})
+        evidence.append(
+            {
+                **_input_item(
+                    "independent_audit_result_gate",
+                    independent_audit_result_gate_json,
+                    independent_audit_result_gate,
+                ),
+                "gate": _gate_status(independent_audit_result_gate, "auditResultGate"),
+                "shipGate": _gate_status(independent_audit_result_gate, "shipGate"),
+                "acceptedResults": int(independent_summary.get("acceptedResults") or 0),
+                "pendingResults": int(independent_summary.get("pendingResults") or 0),
+                "rejectedResults": int(independent_summary.get("rejectedResults") or 0),
+                "decision": str(independent_summary.get("decision", "")),
+                "reviewedArtifacts": int(independent_summary.get("reviewedArtifacts") or 0),
+            }
+        )
+    return evidence
 
 
 def _checklist_item(item_id: str, title: str, status: str, evidence: str, action: str) -> dict[str, str]:
@@ -246,6 +268,7 @@ def _build_checklist(
     tracker_import_package: dict[str, Any],
     tracker_issue_evidence_template: dict[str, Any],
     tracker_issue_evidence_gate: dict[str, Any],
+    independent_audit_result_gate: dict[str, Any] | None,
     external_pending: list[dict[str, Any]],
 ) -> list[dict[str, str]]:
     audit_git = current_audit_bundle.get("git", {})
@@ -260,6 +283,12 @@ def _build_checklist(
     tracker_template_gate = _gate_status(tracker_issue_evidence_template, "templateGate")
     tracker_issue_gate = _gate_status(tracker_issue_evidence_gate, "issueEvidenceGate")
     tracker_issue_ship_gate = _gate_status(tracker_issue_evidence_gate, "shipGate")
+    independent_audit_gate = (
+        _gate_status(independent_audit_result_gate, "auditResultGate")
+        if independent_audit_result_gate is not None
+        else "missing"
+    )
+    independent_summary = independent_audit_result_gate.get("summary", {}) if independent_audit_result_gate else {}
     tracker_import_summary = tracker_import_package.get("summary", {})
     tracker_template_summary = tracker_issue_evidence_template.get("summary", {})
     tracker_gate_summary = tracker_issue_evidence_gate.get("summary", {})
@@ -343,9 +372,15 @@ def _build_checklist(
         _checklist_item(
             "third_party.independent_result",
             "独立第三方审计结果",
-            "blocked",
-            "externalAuditorResult=missing",
-            "把本预演包、证据索引和外部 pending 清单交给独立审计人员复核并获取可追溯结果。",
+            "passed" if independent_audit_gate == "passed" else "blocked",
+            (
+                f"auditResultGate={independent_audit_gate}; "
+                f"resultStatus={independent_audit_result_gate.get('status', 'missing') if independent_audit_result_gate else 'missing'}; "
+                f"accepted={independent_summary.get('acceptedResults', 0)}; "
+                f"pending={independent_summary.get('pendingResults', 1 if independent_audit_result_gate is None else 0)}; "
+                f"rejected={independent_summary.get('rejectedResults', 0)}"
+            ),
+            "把本预演包、证据索引和外部 pending 清单交给独立审计人员复核，并提交脱敏 independent audit result gate。",
         ),
     ]
 
@@ -412,6 +447,15 @@ def render_markdown(report: dict[str, Any]) -> str:
                 ",".join(item["blockingItems"]),
             ]
         )
+    independent_gate_status = next(
+        (item["status"] for item in report["auditorChecklist"] if item["id"] == "third_party.independent_result"),
+        "blocked",
+    )
+    independent_result_line = (
+        "- Independent audit result intake was structurally accepted; final release still depends on the aggregate gates."
+        if independent_gate_status == "passed"
+        else "- Independent audit result remains required."
+    )
     return "\n".join(
         [
             "# FateCat Third-Party Audit Rehearsal",
@@ -440,7 +484,8 @@ def render_markdown(report: dict[str, Any]) -> str:
             "",
             "- This rehearsal does not replace third-party audit.",
             "- This rehearsal does not prove production live, external connectivity, OIDC/SIEM, monitoring, Vault/KMS, developer portal or 100% readiness.",
-            "- Real external evidence and independent audit result remain required.",
+            "- Real external evidence remains required.",
+            independent_result_line,
             "",
             "## Final Conclusion",
             "",
@@ -462,6 +507,7 @@ def build_report(
     tracker_issue_evidence_gate_json: Path,
     output_json: Path,
     output_markdown: Path,
+    independent_audit_result_gate_json: Path | None = None,
 ) -> tuple[dict[str, Any], str]:
     contract = _load_json(CONTRACT_PATH)
     if contract.get("kind") != "fatecat.third_party_audit_rehearsal_contract":
@@ -478,6 +524,8 @@ def build_report(
         ("trackerIssueEvidenceGate", tracker_issue_evidence_gate_json),
     ):
         _require_file(path, label=label)
+    if independent_audit_result_gate_json is not None:
+        _require_file(independent_audit_result_gate_json, label="independentAuditResultGate")
 
     current_audit_bundle = _load_json(current_audit_bundle_json)
     audit_dry_run = _load_json(audit_dry_run_json)
@@ -487,6 +535,9 @@ def build_report(
     tracker_import_package = _load_json(tracker_import_package_json)
     tracker_issue_evidence_template = _load_json(tracker_issue_evidence_template_json)
     tracker_issue_evidence_gate = _load_json(tracker_issue_evidence_gate_json)
+    independent_audit_result_gate = (
+        _load_json(independent_audit_result_gate_json) if independent_audit_result_gate_json is not None else None
+    )
 
     required_kinds = contract["requiredKinds"]
     _require_kind(current_audit_bundle, expected=required_kinds["currentAuditBundle"], label="currentAuditBundle")
@@ -513,6 +564,12 @@ def build_report(
         expected=required_kinds["trackerIssueEvidenceGate"],
         label="trackerIssueEvidenceGate",
     )
+    if independent_audit_result_gate is not None:
+        _require_kind(
+            independent_audit_result_gate,
+            expected=required_kinds["independentAuditResultGate"],
+            label="independentAuditResultGate",
+        )
 
     external_pending = _sanitize_external_pending(closure_summary)
     evidence_index = _build_evidence_index(
@@ -524,6 +581,7 @@ def build_report(
         tracker_import_package_json=tracker_import_package_json,
         tracker_issue_evidence_template_json=tracker_issue_evidence_template_json,
         tracker_issue_evidence_gate_json=tracker_issue_evidence_gate_json,
+        independent_audit_result_gate_json=independent_audit_result_gate_json,
         current_audit_bundle=current_audit_bundle,
         audit_dry_run=audit_dry_run,
         current_release_proof=current_release_proof,
@@ -532,6 +590,7 @@ def build_report(
         tracker_import_package=tracker_import_package,
         tracker_issue_evidence_template=tracker_issue_evidence_template,
         tracker_issue_evidence_gate=tracker_issue_evidence_gate,
+        independent_audit_result_gate=independent_audit_result_gate,
     )
     checklist = _build_checklist(
         current_audit_bundle=current_audit_bundle,
@@ -542,6 +601,7 @@ def build_report(
         tracker_import_package=tracker_import_package,
         tracker_issue_evidence_template=tracker_issue_evidence_template,
         tracker_issue_evidence_gate=tracker_issue_evidence_gate,
+        independent_audit_result_gate=independent_audit_result_gate,
         external_pending=external_pending,
     )
     blocking = _blocking_items(checklist, external_pending)
@@ -559,6 +619,9 @@ def build_report(
             "trackerImportPackageJson": str(tracker_import_package_json),
             "trackerIssueEvidenceTemplateJson": str(tracker_issue_evidence_template_json),
             "trackerIssueEvidenceGateJson": str(tracker_issue_evidence_gate_json),
+            "independentAuditResultGateJson": str(independent_audit_result_gate_json)
+            if independent_audit_result_gate_json is not None
+            else None,
         },
         "summary": {
             "evidenceInputs": len(evidence_index),
@@ -598,6 +661,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--tracker-import-package-json", type=Path, required=True)
     parser.add_argument("--tracker-issue-evidence-template-json", type=Path, required=True)
     parser.add_argument("--tracker-issue-evidence-gate-json", type=Path, required=True)
+    parser.add_argument("--independent-audit-result-gate-json", type=Path)
     parser.add_argument("--output-json", type=Path, default=DEFAULT_OUTPUT_JSON)
     parser.add_argument("--output-markdown", type=Path, default=DEFAULT_OUTPUT_MARKDOWN)
     return parser.parse_args(argv)
@@ -615,6 +679,7 @@ def main(argv: list[str] | None = None) -> int:
             tracker_import_package_json=args.tracker_import_package_json,
             tracker_issue_evidence_template_json=args.tracker_issue_evidence_template_json,
             tracker_issue_evidence_gate_json=args.tracker_issue_evidence_gate_json,
+            independent_audit_result_gate_json=args.independent_audit_result_gate_json,
             output_json=args.output_json,
             output_markdown=args.output_markdown,
         )

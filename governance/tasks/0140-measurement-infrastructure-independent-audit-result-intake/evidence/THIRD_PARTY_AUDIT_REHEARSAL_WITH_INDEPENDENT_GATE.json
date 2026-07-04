@@ -1,0 +1,563 @@
+{
+  "auditorChecklist": [
+    {
+      "evidence": "commit=3f15f28e083b0a916b1e2f9da876bd0ddd7b5601; clean=False",
+      "id": "git.current_commit_clean",
+      "nextAction": "提交并重新生成审计包，直到 current audit bundle 记录 clean worktree。",
+      "status": "blocked",
+      "title": "当前 commit 与工作树状态"
+    },
+    {
+      "evidence": "auditGate=blocked",
+      "id": "audit.bundle_gate",
+      "nextAction": "补齐 current audit bundle required evidence；不得把 blocked bundle 当作第三方审计通过。",
+      "status": "blocked",
+      "title": "当前审计包 gate"
+    },
+    {
+      "evidence": "dryRunStatus=passed; shipGate=blocked",
+      "id": "audit.dry_run_gate",
+      "nextAction": "dry-run 失败时先修复 handoff 结构；shipGate blocked 表示外部证据仍待执行。",
+      "status": "passed",
+      "title": "审计 handoff dry-run"
+    },
+    {
+      "evidence": "proofGate=fail",
+      "id": "release.current_proof_gate",
+      "nextAction": "为最终 commit 重跑远端 Acceptance/Container release、artifact attestation 和 release proof。",
+      "status": "blocked",
+      "title": "当前发布证据"
+    },
+    {
+      "evidence": "certificationStatus=blocked; canClaim100Percent=False",
+      "id": "certification.aggregator_gate",
+      "nextAction": "只有所有 domain passed 且外部 live/audit evidence 闭合后才允许 canClaim100Percent=true。",
+      "status": "blocked",
+      "title": "100% certification 聚合器"
+    },
+    {
+      "evidence": "closureGate=blocked; externalPending=22",
+      "id": "external_validation.closure_gate",
+      "nextAction": "按 operator runbooks 执行真实外部验证并提交脱敏 proof-ref/live proof。",
+      "status": "blocked",
+      "title": "外部验证关闭证据"
+    },
+    {
+      "evidence": "packageGate=blocked; issueFiles=22; commands=22",
+      "id": "tracker.import_package_gate",
+      "nextAction": "operator 审核 tracker import package，并在授权 tracker 会话中创建真实 issue。",
+      "status": "blocked",
+      "title": "Tracker issue 导入包"
+    },
+    {
+      "evidence": "templateGate=operator_action_required; workItems=22; readyToSubmitToGate=False",
+      "id": "tracker.issue_evidence_template_gate",
+      "nextAction": "真实 issue 创建后填写 sanitized issue ref、artifact hash 和创建时间。",
+      "status": "blocked",
+      "title": "Tracker issue evidence 模板"
+    },
+    {
+      "evidence": "issueEvidenceGate=blocked; shipGate=blocked; accepted=0; pending=22; rejected=0",
+      "id": "tracker.issue_evidence_gate",
+      "nextAction": "提交脱敏 tracker issue evidence bundle，并保持 live proof/certification/audit 独立闭合。",
+      "status": "blocked",
+      "title": "Tracker issue 创建证据门禁"
+    },
+    {
+      "evidence": "auditResultGate=blocked; resultStatus=external_audit_result_pending; accepted=0; pending=1; rejected=0",
+      "id": "third_party.independent_result",
+      "nextAction": "把本预演包、证据索引和外部 pending 清单交给独立审计人员复核，并提交脱敏 independent audit result gate。",
+      "status": "blocked",
+      "title": "独立第三方审计结果"
+    }
+  ],
+  "blockingItems": [
+    {
+      "id": "git.current_commit_clean",
+      "nextAction": "提交并重新生成审计包，直到 current audit bundle 记录 clean worktree。",
+      "reason": "commit=3f15f28e083b0a916b1e2f9da876bd0ddd7b5601; clean=False"
+    },
+    {
+      "id": "audit.bundle_gate",
+      "nextAction": "补齐 current audit bundle required evidence；不得把 blocked bundle 当作第三方审计通过。",
+      "reason": "auditGate=blocked"
+    },
+    {
+      "id": "release.current_proof_gate",
+      "nextAction": "为最终 commit 重跑远端 Acceptance/Container release、artifact attestation 和 release proof。",
+      "reason": "proofGate=fail"
+    },
+    {
+      "id": "certification.aggregator_gate",
+      "nextAction": "只有所有 domain passed 且外部 live/audit evidence 闭合后才允许 canClaim100Percent=true。",
+      "reason": "certificationStatus=blocked; canClaim100Percent=False"
+    },
+    {
+      "id": "external_validation.closure_gate",
+      "nextAction": "按 operator runbooks 执行真实外部验证并提交脱敏 proof-ref/live proof。",
+      "reason": "closureGate=blocked; externalPending=22"
+    },
+    {
+      "id": "tracker.import_package_gate",
+      "nextAction": "operator 审核 tracker import package，并在授权 tracker 会话中创建真实 issue。",
+      "reason": "packageGate=blocked; issueFiles=22; commands=22"
+    },
+    {
+      "id": "tracker.issue_evidence_template_gate",
+      "nextAction": "真实 issue 创建后填写 sanitized issue ref、artifact hash 和创建时间。",
+      "reason": "templateGate=operator_action_required; workItems=22; readyToSubmitToGate=False"
+    },
+    {
+      "id": "tracker.issue_evidence_gate",
+      "nextAction": "提交脱敏 tracker issue evidence bundle，并保持 live proof/certification/audit 独立闭合。",
+      "reason": "issueEvidenceGate=blocked; shipGate=blocked; accepted=0; pending=22; rejected=0"
+    },
+    {
+      "id": "third_party.independent_result",
+      "nextAction": "把本预演包、证据索引和外部 pending 清单交给独立审计人员复核，并提交脱敏 independent audit result gate。",
+      "reason": "auditResultGate=blocked; resultStatus=external_audit_result_pending; accepted=0; pending=1; rejected=0"
+    },
+    {
+      "id": "external_validation.pending_work_items",
+      "nextAction": "execute external validation operator packet and submit redacted evidence bundle",
+      "reason": "externalPending=22"
+    }
+  ],
+  "evidenceIndex": [
+    {
+      "clean": false,
+      "commit": "3f15f28e083b0a916b1e2f9da876bd0ddd7b5601",
+      "gate": "blocked",
+      "id": "current_audit_bundle",
+      "kind": "fatecat.current_audit_bundle",
+      "path": "/tmp/fatecat-local-ci-0140/current-audit-bundle/current-audit-bundle.json",
+      "pendingExternalValidationCount": 433,
+      "sha256": "a1a4cb26ad0697feb6c6823d536fee5b411d6de5e88683e99e03eaa24c8dfddd",
+      "status": "passed"
+    },
+    {
+      "gate": "blocked",
+      "id": "audit_dry_run",
+      "kind": "fatecat.audit_handoff_dry_run",
+      "path": "/tmp/fatecat-local-ci-0140/audit-dry-run/audit-dry-run.json",
+      "sha256": "b28a9a8d4a138321546f8d4366887c29e8d5b20bcfab1f167bd738ef29d1c71b",
+      "status": "passed"
+    },
+    {
+      "commit": "3f15f28e083b0a916b1e2f9da876bd0ddd7b5601",
+      "gate": "fail",
+      "id": "current_release_proof",
+      "kind": "fatecat.current_release_proof",
+      "mode": "local-contract",
+      "path": "/tmp/fatecat-local-ci-0140/current-release-proof.json",
+      "sha256": "14453f9d22219e86d206e4a01a1999c345a943fe199924ae434bfe0cf2393800",
+      "status": "passed"
+    },
+    {
+      "blockingItems": 4,
+      "canClaim100Percent": false,
+      "domains": 9,
+      "externalPending": 12,
+      "gate": "blocked",
+      "id": "measurement_infrastructure_certification",
+      "kind": "fatecat.measurement_infrastructure_certification",
+      "path": "/tmp/fatecat-local-ci-0140/measurement-infrastructure-certification.json",
+      "sha256": "2f54503eb91754c74c0c3cb7de741921715664fb90ba0405887c7cb6dc7f294f",
+      "status": "blocked"
+    },
+    {
+      "domains": 12,
+      "externalPending": 22,
+      "gate": "blocked",
+      "id": "external_validation_closure_evidence_summary",
+      "kind": "fatecat.external_validation_closure_evidence_summary",
+      "path": "/tmp/fatecat-local-ci-0140/external-validation-closure-evidence-summary.json",
+      "sha256": "6723ad0d5d0e776bff7c0c7c9535f3f4dd19587fd9fea1e14f5b1fcad051e10d",
+      "status": "passed",
+      "workItems": 22
+    },
+    {
+      "blockingItems": 5,
+      "commands": 22,
+      "gate": "blocked",
+      "id": "external_validation_tracker_import_package",
+      "issueFiles": 22,
+      "kind": "fatecat.external_validation_tracker_import_package",
+      "path": "/tmp/fatecat-local-ci-0140/external-validation-tracker-import-package.json",
+      "sha256": "804276bb5d7e32741496467d6b4de7eecc1c30dbdd809a85718abb4ea44efda8",
+      "status": "operator_action_required"
+    },
+    {
+      "blockingItems": 3,
+      "gate": "operator_action_required",
+      "id": "external_validation_tracker_issue_evidence_template",
+      "kind": "fatecat.external_validation_tracker_issue_evidence_bundle_template",
+      "path": "/tmp/fatecat-local-ci-0140/external-validation-tracker-issue-evidence-template.json",
+      "readyToSubmitToGate": false,
+      "sha256": "0933108100c91f0f3a1a3825b54233b4978089db2f1d9810fc740cc1dcc47caf",
+      "status": "operator_action_required",
+      "workItems": 22
+    },
+    {
+      "acceptedIssues": 0,
+      "blockingItems": 3,
+      "gate": "blocked",
+      "id": "external_validation_tracker_issue_evidence_gate",
+      "kind": "fatecat.external_validation_tracker_issue_evidence_gate",
+      "path": "/tmp/fatecat-local-ci-0140/external-validation-tracker-issue-evidence-gate.json",
+      "pendingIssues": 22,
+      "rejectedIssues": 0,
+      "sha256": "4f32a1af880549ed474f9f34a61efd935d732bd77f2132479ec705e715b3fb5e",
+      "shipGate": "blocked",
+      "status": "external_connectivity_pending"
+    },
+    {
+      "acceptedResults": 0,
+      "decision": "missing",
+      "gate": "blocked",
+      "id": "independent_audit_result_gate",
+      "kind": "fatecat.independent_audit_result_gate",
+      "path": "/tmp/fatecat-local-ci-0140/independent-audit-result-gate.json",
+      "pendingResults": 1,
+      "rejectedResults": 0,
+      "reviewedArtifacts": 0,
+      "sha256": "2db346e0122fd54fc138aac34c9a09e34e757d7bfa62871c68224833b210dbab",
+      "shipGate": "blocked",
+      "status": "external_audit_result_pending"
+    }
+  ],
+  "externalPending": [
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "manual_triage",
+        "manual_triage_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "manual_triage",
+      "domain": "manual_triage",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "engineering-audit",
+      "workItemId": "external-work.09005bbc5c567be0"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "security.externalization_live",
+      "domain": "security",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "security-ops",
+      "workItemId": "external-work.097db160a9dad0c1"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "delivery.multi_surface_live",
+      "domain": "delivery",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "delivery-ops",
+      "workItemId": "external-work.16ef6f7735b18242"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "runtime.public_webhook_live",
+      "domain": "runtime",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "runtime-ops",
+      "workItemId": "external-work.2cdce9fea4027cd1"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "release.hf_space_live",
+      "domain": "release",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "release-ops",
+      "workItemId": "external-work.31137a57f15537dd"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "security.retention_cleanup_live",
+      "domain": "security",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "security-ops",
+      "workItemId": "external-work.4526896091f25f6d"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "security.external_secret_provider",
+      "domain": "security",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "security-ops",
+      "workItemId": "external-work.48ca6cab90f9800c"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "release.production_api_live",
+      "domain": "release",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "release-ops",
+      "workItemId": "external-work.4fbd0b25cee34298"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "runtime.multi_replica_live",
+      "domain": "runtime",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "runtime-ops",
+      "workItemId": "external-work.592973cda51b7cfd"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "observability.otel_slo_live",
+      "domain": "observability",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "sre-ops",
+      "workItemId": "external-work.5eddad3687b18ac8"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "event_platform.live",
+      "domain": "event_platform",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "platform-events",
+      "workItemId": "external-work.615684420399d1b6"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "developer_platform.live",
+      "domain": "developer_platform",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "developer-platform",
+      "workItemId": "external-work.70ec384a9c54da93"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "audit.certification_current_evidence",
+      "domain": "audit",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "audit-owner",
+      "workItemId": "external-work.73d8aad8591d4bd8"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "release.telegram_bot_live",
+      "domain": "release",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "bot-ops",
+      "workItemId": "external-work.8606485836475224"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "policy_guardrail",
+        "policy_guardrail_review_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "governance.external_validation_policy_guardrail",
+      "domain": "governance",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "governance",
+      "workItemId": "external-work.95bad8293acc2879"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "security.identity_oidc",
+      "domain": "security",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "security-ops",
+      "workItemId": "external-work.adb578beb167a8b2"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "provider.external_dependency_live",
+      "domain": "provider",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "provider-platform",
+      "workItemId": "external-work.bbc3a0bb9036e72f"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "runtime.postgres_live",
+      "domain": "runtime",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "runtime-ops",
+      "workItemId": "external-work.ce47eec5e35ad149"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "release.artifact_current_commit",
+      "domain": "release",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "release-ops",
+      "workItemId": "external-work.e5ec45d990955344"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "quality.external_evaluation_live",
+      "domain": "quality",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "quality-ops",
+      "workItemId": "external-work.e8aee56b238d245f"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "security.siem_audit",
+      "domain": "security",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "security-ops",
+      "workItemId": "external-work.e90698a411fc18fe"
+    },
+    {
+      "blockingItems": [
+        "category_live_evidence_missing",
+        "category_live_pending",
+        "proof_ref_missing",
+        "stale_owner_pending"
+      ],
+      "category": "audit.third_party_review",
+      "domain": "audit",
+      "nextAction": "execute_category_runbook_and_submit_redacted_proof_ref",
+      "owner": "audit-owner",
+      "workItemId": "external-work.fd47f5baca785f0c"
+    }
+  ],
+  "generatedAt": "2026-07-04T14:19:32Z",
+  "inputs": {
+    "auditDryRunJson": "/tmp/fatecat-local-ci-0140/audit-dry-run/audit-dry-run.json",
+    "certificationJson": "/tmp/fatecat-local-ci-0140/measurement-infrastructure-certification.json",
+    "closureEvidenceSummaryJson": "/tmp/fatecat-local-ci-0140/external-validation-closure-evidence-summary.json",
+    "currentAuditBundleJson": "/tmp/fatecat-local-ci-0140/current-audit-bundle/current-audit-bundle.json",
+    "currentReleaseProofJson": "/tmp/fatecat-local-ci-0140/current-release-proof.json",
+    "independentAuditResultGateJson": "/tmp/fatecat-local-ci-0140/independent-audit-result-gate.json",
+    "trackerImportPackageJson": "/tmp/fatecat-local-ci-0140/external-validation-tracker-import-package.json",
+    "trackerIssueEvidenceGateJson": "/tmp/fatecat-local-ci-0140/external-validation-tracker-issue-evidence-gate.json",
+    "trackerIssueEvidenceTemplateJson": "/tmp/fatecat-local-ci-0140/external-validation-tracker-issue-evidence-template.json"
+  },
+  "kind": "fatecat.third_party_audit_rehearsal",
+  "nonClaims": [
+    "Does not replace third-party audit.",
+    "Does not execute production API, HF Space, Telegram Bot, Postgres, OTel, IdP, SIEM, Vault/KMS, developer portal or sandbox live checks.",
+    "Does not prove production live, external connectivity, legal license review, OIDC/SIEM completion, or 100% measurement infrastructure readiness.",
+    "Does not create, simulate or replace a signed external auditor result."
+  ],
+  "outputs": {
+    "jsonPath": "/tmp/fatecat-local-ci-0140/third-party-audit-rehearsal.json",
+    "markdownPath": "/tmp/fatecat-local-ci-0140/THIRD_PARTY_AUDIT_REHEARSAL.md"
+  },
+  "privacyBoundary": "输出只保存证据文件路径、gate 状态、计数、category、owner、runbook/operator step 标识和凭证变量名；不得复制真实 URL、token、secret、DSN、webhook secret、报告正文、用户输入、生产日志或第三方账号数据。",
+  "rehearsalGate": {
+    "policy": {
+      "localReadiness": "status=passed only means the rehearsal package was generated and all input files are structurally consumable.",
+      "status": "blocked until all required evidence gates are passed, all external pending items are closed, and independentAuditResultGate.auditResultGate.status is passed.",
+      "thirdPartyAudit": "A human or external auditor must review the package and provide a separate signed/traceable redacted result bundle consumed by independent-audit-result-gate."
+    },
+    "status": "blocked"
+  },
+  "schemaVersion": 1,
+  "status": "passed",
+  "summary": {
+    "blockedChecklistItems": 9,
+    "blockingItems": 10,
+    "checklistItems": 10,
+    "evidenceInputs": 9,
+    "externalPending": 22,
+    "passedChecklistItems": 1
+  }
+}

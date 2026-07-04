@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "kind": "fatecat.third_party_audit_rehearsal_contract",
   "id": "audit.third_party_audit_rehearsal",
-  "description": "第三方审计预演包契约。该预演包消费 current audit bundle、audit dry-run、current release proof、measurement infrastructure certification、external validation closure evidence summary、tracker import package、tracker issue evidence template 和 tracker issue evidence gate，输出给独立审计人员复核的证据索引、阻断项、外部待验证项和审计检查清单。它不执行真实外部请求，不替代真实第三方审计，不把 blocked/pending 证据伪装成通过。",
+  "description": "第三方审计预演包契约。该预演包消费 current audit bundle、audit dry-run、current release proof、measurement infrastructure certification、external validation closure evidence summary、tracker import package、tracker issue evidence template、tracker issue evidence gate 和可选 independent audit result gate，输出给独立审计人员复核的证据索引、阻断项、外部待验证项和审计检查清单。它不执行真实外部请求，不替代真实第三方审计，不把 blocked/pending 证据伪装成通过。",
   "entrypoints": {
-    "command": "bash scripts/third-party-audit-rehearsal.sh --current-audit-bundle-json <current-audit-bundle.json> --audit-dry-run-json <audit-dry-run.json> --current-release-proof-json <current-release-proof.json> --certification-json <measurement-infrastructure-certification.json> --closure-evidence-summary-json <external-validation-closure-evidence-summary.json> --tracker-import-package-json <external-validation-tracker-import-package.json> --tracker-issue-evidence-template-json <external-validation-tracker-issue-evidence-template.json> --tracker-issue-evidence-gate-json <external-validation-tracker-issue-evidence-gate.json> --output-json <path> --output-markdown <path>",
+    "command": "bash scripts/third-party-audit-rehearsal.sh --current-audit-bundle-json <current-audit-bundle.json> --audit-dry-run-json <audit-dry-run.json> --current-release-proof-json <current-release-proof.json> --certification-json <measurement-infrastructure-certification.json> --closure-evidence-summary-json <external-validation-closure-evidence-summary.json> --tracker-import-package-json <external-validation-tracker-import-package.json> --tracker-issue-evidence-template-json <external-validation-tracker-issue-evidence-template.json> --tracker-issue-evidence-gate-json <external-validation-tracker-issue-evidence-gate.json> --independent-audit-result-gate-json <independent-audit-result-gate.json> --output-json <path> --output-markdown <path>",
     "pythonEntrypoint": "scripts/third-party-audit-rehearsal.py",
     "defaultOutput": "infra/runtime/local-state/exports/audit-rehearsal/third-party-audit-rehearsal.json"
   },
@@ -16,7 +16,8 @@
     "external-validation-closure-evidence-summary.json": "外部验证关闭证据摘要。",
     "external-validation-tracker-import-package.json": "外部验证 tracker import package，列出待人工创建的脱敏 issue body、命令文本和 package gate。",
     "external-validation-tracker-issue-evidence-template.json": "外部验证 tracker issue evidence bundle 模板，列出 operator 需填写的脱敏 issue ref/hash 字段。",
-    "external-validation-tracker-issue-evidence-gate.json": "外部验证 tracker issue 创建证据门禁，记录 tracker issue evidence 是否结构接受。"
+    "external-validation-tracker-issue-evidence-gate.json": "外部验证 tracker issue 创建证据门禁，记录 tracker issue evidence 是否结构接受。",
+    "independent-audit-result-gate.json": "独立审计结果 intake 门禁；本地 quick CI 可为 pending/blocked，真实第三方审计结果到位后可结构接受。"
   },
   "requiredOutputFields": [
     "schemaVersion",
@@ -41,12 +42,13 @@
     "closureEvidenceSummary": "fatecat.external_validation_closure_evidence_summary",
     "trackerImportPackage": "fatecat.external_validation_tracker_import_package",
     "trackerIssueEvidenceTemplate": "fatecat.external_validation_tracker_issue_evidence_bundle_template",
-    "trackerIssueEvidenceGate": "fatecat.external_validation_tracker_issue_evidence_gate"
+    "trackerIssueEvidenceGate": "fatecat.external_validation_tracker_issue_evidence_gate",
+    "independentAuditResultGate": "fatecat.independent_audit_result_gate"
   },
   "rehearsalGatePolicy": {
-    "status": "blocked until all required evidence gates are passed, all external pending items are closed, and an independent auditor result is attached outside this local rehearsal.",
+    "status": "blocked until all required evidence gates are passed, all external pending items are closed, and independentAuditResultGate.auditResultGate.status is passed.",
     "localReadiness": "status=passed only means the rehearsal package was generated and all input files are structurally consumable.",
-    "thirdPartyAudit": "A human or external auditor must review the package and provide a separate signed/traceable result."
+    "thirdPartyAudit": "A human or external auditor must review the package and provide a separate signed/traceable redacted result bundle consumed by independent-audit-result-gate."
   },
   "privacyBoundary": "输出只保存证据文件路径、gate 状态、计数、category、owner、runbook/operator step 标识和凭证变量名；不得复制真实 URL、token、secret、DSN、webhook secret、报告正文、用户输入、生产日志或第三方账号数据。",
   "forbiddenFragments": [
@@ -68,7 +70,7 @@
     "Does not replace third-party audit.",
     "Does not execute production API, HF Space, Telegram Bot, Postgres, OTel, IdP, SIEM, Vault/KMS, developer portal or sandbox live checks.",
     "Does not prove production live, external connectivity, legal license review, OIDC/SIEM completion, or 100% measurement infrastructure readiness.",
-    "Does not attach a signed external auditor result."
+    "Does not create, simulate or replace a signed external auditor result."
   ],
-  "releaseBoundary": "status=passed 只表示预演包结构生成成功；rehearsalGate.status=passed 只能在所有输入证据通过、externalPending 为空且独立第三方审计结果已另行附加时出现。本地 quick CI 默认应保持 blocked。"
+  "releaseBoundary": "status=passed 只表示预演包结构生成成功；rehearsalGate.status=passed 只能在所有输入证据通过、externalPending 为空且 independentAuditResultGate.auditResultGate.status=passed 时出现。本地 quick CI 默认应保持 blocked。"
 }

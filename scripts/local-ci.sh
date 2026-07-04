@@ -350,6 +350,8 @@ run_quick() {
   run_step "external validation tracker issue evidence gate" bash "${script_dir}/external-validation-tracker-issue-evidence-gate.sh" \
     --tracker-import-package-json "${output_dir}/external-validation-tracker-import-package.json" \
     --output-json "${output_dir}/external-validation-tracker-issue-evidence-gate.json"
+  run_step "independent audit result gate" bash "${script_dir}/independent-audit-result-gate.sh" \
+    --output-json "${output_dir}/independent-audit-result-gate.json"
   run_step "measurement infrastructure certification dry-run" bash "${script_dir}/measurement-infrastructure-certification.sh" \
     --evidence-dir "${output_dir}" \
     --output-json "${output_dir}/measurement-infrastructure-certification.json"
@@ -362,6 +364,7 @@ run_quick() {
     --tracker-import-package-json "${output_dir}/external-validation-tracker-import-package.json" \
     --tracker-issue-evidence-template-json "${output_dir}/external-validation-tracker-issue-evidence-template.json" \
     --tracker-issue-evidence-gate-json "${output_dir}/external-validation-tracker-issue-evidence-gate.json" \
+    --independent-audit-result-gate-json "${output_dir}/independent-audit-result-gate.json" \
     --output-json "${output_dir}/third-party-audit-rehearsal.json" \
     --output-markdown "${output_dir}/THIRD_PARTY_AUDIT_REHEARSAL.md"
   run_step "ruff check" env RUFF_CACHE_DIR="${RUFF_CACHE_DIR:-/tmp/fatecat-ruff-cache}" \
@@ -442,6 +445,7 @@ run_quick() {
       tests/regression/test_external_validation_tracker_import_package.py \
       tests/regression/test_external_validation_tracker_issue_evidence_template.py \
       tests/regression/test_external_validation_tracker_issue_evidence_gate.py \
+      tests/regression/test_independent_audit_result_gate.py \
       tests/regression/test_measurement_infrastructure_certification.py \
       tests/regression/test_third_party_audit_rehearsal.py \
       tests/regression/test_current_release_proof.py \
@@ -619,6 +623,7 @@ write_summary() {
   FATE_LOCAL_CI_EXTERNAL_VALIDATION_TRACKER_ISSUE_EVIDENCE_TEMPLATE="${output_dir}/external-validation-tracker-issue-evidence-template.json" \
   FATE_LOCAL_CI_EXTERNAL_VALIDATION_TRACKER_ISSUE_EVIDENCE_TEMPLATE_MARKDOWN="${output_dir}/EXTERNAL_VALIDATION_TRACKER_ISSUE_EVIDENCE_TEMPLATE.md" \
   FATE_LOCAL_CI_EXTERNAL_VALIDATION_TRACKER_ISSUE_EVIDENCE_GATE="${output_dir}/external-validation-tracker-issue-evidence-gate.json" \
+  FATE_LOCAL_CI_INDEPENDENT_AUDIT_RESULT_GATE="${output_dir}/independent-audit-result-gate.json" \
   FATE_LOCAL_CI_MEASUREMENT_INFRASTRUCTURE_CERTIFICATION="${output_dir}/measurement-infrastructure-certification.json" \
   FATE_LOCAL_CI_THIRD_PARTY_AUDIT_REHEARSAL="${output_dir}/third-party-audit-rehearsal.json" \
   FATE_LOCAL_CI_THIRD_PARTY_AUDIT_REHEARSAL_MARKDOWN="${output_dir}/THIRD_PARTY_AUDIT_REHEARSAL.md" \
@@ -736,6 +741,7 @@ payload = {
         "externalValidationTrackerIssueEvidenceGate": env(
             "FATE_LOCAL_CI_EXTERNAL_VALIDATION_TRACKER_ISSUE_EVIDENCE_GATE"
         ),
+        "independentAuditResultGate": env("FATE_LOCAL_CI_INDEPENDENT_AUDIT_RESULT_GATE"),
         "measurementInfrastructureCertification": env("FATE_LOCAL_CI_MEASUREMENT_INFRASTRUCTURE_CERTIFICATION"),
         "thirdPartyAuditRehearsal": env("FATE_LOCAL_CI_THIRD_PARTY_AUDIT_REHEARSAL"),
         "thirdPartyAuditRehearsalMarkdown": env("FATE_LOCAL_CI_THIRD_PARTY_AUDIT_REHEARSAL_MARKDOWN"),
