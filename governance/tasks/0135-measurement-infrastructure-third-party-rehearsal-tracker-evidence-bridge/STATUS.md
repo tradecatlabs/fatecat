@@ -43,7 +43,8 @@ Real production closure remains blocked by external execution:
 
 - No runtime service introduced.
 - No issue tracker contacted.
-- No `gh` command executed.
+- No tracker issue creation or tracker import command executed.
+- GitHub CLI was used only by the outer delivery flow to dispatch/watch remote CI for the pushed commit.
 - No production endpoint contacted.
 - No secret required or stored.
 - Current validation artifacts will be written under `/tmp/fatecat-local-ci-third-party-rehearsal-tracker-evidence-bridge-0135*`.
