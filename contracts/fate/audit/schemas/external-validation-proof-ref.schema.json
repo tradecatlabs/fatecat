@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tradecatlabs.github.io/fatecat/schemas/external-validation-proof-ref.schema.json",
+  "title": "External Validation Proof Ref Bundle",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "kind",
+    "status",
+    "generatedAt",
+    "source",
+    "proofRefs",
+    "privacyBoundary",
+    "nonClaims"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "kind": {
+      "const": "fatecat.external_validation_proof_ref_bundle"
+    },
+    "status": {
+      "enum": [
+        "external_connectivity_pending",
+        "external_live_evidence_supplied_by_operator"
+      ]
+    },
+    "generatedAt": {
+      "type": "string"
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "workQueueKind",
+        "workQueueSha256",
+        "commit"
+      ],
+      "properties": {
+        "workQueueKind": {
+          "const": "fatecat.external_validation_closure_work_queue"
+        },
+        "workQueueSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "commit": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "proofRefs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/proofRef"
+      }
+    },
+    "privacyBoundary": {
+      "const": "redacted_no_secret_values"
+    },
+    "nonClaims": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "$defs": {
+    "proofRef": {
+      "type": "object",
+      "required": [
+        "id",
+        "proofRef",
+        "evidenceType",
+        "workItemId",
+        "owner",
+        "category",
+        "issuer",
+        "capturedAt",
+        "expiresAt",
+        "redactionBoundary",
+        "verificationCommand",
+        "artifactHash",
+        "sourceBinding"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "proofRef": {
+          "type": "string",
+          "pattern": "^(evidence|artifact|ci-artifact)://"
+        },
+        "evidenceType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "workItemId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1
+        },
+        "issuer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "capturedAt": {
+          "type": "string"
+        },
+        "expiresAt": {
+          "type": "string"
+        },
+        "redactionBoundary": {
+          "const": "redacted_no_secret_values"
+        },
+        "verificationCommand": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifactHash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "sourceBinding": {
+          "type": "object",
+          "required": [
+            "commit",
+            "workQueueSha256",
+            "occurrenceIds"
+          ],
+          "properties": {
+            "commit": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40}$"
+            },
+            "workQueueSha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "occurrenceIds": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -119,6 +119,20 @@ def _write_evidence_dir(root: Path, *, blocked: bool) -> Path:
             "pendingExternalValidationCount": 3 if blocked else 0,
         },
     )
+    _write_json(
+        root / "external-validation-proof-ref-gate.json",
+        {
+            "status": "passed",
+            "proofRefStatus": "external_connectivity_pending" if blocked else "schema_accepted_all_work_items",
+            "proofRefGate": {
+                "status": "external_connectivity_pending" if blocked else "schema_accepted_all_work_items",
+            },
+            "shipGate": {
+                "status": "blocked" if blocked else "passed",
+                "blockingItems": ["proof_ref_missing"] if blocked else [],
+            },
+        },
+    )
     return root
 
 
@@ -128,6 +142,7 @@ def test_certification_contract_lists_required_evidence_files():
     assert contract["kind"] == "fatecat.measurement_infrastructure_certification_contract"
     assert "provider-drift-trend-gate.json" in contract["requiredEvidenceFiles"]
     assert "runtime-proof-gate.json" in contract["requiredEvidenceFiles"]
+    assert "external-validation-proof-ref-gate.json" in contract["requiredEvidenceFiles"]
     assert "evidenceOverrides" in contract["requiredOutputFields"]
     assert "live-release-gate.json" in contract["optionalEvidenceOverrides"]
     assert "current-audit-bundle/current-audit-bundle.json" in contract["requiredEvidenceFiles"]
@@ -309,14 +324,20 @@ def test_certification_accepts_current_audit_bundle_sidecar_without_overriding_r
     audit_bundle = next(
         item for item in audit["evidence"] if item["logicalPath"] == "current-audit-bundle/current-audit-bundle.json"
     )
+    proof_ref_gate = next(
+        item for item in audit["evidence"] if item["logicalPath"] == "external-validation-proof-ref-gate.json"
+    )
     current_proof = next(item for item in release["evidence"] if item["logicalPath"] == "current-release-proof.json")
 
     assert summary["evidenceOverrides"] == {"current-audit-bundle/current-audit-bundle.json": str(sidecar)}
-    assert audit["status"] == "passed"
+    assert audit["status"] == "blocked"
     assert audit_bundle["source"] == "override"
     assert audit_bundle["path"] == str(sidecar)
     assert audit_bundle["blockingItems"] == []
     assert audit_bundle["pendingItems"] == []
+    assert proof_ref_gate["source"] == "evidence_dir"
+    assert proof_ref_gate["blockingItems"] == ["proof_ref_missing"]
+    assert proof_ref_gate["pendingItems"] == ["proofRefStatus=external_connectivity_pending"]
     assert release["status"] == "blocked"
     assert current_proof["source"] == "evidence_dir"
     assert current_proof["blockingItems"] == ["release.git_clean"]

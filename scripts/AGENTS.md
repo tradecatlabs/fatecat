@@ -148,6 +148,7 @@ scripts/
 - `current-audit-bundle.sh` / `current-audit-bundle.py` 是当前 commit 审计证据包装配器；消费 audit handoff、audit dry-run、current release proof、release artifacts、rollback drill、可选 local-ci summary 和 local-ci gate artifact 摘要，当前覆盖 evidence coverage trend gate 与 evaluation trend gate，输出 current audit bundle Markdown/JSON、evidence index、risk register 与 pending external validations；默认 local mode 可生成 blocked bundle，`--require-current-release` 才要求当前提交 release proof 全部通过。
 - `external-validation-closure-gate.sh` / `external-validation-closure-gate.py` 是外部待验证项关闭计划门禁；消费 current audit bundle 的 `pending-external-validations.json`，为每个 occurrence 生成 owner、凭证依赖、required evidence、复核命令和关闭条件，输出 blocked ship gate；不连接真实外部系统，不证明外部 live 已完成。
 - `external-validation-closure-work-queue.sh` / `external-validation-closure-work-queue.py` 是外部待验证项 owner/category 工作队列门禁；消费 closure plan，输出 assignee、proofRef、lastCheckedAt、staleReason、closeConditionResult 和 occurrence refs；空 proofRef 必须保持 blocked，不连接真实 API、Bot、Postgres、OIDC、SIEM、OTel、Vault/KMS、developer portal 或第三方审计系统。
+- `external-validation-proof-ref-gate.sh` / `external-validation-proof-ref-gate.py` 是外部验证 proof-ref evidence upload 结构门禁；消费 work queue 和可选 operator 脱敏 evidence bundle，校验证据句柄、hash、时间窗、redaction、current commit 与 work item 绑定；schema accepted 不等于 production live passed，`shipGate` 必须继续 blocked。
 - `container-build.sh`：构建 FateCat delivery 镜像。
 - `container-smoke.sh`：启动临时容器并验证 `/health` 与真实排盘 API。
 - `container-release.sh`：构建、smoke，并在显式 `--push` 时推送 registry。

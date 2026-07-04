@@ -286,6 +286,9 @@ run_quick() {
   run_step "external validation closure work queue" bash "${script_dir}/external-validation-closure-work-queue.sh" \
     --closure-plan-json "${output_dir}/external-validation-closure-gate.json" \
     --output-json "${output_dir}/external-validation-closure-work-queue.json"
+  run_step "external validation proof-ref gate" bash "${script_dir}/external-validation-proof-ref-gate.sh" \
+    --work-queue-json "${output_dir}/external-validation-closure-work-queue.json" \
+    --output-json "${output_dir}/external-validation-proof-ref-gate.json"
   run_step "measurement infrastructure certification dry-run" bash "${script_dir}/measurement-infrastructure-certification.sh" \
     --evidence-dir "${output_dir}" \
     --output-json "${output_dir}/measurement-infrastructure-certification.json"
@@ -355,6 +358,7 @@ run_quick() {
       tests/regression/test_current_audit_bundle.py \
       tests/regression/test_external_validation_closure_gate.py \
       tests/regression/test_external_validation_closure_work_queue.py \
+      tests/regression/test_external_validation_proof_ref_gate.py \
       tests/regression/test_measurement_infrastructure_certification.py \
       tests/regression/test_current_release_proof.py \
       tests/regression/test_live_release_gate.py \
@@ -515,6 +519,7 @@ write_summary() {
   FATE_LOCAL_CI_CURRENT_AUDIT_BUNDLE="${output_dir}/current-audit-bundle" \
   FATE_LOCAL_CI_EXTERNAL_VALIDATION_CLOSURE_GATE="${output_dir}/external-validation-closure-gate.json" \
   FATE_LOCAL_CI_EXTERNAL_VALIDATION_CLOSURE_WORK_QUEUE="${output_dir}/external-validation-closure-work-queue.json" \
+  FATE_LOCAL_CI_EXTERNAL_VALIDATION_PROOF_REF_GATE="${output_dir}/external-validation-proof-ref-gate.json" \
   FATE_LOCAL_CI_MEASUREMENT_INFRASTRUCTURE_CERTIFICATION="${output_dir}/measurement-infrastructure-certification.json" \
   "${summary_python}" - <<'PY'
 import json
@@ -600,6 +605,7 @@ payload = {
         "currentAuditBundle": env("FATE_LOCAL_CI_CURRENT_AUDIT_BUNDLE"),
         "externalValidationClosureGate": env("FATE_LOCAL_CI_EXTERNAL_VALIDATION_CLOSURE_GATE"),
         "externalValidationClosureWorkQueue": env("FATE_LOCAL_CI_EXTERNAL_VALIDATION_CLOSURE_WORK_QUEUE"),
+        "externalValidationProofRefGate": env("FATE_LOCAL_CI_EXTERNAL_VALIDATION_PROOF_REF_GATE"),
         "measurementInfrastructureCertification": env("FATE_LOCAL_CI_MEASUREMENT_INFRASTRUCTURE_CERTIFICATION"),
     },
     "privacyBoundary": "只记录命令产物路径、commit 和状态，不复制测试日志全文或用户报告内容。",

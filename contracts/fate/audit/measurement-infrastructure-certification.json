@@ -37,7 +37,8 @@
     "runtime-proof-gate.json",
     "live-release-gate.json",
     "current-release-proof.json",
-    "current-audit-bundle/current-audit-bundle.json"
+    "current-audit-bundle/current-audit-bundle.json",
+    "external-validation-proof-ref-gate.json"
   ],
   "requiredOutputFields": [
     "schemaVersion",

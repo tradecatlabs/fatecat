@@ -92,9 +92,9 @@ DOMAIN_SPECS = (
     DomainSpec(
         "audit",
         "Audit handoff",
-        ("current-audit-bundle/current-audit-bundle.json",),
-        pending_markers=("pendingExternalValidationCount",),
-        blocked_markers=("auditGate",),
+        ("current-audit-bundle/current-audit-bundle.json", "external-validation-proof-ref-gate.json"),
+        pending_markers=("pendingExternalValidationCount", "proofRefStatus"),
+        blocked_markers=("auditGate", "shipGate"),
     ),
 )
 

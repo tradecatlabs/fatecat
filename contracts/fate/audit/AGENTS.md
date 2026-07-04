@@ -13,8 +13,11 @@ audit/
 ├── dry-run.json
 ├── external-validation-closure.json
 ├── external-validation-closure-work-queue.json
+├── external-validation-proof-ref.json
 ├── handoff.json
-└── measurement-infrastructure-certification.json
+├── measurement-infrastructure-certification.json
+└── schemas/
+    └── external-validation-proof-ref.schema.json
 ```
 
 ## 职责边界
@@ -24,11 +27,14 @@ audit/
 - `current-bundle.json`：定义 current audit bundle 的输入证据、必备输出、required/local 模式和隐私边界。
 - `external-validation-closure.json`：定义外部待验证项关闭计划门禁的输入、输出字段、owner/凭证/关闭条件要求和隐私边界。
 - `external-validation-closure-work-queue.json`：定义外部待验证项 owner/category 工作队列契约，把 closure plan 聚合成可派发、可跟踪、但仍 pending 的 work item。
+- `external-validation-proof-ref.json`：定义外部验证 proof-ref 与 evidence upload 契约，只校验证据句柄、hash、时间窗、redaction、current commit 与 work item 绑定，不证明外部 live 已通过。
+- `schemas/external-validation-proof-ref.schema.json`：定义 operator 提供的脱敏 proof-ref bundle 结构。
 - `measurement-infrastructure-certification.json`：定义 100% 测算基础设施 certification aggregator dry-run 的输入证据、分域状态、blocked/pending 语义和禁止 100% 伪声明策略。
 - 审计包生成器位于 `scripts/audit-handoff.py`，只聚合仓库内证据、Git 状态、任务索引和明确标记的外部待验证项。
 - dry-run verifier 位于 `scripts/audit-handoff-dry-run.py`，只做本地审计前置检查，不替代真实第三方审计。
 - current audit bundle generator 位于 `scripts/current-audit-bundle.py`，只聚合当前 commit 的 release proof、audit handoff、dry-run、SBOM/provenance、rollback dry-run、local-ci gate artifact 摘要、evidence index、risk register 和外部待验证项；local-ci gate artifact 当前覆盖 evidence coverage trend gate 与 evaluation trend gate；`auditGate=passed` 只代表当前提交审计包证据齐备，不代表第三方审计已通过。
 - external validation closure gate 位于 `scripts/external-validation-closure-gate.py`，只把外部待验证 occurrence 转成可分派的关闭计划，不连接真实 API、Bot、Postgres、OIDC、SIEM、OTel、Vault/KMS、developer portal 或第三方审计系统。
 - external validation closure work queue 位于 `scripts/external-validation-closure-work-queue.py`，只把 closure plan 按 owner/category 聚合成 work item，补齐 assignee、proofRef、lastCheckedAt、staleReason 和 closeConditionResult；空 proofRef 必须保持 blocked，不连接真实外部系统。
+- external validation proof-ref gate 位于 `scripts/external-validation-proof-ref-gate.py`，消费 work queue 和可选 operator 脱敏 evidence bundle；接受结构不等于生产放行，`shipGate` 必须继续 blocked，直到 category live gate 和第三方审计另行闭合。
 - measurement infrastructure certification aggregator 位于 `scripts/measurement-infrastructure-certification.py`，默认消费 local-ci 产物目录中已有 gate summary，也可显式接收 `live-release-gate.json`、`current-release-proof.json` 和 `current-audit-bundle.json` sidecar；sidecar 只覆盖对应逻辑证据文件，不跨文件覆盖 release proof、audit bundle 或外部 live 证据。当前 release/audit/live evidence 未闭合时必须输出 `status=blocked`，不得支持 100% 完成声明。
 - 这里不声明真实生产 API、Bot、OIDC、SIEM、监控平台、developer portal 或 sandbox token 已完成 live 验证。

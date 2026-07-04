@@ -1,0 +1,270 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.external_validation_proof_ref_contract",
+  "resourceType": "ExternalValidationProofRefGate",
+  "id": "audit.external.validation.proofRef",
+  "status": "baseline",
+  "description": "外部验证 proof-ref 与 evidence upload 契约。该 gate 消费 external validation closure work queue 和可选 operator 提供的脱敏 evidence bundle，只校验证据句柄结构、当前 commit 绑定、work item 绑定、hash、时间窗、redaction 和反伪造边界；不连接真实外部系统，不把 proof-ref 结构通过等同于生产 live 通过。",
+  "generator": {
+    "command": "bash scripts/external-validation-proof-ref-gate.sh --work-queue-json <external-validation-closure-work-queue.json> [--evidence-json <proof-ref-bundle.json>] --output-json <path>",
+    "pythonEntrypoint": "scripts/external-validation-proof-ref-gate.py",
+    "defaultOutput": "infra/runtime/local-state/exports/audit/external-validation-proof-ref-gate.json"
+  },
+  "inputSchema": "contracts/fate/audit/schemas/external-validation-proof-ref.schema.json",
+  "allowedProofRefPrefixes": [
+    "evidence://",
+    "artifact://",
+    "ci-artifact://"
+  ],
+  "allowedVerificationCommandPrefixes": [
+    "bash scripts/",
+    "python3 scripts/",
+    "gh run view "
+  ],
+  "requiredFieldsPerProofRef": [
+    "id",
+    "proofRef",
+    "evidenceType",
+    "workItemId",
+    "owner",
+    "category",
+    "issuer",
+    "capturedAt",
+    "expiresAt",
+    "redactionBoundary",
+    "verificationCommand",
+    "artifactHash",
+    "sourceBinding"
+  ],
+  "requiredSourceBindingFields": [
+    "commit",
+    "workQueueSha256",
+    "occurrenceIds"
+  ],
+  "requiredRedactionBoundary": "redacted_no_secret_values",
+  "forbiddenProofFragments": [
+    "placeholder",
+    "changeme",
+    "dummy",
+    "sample",
+    "fake",
+    "dry-run",
+    "localhost",
+    "local only",
+    "debug",
+    "token assignment marker",
+    "secret assignment marker",
+    "password assignment marker",
+    "database dsn assignment marker",
+    "private key block marker"
+  ],
+  "negativeEvidenceWorkQueueFixture": {
+    "schemaVersion": 1,
+    "kind": "fatecat.external_validation_closure_work_queue",
+    "generatedAt": "2026-07-04T00:00:00Z",
+    "status": "passed",
+    "source": {
+      "closurePlanJson": "fixture",
+      "closurePlanSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "closurePlanKind": "fatecat.external_validation_closure_plan",
+      "closureItemCount": 1
+    },
+    "summary": {
+      "totalOccurrences": 1,
+      "workItems": 1
+    },
+    "shipGate": {
+      "status": "blocked"
+    },
+    "workItems": [
+      {
+        "id": "external-work.fixture",
+        "owner": "release-ops",
+        "assignee": "unassigned:release-ops",
+        "category": "release.production_api_live",
+        "priority": "P0",
+        "status": "pending_external_evidence",
+        "proofRef": "",
+        "lastCheckedAt": "2026-07-04T00:00:00Z",
+        "staleReason": "proof_ref_missing",
+        "closeConditionResult": "not_evaluated_no_proof_ref",
+        "credentialDependencies": [
+          "production API token"
+        ],
+        "requiredEvidence": [
+          "redacted live API proof"
+        ],
+        "verificationCommands": [
+          "bash scripts/production-readiness.sh --api-url <redacted>"
+        ],
+        "closureCondition": "真实 production API live smoke 通过后关闭。",
+        "occurrences": [
+          {
+            "id": "external.fixture",
+            "source": {
+              "path": "docs/release.md",
+              "line": 1,
+              "excerptSha256": "1111111111111111111111111111111111111111111111111111111111111111"
+            },
+            "status": "external_connectivity_pending"
+          }
+        ]
+      }
+    ],
+    "privacyBoundary": "redacted_no_secret_values",
+    "nonClaims": [
+      "Does not prove any external live validation has passed."
+    ]
+  },
+  "negativeEvidenceCases": [
+    {
+      "id": "fake.placeholder_proof_ref",
+      "expectedErrorContains": "forbidden proof fragment",
+      "evidence": {
+        "schemaVersion": 1,
+        "kind": "fatecat.external_validation_proof_ref_bundle",
+        "status": "external_live_evidence_supplied_by_operator",
+        "generatedAt": "2026-07-04T00:00:00Z",
+        "source": {
+          "workQueueKind": "fatecat.external_validation_closure_work_queue",
+          "workQueueSha256": "__WORK_QUEUE_SHA256__",
+          "commit": "__EXPECTED_COMMIT__"
+        },
+        "proofRefs": [
+          {
+            "id": "proof.fake.placeholder",
+            "proofRef": "evidence://external-validation/placeholder",
+            "evidenceType": "production_api_live_smoke",
+            "workItemId": "external-work.fixture",
+            "owner": "release-ops",
+            "category": "release.production_api_live",
+            "issuer": "operator:release-ops",
+            "capturedAt": "2026-07-04T00:00:00Z",
+            "expiresAt": "2099-01-01T00:00:00Z",
+            "redactionBoundary": "redacted_no_secret_values",
+            "verificationCommand": "bash scripts/production-readiness.sh --api-url <redacted>",
+            "artifactHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "sourceBinding": {
+              "commit": "__EXPECTED_COMMIT__",
+              "workQueueSha256": "__WORK_QUEUE_SHA256__",
+              "occurrenceIds": [
+                "external.fixture"
+              ]
+            }
+          }
+        ],
+        "privacyBoundary": "redacted_no_secret_values",
+        "nonClaims": [
+          "Does not prove any external live validation has passed."
+        ]
+      }
+    },
+    {
+      "id": "fake.wrong_commit",
+      "expectedErrorContains": "sourceBinding.commit",
+      "evidence": {
+        "schemaVersion": 1,
+        "kind": "fatecat.external_validation_proof_ref_bundle",
+        "status": "external_live_evidence_supplied_by_operator",
+        "generatedAt": "2026-07-04T00:00:00Z",
+        "source": {
+          "workQueueKind": "fatecat.external_validation_closure_work_queue",
+          "workQueueSha256": "__WORK_QUEUE_SHA256__",
+          "commit": "__EXPECTED_COMMIT__"
+        },
+        "proofRefs": [
+          {
+            "id": "proof.fake.wrong-commit",
+            "proofRef": "evidence://external-validation/release-api-live",
+            "evidenceType": "production_api_live_smoke",
+            "workItemId": "external-work.fixture",
+            "owner": "release-ops",
+            "category": "release.production_api_live",
+            "issuer": "operator:release-ops",
+            "capturedAt": "2026-07-04T00:00:00Z",
+            "expiresAt": "2099-01-01T00:00:00Z",
+            "redactionBoundary": "redacted_no_secret_values",
+            "verificationCommand": "bash scripts/production-readiness.sh --api-url <redacted>",
+            "artifactHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "sourceBinding": {
+              "commit": "1111111111111111111111111111111111111111",
+              "workQueueSha256": "__WORK_QUEUE_SHA256__",
+              "occurrenceIds": [
+                "external.fixture"
+              ]
+            }
+          }
+        ],
+        "privacyBoundary": "redacted_no_secret_values",
+        "nonClaims": [
+          "Does not prove any external live validation has passed."
+        ]
+      }
+    },
+    {
+      "id": "fake.category_mismatch",
+      "expectedErrorContains": "category mismatch",
+      "evidence": {
+        "schemaVersion": 1,
+        "kind": "fatecat.external_validation_proof_ref_bundle",
+        "status": "external_live_evidence_supplied_by_operator",
+        "generatedAt": "2026-07-04T00:00:00Z",
+        "source": {
+          "workQueueKind": "fatecat.external_validation_closure_work_queue",
+          "workQueueSha256": "__WORK_QUEUE_SHA256__",
+          "commit": "__EXPECTED_COMMIT__"
+        },
+        "proofRefs": [
+          {
+            "id": "proof.fake.category",
+            "proofRef": "evidence://external-validation/release-api-live",
+            "evidenceType": "production_api_live_smoke",
+            "workItemId": "external-work.fixture",
+            "owner": "release-ops",
+            "category": "release.telegram_bot_live",
+            "issuer": "operator:release-ops",
+            "capturedAt": "2026-07-04T00:00:00Z",
+            "expiresAt": "2099-01-01T00:00:00Z",
+            "redactionBoundary": "redacted_no_secret_values",
+            "verificationCommand": "bash scripts/production-readiness.sh --api-url <redacted>",
+            "artifactHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "sourceBinding": {
+              "commit": "__EXPECTED_COMMIT__",
+              "workQueueSha256": "__WORK_QUEUE_SHA256__",
+              "occurrenceIds": [
+                "external.fixture"
+              ]
+            }
+          }
+        ],
+        "privacyBoundary": "redacted_no_secret_values",
+        "nonClaims": [
+          "Does not prove any external live validation has passed."
+        ]
+      }
+    }
+  ],
+  "requiredOutputFields": [
+    "schemaVersion",
+    "kind",
+    "generatedAt",
+    "status",
+    "source",
+    "summary",
+    "proofRefGate",
+    "shipGate",
+    "acceptedProofRefs",
+    "pendingWorkItems",
+    "negativeEvidenceRejected",
+    "privacyBoundary",
+    "nonClaims"
+  ],
+  "privacyBoundary": "Proof-ref gate 只保存脱敏 proofRef、owner、category、workItemId、artifact hash、source binding 和命令 hash；不得保存真实 URL、token、secret、DSN、私钥、生产日志、trace payload、报告正文、用户输入或外部账号数据。",
+  "nonClaims": [
+    "Does not prove any external live validation has passed.",
+    "Does not replace category-specific live gates.",
+    "Does not replace third-party audit.",
+    "Does not authorize production credential use.",
+    "Does not close production API/HF/Bot/OIDC/SIEM/OTel/Vault/KMS/Postgres/webhook validations without separate real gate evidence."
+  ]
+}
