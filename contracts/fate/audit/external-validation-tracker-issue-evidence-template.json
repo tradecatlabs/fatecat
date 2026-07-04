@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.external_validation_tracker_issue_evidence_template_contract",
+  "resourceType": "ExternalValidationTrackerIssueEvidenceTemplate",
+  "id": "audit.external.validation.trackerIssueEvidenceTemplate",
+  "status": "baseline",
+  "description": "外部验证 tracker issue evidence bundle 模板契约。该模板消费 external validation tracker import package，预填 workItemId、issueTemplateId、bodySha256、required labels 和 source binding，供 operator 在真实创建 tracker issue 后填写 sanitized issue ref 与 artifact hash。该模板不创建 issue、不请求网络、不执行 gh、不证明 issue 已创建或 live proof 已完成。",
+  "generator": {
+    "command": "bash scripts/external-validation-tracker-issue-evidence-template.sh --tracker-import-package-json <external-validation-tracker-import-package.json> --output-json <external-validation-tracker-issue-evidence-template.json> --output-markdown <EXTERNAL_VALIDATION_TRACKER_ISSUE_EVIDENCE_TEMPLATE.md>",
+    "pythonEntrypoint": "scripts/external-validation-tracker-issue-evidence-template.py",
+    "defaultOutputJson": "infra/runtime/local-state/exports/audit/external-validation-tracker-issue-evidence-template.json",
+    "defaultOutputMarkdown": "infra/runtime/local-state/exports/audit/EXTERNAL_VALIDATION_TRACKER_ISSUE_EVIDENCE_TEMPLATE.md"
+  },
+  "inputKind": "fatecat.external_validation_tracker_import_package",
+  "outputKind": "fatecat.external_validation_tracker_issue_evidence_bundle_template",
+  "targetEvidenceKind": "fatecat.external_validation_tracker_issue_evidence_bundle",
+  "requiredOutputFields": [
+    "schemaVersion",
+    "kind",
+    "status",
+    "generatedAt",
+    "source",
+    "summary",
+    "templateGate",
+    "templatePolicy",
+    "issueEvidenceItems",
+    "bundleSkeleton",
+    "privacyBoundary",
+    "nonClaims"
+  ],
+  "templatePolicy": {
+    "createsIssues": false,
+    "executesCommands": false,
+    "acceptedTrackerIssueRefPattern": "github:<owner>/<repo>#<number>",
+    "requiredLabels": [
+      "external-validation",
+      "measurement-infrastructure",
+      "operator-action-required"
+    ],
+    "operatorFillableFields": [
+      "trackerIssueRef",
+      "titleSha256",
+      "artifactSha256",
+      "createdAt",
+      "createdByRole"
+    ],
+    "sourceBinding": [
+      "trackerImportPackageSha256",
+      "commit",
+      "workItemId",
+      "issueTemplateId",
+      "bodySha256"
+    ],
+    "redactionStatus": "redacted_no_secret_values"
+  },
+  "privacyBoundary": "Tracker issue evidence template 只保存脱敏 workItemId、issueTemplateId、body hash、required label、owner/category、source binding 和空白待填写字段；不得保存真实 URL、token、secret、DSN、webhook secret、chat id、外部账号、生产日志、trace payload、报告正文或用户输入。",
+  "nonClaims": [
+    "Does not create issues in GitHub or any external tracker.",
+    "Does not execute gh or tracker CLI commands.",
+    "Does not prove tracker issues have been created.",
+    "Does not execute external live checks.",
+    "Does not prove any external live validation has passed.",
+    "Does not create accepted proof refs by itself.",
+    "Does not replace external-validation-tracker-issue-evidence-gate.",
+    "Does not replace external-validation-proof-ref-gate.",
+    "Does not replace external-validation-live-proof-gate.",
+    "Does not replace third-party audit.",
+    "Does not mean FateCat is 100% production infrastructure."
+  ]
+}

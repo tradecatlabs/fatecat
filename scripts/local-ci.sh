@@ -343,6 +343,10 @@ run_quick() {
     --package-dir "${output_dir}/external-validation-tracker-import-package" \
     --output-json "${output_dir}/external-validation-tracker-import-package.json" \
     --output-markdown "${output_dir}/EXTERNAL_VALIDATION_TRACKER_IMPORT_PACKAGE.md"
+  run_step "external validation tracker issue evidence template" bash "${script_dir}/external-validation-tracker-issue-evidence-template.sh" \
+    --tracker-import-package-json "${output_dir}/external-validation-tracker-import-package.json" \
+    --output-json "${output_dir}/external-validation-tracker-issue-evidence-template.json" \
+    --output-markdown "${output_dir}/EXTERNAL_VALIDATION_TRACKER_ISSUE_EVIDENCE_TEMPLATE.md"
   run_step "external validation tracker issue evidence gate" bash "${script_dir}/external-validation-tracker-issue-evidence-gate.sh" \
     --tracker-import-package-json "${output_dir}/external-validation-tracker-import-package.json" \
     --output-json "${output_dir}/external-validation-tracker-issue-evidence-gate.json"
@@ -433,6 +437,7 @@ run_quick() {
       tests/regression/test_external_validation_closure_evidence_summary.py \
       tests/regression/test_external_validation_issue_export.py \
       tests/regression/test_external_validation_tracker_import_package.py \
+      tests/regression/test_external_validation_tracker_issue_evidence_template.py \
       tests/regression/test_external_validation_tracker_issue_evidence_gate.py \
       tests/regression/test_measurement_infrastructure_certification.py \
       tests/regression/test_third_party_audit_rehearsal.py \
@@ -608,6 +613,8 @@ write_summary() {
   FATE_LOCAL_CI_EXTERNAL_VALIDATION_TRACKER_IMPORT_PACKAGE="${output_dir}/external-validation-tracker-import-package.json" \
   FATE_LOCAL_CI_EXTERNAL_VALIDATION_TRACKER_IMPORT_PACKAGE_DIR="${output_dir}/external-validation-tracker-import-package" \
   FATE_LOCAL_CI_EXTERNAL_VALIDATION_TRACKER_IMPORT_PACKAGE_MARKDOWN="${output_dir}/EXTERNAL_VALIDATION_TRACKER_IMPORT_PACKAGE.md" \
+  FATE_LOCAL_CI_EXTERNAL_VALIDATION_TRACKER_ISSUE_EVIDENCE_TEMPLATE="${output_dir}/external-validation-tracker-issue-evidence-template.json" \
+  FATE_LOCAL_CI_EXTERNAL_VALIDATION_TRACKER_ISSUE_EVIDENCE_TEMPLATE_MARKDOWN="${output_dir}/EXTERNAL_VALIDATION_TRACKER_ISSUE_EVIDENCE_TEMPLATE.md" \
   FATE_LOCAL_CI_EXTERNAL_VALIDATION_TRACKER_ISSUE_EVIDENCE_GATE="${output_dir}/external-validation-tracker-issue-evidence-gate.json" \
   FATE_LOCAL_CI_MEASUREMENT_INFRASTRUCTURE_CERTIFICATION="${output_dir}/measurement-infrastructure-certification.json" \
   FATE_LOCAL_CI_THIRD_PARTY_AUDIT_REHEARSAL="${output_dir}/third-party-audit-rehearsal.json" \
@@ -716,6 +723,12 @@ payload = {
         ),
         "externalValidationTrackerImportPackageMarkdown": env(
             "FATE_LOCAL_CI_EXTERNAL_VALIDATION_TRACKER_IMPORT_PACKAGE_MARKDOWN"
+        ),
+        "externalValidationTrackerIssueEvidenceTemplate": env(
+            "FATE_LOCAL_CI_EXTERNAL_VALIDATION_TRACKER_ISSUE_EVIDENCE_TEMPLATE"
+        ),
+        "externalValidationTrackerIssueEvidenceTemplateMarkdown": env(
+            "FATE_LOCAL_CI_EXTERNAL_VALIDATION_TRACKER_ISSUE_EVIDENCE_TEMPLATE_MARKDOWN"
         ),
         "externalValidationTrackerIssueEvidenceGate": env(
             "FATE_LOCAL_CI_EXTERNAL_VALIDATION_TRACKER_ISSUE_EVIDENCE_GATE"
