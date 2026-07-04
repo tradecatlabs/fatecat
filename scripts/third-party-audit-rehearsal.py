@@ -19,6 +19,9 @@ DEFAULT_OUTPUT_MARKDOWN = (
 )
 
 OUTPUT_KIND = "fatecat.third_party_audit_rehearsal"
+TRACKER_IMPORT_KIND = "fatecat.external_validation_tracker_import_package"
+TRACKER_ISSUE_TEMPLATE_KIND = "fatecat.external_validation_tracker_issue_evidence_bundle_template"
+TRACKER_ISSUE_GATE_KIND = "fatecat.external_validation_tracker_issue_evidence_gate"
 SENSITIVE_RE = re.compile(
     r"(token\s*=|secret\s*=|password\s*=|passwd\s*=|DATABASE_URL\s*=|DB_DSN\s*=|"
     r"api[_-]?key\s*=|private[_-]?key|BEGIN (?:RSA|OPENSSH|PRIVATE)|authorization\s*:)",
@@ -91,6 +94,18 @@ def _input_item(label: str, path: Path, payload: dict[str, Any]) -> dict[str, An
     }
 
 
+def _gate_blocking_count(payload: dict[str, Any], gate_name: str) -> int:
+    gate = payload.get(gate_name)
+    if not isinstance(gate, dict):
+        return 0
+    blocking_items = gate.get("blockingItems", [])
+    if isinstance(blocking_items, list):
+        return len(blocking_items)
+    if isinstance(blocking_items, dict):
+        return sum(int(value) for value in blocking_items.values() if isinstance(value, int))
+    return 0
+
+
 def _sanitize_external_pending(closure_summary: dict[str, Any]) -> list[dict[str, Any]]:
     pending = closure_summary.get("externalPending", [])
     if not isinstance(pending, list):
@@ -119,16 +134,25 @@ def _build_evidence_index(
     current_release_proof_json: Path,
     certification_json: Path,
     closure_evidence_summary_json: Path,
+    tracker_import_package_json: Path,
+    tracker_issue_evidence_template_json: Path,
+    tracker_issue_evidence_gate_json: Path,
     current_audit_bundle: dict[str, Any],
     audit_dry_run: dict[str, Any],
     current_release_proof: dict[str, Any],
     certification: dict[str, Any],
     closure_summary: dict[str, Any],
+    tracker_import_package: dict[str, Any],
+    tracker_issue_evidence_template: dict[str, Any],
+    tracker_issue_evidence_gate: dict[str, Any],
 ) -> list[dict[str, Any]]:
     release_git = current_release_proof.get("git", {})
     audit_git = current_audit_bundle.get("git", {})
     certification_gate = certification.get("certificationGate", {})
     closure_summary_counts = closure_summary.get("summary", {})
+    tracker_import_summary = tracker_import_package.get("summary", {})
+    tracker_template_summary = tracker_issue_evidence_template.get("summary", {})
+    tracker_gate_summary = tracker_issue_evidence_gate.get("summary", {})
     return [
         {
             **_input_item("current_audit_bundle", current_audit_bundle_json, current_audit_bundle),
@@ -164,6 +188,41 @@ def _build_evidence_index(
             "workItems": int(closure_summary_counts.get("workItems") or 0),
             "externalPending": int(closure_summary_counts.get("externalPending") or 0),
         },
+        {
+            **_input_item(
+                "external_validation_tracker_import_package",
+                tracker_import_package_json,
+                tracker_import_package,
+            ),
+            "gate": _gate_status(tracker_import_package, "packageGate"),
+            "issueFiles": int(tracker_import_summary.get("issueFiles") or 0),
+            "commands": int(tracker_import_summary.get("commands") or 0),
+            "blockingItems": _gate_blocking_count(tracker_import_package, "packageGate"),
+        },
+        {
+            **_input_item(
+                "external_validation_tracker_issue_evidence_template",
+                tracker_issue_evidence_template_json,
+                tracker_issue_evidence_template,
+            ),
+            "gate": _gate_status(tracker_issue_evidence_template, "templateGate"),
+            "workItems": int(tracker_template_summary.get("workItems") or 0),
+            "readyToSubmitToGate": tracker_template_summary.get("readyToSubmitToGate") is True,
+            "blockingItems": _gate_blocking_count(tracker_issue_evidence_template, "templateGate"),
+        },
+        {
+            **_input_item(
+                "external_validation_tracker_issue_evidence_gate",
+                tracker_issue_evidence_gate_json,
+                tracker_issue_evidence_gate,
+            ),
+            "gate": _gate_status(tracker_issue_evidence_gate, "issueEvidenceGate"),
+            "shipGate": _gate_status(tracker_issue_evidence_gate, "shipGate"),
+            "acceptedIssues": int(tracker_gate_summary.get("acceptedIssues") or 0),
+            "pendingIssues": int(tracker_gate_summary.get("pendingIssues") or 0),
+            "rejectedIssues": int(tracker_gate_summary.get("rejectedIssues") or 0),
+            "blockingItems": _gate_blocking_count(tracker_issue_evidence_gate, "issueEvidenceGate"),
+        },
     ]
 
 
@@ -184,6 +243,9 @@ def _build_checklist(
     current_release_proof: dict[str, Any],
     certification: dict[str, Any],
     closure_summary: dict[str, Any],
+    tracker_import_package: dict[str, Any],
+    tracker_issue_evidence_template: dict[str, Any],
+    tracker_issue_evidence_gate: dict[str, Any],
     external_pending: list[dict[str, Any]],
 ) -> list[dict[str, str]]:
     audit_git = current_audit_bundle.get("git", {})
@@ -194,6 +256,13 @@ def _build_checklist(
     certification_gate = certification.get("certificationGate", {})
     can_claim = certification_gate.get("canClaim100Percent") is True
     closure_gate = _gate_status(closure_summary, "closureGate")
+    tracker_import_gate = _gate_status(tracker_import_package, "packageGate")
+    tracker_template_gate = _gate_status(tracker_issue_evidence_template, "templateGate")
+    tracker_issue_gate = _gate_status(tracker_issue_evidence_gate, "issueEvidenceGate")
+    tracker_issue_ship_gate = _gate_status(tracker_issue_evidence_gate, "shipGate")
+    tracker_import_summary = tracker_import_package.get("summary", {})
+    tracker_template_summary = tracker_issue_evidence_template.get("summary", {})
+    tracker_gate_summary = tracker_issue_evidence_gate.get("summary", {})
     return [
         _checklist_item(
             "git.current_commit_clean",
@@ -236,6 +305,40 @@ def _build_checklist(
             "passed" if closure_gate == "passed" and not external_pending else "blocked",
             f"closureGate={closure_gate}; externalPending={len(external_pending)}",
             "按 operator runbooks 执行真实外部验证并提交脱敏 proof-ref/live proof。",
+        ),
+        _checklist_item(
+            "tracker.import_package_gate",
+            "Tracker issue 导入包",
+            "passed" if tracker_import_gate == "passed" else "blocked",
+            (
+                f"packageGate={tracker_import_gate}; "
+                f"issueFiles={tracker_import_summary.get('issueFiles', 0)}; "
+                f"commands={tracker_import_summary.get('commands', 0)}"
+            ),
+            "operator 审核 tracker import package，并在授权 tracker 会话中创建真实 issue。",
+        ),
+        _checklist_item(
+            "tracker.issue_evidence_template_gate",
+            "Tracker issue evidence 模板",
+            "passed" if tracker_template_gate == "passed" else "blocked",
+            (
+                f"templateGate={tracker_template_gate}; "
+                f"workItems={tracker_template_summary.get('workItems', 0)}; "
+                f"readyToSubmitToGate={tracker_template_summary.get('readyToSubmitToGate') is True}"
+            ),
+            "真实 issue 创建后填写 sanitized issue ref、artifact hash 和创建时间。",
+        ),
+        _checklist_item(
+            "tracker.issue_evidence_gate",
+            "Tracker issue 创建证据门禁",
+            "passed" if tracker_issue_gate == "passed" else "blocked",
+            (
+                f"issueEvidenceGate={tracker_issue_gate}; shipGate={tracker_issue_ship_gate}; "
+                f"accepted={tracker_gate_summary.get('acceptedIssues', 0)}; "
+                f"pending={tracker_gate_summary.get('pendingIssues', 0)}; "
+                f"rejected={tracker_gate_summary.get('rejectedIssues', 0)}"
+            ),
+            "提交脱敏 tracker issue evidence bundle，并保持 live proof/certification/audit 独立闭合。",
         ),
         _checklist_item(
             "third_party.independent_result",
@@ -354,6 +457,9 @@ def build_report(
     current_release_proof_json: Path,
     certification_json: Path,
     closure_evidence_summary_json: Path,
+    tracker_import_package_json: Path,
+    tracker_issue_evidence_template_json: Path,
+    tracker_issue_evidence_gate_json: Path,
     output_json: Path,
     output_markdown: Path,
 ) -> tuple[dict[str, Any], str]:
@@ -367,6 +473,9 @@ def build_report(
         ("currentReleaseProof", current_release_proof_json),
         ("certification", certification_json),
         ("closureEvidenceSummary", closure_evidence_summary_json),
+        ("trackerImportPackage", tracker_import_package_json),
+        ("trackerIssueEvidenceTemplate", tracker_issue_evidence_template_json),
+        ("trackerIssueEvidenceGate", tracker_issue_evidence_gate_json),
     ):
         _require_file(path, label=label)
 
@@ -375,6 +484,9 @@ def build_report(
     current_release_proof = _load_json(current_release_proof_json)
     certification = _load_json(certification_json)
     closure_summary = _load_json(closure_evidence_summary_json)
+    tracker_import_package = _load_json(tracker_import_package_json)
+    tracker_issue_evidence_template = _load_json(tracker_issue_evidence_template_json)
+    tracker_issue_evidence_gate = _load_json(tracker_issue_evidence_gate_json)
 
     required_kinds = contract["requiredKinds"]
     _require_kind(current_audit_bundle, expected=required_kinds["currentAuditBundle"], label="currentAuditBundle")
@@ -386,6 +498,21 @@ def build_report(
         expected=required_kinds["closureEvidenceSummary"],
         label="closureEvidenceSummary",
     )
+    _require_kind(
+        tracker_import_package,
+        expected=required_kinds["trackerImportPackage"],
+        label="trackerImportPackage",
+    )
+    _require_kind(
+        tracker_issue_evidence_template,
+        expected=required_kinds["trackerIssueEvidenceTemplate"],
+        label="trackerIssueEvidenceTemplate",
+    )
+    _require_kind(
+        tracker_issue_evidence_gate,
+        expected=required_kinds["trackerIssueEvidenceGate"],
+        label="trackerIssueEvidenceGate",
+    )
 
     external_pending = _sanitize_external_pending(closure_summary)
     evidence_index = _build_evidence_index(
@@ -394,11 +521,17 @@ def build_report(
         current_release_proof_json=current_release_proof_json,
         certification_json=certification_json,
         closure_evidence_summary_json=closure_evidence_summary_json,
+        tracker_import_package_json=tracker_import_package_json,
+        tracker_issue_evidence_template_json=tracker_issue_evidence_template_json,
+        tracker_issue_evidence_gate_json=tracker_issue_evidence_gate_json,
         current_audit_bundle=current_audit_bundle,
         audit_dry_run=audit_dry_run,
         current_release_proof=current_release_proof,
         certification=certification,
         closure_summary=closure_summary,
+        tracker_import_package=tracker_import_package,
+        tracker_issue_evidence_template=tracker_issue_evidence_template,
+        tracker_issue_evidence_gate=tracker_issue_evidence_gate,
     )
     checklist = _build_checklist(
         current_audit_bundle=current_audit_bundle,
@@ -406,6 +539,9 @@ def build_report(
         current_release_proof=current_release_proof,
         certification=certification,
         closure_summary=closure_summary,
+        tracker_import_package=tracker_import_package,
+        tracker_issue_evidence_template=tracker_issue_evidence_template,
+        tracker_issue_evidence_gate=tracker_issue_evidence_gate,
         external_pending=external_pending,
     )
     blocking = _blocking_items(checklist, external_pending)
@@ -420,6 +556,9 @@ def build_report(
             "currentReleaseProofJson": str(current_release_proof_json),
             "certificationJson": str(certification_json),
             "closureEvidenceSummaryJson": str(closure_evidence_summary_json),
+            "trackerImportPackageJson": str(tracker_import_package_json),
+            "trackerIssueEvidenceTemplateJson": str(tracker_issue_evidence_template_json),
+            "trackerIssueEvidenceGateJson": str(tracker_issue_evidence_gate_json),
         },
         "summary": {
             "evidenceInputs": len(evidence_index),
@@ -456,6 +595,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--current-release-proof-json", type=Path, required=True)
     parser.add_argument("--certification-json", type=Path, required=True)
     parser.add_argument("--closure-evidence-summary-json", type=Path, required=True)
+    parser.add_argument("--tracker-import-package-json", type=Path, required=True)
+    parser.add_argument("--tracker-issue-evidence-template-json", type=Path, required=True)
+    parser.add_argument("--tracker-issue-evidence-gate-json", type=Path, required=True)
     parser.add_argument("--output-json", type=Path, default=DEFAULT_OUTPUT_JSON)
     parser.add_argument("--output-markdown", type=Path, default=DEFAULT_OUTPUT_MARKDOWN)
     return parser.parse_args(argv)
@@ -470,6 +612,9 @@ def main(argv: list[str] | None = None) -> int:
             current_release_proof_json=args.current_release_proof_json,
             certification_json=args.certification_json,
             closure_evidence_summary_json=args.closure_evidence_summary_json,
+            tracker_import_package_json=args.tracker_import_package_json,
+            tracker_issue_evidence_template_json=args.tracker_issue_evidence_template_json,
+            tracker_issue_evidence_gate_json=args.tracker_issue_evidence_gate_json,
             output_json=args.output_json,
             output_markdown=args.output_markdown,
         )

@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "kind": "fatecat.third_party_audit_rehearsal_contract",
   "id": "audit.third_party_audit_rehearsal",
-  "description": "第三方审计预演包契约。该预演包消费 current audit bundle、audit dry-run、current release proof、measurement infrastructure certification 和 external validation closure evidence summary，输出给独立审计人员复核的证据索引、阻断项、外部待验证项和审计检查清单。它不执行真实外部请求，不替代真实第三方审计，不把 blocked/pending 证据伪装成通过。",
+  "description": "第三方审计预演包契约。该预演包消费 current audit bundle、audit dry-run、current release proof、measurement infrastructure certification、external validation closure evidence summary、tracker import package、tracker issue evidence template 和 tracker issue evidence gate，输出给独立审计人员复核的证据索引、阻断项、外部待验证项和审计检查清单。它不执行真实外部请求，不替代真实第三方审计，不把 blocked/pending 证据伪装成通过。",
   "entrypoints": {
-    "command": "bash scripts/third-party-audit-rehearsal.sh --current-audit-bundle-json <current-audit-bundle.json> --audit-dry-run-json <audit-dry-run.json> --current-release-proof-json <current-release-proof.json> --certification-json <measurement-infrastructure-certification.json> --closure-evidence-summary-json <external-validation-closure-evidence-summary.json> --output-json <path> --output-markdown <path>",
+    "command": "bash scripts/third-party-audit-rehearsal.sh --current-audit-bundle-json <current-audit-bundle.json> --audit-dry-run-json <audit-dry-run.json> --current-release-proof-json <current-release-proof.json> --certification-json <measurement-infrastructure-certification.json> --closure-evidence-summary-json <external-validation-closure-evidence-summary.json> --tracker-import-package-json <external-validation-tracker-import-package.json> --tracker-issue-evidence-template-json <external-validation-tracker-issue-evidence-template.json> --tracker-issue-evidence-gate-json <external-validation-tracker-issue-evidence-gate.json> --output-json <path> --output-markdown <path>",
     "pythonEntrypoint": "scripts/third-party-audit-rehearsal.py",
     "defaultOutput": "infra/runtime/local-state/exports/audit-rehearsal/third-party-audit-rehearsal.json"
   },
@@ -13,7 +13,10 @@
     "audit-dry-run.json": "审计 handoff dry-run 结果。",
     "current-release-proof.json": "当前发布证据聚合结果；本地 quick 模式可保持 blocked。",
     "measurement-infrastructure-certification.json": "100% 测算基础设施 certification dry-run 聚合结果。",
-    "external-validation-closure-evidence-summary.json": "外部验证关闭证据摘要。"
+    "external-validation-closure-evidence-summary.json": "外部验证关闭证据摘要。",
+    "external-validation-tracker-import-package.json": "外部验证 tracker import package，列出待人工创建的脱敏 issue body、命令文本和 package gate。",
+    "external-validation-tracker-issue-evidence-template.json": "外部验证 tracker issue evidence bundle 模板，列出 operator 需填写的脱敏 issue ref/hash 字段。",
+    "external-validation-tracker-issue-evidence-gate.json": "外部验证 tracker issue 创建证据门禁，记录 tracker issue evidence 是否结构接受。"
   },
   "requiredOutputFields": [
     "schemaVersion",
@@ -35,7 +38,10 @@
     "auditDryRun": "fatecat.audit_handoff_dry_run",
     "currentReleaseProof": "fatecat.current_release_proof",
     "certification": "fatecat.measurement_infrastructure_certification",
-    "closureEvidenceSummary": "fatecat.external_validation_closure_evidence_summary"
+    "closureEvidenceSummary": "fatecat.external_validation_closure_evidence_summary",
+    "trackerImportPackage": "fatecat.external_validation_tracker_import_package",
+    "trackerIssueEvidenceTemplate": "fatecat.external_validation_tracker_issue_evidence_bundle_template",
+    "trackerIssueEvidenceGate": "fatecat.external_validation_tracker_issue_evidence_gate"
   },
   "rehearsalGatePolicy": {
     "status": "blocked until all required evidence gates are passed, all external pending items are closed, and an independent auditor result is attached outside this local rehearsal.",

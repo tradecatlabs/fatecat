@@ -76,12 +76,49 @@ def _fixtures(tmp_path: Path) -> dict[str, Path]:
             },
         ],
     }
+    tracker_import_package = {
+        "kind": "fatecat.external_validation_tracker_import_package",
+        "status": "operator_action_required",
+        "summary": {"issueTemplates": 2, "issueFiles": 2, "commands": 2, "externalPending": 2},
+        "packageGate": {
+            "status": "blocked",
+            "blockingItems": ["tracker_issue_creation_required", "proof_ref_bundle_required"],
+        },
+    }
+    tracker_issue_template = {
+        "kind": "fatecat.external_validation_tracker_issue_evidence_bundle_template",
+        "status": "operator_action_required",
+        "summary": {"workItems": 2, "readyToSubmitToGate": False},
+        "templateGate": {
+            "status": "operator_action_required",
+            "blockingItems": ["tracker_issue_ref_fill_required", "artifact_sha256_fill_required"],
+        },
+    }
+    tracker_issue_gate = {
+        "kind": "fatecat.external_validation_tracker_issue_evidence_gate",
+        "status": "external_connectivity_pending",
+        "summary": {"acceptedIssues": 0, "pendingIssues": 2, "rejectedIssues": 0},
+        "issueEvidenceGate": {
+            "status": "blocked",
+            "blockingItems": ["tracker_issue_creation_evidence_required"],
+        },
+        "shipGate": {"status": "blocked", "blockingItems": ["external_validation_live_proof_gate_required"]},
+    }
     return {
         "current_audit_bundle": _write(tmp_path / "current-audit-bundle.json", current_audit_bundle),
         "audit_dry_run": _write(tmp_path / "audit-dry-run.json", audit_dry_run),
         "current_release_proof": _write(tmp_path / "current-release-proof.json", current_release_proof),
         "certification": _write(tmp_path / "measurement-infrastructure-certification.json", certification),
         "closure_summary": _write(tmp_path / "external-validation-closure-evidence-summary.json", closure_summary),
+        "tracker_import_package": _write(
+            tmp_path / "external-validation-tracker-import-package.json", tracker_import_package
+        ),
+        "tracker_issue_template": _write(
+            tmp_path / "external-validation-tracker-issue-evidence-template.json", tracker_issue_template
+        ),
+        "tracker_issue_gate": _write(
+            tmp_path / "external-validation-tracker-issue-evidence-gate.json", tracker_issue_gate
+        ),
     }
 
 
@@ -92,6 +129,18 @@ def test_contract_declares_rehearsal_boundaries() -> None:
     assert "current-audit-bundle.json" in contract["requiredInputs"]
     assert "measurement-infrastructure-certification.json" in contract["requiredInputs"]
     assert "external-validation-closure-evidence-summary.json" in contract["requiredInputs"]
+    assert "external-validation-tracker-import-package.json" in contract["requiredInputs"]
+    assert "external-validation-tracker-issue-evidence-template.json" in contract["requiredInputs"]
+    assert "external-validation-tracker-issue-evidence-gate.json" in contract["requiredInputs"]
+    assert contract["requiredKinds"]["trackerImportPackage"] == "fatecat.external_validation_tracker_import_package"
+    assert (
+        contract["requiredKinds"]["trackerIssueEvidenceTemplate"]
+        == "fatecat.external_validation_tracker_issue_evidence_bundle_template"
+    )
+    assert (
+        contract["requiredKinds"]["trackerIssueEvidenceGate"]
+        == "fatecat.external_validation_tracker_issue_evidence_gate"
+    )
     assert "Does not replace third-party audit." in contract["nonClaims"]
     assert "rehearsalGate" in contract["requiredOutputFields"]
     assert "https://" in contract["forbiddenFragments"]
@@ -109,6 +158,9 @@ def test_build_report_keeps_rehearsal_blocked_with_external_pending(tmp_path: Pa
         current_release_proof_json=fixtures["current_release_proof"],
         certification_json=fixtures["certification"],
         closure_evidence_summary_json=fixtures["closure_summary"],
+        tracker_import_package_json=fixtures["tracker_import_package"],
+        tracker_issue_evidence_template_json=fixtures["tracker_issue_template"],
+        tracker_issue_evidence_gate_json=fixtures["tracker_issue_gate"],
         output_json=output_json,
         output_markdown=output_markdown,
     )
@@ -116,10 +168,19 @@ def test_build_report_keeps_rehearsal_blocked_with_external_pending(tmp_path: Pa
     assert report["kind"] == "fatecat.third_party_audit_rehearsal"
     assert report["status"] == "passed"
     assert report["rehearsalGate"]["status"] == "blocked"
-    assert report["summary"]["evidenceInputs"] == 5
+    assert report["summary"]["evidenceInputs"] == 8
     assert report["summary"]["externalPending"] == 2
     assert any(item["id"] == "third_party.independent_result" for item in report["auditorChecklist"])
+    evidence_ids = {item["id"] for item in report["evidenceIndex"]}
+    assert "external_validation_tracker_import_package" in evidence_ids
+    assert "external_validation_tracker_issue_evidence_template" in evidence_ids
+    assert "external_validation_tracker_issue_evidence_gate" in evidence_ids
+    checklist_ids = {item["id"] for item in report["auditorChecklist"]}
+    assert "tracker.import_package_gate" in checklist_ids
+    assert "tracker.issue_evidence_template_gate" in checklist_ids
+    assert "tracker.issue_evidence_gate" in checklist_ids
     assert "Third-Party Audit Rehearsal" in markdown
+    assert "external_validation_tracker_issue_evidence_gate" in markdown
     assert "third-party audit passed" not in json.dumps(report, ensure_ascii=False).lower()
     assert "https://" not in json.dumps(report, ensure_ascii=False)
 
@@ -143,6 +204,12 @@ def test_cli_writes_json_and_markdown(tmp_path: Path) -> None:
             str(fixtures["certification"]),
             "--closure-evidence-summary-json",
             str(fixtures["closure_summary"]),
+            "--tracker-import-package-json",
+            str(fixtures["tracker_import_package"]),
+            "--tracker-issue-evidence-template-json",
+            str(fixtures["tracker_issue_template"]),
+            "--tracker-issue-evidence-gate-json",
+            str(fixtures["tracker_issue_gate"]),
             "--output-json",
             str(output_json),
             "--output-markdown",
@@ -175,6 +242,9 @@ def test_rejects_raw_url_in_output(tmp_path: Path) -> None:
             current_release_proof_json=fixtures["current_release_proof"],
             certification_json=fixtures["certification"],
             closure_evidence_summary_json=fixtures["closure_summary"],
+            tracker_import_package_json=fixtures["tracker_import_package"],
+            tracker_issue_evidence_template_json=fixtures["tracker_issue_template"],
+            tracker_issue_evidence_gate_json=fixtures["tracker_issue_gate"],
             output_json=tmp_path / "out.json",
             output_markdown=tmp_path / "out.md",
         )

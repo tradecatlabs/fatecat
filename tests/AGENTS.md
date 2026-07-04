@@ -81,7 +81,7 @@ tests/
 - `regression/test_production_live_delivery_evidence_bundle.py`：production live delivery evidence bundle 合同；验证 API/HF/Bot/webhook/parity 脱敏 summary 可转换为 live proof bundle，默认无真实 summary 只 pending，敏感输入拒绝，输出不复制 raw URL，并可被 external validation live proof gate 接受。
 - `regression/test_external_validation_closure_trend_dashboard.py`：external validation closure trend dashboard 合同；验证 closure plan/work queue/proof-ref/category runbook/live proof gate 聚合、owner/category/status 趋势、stale alert、缺 runbook 拒绝、local-ci/certification 接线，以及 alert 不等于 live evidence closure。
 - `regression/test_measurement_infrastructure_certification.py`：100% 测算基础设施 certification aggregator dry-run 合同；验证 local-ci 产物聚合、external validation tracker import/template/gate 审计桥接、blocked dry-run、require-certified 拒绝、缺证据失败和合成全绿通过。
-- `regression/test_third_party_audit_rehearsal.py`：第三方审计预演包合同；验证 current audit bundle、audit dry-run、release proof、certification 和 closure evidence summary 能聚合成审计 checklist，且外部 pending/独立审计缺失时 rehearsalGate 仍 blocked。
+- `regression/test_third_party_audit_rehearsal.py`：第三方审计预演包合同；验证 current audit bundle、audit dry-run、release proof、certification、closure evidence summary、tracker import package、tracker issue evidence template 和 tracker issue evidence gate 能聚合成审计 checklist，且外部 pending/tracker issue evidence/独立审计缺失时 rehearsalGate 仍 blocked。
 - `regression/test_current_release_proof.py`：current release proof 合同；验证当前 commit 发布证据聚合 gate 的 local-contract/required 模式、ReleaseGate 登记和敏感值防护。
 - `regression/test_operability_docs.py`：公共服务 SLO、指标、告警和 runbook 的文档合同测试。
 - `regression/test_report_job_restart_recovery_smoke.py`：report job SQLite manager 重建本地 smoke 合同；验证 restart-safe failure、`job.recovered_failed`、幂等键保留和 summary 脱敏边界。

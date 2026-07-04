@@ -359,6 +359,9 @@ run_quick() {
     --current-release-proof-json "${output_dir}/current-release-proof.json" \
     --certification-json "${output_dir}/measurement-infrastructure-certification.json" \
     --closure-evidence-summary-json "${output_dir}/external-validation-closure-evidence-summary.json" \
+    --tracker-import-package-json "${output_dir}/external-validation-tracker-import-package.json" \
+    --tracker-issue-evidence-template-json "${output_dir}/external-validation-tracker-issue-evidence-template.json" \
+    --tracker-issue-evidence-gate-json "${output_dir}/external-validation-tracker-issue-evidence-gate.json" \
     --output-json "${output_dir}/third-party-audit-rehearsal.json" \
     --output-markdown "${output_dir}/THIRD_PARTY_AUDIT_REHEARSAL.md"
   run_step "ruff check" env RUFF_CACHE_DIR="${RUFF_CACHE_DIR:-/tmp/fatecat-ruff-cache}" \
