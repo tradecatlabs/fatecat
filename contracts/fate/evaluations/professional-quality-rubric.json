@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.professional_quality_rubric",
+  "version": "professional-quality-rubric.v1",
+  "description": "FateCat 八字/紫微专业质量评审 rubric。该 rubric 只定义评审维度、证据要求和禁止宣称，不保存真实命例、完整报告正文或专家个人信息。",
+  "scope": {
+    "coveredCapabilities": ["bazi", "ziwei"],
+    "usageRole": "evaluation_only",
+    "privacyClass": "anonymous_fixture",
+    "notCovered": [
+      "真实用户命例库",
+      "专家个人身份",
+      "逐字报告正文",
+      "预测准确率承诺",
+      "医疗、法律、金融或心理建议"
+    ]
+  },
+  "minimums": {
+    "dimensionCount": 8,
+    "requiredCapabilities": ["bazi", "ziwei"],
+    "requiredEvidenceKinds": ["golden_fixture", "report_diff_summary", "evidence_ref", "privacy_scan", "human_review_note"]
+  },
+  "dimensions": [
+    {
+      "id": "rubric.calendar_boundary",
+      "name": "历法与边界",
+      "capabilities": ["bazi"],
+      "evidenceKinds": ["golden_fixture", "evidence_ref"],
+      "requiredSignals": ["节气", "月令", "立春年界", "真太阳时", "起运"],
+      "passRule": "关键边界样本必须能回归，失败时不得继续声明 production quality。"
+    },
+    {
+      "id": "rubric.bazi_pattern_yongshen",
+      "name": "八字格局与用神证据",
+      "capabilities": ["bazi"],
+      "evidenceKinds": ["golden_fixture", "evidence_ref", "human_review_note"],
+      "requiredSignals": ["日主强弱", "格局", "调候", "扶抑", "通关", "反证"],
+      "passRule": "核心结论必须有 ruleId/basis/riskBoundary，冲突时保留主辅规则和反证。"
+    },
+    {
+      "id": "rubric.bazi_dynamic_fortune",
+      "name": "八字动态运势边界",
+      "capabilities": ["bazi"],
+      "evidenceKinds": ["golden_fixture", "evidence_ref"],
+      "requiredSignals": ["大运", "流年", "流月", "小运", "层级触发"],
+      "passRule": "动态趋势只能输出时间窗口和触发依据，不输出确定性恐吓断语。"
+    },
+    {
+      "id": "rubric.ziwei_chart_integrity",
+      "name": "紫微盘面完整性",
+      "capabilities": ["ziwei"],
+      "evidenceKinds": ["golden_fixture", "evidence_ref"],
+      "requiredSignals": ["十二宫", "命宫", "身宫", "十四主星", "四化"],
+      "passRule": "盘面 guard 字段必须稳定，缺宫位/星曜/四化时不得进入生产报告。"
+    },
+    {
+      "id": "rubric.ziwei_rule_depth",
+      "name": "紫微规则深度",
+      "capabilities": ["ziwei"],
+      "evidenceKinds": ["golden_fixture", "evidence_ref", "human_review_note"],
+      "requiredSignals": ["三方四正", "命身宫", "星曜组合", "四化飞星", "运限联动"],
+      "passRule": "组合断语必须能回溯到规则、宫位、星曜和四化证据。"
+    },
+    {
+      "id": "rubric.report_structure",
+      "name": "报告结构与体系隔离",
+      "capabilities": ["bazi", "ziwei"],
+      "evidenceKinds": ["report_diff_summary", "privacy_scan"],
+      "requiredSignals": ["默认综合八字", "独立紫微", "Markdown heading", "policyGate", "snapshotGate"],
+      "passRule": "默认报告不得混入非综合八字体系统，紫微必须独立 profile 输出。"
+    },
+    {
+      "id": "rubric.evidence_integrity",
+      "name": "证据链完整性",
+      "capabilities": ["bazi", "ziwei"],
+      "evidenceKinds": ["evidence_ref", "golden_fixture"],
+      "requiredSignals": ["ruleId", "source", "basis", "weight", "riskBoundary", "counterEvidence"],
+      "passRule": "规则引用断链、证据字段缺失或反证缺失必须阻断 release gate。"
+    },
+    {
+      "id": "rubric.privacy_and_non_claim",
+      "name": "隐私与禁止宣称",
+      "capabilities": ["bazi", "ziwei"],
+      "evidenceKinds": ["privacy_scan", "human_review_note"],
+      "requiredSignals": ["北京/测试样本", "无真实姓名", "无 secret", "无确定未来", "非专业替代"],
+      "passRule": "任何真实用户资料、真实非北京地区、secret、恐吓式断语或专业替代建议均为阻断项。"
+    }
+  ],
+  "humanReview": {
+    "status": "required_before_external_claim",
+    "minimumReviewerCount": 1,
+    "allowedEvidence": "redacted rubric disposition only",
+    "privacyBoundary": "不得保存专家姓名、联系方式、真实用户命例、报告正文、生产 URL 或账号信息。"
+  },
+  "releaseGate": {
+    "command": "bash scripts/core-quality-corpus-gate.sh",
+    "required": true,
+    "localCiArtifact": "core-quality-corpus-gate.json"
+  },
+  "forbiddenClaims": [
+    "预测准确率 100%",
+    "专业能力 100% 已证明",
+    "替代医疗建议",
+    "替代法律建议",
+    "替代金融建议",
+    "替代心理诊断",
+    "确定未来",
+    "恐吓式断语"
+  ],
+  "limitations": [
+    "该 rubric 只定义评审准入和 evidence 要求，不代表专家人工审查已经完成。",
+    "通过本地 gate 只说明结构、隐私和 evidence 约束可审计，不等于真实命例准确率证明。",
+    "生产 provider 不得读取 rubric 或 golden fixture 作为业务断语来源。"
+  ]
+}

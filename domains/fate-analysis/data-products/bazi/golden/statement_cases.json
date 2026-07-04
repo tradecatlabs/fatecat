@@ -122,6 +122,78 @@
           "bazi.pattern_use_god_trace"
         ]
       }
+    },
+    {
+      "id": "summer_1999_statement",
+      "input": {
+        "birthDateTime": "1999-07-23 14:15:00",
+        "gender": "male",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京"
+      },
+      "expected": {
+        "fourPillars": {"year": "己卯", "month": "辛未", "day": "丙子", "hour": "乙未"},
+        "dayMaster": {"stem": "丙", "strength": "中和偏弱"},
+        "gejuMain": "普通格局",
+        "yongShen": {"note": "忌杀喜官", "basisSource": "金不换调候表", "tiaohouRaw": "1壬2_庚"},
+        "ganzhiRelations": {"tianGan": ["月日丙辛合化水", "月时辛乙冲"], "branchConflictCount": 8},
+        "fortuneStart": {"startDate": "2004-10-13 13:54:14", "anchorTerm": "芒种"},
+        "accuracyRuleIds": [
+          "bazi.balance_five_elements",
+          "bazi.day_master_strength",
+          "bazi.fortune_start_boundary",
+          "bazi.fortune_trigger_boundary"
+        ]
+      }
+    },
+    {
+      "id": "autumn_2010_zi_statement",
+      "input": {
+        "birthDateTime": "2010-10-10 00:45:00",
+        "gender": "female",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京"
+      },
+      "expected": {
+        "fourPillars": {"year": "庚寅", "month": "丙戌", "day": "癸巳", "hour": "壬子"},
+        "dayMaster": {"stem": "癸", "strength": "中和"},
+        "gejuMain": "普通格局",
+        "yongShen": {"note": "", "basisSource": "金不换调候表", "tiaohouRaw": "1辛2壬甲3癸"},
+        "ganzhiRelations": {"tianGan": ["月时丙壬冲"], "branchConflictCount": 6},
+        "fortuneStart": {"startDate": "2011-03-10 00:43:48", "anchorTerm": "白露"},
+        "accuracyRuleIds": [
+          "bazi.balance_five_elements",
+          "bazi.day_master_strength",
+          "bazi.fortune_start_boundary",
+          "bazi.fortune_trigger_boundary"
+        ]
+      }
+    },
+    {
+      "id": "winter_1984_statement",
+      "input": {
+        "birthDateTime": "1984-11-07 06:30:00",
+        "gender": "female",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京"
+      },
+      "expected": {
+        "fourPillars": {"year": "甲子", "month": "甲戌", "day": "乙巳", "hour": "己卯"},
+        "dayMaster": {"stem": "乙", "strength": "中和"},
+        "gejuMain": "普通格局",
+        "yongShen": {"note": "", "basisSource": "金不换调候表", "tiaohouRaw": "1癸2_辛"},
+        "ganzhiRelations": {"tianGan": ["年时甲己合化土", "月时甲己合化土"], "branchConflictCount": 6},
+        "fortuneStart": {"startDate": "1994-10-17 06:32:08", "anchorTerm": "白露"},
+        "accuracyRuleIds": [
+          "bazi.balance_five_elements",
+          "bazi.day_master_strength",
+          "bazi.fortune_start_boundary",
+          "bazi.fortune_trigger_boundary"
+        ]
+      }
     }
   ]
 }

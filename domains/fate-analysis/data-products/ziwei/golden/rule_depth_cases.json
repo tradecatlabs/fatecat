@@ -400,6 +400,220 @@
           "ziwei.depth.statement.narrative_markdown"
         ]
       }
+    },
+    {
+      "id": "ziwei_summer_1976_male",
+      "input": {
+        "birthDateTime": "1976-05-05 10:10:00",
+        "gender": "男",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京",
+        "name": "测试样本"
+      },
+      "expected": {
+        "lifePalace": {
+          "name": "财帛",
+          "earthlyBranch": "申",
+          "majorStars": [
+            "武曲",
+            "天相"
+          ]
+        },
+        "bodyPalace": {
+          "name": "夫妻",
+          "earthlyBranch": "戌",
+          "majorStars": [
+            "七杀"
+          ]
+        },
+        "appliedRuleCountMin": 20,
+        "primaryRuleIds": [
+          "ziwei.depth.star.brightness_weight",
+          "ziwei.depth.palace.triad_focus",
+          "ziwei.depth.palace.life_body_triad_bridge"
+        ],
+        "weightedConfidenceMin": 0.7,
+        "combinationTopics": [
+          "主星组合-命身宫",
+          "命身宫-三方四正",
+          "四化-宫位桥接",
+          "本命-运限联动"
+        ],
+        "requiredRuleIds": [
+          "ziwei.depth.combination.major_star_context",
+          "ziwei.depth.combination.palace_mutagen_bridge",
+          "ziwei.depth.fortune.decadal_yearly_bridge",
+          "ziwei.depth.fortune.linkage_chain",
+          "ziwei.depth.fortune.year_month_day_hour_order",
+          "ziwei.depth.mutagen.flying_layer_guard",
+          "ziwei.depth.mutagen.lu_quan_ke_ji_balance",
+          "ziwei.depth.mutagen.opposition_guard",
+          "ziwei.depth.mutagen.scope_chain",
+          "ziwei.depth.palace.life_body_triad_bridge",
+          "ziwei.depth.palace.topic_matrix"
+        ]
+      }
+    },
+    {
+      "id": "ziwei_summer_1999_female",
+      "input": {
+        "birthDateTime": "1999-07-23 14:15:00",
+        "gender": "女",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京",
+        "name": "测试样本"
+      },
+      "expected": {
+        "lifePalace": {
+          "name": "仆役",
+          "earthlyBranch": "巳",
+          "majorStars": [
+            "天机"
+          ]
+        },
+        "bodyPalace": {
+          "name": "福德",
+          "earthlyBranch": "寅",
+          "majorStars": [
+            "武曲",
+            "天相"
+          ]
+        },
+        "appliedRuleCountMin": 20,
+        "primaryRuleIds": [
+          "ziwei.depth.star.brightness_weight",
+          "ziwei.depth.palace.triad_focus",
+          "ziwei.depth.palace.life_body_triad_bridge"
+        ],
+        "weightedConfidenceMin": 0.7,
+        "combinationTopics": [
+          "主星组合-命身宫",
+          "命身宫-三方四正",
+          "四化-宫位桥接",
+          "本命-运限联动"
+        ],
+        "requiredRuleIds": [
+          "ziwei.depth.combination.major_star_context",
+          "ziwei.depth.combination.palace_mutagen_bridge",
+          "ziwei.depth.fortune.decadal_yearly_bridge",
+          "ziwei.depth.fortune.linkage_chain",
+          "ziwei.depth.fortune.year_month_day_hour_order",
+          "ziwei.depth.mutagen.flying_layer_guard",
+          "ziwei.depth.mutagen.lu_quan_ke_ji_balance",
+          "ziwei.depth.mutagen.opposition_guard",
+          "ziwei.depth.mutagen.scope_chain",
+          "ziwei.depth.palace.life_body_triad_bridge",
+          "ziwei.depth.palace.topic_matrix"
+        ]
+      }
+    },
+    {
+      "id": "ziwei_winter_2012_male",
+      "input": {
+        "birthDateTime": "2012-12-21 22:20:00",
+        "gender": "男",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京",
+        "name": "测试样本"
+      },
+      "expected": {
+        "lifePalace": {
+          "name": "父母",
+          "earthlyBranch": "寅",
+          "majorStars": [
+            "贪狼"
+          ]
+        },
+        "bodyPalace": {
+          "name": "夫妻",
+          "earthlyBranch": "亥",
+          "majorStars": [
+            "天同"
+          ]
+        },
+        "appliedRuleCountMin": 20,
+        "primaryRuleIds": [
+          "ziwei.depth.star.brightness_weight",
+          "ziwei.depth.palace.triad_focus",
+          "ziwei.depth.palace.life_body_triad_bridge"
+        ],
+        "weightedConfidenceMin": 0.7,
+        "combinationTopics": [
+          "主星组合-命身宫",
+          "命身宫-三方四正",
+          "四化-宫位桥接",
+          "本命-运限联动"
+        ],
+        "requiredRuleIds": [
+          "ziwei.depth.combination.major_star_context",
+          "ziwei.depth.combination.palace_mutagen_bridge",
+          "ziwei.depth.fortune.decadal_yearly_bridge",
+          "ziwei.depth.fortune.linkage_chain",
+          "ziwei.depth.fortune.year_month_day_hour_order",
+          "ziwei.depth.mutagen.flying_layer_guard",
+          "ziwei.depth.mutagen.lu_quan_ke_ji_balance",
+          "ziwei.depth.mutagen.opposition_guard",
+          "ziwei.depth.mutagen.scope_chain",
+          "ziwei.depth.palace.life_body_triad_bridge",
+          "ziwei.depth.palace.topic_matrix"
+        ]
+      }
+    },
+    {
+      "id": "ziwei_autumn_2020_female",
+      "input": {
+        "birthDateTime": "2020-10-01 00:30:00",
+        "gender": "女",
+        "longitude": 116.4074,
+        "latitude": 39.9042,
+        "birthPlace": "北京",
+        "name": "测试样本"
+      },
+      "expected": {
+        "lifePalace": {
+          "name": "疾厄",
+          "earthlyBranch": "辰",
+          "majorStars": [
+            "武曲"
+          ]
+        },
+        "bodyPalace": {
+          "name": "命宫",
+          "earthlyBranch": "酉",
+          "majorStars": [
+            "太阴"
+          ]
+        },
+        "appliedRuleCountMin": 20,
+        "primaryRuleIds": [
+          "ziwei.depth.star.brightness_weight",
+          "ziwei.depth.palace.triad_focus",
+          "ziwei.depth.palace.life_body_triad_bridge"
+        ],
+        "weightedConfidenceMin": 0.7,
+        "combinationTopics": [
+          "主星组合-命身宫",
+          "命身宫-三方四正",
+          "四化-宫位桥接",
+          "本命-运限联动"
+        ],
+        "requiredRuleIds": [
+          "ziwei.depth.combination.major_star_context",
+          "ziwei.depth.combination.palace_mutagen_bridge",
+          "ziwei.depth.fortune.decadal_yearly_bridge",
+          "ziwei.depth.fortune.linkage_chain",
+          "ziwei.depth.fortune.year_month_day_hour_order",
+          "ziwei.depth.mutagen.flying_layer_guard",
+          "ziwei.depth.mutagen.lu_quan_ke_ji_balance",
+          "ziwei.depth.mutagen.opposition_guard",
+          "ziwei.depth.mutagen.scope_chain",
+          "ziwei.depth.palace.life_body_triad_bridge",
+          "ziwei.depth.palace.topic_matrix"
+        ]
+      }
     }
   ]
 }

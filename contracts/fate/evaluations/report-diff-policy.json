@@ -64,8 +64,9 @@
     "maxSnapshotFailures": 0,
     "maxPrivacyViolations": 0,
     "minBaziGoldenCases": 300,
-    "minZiweiGoldenCases": 8,
-    "minReportProfiles": 2
+    "minZiweiGoldenCases": 12,
+    "minReportProfiles": 2,
+    "minProfessionalRubricDimensions": 8
   },
   "structuralDiff": {
     "summaryOnly": true,

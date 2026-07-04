@@ -244,3 +244,5 @@
 | 0140 | measurement-infrastructure-independent-audit-result-intake | Done | P0 | 把独立第三方审计结果从 third-party audit rehearsal 的硬编码缺失项升级为标准 intake capability：定义脱敏 result bundle 契约、实现 independent audit result gate、接入 third-party audit rehearsal/local-ci，并用回归测试证明 accepted 审计结果只消除独立审计阻断，不绕过外部 live/certification 阻断。 | 0140-measurement-infrastructure-independent-audit-result-intake/ |
 
 | 0141 | measurement-infrastructure-100-complete-implementation-plan-refresh | Done | P0 | 基于当前 main worktree、0140 独立审计结果 intake 已完成事实，以及成熟基础设施官方资料，制作 FateCat 达到 100% 测算基础设施所需的完整实现计划、资源准入等级、任务树、执行波次、外部阻断项和不可伪造证据口径；本任务只做调研与计划落盘，不实现业务代码、不执行生产 live、不宣称 100% 完成。 | 0141-measurement-infrastructure-100-complete-implementation-plan-refresh/ |
+
+| 0142 | measurement-infrastructure-bazi-ziwei-professional-quality-corpus-expansion | Done | P0 | 执行 0141 后续 0142：扩展八字/紫微核心质量匿名 corpus、补 professional quality rubric、提高 core-quality gate 对样本数量/覆盖标签/报告 diff/rubric 的约束，并用回归测试证明该质量证据只作为 evaluation/release gate，不进入 production provider、不保存真实用户资料、不宣称专业能力 100%。 | 0142-measurement-infrastructure-bazi-ziwei-professional-quality-corpus-expansion/ |

@@ -12,6 +12,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_ROOT = REPO_ROOT / "contracts" / "fate" / "evaluations"
 DEFAULT_MANIFEST = CONTRACT_ROOT / "core-quality-corpus.json"
 DEFAULT_POLICY = CONTRACT_ROOT / "report-diff-policy.json"
+DEFAULT_RUBRIC = CONTRACT_ROOT / "professional-quality-rubric.json"
 DEFAULT_REGISTRY = CONTRACT_ROOT / "registry.json"
 DEFAULT_OUTPUT_JSON = (
     REPO_ROOT / "infra" / "runtime" / "local-state" / "exports" / "quality" / "core-quality-corpus-gate.json"
@@ -60,7 +61,7 @@ def _require(checks: list[dict[str, Any]], name: str, condition: bool, details: 
 
 
 def _validate_registry(
-    manifest: dict[str, Any], policy: dict[str, Any], registry: dict[str, Any]
+    manifest: dict[str, Any], policy: dict[str, Any], rubric: dict[str, Any], registry: dict[str, Any]
 ) -> list[dict[str, Any]]:
     checks: list[dict[str, Any]] = []
     resources = {
@@ -81,6 +82,18 @@ def _validate_registry(
     )
     _require(
         checks,
+        "registry:professional_quality_rubric",
+        registry["metadata"].get("professionalQualityRubric") == _rel(DEFAULT_RUBRIC),
+        str(registry["metadata"].get("professionalQualityRubric")),
+    )
+    _require(
+        checks,
+        "registry:professional_quality_rubric_kind",
+        rubric.get("kind") == "fatecat.professional_quality_rubric",
+        str(rubric.get("kind")),
+    )
+    _require(
+        checks,
         "registry:gate_command",
         registry["metadata"].get("coreQualityCorpusGateCommand") == manifest["releaseGate"]["command"],
         str(registry["metadata"].get("coreQualityCorpusGateCommand")),
@@ -96,8 +109,16 @@ def _validate_registry(
     _require(
         checks,
         "policy:threshold:ziwei",
-        int(policy["thresholds"]["minZiweiGoldenCases"]) >= 8,
+        int(policy["thresholds"]["minZiweiGoldenCases"])
+        >= int(next(item for item in manifest["corpora"] if item["id"] == "corpus.ziwei.basic_cases")["minCaseCount"]),
         str(policy["thresholds"].get("minZiweiGoldenCases")),
+    )
+    _require(
+        checks,
+        "policy:threshold:rubric",
+        int(policy["thresholds"].get("minProfessionalRubricDimensions", 0))
+        >= int(manifest["professionalQualityRubric"]["minimumDimensionCount"]),
+        str(policy["thresholds"].get("minProfessionalRubricDimensions")),
     )
     structural = policy.get("structuralDiff", {})
     _require(checks, "policy:structural_diff:summary_only", structural.get("summaryOnly") is True, str(structural))
@@ -137,6 +158,101 @@ def _validate_registry(
             str(len(structure["forbiddenDefaultBlocks"])),
         )
     return checks
+
+
+def _validate_professional_rubric(manifest: dict[str, Any], rubric: dict[str, Any]) -> dict[str, Any]:
+    checks: list[dict[str, Any]] = []
+    rubric_contract = manifest["professionalQualityRubric"]
+    _require(checks, "rubric:schema", rubric.get("schemaVersion") == 1, str(rubric.get("schemaVersion")))
+    _require(
+        checks,
+        "rubric:kind",
+        rubric.get("kind") == "fatecat.professional_quality_rubric",
+        str(rubric.get("kind")),
+    )
+    _require(
+        checks,
+        "rubric:path",
+        rubric_contract["path"] == _rel(DEFAULT_RUBRIC),
+        str(rubric_contract["path"]),
+    )
+    dimensions = rubric.get("dimensions") or []
+    _require(
+        checks,
+        "rubric:dimension_count",
+        isinstance(dimensions, list) and len(dimensions) >= int(rubric_contract["minimumDimensionCount"]),
+        str(len(dimensions) if isinstance(dimensions, list) else "not-list"),
+    )
+    required_capabilities = set(rubric_contract["requiredCapabilities"])
+    observed_capabilities = {
+        str(capability) for item in dimensions for capability in item.get("capabilities", []) if capability
+    }
+    _require(
+        checks,
+        "rubric:required_capabilities",
+        required_capabilities <= observed_capabilities,
+        str(sorted(required_capabilities - observed_capabilities)),
+    )
+    required_evidence = set(rubric_contract["requiredEvidenceKinds"])
+    observed_evidence = {str(kind) for item in dimensions for kind in item.get("evidenceKinds", []) if kind}
+    _require(
+        checks,
+        "rubric:required_evidence_kinds",
+        required_evidence <= observed_evidence,
+        str(sorted(required_evidence - observed_evidence)),
+    )
+    ids: set[str] = set()
+    for index, item in enumerate(dimensions):
+        dimension_id = str(item.get("id") or "")
+        _require(checks, f"rubric:dimension:{index}:id", bool(dimension_id), "id present")
+        _require(checks, f"rubric:dimension:{dimension_id}:unique", dimension_id not in ids, "unique")
+        ids.add(dimension_id)
+        _require(
+            checks,
+            f"rubric:dimension:{dimension_id}:signals",
+            bool(item.get("requiredSignals")),
+            str(item.get("requiredSignals")),
+        )
+        _require(
+            checks,
+            f"rubric:dimension:{dimension_id}:pass_rule",
+            bool(item.get("passRule")),
+            str(item.get("passRule")),
+        )
+    human_review = rubric.get("humanReview") or {}
+    _require(
+        checks,
+        "rubric:human_review:external_claim_boundary",
+        human_review.get("status") == "required_before_external_claim",
+        str(human_review.get("status")),
+    )
+    _require(
+        checks,
+        "rubric:human_review:privacy_boundary",
+        "不得保存" in str(human_review.get("privacyBoundary")),
+        str(human_review.get("privacyBoundary")),
+    )
+    forbidden_claims = rubric.get("forbiddenClaims") or []
+    _require(
+        checks,
+        "rubric:forbidden_claims",
+        {"预测准确率 100%", "专业能力 100% 已证明", "确定未来"} <= set(forbidden_claims),
+        str(forbidden_claims),
+    )
+    limitations = rubric.get("limitations") or []
+    _require(
+        checks,
+        "rubric:non_claim_limitations",
+        any("不等于真实命例准确率证明" in str(item) for item in limitations),
+        str(limitations),
+    )
+    return {
+        "path": rubric_contract["path"],
+        "dimensionCount": len(dimensions),
+        "requiredCapabilityCount": len(required_capabilities),
+        "requiredEvidenceKindCount": len(required_evidence),
+        "checks": checks,
+    }
 
 
 def _validate_corpus(corpus: dict[str, Any]) -> dict[str, Any]:
@@ -205,10 +321,12 @@ def run_gate(
     *,
     manifest_path: Path = DEFAULT_MANIFEST,
     policy_path: Path = DEFAULT_POLICY,
+    rubric_path: Path = DEFAULT_RUBRIC,
     registry_path: Path = DEFAULT_REGISTRY,
 ) -> dict[str, Any]:
     manifest = _load_json(manifest_path)
     policy = _load_json(policy_path)
+    rubric = _load_json(rubric_path)
     registry = _load_json(registry_path)
     checks: list[dict[str, Any]] = []
 
@@ -241,8 +359,13 @@ def run_gate(
         "bazi blocked from ziwei profile",
     )
 
-    registry_checks = _validate_registry(manifest, policy, registry)
+    registry_checks = _validate_registry(manifest, policy, rubric, registry)
     checks.extend(registry_checks)
+    rubric_result = _validate_professional_rubric(manifest, rubric)
+    checks.extend(
+        {"name": f"professional_rubric:{item['name']}", "ok": item["ok"], "details": item["details"]}
+        for item in rubric_result["checks"]
+    )
 
     corpus_results = [_validate_corpus(corpus) for corpus in manifest["corpora"]]
     for result in corpus_results:
@@ -259,6 +382,7 @@ def run_gate(
         "status": "failed" if failed else "passed",
         "manifest": _rel(manifest_path),
         "reportDiffPolicy": _rel(policy_path),
+        "professionalQualityRubric": _rel(rubric_path),
         "registry": _rel(registry_path),
         "summary": {
             "corpusCount": len(corpus_results),
@@ -266,6 +390,12 @@ def run_gate(
             "failedCheckCount": len(failed),
         },
         "corpora": corpus_results,
+        "professionalRubric": {
+            "path": rubric_result["path"],
+            "dimensionCount": rubric_result["dimensionCount"],
+            "requiredCapabilityCount": rubric_result["requiredCapabilityCount"],
+            "requiredEvidenceKindCount": rubric_result["requiredEvidenceKindCount"],
+        },
         "checks": checks,
         "privacyBoundary": manifest["privacyBoundary"],
         "productionBoundary": manifest["productionBoundary"],
@@ -282,6 +412,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="校验八字/紫微核心质量语料 manifest 与完整报告 diff 策略。")
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST, help="核心质量语料 manifest 路径。")
     parser.add_argument("--report-diff-policy", type=Path, default=DEFAULT_POLICY, help="完整报告 diff 策略路径。")
+    parser.add_argument("--professional-rubric", type=Path, default=DEFAULT_RUBRIC, help="专业质量 rubric 路径。")
     parser.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY, help="evaluation registry 路径。")
     parser.add_argument("--output-json", type=Path, default=DEFAULT_OUTPUT_JSON, help="输出 gate summary JSON。")
     return parser
@@ -292,7 +423,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         summary = run_gate(
-            manifest_path=args.manifest, policy_path=args.report_diff_policy, registry_path=args.registry
+            manifest_path=args.manifest,
+            policy_path=args.report_diff_policy,
+            rubric_path=args.professional_rubric,
+            registry_path=args.registry,
         )
         write_summary(summary, args.output_json)
         print(

@@ -143,6 +143,7 @@
       "paths": [
         "contracts/fate/evaluations/core-quality-corpus.json",
         "contracts/fate/evaluations/report-diff-policy.json",
+        "contracts/fate/evaluations/professional-quality-rubric.json",
         "domains/fate-analysis/data-products/bazi/golden/coverage_matrix_cases.json",
         "domains/fate-analysis/data-products/bazi/golden/rule_depth_cases.json",
         "domains/fate-analysis/data-products/bazi/golden/statement_cases.json",
@@ -368,6 +369,7 @@
     "trendPolicy": "contracts/fate/evaluations/trend-policy.json",
     "coreQualityCorpusManifest": "contracts/fate/evaluations/core-quality-corpus.json",
     "reportDiffPolicy": "contracts/fate/evaluations/report-diff-policy.json",
+    "professionalQualityRubric": "contracts/fate/evaluations/professional-quality-rubric.json",
     "coreQualityCorpusGateCommand": "bash scripts/core-quality-corpus-gate.sh",
     "diffCommand": "bash scripts/compare-evaluations.sh --baseline-json <baseline> --current-json <current>",
     "trendCommand": "bash scripts/evaluation-trend-gate.sh",
