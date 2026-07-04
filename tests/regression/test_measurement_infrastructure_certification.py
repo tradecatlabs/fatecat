@@ -147,6 +147,21 @@ def _write_evidence_dir(root: Path, *, blocked: bool) -> Path:
             },
         },
     )
+    _write_json(
+        root / "external-validation-closure-trend-dashboard.json",
+        {
+            "status": "passed",
+            "alertStatus": "stale_alerts_pending" if blocked else "clear",
+            "alertGate": {
+                "status": "blocked" if blocked else "passed",
+                "blockingItems": ["stale_owner_alerts_pending"] if blocked else [],
+            },
+            "shipGate": {
+                "status": "blocked" if blocked else "passed",
+                "blockingItems": ["external_validation_stale_alerts_pending"] if blocked else [],
+            },
+        },
+    )
     return root
 
 
@@ -158,6 +173,7 @@ def test_certification_contract_lists_required_evidence_files():
     assert "runtime-proof-gate.json" in contract["requiredEvidenceFiles"]
     assert "external-validation-proof-ref-gate.json" in contract["requiredEvidenceFiles"]
     assert "external-validation-category-runbooks.json" in contract["requiredEvidenceFiles"]
+    assert "external-validation-closure-trend-dashboard.json" in contract["requiredEvidenceFiles"]
     assert "evidenceOverrides" in contract["requiredOutputFields"]
     assert "live-release-gate.json" in contract["optionalEvidenceOverrides"]
     assert "current-audit-bundle/current-audit-bundle.json" in contract["requiredEvidenceFiles"]
@@ -345,6 +361,9 @@ def test_certification_accepts_current_audit_bundle_sidecar_without_overriding_r
     category_runbooks = next(
         item for item in audit["evidence"] if item["logicalPath"] == "external-validation-category-runbooks.json"
     )
+    closure_trend = next(
+        item for item in audit["evidence"] if item["logicalPath"] == "external-validation-closure-trend-dashboard.json"
+    )
     current_proof = next(item for item in release["evidence"] if item["logicalPath"] == "current-release-proof.json")
 
     assert summary["evidenceOverrides"] == {"current-audit-bundle/current-audit-bundle.json": str(sidecar)}
@@ -358,6 +377,11 @@ def test_certification_accepts_current_audit_bundle_sidecar_without_overriding_r
     assert proof_ref_gate["pendingItems"] == ["proofRefStatus=external_connectivity_pending"]
     assert category_runbooks["source"] == "evidence_dir"
     assert category_runbooks["blockingItems"] == ["category_live_execution_pending"]
+    assert closure_trend["source"] == "evidence_dir"
+    assert closure_trend["blockingItems"] == [
+        "external_validation_stale_alerts_pending",
+        "stale_owner_alerts_pending",
+    ]
     assert release["status"] == "blocked"
     assert current_proof["source"] == "evidence_dir"
     assert current_proof["blockingItems"] == ["release.git_clean"]

@@ -25,6 +25,7 @@ tests/
 	    ├── test_current_audit_bundle.py
 	    ├── test_external_validation_closure_gate.py
 	    ├── test_external_validation_closure_work_queue.py
+	    ├── test_external_validation_closure_trend_dashboard.py
 	    ├── test_measurement_infrastructure_certification.py
 	    ├── test_current_release_proof.py
 	    ├── test_operability_docs.py
@@ -62,6 +63,7 @@ tests/
 - `regression/test_external_validation_closure_work_queue.py`：external validation closure work queue 合同；验证 closure plan 按 owner/category 聚合成 pending work item，补齐 assignee/proofRef/stale/close 字段，summary 不输出 pending excerpt 或敏感赋值形态。
 - `regression/test_external_validation_proof_ref_gate.py`：external validation proof-ref gate 合同；验证 proof-ref schema、脱敏 evidence bundle、raw URL/placeholder 拒绝、local-ci 接线，以及 schema accepted 仍不等于 production live passed。
 - `regression/test_external_validation_category_runbooks.py`：external validation category runbook 合同；验证 22 个 category 均有 operator runbook、未知 category 拒绝、raw URL/敏感片段防护、local-ci/certification 接线，以及 runbook ready 仍不等于 production live passed。
+- `regression/test_external_validation_closure_trend_dashboard.py`：external validation closure trend dashboard 合同；验证 closure plan/work queue/proof-ref/category runbook 聚合、owner/category/status 趋势、stale alert、缺 runbook 拒绝、local-ci/certification 接线，以及 alert 不等于 live evidence closure。
 - `regression/test_measurement_infrastructure_certification.py`：100% 测算基础设施 certification aggregator dry-run 合同；验证 local-ci 产物聚合、blocked dry-run、require-certified 拒绝、缺证据失败和合成全绿通过。
 - `regression/test_current_release_proof.py`：current release proof 合同；验证当前 commit 发布证据聚合 gate 的 local-contract/required 模式、ReleaseGate 登记和敏感值防护。
 - `regression/test_operability_docs.py`：公共服务 SLO、指标、告警和 runbook 的文档合同测试。

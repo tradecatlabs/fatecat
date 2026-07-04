@@ -96,9 +96,10 @@ DOMAIN_SPECS = (
             "current-audit-bundle/current-audit-bundle.json",
             "external-validation-proof-ref-gate.json",
             "external-validation-category-runbooks.json",
+            "external-validation-closure-trend-dashboard.json",
         ),
-        pending_markers=("pendingExternalValidationCount", "proofRefStatus"),
-        blocked_markers=("auditGate", "shipGate"),
+        pending_markers=("pendingExternalValidationCount", "proofRefStatus", "alertStatus"),
+        blocked_markers=("auditGate", "shipGate", "alertGate"),
     ),
 )
 
@@ -145,7 +146,9 @@ def _pending_items(payload: dict[str, Any], markers: tuple[str, ...]) -> list[st
         value = payload.get(key)
         if isinstance(value, str) and "待执行" in value:
             items.append(f"{key}={value}")
-        elif isinstance(value, str) and value in {"pending", "external_connectivity_pending"}:
+        elif isinstance(value, str) and (
+            value in {"pending", "external_connectivity_pending"} or value.endswith("_pending")
+        ):
             items.append(f"{key}={value}")
         elif value is False:
             items.append(f"{key}=not_live")

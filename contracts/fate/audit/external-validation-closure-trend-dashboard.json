@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.external_validation_closure_trend_dashboard_contract",
+  "resourceType": "ExternalValidationClosureTrendDashboard",
+  "id": "audit.external.validation.closureTrendDashboard",
+  "status": "baseline",
+  "description": "外部验证关闭趋势 dashboard 契约。该 gate 聚合 closure plan、closure work queue、proof-ref gate 和 category runbooks，输出按 owner/category/status 的本地趋势 JSON 与 stale alert 摘要；不发送真实通知，不连接外部 issue tracker，不把 alert acknowledgement 视为 live evidence closure。",
+  "generator": {
+    "command": "bash scripts/external-validation-closure-trend-dashboard.sh --closure-plan-json <external-validation-closure-gate.json> --work-queue-json <external-validation-closure-work-queue.json> --proof-ref-gate-json <external-validation-proof-ref-gate.json> --category-runbooks-json <external-validation-category-runbooks.json> --output-json <path>",
+    "pythonEntrypoint": "scripts/external-validation-closure-trend-dashboard.py",
+    "defaultOutput": "infra/runtime/local-state/exports/audit/external-validation-closure-trend-dashboard.json"
+  },
+  "inputKinds": [
+    "fatecat.external_validation_closure_plan",
+    "fatecat.external_validation_closure_work_queue",
+    "fatecat.external_validation_proof_ref_gate_summary",
+    "fatecat.external_validation_category_runbooks"
+  ],
+  "requiredOutputFields": [
+    "schemaVersion",
+    "kind",
+    "generatedAt",
+    "status",
+    "source",
+    "summary",
+    "trend",
+    "ownerDashboard",
+    "categoryDashboard",
+    "statusDashboard",
+    "staleAlerts",
+    "alertStatus",
+    "alertGate",
+    "shipGate",
+    "privacyBoundary",
+    "nonClaims"
+  ],
+  "alertPolicy": {
+    "deliveryMode": "local_dry_run_only",
+    "ownerAlertUnit": "owner/category work item",
+    "staleWhen": "work item remains unresolved, proof-ref is missing, category live gate is pending, manual triage remains open, or policy guardrail still requires review",
+    "shipGate": "blocked while any stale alert, missing proof-ref, manual triage, policy guardrail, or category live pending item remains",
+    "ackPolicy": "alert acknowledgement is not accepted as live evidence closure"
+  },
+  "trendPolicy": {
+    "currentSnapshot": "required",
+    "previousDashboard": "optional",
+    "deltaFields": [
+      "workItems",
+      "staleAlerts",
+      "missingProofRefs",
+      "manualTriageWorkItems",
+      "policyGuardrailWorkItems",
+      "categoryLivePendingWorkItems"
+    ]
+  },
+  "forbiddenReportFragments": [
+    "raw endpoint url",
+    "token assignment marker",
+    "secret assignment marker",
+    "password assignment marker",
+    "database dsn assignment marker",
+    "private key block marker",
+    "placeholder proof",
+    "localhost proof",
+    "dummy proof",
+    "fake proof"
+  ],
+  "privacyBoundary": "Closure trend dashboard 只保存 owner/category/status、work item id、occurrence count、age、stale reason、proof-ref/category-live 状态和本地 artifact path；不得保存真实 URL、token、secret、DSN、私钥、生产日志 payload、用户输入、报告正文或外部账号数据。",
+  "nonClaims": [
+    "Does not prove any external live validation has passed.",
+    "Does not send real alerts or create external issues.",
+    "Does not close proof-ref, category live gate, third-party audit, or certification blockers.",
+    "Does not authorize production credential use."
+  ]
+}
