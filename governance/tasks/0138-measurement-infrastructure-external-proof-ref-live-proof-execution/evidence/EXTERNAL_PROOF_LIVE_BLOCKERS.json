@@ -1,0 +1,22 @@
+{
+  "acceptedLiveProofs": 0,
+  "acceptedProofRefs": 0,
+  "blockers": [
+    "proof_ref_missing_for_22_work_items",
+    "live_proof_blocked_until_proof_refs_are_schema_accepted",
+    "real_external_credentials_and_operator_execution_required"
+  ],
+  "commit": "a5bc4d23c57915608b1f4392c477f9d40cb81703",
+  "generatedAt": "2026-07-04T13:41:53Z",
+  "kind": "fatecat.external_proof_live_blocker_summary",
+  "requiredNextActions": [
+    "External operators execute each category runbook using real credentials outside the repository.",
+    "Operators submit redacted proof-ref bundle accepted by scripts/external-validation-proof-ref-gate.sh.",
+    "Operators submit redacted live evidence bundle accepted by scripts/external-validation-live-proof-gate.sh.",
+    "Certification and third-party audit consume accepted gates before any 100% claim."
+  ],
+  "schemaVersion": 1,
+  "status": "blocked_external_credentials_required",
+  "trackerRefsPresent": 22,
+  "workItemCount": 22
+}
