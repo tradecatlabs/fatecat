@@ -26,6 +26,7 @@ CLOSURE_PLAN_KIND = "fatecat.external_validation_closure_plan"
 WORK_QUEUE_KIND = "fatecat.external_validation_closure_work_queue"
 PROOF_REF_GATE_KIND = "fatecat.external_validation_proof_ref_gate_summary"
 CATEGORY_RUNBOOKS_KIND = "fatecat.external_validation_category_runbooks"
+LIVE_PROOF_GATE_KIND = "fatecat.external_validation_live_proof_gate_summary"
 OUTPUT_KIND = "fatecat.external_validation_closure_trend_dashboard"
 
 MANUAL_CATEGORY = "manual_triage"
@@ -171,10 +172,23 @@ def _age_hours(*, now: datetime, last_checked_at: str) -> float:
     return round(seconds / 3600.0, 3)
 
 
+def _validate_live_proof_gate(payload: dict[str, Any] | None, *, expected_work_items: int) -> set[str]:
+    if payload is None:
+        return set()
+    _require_kind(payload, expected=LIVE_PROOF_GATE_KIND, area="liveProofGate")
+    accepted = payload.get("acceptedLiveProofs")
+    if not isinstance(accepted, list):
+        raise ExternalValidationClosureTrendDashboardError("liveProofGate.acceptedLiveProofs must be array")
+    if int(payload.get("summary", {}).get("workItems", expected_work_items)) != expected_work_items:
+        raise ExternalValidationClosureTrendDashboardError("liveProofGate.summary.workItems mismatch work queue")
+    return {str(item["workItemId"]) for item in accepted if isinstance(item, dict) and item.get("workItemId")}
+
+
 def _alert_reasons(
     item: dict[str, Any],
     *,
     accepted_work_ids: set[str],
+    live_accepted_work_ids: set[str],
     runbook_by_category: dict[str, dict[str, Any]],
 ) -> list[str]:
     category = str(item["category"])
@@ -185,7 +199,7 @@ def _alert_reasons(
         reasons.append("policy_guardrail")
     if str(item["id"]) not in accepted_work_ids:
         reasons.append("proof_ref_missing")
-    if category in runbook_by_category:
+    if category in runbook_by_category and str(item["id"]) not in live_accepted_work_ids:
         reasons.append("category_live_pending")
     if item.get("staleReason"):
         reasons.append("stale_owner_pending")
@@ -299,6 +313,7 @@ def build_summary(
     work_queue_json: Path,
     proof_ref_gate_json: Path,
     category_runbooks_json: Path,
+    live_proof_gate_json: Path | None = None,
     previous_dashboard_json: Path | None = None,
     now_iso: str | None = None,
 ) -> dict[str, Any]:
@@ -310,10 +325,12 @@ def build_summary(
     work_queue = _load_json(work_queue_json)
     proof_ref_gate = _load_json(proof_ref_gate_json)
     category_runbooks = _load_json(category_runbooks_json)
+    live_proof_gate = _load_json(live_proof_gate_json) if live_proof_gate_json is not None else None
     closure_items = _validate_closure_plan(closure_plan)
     work_items = _validate_work_queue(work_queue)
     accepted_work_ids, pending_work_ids = _validate_proof_ref_gate(proof_ref_gate)
     runbook_by_category = _validate_category_runbooks(category_runbooks)
+    live_accepted_work_ids = _validate_live_proof_gate(live_proof_gate, expected_work_items=len(work_items))
     categories = {str(item["category"]) for item in work_items}
     missing_runbooks = sorted(categories - set(runbook_by_category))
     if missing_runbooks:
@@ -328,7 +345,12 @@ def build_summary(
     alerts: list[dict[str, Any]] = []
     for item in sorted(work_items, key=lambda entry: str(entry["id"])):
         item_id = str(item["id"])
-        reasons = _alert_reasons(item, accepted_work_ids=accepted_work_ids, runbook_by_category=runbook_by_category)
+        reasons = _alert_reasons(
+            item,
+            accepted_work_ids=accepted_work_ids,
+            live_accepted_work_ids=live_accepted_work_ids,
+            runbook_by_category=runbook_by_category,
+        )
         if not reasons:
             continue
         priority = str(item.get("priority", "P0"))
@@ -350,6 +372,7 @@ def build_summary(
                 "occurrenceCount": len(item.get("occurrences") or []),
                 "proofRefStatus": "schema_accepted" if item_id in accepted_work_ids else "missing",
                 "proofRefPending": item_id in pending_work_ids,
+                "liveProofStatus": "accepted" if item_id in live_accepted_work_ids else "missing",
                 "categoryRunbookStatus": "ready",
                 "nonClosureBoundary": "Alert is a local owner reminder; it is not live evidence closure.",
             }
@@ -363,7 +386,7 @@ def build_summary(
         "missingProofRefs": sum(1 for item in work_items if str(item["id"]) not in accepted_work_ids),
         "manualTriageWorkItems": sum(1 for item in work_items if item["category"] == MANUAL_CATEGORY),
         "policyGuardrailWorkItems": sum(1 for item in work_items if item["category"] == POLICY_GUARDRAIL_CATEGORY),
-        "categoryLivePendingWorkItems": len(work_items),
+        "categoryLivePendingWorkItems": sum(1 for item in work_items if str(item["id"]) not in live_accepted_work_ids),
     }
     deltas = (
         {field: current_trend_fields[field] - previous[field] for field in current_trend_fields}
@@ -396,6 +419,8 @@ def build_summary(
             "proofRefGateSha256": _sha256_file(proof_ref_gate_json),
             "categoryRunbooksJson": str(category_runbooks_json),
             "categoryRunbooksSha256": _sha256_file(category_runbooks_json),
+            "liveProofGateJson": str(live_proof_gate_json) if live_proof_gate_json else "",
+            "liveProofGateSha256": _sha256_file(live_proof_gate_json) if live_proof_gate_json else "",
             "previousDashboardJson": str(previous_dashboard_json) if previous_dashboard_json else "",
         },
         "summary": {
@@ -404,6 +429,7 @@ def build_summary(
             "owners": len({str(item["owner"]) for item in work_items}),
             "categories": len(categories),
             "acceptedProofRefs": len(accepted_work_ids),
+            "acceptedLiveProofs": len(live_accepted_work_ids),
             "pendingWorkItems": len(pending_work_ids),
             "missingProofRefs": current_trend_fields["missingProofRefs"],
             "manualTriageWorkItems": current_trend_fields["manualTriageWorkItems"],
@@ -461,6 +487,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--category-runbooks-json", type=Path, required=True, help="external-validation-category-runbooks.json"
     )
+    parser.add_argument("--live-proof-gate-json", type=Path, help="optional external-validation-live-proof-gate.json")
     parser.add_argument("--previous-dashboard-json", type=Path, help="optional previous dashboard JSON for delta")
     parser.add_argument("--now", help="override generatedAt/age clock for deterministic tests")
     parser.add_argument("--output-json", type=Path, default=DEFAULT_OUTPUT_JSON, help="output dashboard JSON")
@@ -475,6 +502,7 @@ def main(argv: list[str] | None = None) -> int:
             work_queue_json=args.work_queue_json,
             proof_ref_gate_json=args.proof_ref_gate_json,
             category_runbooks_json=args.category_runbooks_json,
+            live_proof_gate_json=args.live_proof_gate_json,
             previous_dashboard_json=args.previous_dashboard_json,
             now_iso=args.now,
         )

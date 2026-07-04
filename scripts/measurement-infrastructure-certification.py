@@ -96,10 +96,11 @@ DOMAIN_SPECS = (
             "current-audit-bundle/current-audit-bundle.json",
             "external-validation-proof-ref-gate.json",
             "external-validation-category-runbooks.json",
+            "external-validation-live-proof-gate.json",
             "external-validation-closure-trend-dashboard.json",
         ),
-        pending_markers=("pendingExternalValidationCount", "proofRefStatus", "alertStatus"),
-        blocked_markers=("auditGate", "shipGate", "alertGate"),
+        pending_markers=("pendingExternalValidationCount", "proofRefStatus", "liveProofStatus", "alertStatus"),
+        blocked_markers=("auditGate", "shipGate", "liveProofGate", "alertGate"),
     ),
 )
 

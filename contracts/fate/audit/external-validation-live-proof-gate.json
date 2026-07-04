@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.external_validation_live_proof_gate_contract",
+  "resourceType": "ExternalValidationLiveProofGate",
+  "id": "audit.external.validation.liveProofGate",
+  "status": "baseline",
+  "description": "外部验证 live proof gate 契约。该 gate 消费 closure work queue、proof-ref gate、category runbooks 和可选 operator 脱敏 live evidence bundle，校验真实 live 执行摘要与 work item、proof-ref、category runbook、当前 commit 和 source occurrence 的绑定；无 live evidence 时保持 pending/blocked，不连接真实外部系统，不把 proof-ref 结构通过等同于 category live 通过。",
+  "generator": {
+    "command": "bash scripts/external-validation-live-proof-gate.sh --work-queue-json <external-validation-closure-work-queue.json> --proof-ref-gate-json <external-validation-proof-ref-gate.json> --category-runbooks-json <external-validation-category-runbooks.json> [--live-evidence-json <external-validation-live-evidence-bundle.json>] --output-json <path>",
+    "pythonEntrypoint": "scripts/external-validation-live-proof-gate.py",
+    "defaultOutput": "infra/runtime/local-state/exports/audit/external-validation-live-proof-gate.json"
+  },
+  "inputKinds": [
+    "fatecat.external_validation_closure_work_queue",
+    "fatecat.external_validation_proof_ref_gate_summary",
+    "fatecat.external_validation_category_runbooks",
+    "fatecat.external_validation_live_evidence_bundle"
+  ],
+  "inputSchema": "contracts/fate/audit/schemas/external-validation-live-evidence.schema.json",
+  "outputKind": "fatecat.external_validation_live_proof_gate_summary",
+  "requiredFieldsPerLiveProof": [
+    "id",
+    "proofRefId",
+    "workItemId",
+    "owner",
+    "category",
+    "runbookId",
+    "liveGateKind",
+    "liveGateStatus",
+    "issuer",
+    "capturedAt",
+    "expiresAt",
+    "redactionBoundary",
+    "verificationCommand",
+    "artifactHash",
+    "sourceBinding",
+    "operatorAttestation"
+  ],
+  "requiredSourceBindingFields": [
+    "commit",
+    "workQueueSha256",
+    "proofRefGateSha256",
+    "categoryRunbooksSha256",
+    "occurrenceIds"
+  ],
+  "allowedBundleStatus": [
+    "external_connectivity_pending",
+    "external_live_evidence_supplied_by_operator"
+  ],
+  "acceptedLiveGateStatus": "passed",
+  "requiredRedactionBoundary": "redacted_no_secret_values",
+  "requiredOperatorAttestation": "real_external_execution_redacted",
+  "allowedVerificationCommandPrefixes": [
+    "bash scripts/",
+    "python3 scripts/",
+    "gh run view "
+  ],
+  "forbiddenLiveEvidenceFragments": [
+    "raw http/https URL",
+    "placeholder",
+    "changeme",
+    "dummy",
+    "sample",
+    "fake",
+    "dry-run",
+    "localhost",
+    "local only",
+    "debug",
+    "token assignment marker",
+    "secret assignment marker",
+    "password assignment marker",
+    "database dsn assignment marker",
+    "private key block marker"
+  ],
+  "requiredOutputFields": [
+    "schemaVersion",
+    "kind",
+    "generatedAt",
+    "status",
+    "source",
+    "summary",
+    "liveProofStatus",
+    "liveProofGate",
+    "shipGate",
+    "acceptedLiveProofs",
+    "pendingWorkItems",
+    "privacyBoundary",
+    "nonClaims"
+  ],
+  "closurePolicy": {
+    "proofRefDependency": "live proof can only be accepted when the referenced proofRef was already schema-accepted for the same work item.",
+    "runbookDependency": "live proof must bind to the category runbook id for the same category.",
+    "shipGate": "Even when all work items have accepted live proof, shipGate remains blocked until third-party audit and certification review consume the evidence.",
+    "nonClosure": "This gate validates redacted live evidence summaries; it does not execute production checks itself and does not verify hidden secret material."
+  },
+  "privacyBoundary": "Live proof gate 只保存脱敏 proof id、owner、category、workItemId、runbookId、liveGateKind、artifact hash、source binding 和命令 hash；不得保存真实 URL、token、secret、DSN、私钥、生产日志、trace payload、报告正文、用户输入或外部账号数据。",
+  "nonClaims": [
+    "Does not execute production API/HF/Bot/Postgres/OIDC/SIEM/OTel/Vault/KMS checks.",
+    "Does not prove hidden external artifacts are authentic without operator and audit review.",
+    "Does not replace third-party audit.",
+    "Does not authorize production credential use.",
+    "Does not mean FateCat is 100% production infrastructure."
+  ]
+}

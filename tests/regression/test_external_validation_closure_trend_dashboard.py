@@ -221,6 +221,58 @@ def _runbooks(categories: list[str]) -> dict:
     }
 
 
+def _live_proof_gate(*, accepted_ids: list[str], work_items: list[dict]) -> dict:
+    pending_items = [item for item in work_items if item["id"] not in set(accepted_ids)]
+    return {
+        "schemaVersion": 1,
+        "kind": "fatecat.external_validation_live_proof_gate_summary",
+        "generatedAt": "2026-07-04T00:00:00Z",
+        "status": "passed",
+        "source": {
+            "workQueueJson": "fixture",
+            "workQueueSha256": "0" * 64,
+            "proofRefGateJson": "fixture",
+            "proofRefGateSha256": "0" * 64,
+            "categoryRunbooksJson": "fixture",
+            "categoryRunbooksSha256": "0" * 64,
+            "expectedCommit": "a" * 40,
+        },
+        "summary": {
+            "workItems": len(work_items),
+            "acceptedLiveProofs": len(accepted_ids),
+            "acceptedLiveWorkItems": len(accepted_ids),
+            "pendingWorkItems": len(pending_items),
+            "liveProofStatus": "live_gate_accepted_all_work_items"
+            if not pending_items
+            else "live_gate_accepted_partial",
+        },
+        "liveProofStatus": "live_gate_accepted_all_work_items" if not pending_items else "live_gate_accepted_partial",
+        "liveProofGate": {"status": "live_gate_accepted_partial"},
+        "shipGate": {"status": "blocked"},
+        "acceptedLiveProofs": [
+            {
+                "id": f"live-proof.{item_id}",
+                "proofRefId": f"proof.{item_id}",
+                "workItemId": item_id,
+                "owner": "release-ops",
+                "category": "release.production_api_live",
+                "runbookId": "external-runbook.release.production_api_live",
+                "liveGateKind": "production_api_live_smoke",
+                "issuer": "operator:release-ops",
+                "capturedAt": "2026-07-04T00:00:00Z",
+                "expiresAt": "2099-01-01T00:00:00Z",
+                "artifactHash": f"sha256:{'d' * 64}",
+                "verificationCommandSha256": "e" * 64,
+                "occurrenceIds": [f"occurrence.{item_id}"],
+            }
+            for item_id in accepted_ids
+        ],
+        "pendingWorkItems": [{"id": item["id"]} for item in pending_items],
+        "privacyBoundary": "redacted_no_secret_values",
+        "nonClaims": ["Does not prove any external live validation has passed."],
+    }
+
+
 def _write_inputs(tmp_path: Path, *, accepted_ids: list[str] | None = None) -> dict[str, Path]:
     accepted_ids = accepted_ids or []
     closure_items = [
@@ -261,11 +313,13 @@ def _write_inputs(tmp_path: Path, *, accepted_ids: list[str] | None = None) -> d
         "work_queue": tmp_path / "work-queue.json",
         "proof": tmp_path / "proof.json",
         "runbooks": tmp_path / "runbooks.json",
+        "live": tmp_path / "live-proof.json",
     }
     _write_json(paths["closure"], _closure_plan(closure_items))
     _write_json(paths["work_queue"], _work_queue(work_items, total_occurrences=len(closure_items)))
     _write_json(paths["proof"], _proof_ref_gate(accepted_ids=accepted_ids, work_items=work_items))
     _write_json(paths["runbooks"], _runbooks([item["category"] for item in work_items]))
+    _write_json(paths["live"], _live_proof_gate(accepted_ids=[], work_items=work_items))
     return paths
 
 
@@ -274,6 +328,7 @@ def test_external_validation_closure_trend_dashboard_contract_lists_required_fie
 
     assert contract["kind"] == "fatecat.external_validation_closure_trend_dashboard_contract"
     assert "fatecat.external_validation_closure_work_queue" in contract["inputKinds"]
+    assert "fatecat.external_validation_live_proof_gate_summary" in contract["inputKinds"]
     assert "ownerDashboard" in contract["requiredOutputFields"]
     assert "staleAlerts" in contract["requiredOutputFields"]
     assert contract["alertPolicy"]["deliveryMode"] == "local_dry_run_only"
@@ -334,6 +389,31 @@ def test_external_validation_closure_trend_dashboard_keeps_category_live_pending
     api_alert = next(item for item in summary["staleAlerts"] if item["workItemId"] == "external-work.api")
     assert api_alert["proofRefStatus"] == "schema_accepted"
     assert api_alert["alertReasons"] == ["category_live_pending", "stale_owner_pending"]
+
+
+def test_external_validation_closure_trend_dashboard_uses_live_proof_to_clear_category_live_pending(tmp_path):
+    module = _load_module()
+    paths = _write_inputs(tmp_path, accepted_ids=["external-work.api", "external-work.manual", "external-work.policy"])
+    work_queue = json.loads(paths["work_queue"].read_text(encoding="utf-8"))
+    _write_json(
+        paths["live"],
+        _live_proof_gate(accepted_ids=["external-work.api"], work_items=work_queue["workItems"]),
+    )
+
+    summary = module.build_summary(
+        closure_plan_json=paths["closure"],
+        work_queue_json=paths["work_queue"],
+        proof_ref_gate_json=paths["proof"],
+        category_runbooks_json=paths["runbooks"],
+        live_proof_gate_json=paths["live"],
+        now_iso="2026-07-05T00:00:00Z",
+    )
+
+    assert summary["summary"]["acceptedLiveProofs"] == 1
+    assert summary["summary"]["categoryLivePendingWorkItems"] == 2
+    api_alert = next(item for item in summary["staleAlerts"] if item["workItemId"] == "external-work.api")
+    assert api_alert["liveProofStatus"] == "accepted"
+    assert api_alert["alertReasons"] == ["stale_owner_pending"]
 
 
 def test_external_validation_closure_trend_dashboard_rejects_missing_category_runbook(tmp_path):

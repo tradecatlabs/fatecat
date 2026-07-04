@@ -4,9 +4,9 @@
   "resourceType": "ExternalValidationClosureTrendDashboard",
   "id": "audit.external.validation.closureTrendDashboard",
   "status": "baseline",
-  "description": "外部验证关闭趋势 dashboard 契约。该 gate 聚合 closure plan、closure work queue、proof-ref gate 和 category runbooks，输出按 owner/category/status 的本地趋势 JSON 与 stale alert 摘要；不发送真实通知，不连接外部 issue tracker，不把 alert acknowledgement 视为 live evidence closure。",
+  "description": "外部验证关闭趋势 dashboard 契约。该 gate 聚合 closure plan、closure work queue、proof-ref gate、category runbooks 和可选 live proof gate，输出按 owner/category/status 的本地趋势 JSON 与 stale alert 摘要；不发送真实通知，不连接外部 issue tracker，不把 alert acknowledgement 视为 live evidence closure。",
   "generator": {
-    "command": "bash scripts/external-validation-closure-trend-dashboard.sh --closure-plan-json <external-validation-closure-gate.json> --work-queue-json <external-validation-closure-work-queue.json> --proof-ref-gate-json <external-validation-proof-ref-gate.json> --category-runbooks-json <external-validation-category-runbooks.json> --output-json <path>",
+    "command": "bash scripts/external-validation-closure-trend-dashboard.sh --closure-plan-json <external-validation-closure-gate.json> --work-queue-json <external-validation-closure-work-queue.json> --proof-ref-gate-json <external-validation-proof-ref-gate.json> --category-runbooks-json <external-validation-category-runbooks.json> [--live-proof-gate-json <external-validation-live-proof-gate.json>] --output-json <path>",
     "pythonEntrypoint": "scripts/external-validation-closure-trend-dashboard.py",
     "defaultOutput": "infra/runtime/local-state/exports/audit/external-validation-closure-trend-dashboard.json"
   },
@@ -14,7 +14,8 @@
     "fatecat.external_validation_closure_plan",
     "fatecat.external_validation_closure_work_queue",
     "fatecat.external_validation_proof_ref_gate_summary",
-    "fatecat.external_validation_category_runbooks"
+    "fatecat.external_validation_category_runbooks",
+    "fatecat.external_validation_live_proof_gate_summary"
   ],
   "requiredOutputFields": [
     "schemaVersion",

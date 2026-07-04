@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fatecat.local/schemas/external-validation-live-evidence.schema.json",
+  "title": "FateCat External Validation Live Evidence Bundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "kind",
+    "status",
+    "generatedAt",
+    "source",
+    "liveProofs",
+    "privacyBoundary",
+    "nonClaims"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "kind": {
+      "const": "fatecat.external_validation_live_evidence_bundle"
+    },
+    "status": {
+      "enum": [
+        "external_connectivity_pending",
+        "external_live_evidence_supplied_by_operator"
+      ]
+    },
+    "generatedAt": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workQueueKind",
+        "workQueueSha256",
+        "proofRefGateKind",
+        "proofRefGateSha256",
+        "categoryRunbooksKind",
+        "categoryRunbooksSha256",
+        "commit"
+      ],
+      "properties": {
+        "workQueueKind": {
+          "const": "fatecat.external_validation_closure_work_queue"
+        },
+        "workQueueSha256": {
+          "$ref": "#/$defs/sha256Hex"
+        },
+        "proofRefGateKind": {
+          "const": "fatecat.external_validation_proof_ref_gate_summary"
+        },
+        "proofRefGateSha256": {
+          "$ref": "#/$defs/sha256Hex"
+        },
+        "categoryRunbooksKind": {
+          "const": "fatecat.external_validation_category_runbooks"
+        },
+        "categoryRunbooksSha256": {
+          "$ref": "#/$defs/sha256Hex"
+        },
+        "commit": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        }
+      }
+    },
+    "liveProofs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/liveProof"
+      }
+    },
+    "privacyBoundary": {
+      "const": "redacted_no_secret_values"
+    },
+    "nonClaims": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "$defs": {
+    "sha256Hex": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "sha256Digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "liveProof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "proofRefId",
+        "workItemId",
+        "owner",
+        "category",
+        "runbookId",
+        "liveGateKind",
+        "liveGateStatus",
+        "issuer",
+        "capturedAt",
+        "expiresAt",
+        "redactionBoundary",
+        "verificationCommand",
+        "artifactHash",
+        "sourceBinding",
+        "operatorAttestation"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "proofRefId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "workItemId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1
+        },
+        "runbookId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "liveGateKind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "liveGateStatus": {
+          "const": "passed"
+        },
+        "issuer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "capturedAt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expiresAt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "redactionBoundary": {
+          "const": "redacted_no_secret_values"
+        },
+        "verificationCommand": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifactHash": {
+          "$ref": "#/$defs/sha256Digest"
+        },
+        "sourceBinding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "commit",
+            "workQueueSha256",
+            "proofRefGateSha256",
+            "categoryRunbooksSha256",
+            "occurrenceIds"
+          ],
+          "properties": {
+            "commit": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40}$"
+            },
+            "workQueueSha256": {
+              "$ref": "#/$defs/sha256Hex"
+            },
+            "proofRefGateSha256": {
+              "$ref": "#/$defs/sha256Hex"
+            },
+            "categoryRunbooksSha256": {
+              "$ref": "#/$defs/sha256Hex"
+            },
+            "occurrenceIds": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "operatorAttestation": {
+          "const": "real_external_execution_redacted"
+        }
+      }
+    }
+  }
+}

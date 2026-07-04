@@ -148,6 +148,20 @@ def _write_evidence_dir(root: Path, *, blocked: bool) -> Path:
         },
     )
     _write_json(
+        root / "external-validation-live-proof-gate.json",
+        {
+            "status": "passed",
+            "liveProofStatus": "external_connectivity_pending" if blocked else "live_gate_accepted_all_work_items",
+            "liveProofGate": {
+                "status": "external_connectivity_pending" if blocked else "live_gate_accepted_all_work_items",
+            },
+            "shipGate": {
+                "status": "blocked" if blocked else "passed",
+                "blockingItems": ["category_live_evidence_missing"] if blocked else [],
+            },
+        },
+    )
+    _write_json(
         root / "external-validation-closure-trend-dashboard.json",
         {
             "status": "passed",
@@ -173,6 +187,7 @@ def test_certification_contract_lists_required_evidence_files():
     assert "runtime-proof-gate.json" in contract["requiredEvidenceFiles"]
     assert "external-validation-proof-ref-gate.json" in contract["requiredEvidenceFiles"]
     assert "external-validation-category-runbooks.json" in contract["requiredEvidenceFiles"]
+    assert "external-validation-live-proof-gate.json" in contract["requiredEvidenceFiles"]
     assert "external-validation-closure-trend-dashboard.json" in contract["requiredEvidenceFiles"]
     assert "evidenceOverrides" in contract["requiredOutputFields"]
     assert "live-release-gate.json" in contract["optionalEvidenceOverrides"]
