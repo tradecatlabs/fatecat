@@ -334,6 +334,14 @@ run_quick() {
   run_step "measurement infrastructure certification dry-run" bash "${script_dir}/measurement-infrastructure-certification.sh" \
     --evidence-dir "${output_dir}" \
     --output-json "${output_dir}/measurement-infrastructure-certification.json"
+  run_step "third-party audit rehearsal" bash "${script_dir}/third-party-audit-rehearsal.sh" \
+    --current-audit-bundle-json "${output_dir}/current-audit-bundle/current-audit-bundle.json" \
+    --audit-dry-run-json "${output_dir}/audit-dry-run/audit-dry-run.json" \
+    --current-release-proof-json "${output_dir}/current-release-proof.json" \
+    --certification-json "${output_dir}/measurement-infrastructure-certification.json" \
+    --closure-evidence-summary-json "${output_dir}/external-validation-closure-evidence-summary.json" \
+    --output-json "${output_dir}/third-party-audit-rehearsal.json" \
+    --output-markdown "${output_dir}/THIRD_PARTY_AUDIT_REHEARSAL.md"
   run_step "ruff check" env RUFF_CACHE_DIR="${RUFF_CACHE_DIR:-/tmp/fatecat-ruff-cache}" \
     "${python_bin}" -m ruff check "${runtime_root}"
   run_step "ruff format check" env RUFF_CACHE_DIR="${RUFF_CACHE_DIR:-/tmp/fatecat-ruff-cache}" \
@@ -409,6 +417,7 @@ run_quick() {
       tests/regression/test_external_validation_closure_trend_dashboard.py \
       tests/regression/test_external_validation_closure_evidence_summary.py \
       tests/regression/test_measurement_infrastructure_certification.py \
+      tests/regression/test_third_party_audit_rehearsal.py \
       tests/regression/test_current_release_proof.py \
       tests/regression/test_live_release_gate.py \
       tests/regression/test_container_release_evidence.py \
@@ -577,6 +586,8 @@ write_summary() {
   FATE_LOCAL_CI_EXTERNAL_VALIDATION_CLOSURE_TREND_DASHBOARD="${output_dir}/external-validation-closure-trend-dashboard.json" \
   FATE_LOCAL_CI_EXTERNAL_VALIDATION_CLOSURE_EVIDENCE_SUMMARY="${output_dir}/external-validation-closure-evidence-summary.json" \
   FATE_LOCAL_CI_MEASUREMENT_INFRASTRUCTURE_CERTIFICATION="${output_dir}/measurement-infrastructure-certification.json" \
+  FATE_LOCAL_CI_THIRD_PARTY_AUDIT_REHEARSAL="${output_dir}/third-party-audit-rehearsal.json" \
+  FATE_LOCAL_CI_THIRD_PARTY_AUDIT_REHEARSAL_MARKDOWN="${output_dir}/THIRD_PARTY_AUDIT_REHEARSAL.md" \
   "${summary_python}" - <<'PY'
 import json
 import os
@@ -672,6 +683,8 @@ payload = {
             "FATE_LOCAL_CI_EXTERNAL_VALIDATION_CLOSURE_EVIDENCE_SUMMARY"
         ),
         "measurementInfrastructureCertification": env("FATE_LOCAL_CI_MEASUREMENT_INFRASTRUCTURE_CERTIFICATION"),
+        "thirdPartyAuditRehearsal": env("FATE_LOCAL_CI_THIRD_PARTY_AUDIT_REHEARSAL"),
+        "thirdPartyAuditRehearsalMarkdown": env("FATE_LOCAL_CI_THIRD_PARTY_AUDIT_REHEARSAL_MARKDOWN"),
     },
     "privacyBoundary": "只记录命令产物路径、commit 和状态，不复制测试日志全文或用户报告内容。",
     "limitations": [

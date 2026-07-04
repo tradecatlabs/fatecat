@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.third_party_audit_rehearsal_contract",
+  "id": "audit.third_party_audit_rehearsal",
+  "description": "第三方审计预演包契约。该预演包消费 current audit bundle、audit dry-run、current release proof、measurement infrastructure certification 和 external validation closure evidence summary，输出给独立审计人员复核的证据索引、阻断项、外部待验证项和审计检查清单。它不执行真实外部请求，不替代真实第三方审计，不把 blocked/pending 证据伪装成通过。",
+  "entrypoints": {
+    "command": "bash scripts/third-party-audit-rehearsal.sh --current-audit-bundle-json <current-audit-bundle.json> --audit-dry-run-json <audit-dry-run.json> --current-release-proof-json <current-release-proof.json> --certification-json <measurement-infrastructure-certification.json> --closure-evidence-summary-json <external-validation-closure-evidence-summary.json> --output-json <path> --output-markdown <path>",
+    "pythonEntrypoint": "scripts/third-party-audit-rehearsal.py",
+    "defaultOutput": "infra/runtime/local-state/exports/audit-rehearsal/third-party-audit-rehearsal.json"
+  },
+  "requiredInputs": {
+    "current-audit-bundle.json": "当前 commit 审计证据包。",
+    "audit-dry-run.json": "审计 handoff dry-run 结果。",
+    "current-release-proof.json": "当前发布证据聚合结果；本地 quick 模式可保持 blocked。",
+    "measurement-infrastructure-certification.json": "100% 测算基础设施 certification dry-run 聚合结果。",
+    "external-validation-closure-evidence-summary.json": "外部验证关闭证据摘要。"
+  },
+  "requiredOutputFields": [
+    "schemaVersion",
+    "kind",
+    "generatedAt",
+    "status",
+    "inputs",
+    "evidenceIndex",
+    "auditorChecklist",
+    "externalPending",
+    "blockingItems",
+    "rehearsalGate",
+    "outputs",
+    "privacyBoundary",
+    "nonClaims"
+  ],
+  "requiredKinds": {
+    "currentAuditBundle": "fatecat.current_audit_bundle",
+    "auditDryRun": "fatecat.audit_handoff_dry_run",
+    "currentReleaseProof": "fatecat.current_release_proof",
+    "certification": "fatecat.measurement_infrastructure_certification",
+    "closureEvidenceSummary": "fatecat.external_validation_closure_evidence_summary"
+  },
+  "rehearsalGatePolicy": {
+    "status": "blocked until all required evidence gates are passed, all external pending items are closed, and an independent auditor result is attached outside this local rehearsal.",
+    "localReadiness": "status=passed only means the rehearsal package was generated and all input files are structurally consumable.",
+    "thirdPartyAudit": "A human or external auditor must review the package and provide a separate signed/traceable result."
+  },
+  "privacyBoundary": "输出只保存证据文件路径、gate 状态、计数、category、owner、runbook/operator step 标识和凭证变量名；不得复制真实 URL、token、secret、DSN、webhook secret、报告正文、用户输入、生产日志或第三方账号数据。",
+  "forbiddenFragments": [
+    "token=",
+    "secret=",
+    "password=",
+    "passwd=",
+    "private_key=",
+    "BEGIN RSA",
+    "BEGIN OPENSSH",
+    "DATABASE_URL=",
+    "DB_DSN=",
+    "api_key=",
+    "webhook_secret=",
+    "https://",
+    "http://"
+  ],
+  "nonClaims": [
+    "Does not replace third-party audit.",
+    "Does not execute production API, HF Space, Telegram Bot, Postgres, OTel, IdP, SIEM, Vault/KMS, developer portal or sandbox live checks.",
+    "Does not prove production live, external connectivity, legal license review, OIDC/SIEM completion, or 100% measurement infrastructure readiness.",
+    "Does not attach a signed external auditor result."
+  ],
+  "releaseBoundary": "status=passed 只表示预演包结构生成成功；rehearsalGate.status=passed 只能在所有输入证据通过、externalPending 为空且独立第三方审计结果已另行附加时出现。本地 quick CI 默认应保持 blocked。"
+}

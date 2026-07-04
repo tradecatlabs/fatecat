@@ -23,6 +23,7 @@ audit/
 ├── measurement-infrastructure-certification.json
 ├── production-live-delivery-evidence-bundle.json
 ├── production-live-operator-execution-packet.json
+├── third-party-audit-rehearsal.json
 └── schemas/
     ├── external-validation-live-evidence.schema.json
     └── external-validation-proof-ref.schema.json
@@ -46,6 +47,7 @@ audit/
 - `measurement-infrastructure-certification.json`：定义 100% 测算基础设施 certification aggregator dry-run 的输入证据、分域状态、blocked/pending 语义和禁止 100% 伪声明策略。
 - `production-live-delivery-evidence-bundle.json`：定义生产交付 live evidence bundle 装配契约，把 production API、HF Space、Telegram Bot、公网 webhook 和多端 live parity 的脱敏 summary 转成 live proof gate 可校验的 evidence bundle。
 - `production-live-operator-execution-packet.json`：定义生产 live operator execution packet 契约，把 work queue、proof-ref gate、category runbooks、live proof gate 和 delivery evidence bundle 串成可执行但不含敏感值的操作包。
+- `third-party-audit-rehearsal.json`：定义第三方审计预演包契约，聚合 current audit bundle、audit dry-run、current release proof、certification 和 external closure evidence summary，输出审计人员可复核的 checklist、证据索引、阻断项和外部待验证项。
 - 审计包生成器位于 `scripts/audit-handoff.py`，只聚合仓库内证据、Git 状态、任务索引和明确标记的外部待验证项。
 - dry-run verifier 位于 `scripts/audit-handoff-dry-run.py`，只做本地审计前置检查，不替代真实第三方审计。
 - current audit bundle generator 位于 `scripts/current-audit-bundle.py`，只聚合当前 commit 的 release proof、audit handoff、dry-run、SBOM/provenance、rollback dry-run、local-ci gate artifact 摘要、evidence index、risk register 和外部待验证项；local-ci gate artifact 当前覆盖 evidence coverage trend gate 与 evaluation trend gate；`auditGate=passed` 只代表当前提交审计包证据齐备，不代表第三方审计已通过。
@@ -60,4 +62,5 @@ audit/
 - production live delivery evidence bundle assembler 位于 `scripts/production-live-delivery-evidence-bundle.py`，消费 delivery live summary JSON 和外部验证三件套，默认无真实 summary 时只输出 pending bundle；有真实脱敏 summary 时仅输出 proof id、artifact hash 和 source binding，不复制 URL/token/DSN/webhook secret。
 - production live operator execution packet generator 位于 `scripts/production-live-operator-execution-packet.py`，消费外部验证三件套，输出 operator 步骤、必需环境变量名、proof-ref bundle 模板和最终 gate 命令；它不执行真实外部请求，不保存 URL/token/DSN/webhook secret，不证明 live passed。
 - measurement infrastructure certification aggregator 位于 `scripts/measurement-infrastructure-certification.py`，默认消费 local-ci 产物目录中已有 gate summary，也可显式接收 `live-release-gate.json`、`current-release-proof.json` 和 `current-audit-bundle.json` sidecar；sidecar 只覆盖对应逻辑证据文件，不跨文件覆盖 release proof、audit bundle 或外部 live 证据。当前 release/audit/live evidence 未闭合时必须输出 `status=blocked`，不得支持 100% 完成声明。
+- third-party audit rehearsal generator 位于 `scripts/third-party-audit-rehearsal.py`，消费 current audit bundle、audit dry-run、current release proof、certification 和 closure evidence summary，输出 JSON/Markdown 预演包；`status=passed` 只表示预演包结构生成成功，`rehearsalGate` 在外部 live 或独立审计缺失时必须保持 blocked。
 - 这里不声明真实生产 API、Bot、OIDC、SIEM、监控平台、developer portal 或 sandbox token 已完成 live 验证。
