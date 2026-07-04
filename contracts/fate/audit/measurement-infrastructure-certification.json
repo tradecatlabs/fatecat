@@ -43,7 +43,10 @@
     "external-validation-operator-execution-packet.json",
     "external-validation-live-proof-gate.json",
     "external-validation-closure-trend-dashboard.json",
-    "external-validation-closure-evidence-summary.json"
+    "external-validation-closure-evidence-summary.json",
+    "external-validation-tracker-import-package.json",
+    "external-validation-tracker-issue-evidence-template.json",
+    "external-validation-tracker-issue-evidence-gate.json"
   ],
   "requiredOutputFields": [
     "schemaVersion",
@@ -59,7 +62,14 @@
     "releaseBoundary"
   ],
   "allowedDomainStatus": ["passed", "blocked", "pending", "in-progress", "failed"],
-  "blockedGateFields": ["shipGate.status=blocked", "auditGate.status=blocked", "proofGate.status=fail"],
+  "blockedGateFields": [
+    "shipGate.status=blocked",
+    "auditGate.status=blocked",
+    "proofGate.status=fail",
+    "packageGate.status=blocked",
+    "templateGate.status=operator_action_required",
+    "issueEvidenceGate.status=blocked"
+  ],
   "nonClaims": [
     "Does not mean FateCat is 100% production infrastructure.",
     "Does not replace third-party audit.",

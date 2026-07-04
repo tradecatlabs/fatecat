@@ -100,9 +100,22 @@ DOMAIN_SPECS = (
             "external-validation-live-proof-gate.json",
             "external-validation-closure-trend-dashboard.json",
             "external-validation-closure-evidence-summary.json",
+            "external-validation-tracker-import-package.json",
+            "external-validation-tracker-issue-evidence-template.json",
+            "external-validation-tracker-issue-evidence-gate.json",
         ),
         pending_markers=("pendingExternalValidationCount", "proofRefStatus", "liveProofStatus", "alertStatus"),
-        blocked_markers=("auditGate", "shipGate", "packetGate", "liveProofGate", "alertGate", "closureGate"),
+        blocked_markers=(
+            "auditGate",
+            "shipGate",
+            "packetGate",
+            "liveProofGate",
+            "alertGate",
+            "closureGate",
+            "packageGate",
+            "templateGate",
+            "issueEvidenceGate",
+        ),
     ),
 )
 
@@ -134,7 +147,7 @@ def _blocked_items(payload: dict[str, Any], markers: tuple[str, ...]) -> list[st
     items: list[str] = []
     for key in markers:
         gate = payload.get(key)
-        if isinstance(gate, dict) and gate.get("status") in {"blocked", "failed", "fail"}:
+        if isinstance(gate, dict) and gate.get("status") in {"blocked", "failed", "fail", "operator_action_required"}:
             items.extend(str(item) for item in gate.get("blockingItems", []))
             if not items:
                 items.append(f"{key}.status={gate.get('status')}")

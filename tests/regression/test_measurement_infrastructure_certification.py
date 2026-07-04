@@ -196,6 +196,41 @@ def _write_evidence_dir(root: Path, *, blocked: bool) -> Path:
             },
         },
     )
+    _write_json(
+        root / "external-validation-tracker-import-package.json",
+        {
+            "status": "operator_action_required" if blocked else "passed",
+            "packageGate": {
+                "status": "blocked" if blocked else "passed",
+                "blockingItems": ["tracker_issue_creation_required"] if blocked else [],
+            },
+        },
+    )
+    _write_json(
+        root / "external-validation-tracker-issue-evidence-template.json",
+        {
+            "status": "operator_action_required" if blocked else "passed",
+            "templateGate": {
+                "status": "operator_action_required" if blocked else "passed",
+                "blockingItems": ["tracker_issue_ref_fill_required"] if blocked else [],
+            },
+            "summary": {"readyToSubmitToGate": not blocked},
+        },
+    )
+    _write_json(
+        root / "external-validation-tracker-issue-evidence-gate.json",
+        {
+            "status": "external_connectivity_pending" if blocked else "passed",
+            "issueEvidenceGate": {
+                "status": "blocked" if blocked else "passed",
+                "blockingItems": ["tracker_issue_creation_evidence_required"] if blocked else [],
+            },
+            "shipGate": {
+                "status": "blocked" if blocked else "passed",
+                "blockingItems": ["external_validation_live_proof_gate_required"] if blocked else [],
+            },
+        },
+    )
     return root
 
 
@@ -211,6 +246,9 @@ def test_certification_contract_lists_required_evidence_files():
     assert "external-validation-live-proof-gate.json" in contract["requiredEvidenceFiles"]
     assert "external-validation-closure-trend-dashboard.json" in contract["requiredEvidenceFiles"]
     assert "external-validation-closure-evidence-summary.json" in contract["requiredEvidenceFiles"]
+    assert "external-validation-tracker-import-package.json" in contract["requiredEvidenceFiles"]
+    assert "external-validation-tracker-issue-evidence-template.json" in contract["requiredEvidenceFiles"]
+    assert "external-validation-tracker-issue-evidence-gate.json" in contract["requiredEvidenceFiles"]
     assert "evidenceOverrides" in contract["requiredOutputFields"]
     assert "live-release-gate.json" in contract["optionalEvidenceOverrides"]
     assert "current-audit-bundle/current-audit-bundle.json" in contract["requiredEvidenceFiles"]
@@ -418,6 +456,25 @@ def test_certification_accepts_current_audit_bundle_sidecar_without_overriding_r
     assert closure_trend["blockingItems"] == [
         "external_validation_stale_alerts_pending",
         "stale_owner_alerts_pending",
+    ]
+    tracker_import = next(
+        item for item in audit["evidence"] if item["logicalPath"] == "external-validation-tracker-import-package.json"
+    )
+    tracker_template = next(
+        item
+        for item in audit["evidence"]
+        if item["logicalPath"] == "external-validation-tracker-issue-evidence-template.json"
+    )
+    tracker_gate = next(
+        item
+        for item in audit["evidence"]
+        if item["logicalPath"] == "external-validation-tracker-issue-evidence-gate.json"
+    )
+    assert tracker_import["blockingItems"] == ["tracker_issue_creation_required"]
+    assert tracker_template["blockingItems"] == ["tracker_issue_ref_fill_required"]
+    assert tracker_gate["blockingItems"] == [
+        "external_validation_live_proof_gate_required",
+        "tracker_issue_creation_evidence_required",
     ]
     assert release["status"] == "blocked"
     assert current_proof["source"] == "evidence_dir"
