@@ -38,7 +38,8 @@
     "live-release-gate.json",
     "current-release-proof.json",
     "current-audit-bundle/current-audit-bundle.json",
-    "external-validation-proof-ref-gate.json"
+    "external-validation-proof-ref-gate.json",
+    "external-validation-category-runbooks.json"
   ],
   "requiredOutputFields": [
     "schemaVersion",

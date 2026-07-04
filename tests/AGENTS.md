@@ -61,6 +61,7 @@ tests/
 - `regression/test_external_validation_closure_gate.py`：external validation closure gate 合同；验证 pending external validations 被转换为 owner、凭证依赖、required evidence、复核命令和关闭条件，不输出敏感赋值形态，也不把关闭计划伪装成 live 通过。
 - `regression/test_external_validation_closure_work_queue.py`：external validation closure work queue 合同；验证 closure plan 按 owner/category 聚合成 pending work item，补齐 assignee/proofRef/stale/close 字段，summary 不输出 pending excerpt 或敏感赋值形态。
 - `regression/test_external_validation_proof_ref_gate.py`：external validation proof-ref gate 合同；验证 proof-ref schema、脱敏 evidence bundle、raw URL/placeholder 拒绝、local-ci 接线，以及 schema accepted 仍不等于 production live passed。
+- `regression/test_external_validation_category_runbooks.py`：external validation category runbook 合同；验证 22 个 category 均有 operator runbook、未知 category 拒绝、raw URL/敏感片段防护、local-ci/certification 接线，以及 runbook ready 仍不等于 production live passed。
 - `regression/test_measurement_infrastructure_certification.py`：100% 测算基础设施 certification aggregator dry-run 合同；验证 local-ci 产物聚合、blocked dry-run、require-certified 拒绝、缺证据失败和合成全绿通过。
 - `regression/test_current_release_proof.py`：current release proof 合同；验证当前 commit 发布证据聚合 gate 的 local-contract/required 模式、ReleaseGate 登记和敏感值防护。
 - `regression/test_operability_docs.py`：公共服务 SLO、指标、告警和 runbook 的文档合同测试。

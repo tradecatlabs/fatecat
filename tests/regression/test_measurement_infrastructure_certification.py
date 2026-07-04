@@ -133,6 +133,20 @@ def _write_evidence_dir(root: Path, *, blocked: bool) -> Path:
             },
         },
     )
+    _write_json(
+        root / "external-validation-category-runbooks.json",
+        {
+            "status": "passed",
+            "runbookStatus": "operator_runbooks_ready",
+            "runbookGate": {
+                "status": "passed",
+            },
+            "shipGate": {
+                "status": "blocked" if blocked else "passed",
+                "blockingItems": ["category_live_execution_pending"] if blocked else [],
+            },
+        },
+    )
     return root
 
 
@@ -143,6 +157,7 @@ def test_certification_contract_lists_required_evidence_files():
     assert "provider-drift-trend-gate.json" in contract["requiredEvidenceFiles"]
     assert "runtime-proof-gate.json" in contract["requiredEvidenceFiles"]
     assert "external-validation-proof-ref-gate.json" in contract["requiredEvidenceFiles"]
+    assert "external-validation-category-runbooks.json" in contract["requiredEvidenceFiles"]
     assert "evidenceOverrides" in contract["requiredOutputFields"]
     assert "live-release-gate.json" in contract["optionalEvidenceOverrides"]
     assert "current-audit-bundle/current-audit-bundle.json" in contract["requiredEvidenceFiles"]
@@ -327,6 +342,9 @@ def test_certification_accepts_current_audit_bundle_sidecar_without_overriding_r
     proof_ref_gate = next(
         item for item in audit["evidence"] if item["logicalPath"] == "external-validation-proof-ref-gate.json"
     )
+    category_runbooks = next(
+        item for item in audit["evidence"] if item["logicalPath"] == "external-validation-category-runbooks.json"
+    )
     current_proof = next(item for item in release["evidence"] if item["logicalPath"] == "current-release-proof.json")
 
     assert summary["evidenceOverrides"] == {"current-audit-bundle/current-audit-bundle.json": str(sidecar)}
@@ -338,6 +356,8 @@ def test_certification_accepts_current_audit_bundle_sidecar_without_overriding_r
     assert proof_ref_gate["source"] == "evidence_dir"
     assert proof_ref_gate["blockingItems"] == ["proof_ref_missing"]
     assert proof_ref_gate["pendingItems"] == ["proofRefStatus=external_connectivity_pending"]
+    assert category_runbooks["source"] == "evidence_dir"
+    assert category_runbooks["blockingItems"] == ["category_live_execution_pending"]
     assert release["status"] == "blocked"
     assert current_proof["source"] == "evidence_dir"
     assert current_proof["blockingItems"] == ["release.git_clean"]
