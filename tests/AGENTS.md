@@ -24,6 +24,7 @@ tests/
 	    ├── test_sandbox_access_gateway_gate.py
 	    ├── test_current_audit_bundle.py
 	    ├── test_external_validation_closure_gate.py
+	    ├── test_external_validation_closure_work_queue.py
 	    ├── test_measurement_infrastructure_certification.py
 	    ├── test_current_release_proof.py
 	    ├── test_operability_docs.py
@@ -58,6 +59,7 @@ tests/
 - `regression/test_sandbox_access_gateway_gate.py`：sandbox access gateway 合同；验证本地 gateway gate、scope enforcement、rate limit、audit 脱敏和公网 token issuer 未上线边界。
 - `regression/test_current_audit_bundle.py`：current audit bundle 合同；验证当前 commit 审计包能聚合 audit handoff、dry-run、release artifacts、rollback drill、current release proof、evidence index、risk register 和 pending external validations，且 required 模式不接受 local-contract 伪证。
 - `regression/test_external_validation_closure_gate.py`：external validation closure gate 合同；验证 pending external validations 被转换为 owner、凭证依赖、required evidence、复核命令和关闭条件，不输出敏感赋值形态，也不把关闭计划伪装成 live 通过。
+- `regression/test_external_validation_closure_work_queue.py`：external validation closure work queue 合同；验证 closure plan 按 owner/category 聚合成 pending work item，补齐 assignee/proofRef/stale/close 字段，summary 不输出 pending excerpt 或敏感赋值形态。
 - `regression/test_measurement_infrastructure_certification.py`：100% 测算基础设施 certification aggregator dry-run 合同；验证 local-ci 产物聚合、blocked dry-run、require-certified 拒绝、缺证据失败和合成全绿通过。
 - `regression/test_current_release_proof.py`：current release proof 合同；验证当前 commit 发布证据聚合 gate 的 local-contract/required 模式、ReleaseGate 登记和敏感值防护。
 - `regression/test_operability_docs.py`：公共服务 SLO、指标、告警和 runbook 的文档合同测试。

@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.external_validation_closure_work_queue_contract",
+  "resourceType": "ExternalValidationClosureWorkQueue",
+  "id": "audit.external.validation.closure.workQueue",
+  "status": "baseline",
+  "description": "外部待验证项关闭工作队列契约。该 gate 消费 external validation closure plan，把 occurrence 按 owner/category 聚合为可分派 work item，并补齐 assignee、proofRef、lastCheckedAt、staleReason 与 closeConditionResult；不连接真实外部系统，不把 pending live 写成 passed。",
+  "generator": {
+    "command": "bash scripts/external-validation-closure-work-queue.sh --closure-plan-json <external-validation-closure-gate.json> --output-json <path>",
+    "pythonEntrypoint": "scripts/external-validation-closure-work-queue.py",
+    "defaultOutput": "infra/runtime/local-state/exports/audit/external-validation-closure-work-queue.json"
+  },
+  "requiredInput": {
+    "closurePlanJson": "scripts/external-validation-closure-gate.py 输出的 fatecat.external_validation_closure_plan",
+    "requiredFieldsPerInputItem": [
+      "id",
+      "source",
+      "category",
+      "owner",
+      "status",
+      "credentialDependencies",
+      "requiredEvidence",
+      "verificationCommands",
+      "closureCondition"
+    ]
+  },
+  "requiredOutputFields": [
+    "schemaVersion",
+    "kind",
+    "generatedAt",
+    "status",
+    "source",
+    "summary",
+    "shipGate",
+    "workItems",
+    "privacyBoundary",
+    "nonClaims"
+  ],
+  "requiredFieldsPerWorkItem": [
+    "id",
+    "owner",
+    "assignee",
+    "category",
+    "priority",
+    "status",
+    "proofRef",
+    "lastCheckedAt",
+    "staleReason",
+    "closeConditionResult",
+    "credentialDependencies",
+    "requiredEvidence",
+    "verificationCommands",
+    "closureCondition",
+    "occurrences"
+  ],
+  "allowedStatuses": [
+    "passed",
+    "failed"
+  ],
+  "allowedWorkItemStatuses": [
+    "pending_external_evidence",
+    "manual_triage_required",
+    "policy_guardrail_review_required"
+  ],
+  "workQueuePolicy": {
+    "groupingKey": [
+      "owner",
+      "category"
+    ],
+    "defaultAssignee": "unassigned:<owner>",
+    "proofRefInitialValue": "",
+    "shipGate": "只要 workItems 数量大于 0，shipGate.status 必须为 blocked。生成 work queue 不代表任何外部 live validation 已关闭。",
+    "closeCondition": "work item 只有在 proofRef 指向脱敏真实外部证据、且 closeConditionResult 由后续 proof verifier 判定 passed 后才可关闭。"
+  },
+  "privacyBoundary": "输出只允许保存 owner、category、凭证依赖类型、复核命令模板、关闭条件、路径、行号和 source hash；不得保存真实 token、secret、DSN、私钥、生产日志正文、用户报告正文、外部账号数据或 pending excerpt 正文。",
+  "nonClaims": [
+    "Does not prove any external live validation has passed.",
+    "Does not replace third-party audit review.",
+    "Does not authorize production credential use.",
+    "Does not close production API/HF/Bot/OIDC/SIEM/OTel/Vault/KMS/Postgres/webhook validations without separate real evidence.",
+    "Does not evaluate proofRef until a separate proof verifier is implemented."
+  ]
+}

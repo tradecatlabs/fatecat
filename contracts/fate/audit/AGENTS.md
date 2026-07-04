@@ -12,6 +12,7 @@ audit/
 ├── current-bundle.json
 ├── dry-run.json
 ├── external-validation-closure.json
+├── external-validation-closure-work-queue.json
 ├── handoff.json
 └── measurement-infrastructure-certification.json
 ```
@@ -22,10 +23,12 @@ audit/
 - `dry-run.json`：定义 audit handoff dry-run verifier 的输入、输出、检查项、ship gate 与 non-claim 策略。
 - `current-bundle.json`：定义 current audit bundle 的输入证据、必备输出、required/local 模式和隐私边界。
 - `external-validation-closure.json`：定义外部待验证项关闭计划门禁的输入、输出字段、owner/凭证/关闭条件要求和隐私边界。
+- `external-validation-closure-work-queue.json`：定义外部待验证项 owner/category 工作队列契约，把 closure plan 聚合成可派发、可跟踪、但仍 pending 的 work item。
 - `measurement-infrastructure-certification.json`：定义 100% 测算基础设施 certification aggregator dry-run 的输入证据、分域状态、blocked/pending 语义和禁止 100% 伪声明策略。
 - 审计包生成器位于 `scripts/audit-handoff.py`，只聚合仓库内证据、Git 状态、任务索引和明确标记的外部待验证项。
 - dry-run verifier 位于 `scripts/audit-handoff-dry-run.py`，只做本地审计前置检查，不替代真实第三方审计。
 - current audit bundle generator 位于 `scripts/current-audit-bundle.py`，只聚合当前 commit 的 release proof、audit handoff、dry-run、SBOM/provenance、rollback dry-run、local-ci gate artifact 摘要、evidence index、risk register 和外部待验证项；local-ci gate artifact 当前覆盖 evidence coverage trend gate 与 evaluation trend gate；`auditGate=passed` 只代表当前提交审计包证据齐备，不代表第三方审计已通过。
 - external validation closure gate 位于 `scripts/external-validation-closure-gate.py`，只把外部待验证 occurrence 转成可分派的关闭计划，不连接真实 API、Bot、Postgres、OIDC、SIEM、OTel、Vault/KMS、developer portal 或第三方审计系统。
+- external validation closure work queue 位于 `scripts/external-validation-closure-work-queue.py`，只把 closure plan 按 owner/category 聚合成 work item，补齐 assignee、proofRef、lastCheckedAt、staleReason 和 closeConditionResult；空 proofRef 必须保持 blocked，不连接真实外部系统。
 - measurement infrastructure certification aggregator 位于 `scripts/measurement-infrastructure-certification.py`，默认消费 local-ci 产物目录中已有 gate summary，也可显式接收 `live-release-gate.json`、`current-release-proof.json` 和 `current-audit-bundle.json` sidecar；sidecar 只覆盖对应逻辑证据文件，不跨文件覆盖 release proof、audit bundle 或外部 live 证据。当前 release/audit/live evidence 未闭合时必须输出 `status=blocked`，不得支持 100% 完成声明。
 - 这里不声明真实生产 API、Bot、OIDC、SIEM、监控平台、developer portal 或 sandbox token 已完成 live 验证。
