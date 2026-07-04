@@ -1,0 +1,235 @@
+{
+  "commit": "2a2da45eb787efd5ab316fa19367cd9440007f0b",
+  "createdIssueCount": 22,
+  "createdIssues": [
+    {
+      "issueTemplateId": "external-validation-issue.external-work.09005bbc5c567be0",
+      "number": 1,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#1",
+      "workItemId": "external-work.09005bbc5c567be0"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.097db160a9dad0c1",
+      "number": 2,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#2",
+      "workItemId": "external-work.097db160a9dad0c1"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.16ef6f7735b18242",
+      "number": 3,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#3",
+      "workItemId": "external-work.16ef6f7735b18242"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.2cdce9fea4027cd1",
+      "number": 4,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#4",
+      "workItemId": "external-work.2cdce9fea4027cd1"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.31137a57f15537dd",
+      "number": 5,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#5",
+      "workItemId": "external-work.31137a57f15537dd"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.4526896091f25f6d",
+      "number": 6,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#6",
+      "workItemId": "external-work.4526896091f25f6d"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.48ca6cab90f9800c",
+      "number": 7,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#7",
+      "workItemId": "external-work.48ca6cab90f9800c"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.4fbd0b25cee34298",
+      "number": 8,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#8",
+      "workItemId": "external-work.4fbd0b25cee34298"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.592973cda51b7cfd",
+      "number": 9,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#9",
+      "workItemId": "external-work.592973cda51b7cfd"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.5eddad3687b18ac8",
+      "number": 10,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#10",
+      "workItemId": "external-work.5eddad3687b18ac8"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.615684420399d1b6",
+      "number": 11,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#11",
+      "workItemId": "external-work.615684420399d1b6"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.70ec384a9c54da93",
+      "number": 12,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#12",
+      "workItemId": "external-work.70ec384a9c54da93"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.73d8aad8591d4bd8",
+      "number": 13,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#13",
+      "workItemId": "external-work.73d8aad8591d4bd8"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.8606485836475224",
+      "number": 14,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#14",
+      "workItemId": "external-work.8606485836475224"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.95bad8293acc2879",
+      "number": 15,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#15",
+      "workItemId": "external-work.95bad8293acc2879"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.adb578beb167a8b2",
+      "number": 16,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#16",
+      "workItemId": "external-work.adb578beb167a8b2"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.bbc3a0bb9036e72f",
+      "number": 17,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#17",
+      "workItemId": "external-work.bbc3a0bb9036e72f"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.ce47eec5e35ad149",
+      "number": 18,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#18",
+      "workItemId": "external-work.ce47eec5e35ad149"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.e5ec45d990955344",
+      "number": 19,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#19",
+      "workItemId": "external-work.e5ec45d990955344"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.e8aee56b238d245f",
+      "number": 20,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#20",
+      "workItemId": "external-work.e8aee56b238d245f"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.e90698a411fc18fe",
+      "number": 21,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#21",
+      "workItemId": "external-work.e90698a411fc18fe"
+    },
+    {
+      "issueTemplateId": "external-validation-issue.external-work.fd47f5baca785f0c",
+      "number": 22,
+      "state": "OPEN",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#22",
+      "workItemId": "external-work.fd47f5baca785f0c"
+    }
+  ],
+  "createdLabelCount": 44,
+  "createdLabels": [
+    "category.manual_triage",
+    "category.observability.otel_slo_live",
+    "category.provider.external_dependency_live",
+    "category.quality.external_evaluation_live",
+    "category.release.artifact_current_commit",
+    "category.release.hf_space_live",
+    "category.release.production_api_live",
+    "category.release.telegram_bot_live",
+    "category.runtime.multi_replica_live",
+    "category.runtime.postgres_live",
+    "category.runtime.public_webhook_live",
+    "category.security.external_secret_provider",
+    "category.security.externalization_live",
+    "category.security.identity_oidc",
+    "category.security.retention_cleanup_live",
+    "category.security.siem_audit",
+    "domain.audit",
+    "domain.delivery",
+    "domain.developer_platform",
+    "domain.event_platform",
+    "domain.governance",
+    "domain.manual_triage",
+    "domain.observability",
+    "domain.provider",
+    "domain.quality",
+    "domain.release",
+    "domain.runtime",
+    "domain.security",
+    "external-validation",
+    "measurement-infrastructure",
+    "operator-action-required",
+    "owner.audit-owner",
+    "owner.bot-ops",
+    "owner.delivery-ops",
+    "owner.developer-platform",
+    "owner.engineering-audit",
+    "owner.governance",
+    "owner.platform-events",
+    "owner.provider-platform",
+    "owner.quality-ops",
+    "owner.release-ops",
+    "owner.runtime-ops",
+    "owner.security-ops",
+    "owner.sre-ops"
+  ],
+  "evidenceBundlePath": "/tmp/fatecat-tracker-issue-evidence-0137/external-validation-tracker-issue-evidence-bundle.json",
+  "evidenceBundleSha256": "94af6dda1d989d8ac358ba87afd9571caa2264d20dc1230a8e63a958df66465e",
+  "generatedAt": "2026-07-04T13:09:32Z",
+  "issueArtifactDir": "/tmp/fatecat-tracker-issue-evidence-0137/issue-artifacts",
+  "kind": "fatecat.external_validation_tracker_issue_creation_execution_summary",
+  "nonClaims": [
+    "Tracker issue evidence proves only issue creation and binding to package body hashes.",
+    "It does not prove proof-ref/live proof closure.",
+    "It does not prove measurement infrastructure certification or independent third-party audit completion."
+  ],
+  "omittedIssueLabels": [
+    {
+      "label": "category.governance.external_validation_policy_guardrail",
+      "reason": "label_unavailable_or_overlong",
+      "workItemId": "external-work.95bad8293acc2879"
+    }
+  ],
+  "privacyBoundary": "redacted_no_secret_values; no raw URLs, tokens, secrets, DSNs, webhook secrets, chat ids, external accounts, production logs, trace payloads, report body or user input are stored.",
+  "repo": "github:tradecatlabs/fatecat",
+  "schemaVersion": 1,
+  "skippedLabels": [
+    {
+      "label": "category.governance.external_validation_policy_guardrail",
+      "reason": "github_label_name_max_50"
+    }
+  ],
+  "trackerImportPackageJson": "/tmp/fatecat-local-ci-0137-current-head/external-validation-tracker-import-package.json",
+  "trackerImportPackageSha256": "bd7b55141a41d91034049704c8c720f5cc1060ebe41356f88a9f2b2b8e9abe7a"
+}

@@ -1,0 +1,435 @@
+{
+  "generatedAt": "2026-07-04T13:09:32Z",
+  "issues": [
+    {
+      "artifactSha256": "b385dda31c6b6a28cac38f6dd0599d3682090b0d0a53afec305e9ff2b4bdeccf",
+      "bodySha256": "9f60cbf2a42f42655b792bc8f5e533a828d04c23790ab59aecaecbd0db82bf4b",
+      "createdAt": "2026-07-04T13:08:34Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.09005bbc5c567be0",
+      "labels": [
+        "category.manual_triage",
+        "domain.manual_triage",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.engineering-audit"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "d246be657192d3c891a44ff3cf53fde955b5046962fbd0851e70d669c31b0844",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#1",
+      "workItemId": "external-work.09005bbc5c567be0"
+    },
+    {
+      "artifactSha256": "a926dc3dcfe10e3cc6bfc557fda507e497d558b93bfc878f674f415cff540d59",
+      "bodySha256": "ce29c200937ae8f7530a4b4491df43da0ed04fa9208106723d60aa9555ae436e",
+      "createdAt": "2026-07-04T13:08:37Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.097db160a9dad0c1",
+      "labels": [
+        "category.security.externalization_live",
+        "domain.security",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.security-ops"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "0d64c643b0ac8f7b8b79d2e091390841b0626ad4e520d87a1a46ad989b51ad28",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#2",
+      "workItemId": "external-work.097db160a9dad0c1"
+    },
+    {
+      "artifactSha256": "a314bbad80d8e042a3a7925a5392ee4c1618a59cd403cc6f800bf371a08aad3a",
+      "bodySha256": "9b89773ac4ba35721c9ee77eb678dc1560a64d4a7be8ec8dac6a8054721ec085",
+      "createdAt": "2026-07-04T13:08:39Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.16ef6f7735b18242",
+      "labels": [
+        "category.delivery.multi_surface_live",
+        "domain.delivery",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.delivery-ops"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "29c8b8c19c8cf200a89c59317f0c2fb6640d07d142135f3a00227e575a1ff3a3",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#3",
+      "workItemId": "external-work.16ef6f7735b18242"
+    },
+    {
+      "artifactSha256": "3900149cc438cfad843d37c89055e942f749164916fbc6b7c835673adf8b6217",
+      "bodySha256": "61822231bf79e71667bbdbc47f517db396da5d37f9ddde606c91cf8ef8a32f62",
+      "createdAt": "2026-07-04T13:08:42Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.2cdce9fea4027cd1",
+      "labels": [
+        "category.runtime.public_webhook_live",
+        "domain.runtime",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.runtime-ops"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "a14b7600aabc5074750711652b8cc82ec3063ae437569093ee908ba855c9ec00",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#4",
+      "workItemId": "external-work.2cdce9fea4027cd1"
+    },
+    {
+      "artifactSha256": "6f5fb6aba8a94bc12b80748cf2c1db359abfd79cdb378736efec585e5e49fbae",
+      "bodySha256": "1a73b3b19c87ed89fcf0e4fe1d0dc57e31532990d9aafa774c2554ba899506d1",
+      "createdAt": "2026-07-04T13:08:45Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.31137a57f15537dd",
+      "labels": [
+        "category.release.hf_space_live",
+        "domain.release",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.release-ops"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "37a1c6ef157bc249a62919faca4d4955a711cb50225abe2c95b6613fae763347",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#5",
+      "workItemId": "external-work.31137a57f15537dd"
+    },
+    {
+      "artifactSha256": "72f75e5cc69787669f5ad04ea9057f95d9d9332fad5b1ce308948df4fff0ec6e",
+      "bodySha256": "bb0d2f4c29b13fbe88a086aa0c98fb5cfae0e03a20ac31e4d9078b987fcc4fcc",
+      "createdAt": "2026-07-04T13:08:48Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.4526896091f25f6d",
+      "labels": [
+        "category.security.retention_cleanup_live",
+        "domain.security",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.security-ops"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "4b90a986b5111cccdd0da7be8c5cd6c5e2cfeca9e64c6f1fbf71ca4a4b6b77ce",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#6",
+      "workItemId": "external-work.4526896091f25f6d"
+    },
+    {
+      "artifactSha256": "eb0ea7223232d423fba6e437d357c990acf0e9dad252353d75b674971ad84392",
+      "bodySha256": "70daee14d09cd6963d01661f929124dcbc98246fc7d42a62f10f7b94d64cefe9",
+      "createdAt": "2026-07-04T13:08:51Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.48ca6cab90f9800c",
+      "labels": [
+        "category.security.external_secret_provider",
+        "domain.security",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.security-ops"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "3a8fd25ed04a01b46e055a0ec5fb1755dc303db01405536851d98b853fbc9183",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#7",
+      "workItemId": "external-work.48ca6cab90f9800c"
+    },
+    {
+      "artifactSha256": "1fc95b93e2b65936b9f6d141c60c25ab574bbcc69554c83fa49ee5a9521652b0",
+      "bodySha256": "90a7c068d7bf50aff13b697c3766c5087c076d9206f5ae80b8c28d71309545f9",
+      "createdAt": "2026-07-04T13:08:53Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.4fbd0b25cee34298",
+      "labels": [
+        "category.release.production_api_live",
+        "domain.release",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.release-ops"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "09486c1b0ac37d0bdd55e5c9a841680f556593d3156e135fca97a400e7e88b3c",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#8",
+      "workItemId": "external-work.4fbd0b25cee34298"
+    },
+    {
+      "artifactSha256": "a34a7c1cead713224a94275ae6d3f39428842e13d1b5c79cdd5a0a8918e33dfd",
+      "bodySha256": "06fa8afda1e4bc76161d42ae17f4b93019046740b87564675d1e86365efcf636",
+      "createdAt": "2026-07-04T13:08:56Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.592973cda51b7cfd",
+      "labels": [
+        "category.runtime.multi_replica_live",
+        "domain.runtime",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.runtime-ops"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "07356afb2ea202aabc7b7e539fa74a4b1d5121a003459afb599b9e2676dae105",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#9",
+      "workItemId": "external-work.592973cda51b7cfd"
+    },
+    {
+      "artifactSha256": "dee312eac59f14a0c9249a7f0220df37f6f4121094183410b81cf13685a58186",
+      "bodySha256": "c05d7212554d95ff2f15beeeb2b9d327d847a6b08d41cb91d767944b5606bfc3",
+      "createdAt": "2026-07-04T13:08:59Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.5eddad3687b18ac8",
+      "labels": [
+        "category.observability.otel_slo_live",
+        "domain.observability",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.sre-ops"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "409cb1602fade8da3a2fae7d9c40366447b87fe38971f3746a946c8af6780f95",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#10",
+      "workItemId": "external-work.5eddad3687b18ac8"
+    },
+    {
+      "artifactSha256": "ea5131e259aaedd5ba8d5fa0c8cdb00a99179f416ad53527c497c63872af8f01",
+      "bodySha256": "db9f292400234a44db19d8abb03c3e5dd673d2ee4c080047ec75f18170675843",
+      "createdAt": "2026-07-04T13:09:01Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.615684420399d1b6",
+      "labels": [
+        "category.event_platform.live",
+        "domain.event_platform",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.platform-events"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "6b24531a8a560dbb0206ea9c13544daafabf7470ef6d977adc1fed62e5e2487f",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#11",
+      "workItemId": "external-work.615684420399d1b6"
+    },
+    {
+      "artifactSha256": "4526004d14c5e70a821e79742cbae1e8ae29529a544bb6d8070a3383efc00a01",
+      "bodySha256": "085f46b2d2856db526f2526358ef174b150917c434c39901374d290cff743450",
+      "createdAt": "2026-07-04T13:09:04Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.70ec384a9c54da93",
+      "labels": [
+        "category.developer_platform.live",
+        "domain.developer_platform",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.developer-platform"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "13d7e1719d7cedbc2806448e0398e0f3e9a7d86e0b841f7e6cba1df7b4a6ac7c",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#12",
+      "workItemId": "external-work.70ec384a9c54da93"
+    },
+    {
+      "artifactSha256": "d245abc0751aa5b22ea94f1f894f96b4fd0d671391592da4e25b86de9b0497d2",
+      "bodySha256": "a29c6bb2a2cf4468f79b6af3d912bdbcd91d721d1f763238f68966b8102d0b26",
+      "createdAt": "2026-07-04T13:09:07Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.73d8aad8591d4bd8",
+      "labels": [
+        "category.audit.certification_current_evidence",
+        "domain.audit",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.audit-owner"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "7cadf3074a8a46d93a2a810003ae6e4476331280e78deeafe352f416cd5e6b9f",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#13",
+      "workItemId": "external-work.73d8aad8591d4bd8"
+    },
+    {
+      "artifactSha256": "9cdcc456ee3776a5af5927aef5fb4c3a0362598665fdacfc25b57e0149bc7a15",
+      "bodySha256": "5833d2c3a4801cc361661bc10404e4170a82927e8dbc82782dde59b23aae744c",
+      "createdAt": "2026-07-04T13:09:10Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.8606485836475224",
+      "labels": [
+        "category.release.telegram_bot_live",
+        "domain.release",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.bot-ops"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "4459d19d1912d5591f47038cf155a646a98dcb476085761972753429c45c58ff",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#14",
+      "workItemId": "external-work.8606485836475224"
+    },
+    {
+      "artifactSha256": "f06b3dcd24bd1d0a9d3a47bfc3c46221c20343061d1906c5896b3c5ddba46ad9",
+      "bodySha256": "5072a756119ccff3ad22bcc9eb9f375f32f8666b9eee9e23b9654120e460cbe2",
+      "createdAt": "2026-07-04T13:09:13Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.95bad8293acc2879",
+      "labels": [
+        "domain.governance",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.governance"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "122199c7510c3e25a67d5ff2953ba2bf915c2ab9f0d5b1ba40549290b915da39",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#15",
+      "workItemId": "external-work.95bad8293acc2879"
+    },
+    {
+      "artifactSha256": "c8523518db5abb2a2c37aaf385236f6968744b0d605542ea745e42b9b68ae90f",
+      "bodySha256": "abf99d9247d65034f083485448c2203764d163928871a46b79c371f23f2ce9ea",
+      "createdAt": "2026-07-04T13:09:16Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.adb578beb167a8b2",
+      "labels": [
+        "category.security.identity_oidc",
+        "domain.security",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.security-ops"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "61d414e272035eba8af0d03693d83bd9261761ba899ae6afe4e63b0c30e40a87",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#16",
+      "workItemId": "external-work.adb578beb167a8b2"
+    },
+    {
+      "artifactSha256": "92fc3be19ae110fd8d13e35b4916d287cac4bc769aa0d6550166e1b07bbb212c",
+      "bodySha256": "c8b97e305391b836f9a8c4e4eff6d823c34edbd349e20c698f8f19e81d1d979a",
+      "createdAt": "2026-07-04T13:09:18Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.bbc3a0bb9036e72f",
+      "labels": [
+        "category.provider.external_dependency_live",
+        "domain.provider",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.provider-platform"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "47a3d4cff1f151f1e5e5ca44bee11fa3581e4e2d4948b0f823f9e1afc291fb9b",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#17",
+      "workItemId": "external-work.bbc3a0bb9036e72f"
+    },
+    {
+      "artifactSha256": "10f06a2c3b8947eb79dee380c4f723fe72beb7c1f557b4d4c200b269bf1794ec",
+      "bodySha256": "1f3acf6dd4856c9c7efce2029d1266d708e8f12d2df62b7385b3803ff5df5ba1",
+      "createdAt": "2026-07-04T13:09:22Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.ce47eec5e35ad149",
+      "labels": [
+        "category.runtime.postgres_live",
+        "domain.runtime",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.runtime-ops"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "7ef6f46078ba98bd2ed766649f92e5c0d1d1bb6b8214502f5b5e921217babbd1",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#18",
+      "workItemId": "external-work.ce47eec5e35ad149"
+    },
+    {
+      "artifactSha256": "b7525e219e5d44bddb7f05d3989a3251bb8d9c8a2d0883cf5f4729b07e01cdd3",
+      "bodySha256": "b4d7f0cf4d504e2a4ffd719281735f20bbc1dfabc0da7b11b11b665d95a4272e",
+      "createdAt": "2026-07-04T13:09:24Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.e5ec45d990955344",
+      "labels": [
+        "category.release.artifact_current_commit",
+        "domain.release",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.release-ops"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "13631896282df8a001845394fb8254c03a7c66265452c5d7a28d542ac939abf3",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#19",
+      "workItemId": "external-work.e5ec45d990955344"
+    },
+    {
+      "artifactSha256": "bc47204fea3a0f3d7ed136d3f069077dbc17d683211cd4749c3d63473e298959",
+      "bodySha256": "8a3075365708f2638bf91c8717fafca78714a452f9ebc9bd96097d437d32cb00",
+      "createdAt": "2026-07-04T13:09:27Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.e8aee56b238d245f",
+      "labels": [
+        "category.quality.external_evaluation_live",
+        "domain.quality",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.quality-ops"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "cebe120f6ac3627b7ab67f28504228fa92f0a87b84c428a362a0216db06e4553",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#20",
+      "workItemId": "external-work.e8aee56b238d245f"
+    },
+    {
+      "artifactSha256": "f621120576d10f7d996d0348c7283f17d9e399eb9a6cb8ce58687d1ac5171eed",
+      "bodySha256": "76bc5c7912701b7b9abe20a53195b29a5c2221a3735e22acd4e29498bca99309",
+      "createdAt": "2026-07-04T13:09:31Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.e90698a411fc18fe",
+      "labels": [
+        "category.security.siem_audit",
+        "domain.security",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.security-ops"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "9446140dca27f3023b8d8dd86896ba80b56993c610c503e8ba762b0bdf175178",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#21",
+      "workItemId": "external-work.e90698a411fc18fe"
+    },
+    {
+      "artifactSha256": "e777b49e37d41b22db67bbb599e3c3a74de78edcbe914fdaee3cf7c1a95c148a",
+      "bodySha256": "14fa82389f16c05315c03ea79e6b72a4915648172b6761fd72fe301291805f24",
+      "createdAt": "2026-07-04T13:09:33Z",
+      "createdByRole": "operator",
+      "issueTemplateId": "external-validation-issue.external-work.fd47f5baca785f0c",
+      "labels": [
+        "category.audit.third_party_review",
+        "domain.audit",
+        "external-validation",
+        "measurement-infrastructure",
+        "operator-action-required",
+        "owner.audit-owner"
+      ],
+      "redactionStatus": "redacted_no_secret_values",
+      "titleSha256": "ef617a54dadeafc497d0614ae0e32aeaa677a6edfea94379d01a8c19edbe5e5d",
+      "trackerIssueRef": "github:tradecatlabs/fatecat#22",
+      "workItemId": "external-work.fd47f5baca785f0c"
+    }
+  ],
+  "kind": "fatecat.external_validation_tracker_issue_evidence_bundle",
+  "nonClaims": [
+    "Tracker issue evidence proves only issue creation and binding to package body hashes.",
+    "It does not prove proof-ref/live proof closure.",
+    "It does not prove measurement infrastructure certification or independent third-party audit completion."
+  ],
+  "privacyBoundary": "redacted_no_secret_values; no raw URLs, tokens, secrets, DSNs, webhook secrets, chat ids, external accounts, production logs, trace payloads, report body or user input are stored.",
+  "schemaVersion": 1,
+  "source": {
+    "commit": "2a2da45eb787efd5ab316fa19367cd9440007f0b",
+    "trackerImportPackageKind": "fatecat.external_validation_tracker_import_package",
+    "trackerImportPackageSha256": "bd7b55141a41d91034049704c8c720f5cc1060ebe41356f88a9f2b2b8e9abe7a"
+  }
+}
