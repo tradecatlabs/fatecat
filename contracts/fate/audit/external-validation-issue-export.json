@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.external_validation_issue_export_contract",
+  "resourceType": "ExternalValidationIssueExport",
+  "id": "audit.external.validation.issueExport",
+  "status": "baseline",
+  "description": "外部验证 issue export 契约。该导出消费 closure work queue、category runbooks、operator execution packet 和 closure evidence summary，把仍待真实外部执行的 work items 转成可导入 issue tracker 的脱敏执行卡片。该导出不创建真实 issue、不请求网络、不保存凭证或 endpoint、不把 issue ready 等同于 live passed。",
+  "generator": {
+    "command": "bash scripts/external-validation-issue-export.sh --work-queue-json <external-validation-closure-work-queue.json> --category-runbooks-json <external-validation-category-runbooks.json> --operator-packet-json <external-validation-operator-execution-packet.json> --closure-evidence-summary-json <external-validation-closure-evidence-summary.json> --output-json <external-validation-issue-export.json> --output-markdown <EXTERNAL_VALIDATION_ISSUE_EXPORT.md>",
+    "pythonEntrypoint": "scripts/external-validation-issue-export.py",
+    "defaultOutputJson": "infra/runtime/local-state/exports/audit/external-validation-issue-export.json",
+    "defaultOutputMarkdown": "infra/runtime/local-state/exports/audit/EXTERNAL_VALIDATION_ISSUE_EXPORT.md"
+  },
+  "outputKind": "fatecat.external_validation_issue_export",
+  "requiredInputs": [
+    "fatecat.external_validation_closure_work_queue",
+    "fatecat.external_validation_category_runbooks",
+    "fatecat.external_validation_operator_execution_packet",
+    "fatecat.external_validation_closure_evidence_summary"
+  ],
+  "requiredOutputFields": [
+    "schemaVersion",
+    "kind",
+    "status",
+    "generatedAt",
+    "source",
+    "summary",
+    "issueGate",
+    "issueTemplates",
+    "trackerImport",
+    "privacyBoundary",
+    "nonClaims"
+  ],
+  "executionPolicy": {
+    "status": "operator_action_required",
+    "issueGate": "blocked until real issues are created by an operator, real external validations are executed, and proof-ref/live-proof gates accept redacted evidence.",
+    "noNetwork": "This generator must not call GitHub, production API, HF Space, Telegram Bot, Postgres, OTel, IdP, SIEM, Vault, developer portal or third-party audit services.",
+    "redaction": "Output may contain issue titles, labels, owner/category ids, work item ids, occurrence ids, credential variable names, proof-ref patterns, command templates and hashes only; it must not contain endpoint URLs, credential values, DSNs, webhook secrets, chat ids, payloads, user inputs or production logs.",
+    "sourceBinding": "Output must bind to work queue sha256, category runbooks sha256, operator packet sha256, closure evidence summary sha256 and current commit."
+  },
+  "trackerPolicy": {
+    "createsIssues": false,
+    "allowedUse": "Operator may copy issueTemplates into a tracker after manual review.",
+    "requiredLabels": [
+      "external-validation",
+      "measurement-infrastructure",
+      "operator-action-required"
+    ]
+  },
+  "privacyBoundary": "Issue export 只保存 category、owner、workItemId、occurrence id、required credential 名称、脱敏命令模板、proof-ref pattern、artifact hash 指令、source hash、失败回滚和关闭条件；不得保存真实 URL、token、secret、DSN、webhook secret、chat id、外部账号、生产日志、trace payload、报告正文或用户输入。",
+  "nonClaims": [
+    "Does not create issues in GitHub or any external tracker.",
+    "Does not execute external live checks.",
+    "Does not prove any external live validation has passed.",
+    "Does not create accepted proof refs by itself.",
+    "Does not replace operator execution packets.",
+    "Does not replace external-validation-proof-ref-gate.",
+    "Does not replace external-validation-live-proof-gate.",
+    "Does not replace third-party audit.",
+    "Does not mean FateCat is 100% production infrastructure."
+  ]
+}

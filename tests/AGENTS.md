@@ -26,6 +26,7 @@ tests/
 	    ├── test_external_validation_closure_evidence_summary.py
 	    ├── test_external_validation_closure_gate.py
 	    ├── test_external_validation_closure_work_queue.py
+	    ├── test_external_validation_issue_export.py
 	    ├── test_external_validation_live_proof_gate.py
 	    ├── test_external_validation_operator_execution_packet.py
 	    ├── test_external_validation_closure_trend_dashboard.py
@@ -69,6 +70,7 @@ tests/
 - `regression/test_external_validation_proof_ref_gate.py`：external validation proof-ref gate 合同；验证 proof-ref schema、脱敏 evidence bundle、raw URL/placeholder 拒绝、local-ci 接线，以及 schema accepted 仍不等于 production live passed。
 - `regression/test_external_validation_category_runbooks.py`：external validation category runbook 合同；验证 22 个 category 均有 operator runbook、未知 category 拒绝、raw URL/敏感片段防护、local-ci/certification 接线，以及 runbook ready 仍不等于 production live passed。
 - `regression/test_external_validation_closure_evidence_summary.py`：external validation closure evidence summary 合同；验证 22 类外部验证的 domain/category/owner/work item 聚合、operator packet 绑定、proof-ref/live pending 阻断、敏感片段拒绝和 local-ci/certification 接线。
+- `regression/test_external_validation_issue_export.py`：external validation issue export 合同；验证 22 类 pending work item 可转成脱敏 issue 模板、CLI 输出 JSON/Markdown、敏感赋值拒绝和 local-ci/AGENTS/roadmap 接线，不创建真实 issue。
 - `regression/test_external_validation_live_proof_gate.py`：external validation live proof gate 合同；验证 live evidence bundle 与 work queue、proof-ref gate、category runbook 和 current commit 绑定，拒绝未接受 proof-ref、raw URL、placeholder 和敏感片段；live proof 接受后仍保留审计/certification 阻断。
 - `regression/test_external_validation_operator_execution_packet.py`：external validation operator execution packet 合同；验证 22 类外部验证 operator packet、domain 分组、proof-ref 模板、CLI 输出、敏感赋值拒绝和 local-ci/AGENTS/roadmap 接线，不执行真实外部请求。
 - `regression/test_production_live_operator_execution_packet.py`：production live operator execution packet 合同；验证执行包 contract、脱敏 operator steps、proof-ref bundle 模板、CLI 输出、敏感赋值拒绝和 local-ci/AGENTS/roadmap 接线，不执行真实外部请求。

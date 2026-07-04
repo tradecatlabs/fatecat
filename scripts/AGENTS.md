@@ -33,6 +33,8 @@ scripts/
 ├── external-validation-closure-evidence-summary.py
 ├── external-validation-closure-gate.sh
 ├── external-validation-closure-gate.py
+├── external-validation-issue-export.sh
+├── external-validation-issue-export.py
 ├── external-validation-closure-trend-dashboard.sh
 ├── external-validation-closure-trend-dashboard.py
 ├── external-validation-closure-work-queue.sh
@@ -168,6 +170,7 @@ scripts/
 - `external-validation-proof-ref-gate.sh` / `external-validation-proof-ref-gate.py` 是外部验证 proof-ref evidence upload 结构门禁；消费 work queue 和可选 operator 脱敏 evidence bundle，校验证据句柄、hash、时间窗、redaction、current commit 与 work item 绑定；schema accepted 不等于 production live passed，`shipGate` 必须继续 blocked。
 - `external-validation-category-runbooks.sh` / `external-validation-category-runbooks.py` 是外部验证 category runbook 门禁；消费 work queue，为每个 category 生成 required credential、operator command、proof-ref artifact pattern、redaction、expiry、rollback 和 closure condition；runbook ready 不等于 production live passed。
 - `external-validation-closure-evidence-summary.sh` / `external-validation-closure-evidence-summary.py` 是外部验证关闭证据摘要生成器；消费 work queue、proof-ref gate、category runbooks、operator packet、live proof gate 和 trend dashboard，输出按 domain/category/owner/work item 聚合的待补证据、operator step 和阻断项；不执行真实外部请求，不创建 proof-ref/live proof，不声明 live passed。
+- `external-validation-issue-export.sh` / `external-validation-issue-export.py` 是外部验证 issue export 生成器；消费 work queue、category runbooks、operator packet 和 closure evidence summary，把 pending work item 转成可导入 issue tracker 的脱敏执行卡片；不创建真实 issue、不请求网络、不保存敏感值、不声明 live passed。
 - `external-validation-closure-trend-dashboard.sh` / `external-validation-closure-trend-dashboard.py` 是外部验证关闭趋势 dashboard 门禁；消费 closure plan、work queue、proof-ref gate、category runbooks 和可选 live proof gate，输出 owner/category/status 趋势、stale owner alert 和本地 summary artifact；不发送真实通知、不连接 issue tracker、不把 alert ack 当作 live evidence closure。
 - `external-validation-live-proof-gate.sh` / `external-validation-live-proof-gate.py` 是外部验证 live proof 门禁；消费 work queue、proof-ref gate、category runbooks 和可选 operator 脱敏 live evidence bundle，校验 live proof 与 proof-ref/runbook/source/current commit 的绑定；不发起真实生产请求，不把 operator evidence 直接等同第三方审计。
 - `external-validation-operator-execution-packet.sh` / `external-validation-operator-execution-packet.py` 是外部验证 operator execution packet 生成器；消费 work queue、proof-ref gate 和 category runbooks，为全部 external validation category 输出脱敏操作步骤、required credential 名称、proof-ref bundle 模板、domain 分组和最终复核命令；不执行真实外部请求，不保存敏感值，不声明 live passed。
