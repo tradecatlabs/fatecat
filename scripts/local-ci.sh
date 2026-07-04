@@ -292,6 +292,11 @@ run_quick() {
   run_step "external validation category runbooks" bash "${script_dir}/external-validation-category-runbooks.sh" \
     --work-queue-json "${output_dir}/external-validation-closure-work-queue.json" \
     --output-json "${output_dir}/external-validation-category-runbooks.json"
+  run_step "external validation operator execution packet" bash "${script_dir}/external-validation-operator-execution-packet.sh" \
+    --work-queue-json "${output_dir}/external-validation-closure-work-queue.json" \
+    --proof-ref-gate-json "${output_dir}/external-validation-proof-ref-gate.json" \
+    --category-runbooks-json "${output_dir}/external-validation-category-runbooks.json" \
+    --output-json "${output_dir}/external-validation-operator-execution-packet.json"
   run_step "production live operator execution packet" bash "${script_dir}/production-live-operator-execution-packet.sh" \
     --work-queue-json "${output_dir}/external-validation-closure-work-queue.json" \
     --proof-ref-gate-json "${output_dir}/external-validation-proof-ref-gate.json" \
@@ -389,6 +394,7 @@ run_quick() {
       tests/regression/test_external_validation_closure_work_queue.py \
       tests/regression/test_external_validation_proof_ref_gate.py \
       tests/regression/test_external_validation_category_runbooks.py \
+      tests/regression/test_external_validation_operator_execution_packet.py \
       tests/regression/test_production_live_operator_execution_packet.py \
       tests/regression/test_production_live_delivery_evidence_bundle.py \
       tests/regression/test_external_validation_live_proof_gate.py \
@@ -555,6 +561,7 @@ write_summary() {
   FATE_LOCAL_CI_EXTERNAL_VALIDATION_CLOSURE_WORK_QUEUE="${output_dir}/external-validation-closure-work-queue.json" \
   FATE_LOCAL_CI_EXTERNAL_VALIDATION_PROOF_REF_GATE="${output_dir}/external-validation-proof-ref-gate.json" \
   FATE_LOCAL_CI_EXTERNAL_VALIDATION_CATEGORY_RUNBOOKS="${output_dir}/external-validation-category-runbooks.json" \
+  FATE_LOCAL_CI_EXTERNAL_VALIDATION_OPERATOR_EXECUTION_PACKET="${output_dir}/external-validation-operator-execution-packet.json" \
   FATE_LOCAL_CI_PRODUCTION_LIVE_OPERATOR_EXECUTION_PACKET="${output_dir}/production-live-operator-execution-packet.json" \
   FATE_LOCAL_CI_PRODUCTION_LIVE_DELIVERY_EVIDENCE_BUNDLE="${output_dir}/production-live-delivery-evidence-bundle.json" \
   FATE_LOCAL_CI_EXTERNAL_VALIDATION_LIVE_PROOF_GATE="${output_dir}/external-validation-live-proof-gate.json" \
@@ -646,6 +653,7 @@ payload = {
         "externalValidationClosureWorkQueue": env("FATE_LOCAL_CI_EXTERNAL_VALIDATION_CLOSURE_WORK_QUEUE"),
         "externalValidationProofRefGate": env("FATE_LOCAL_CI_EXTERNAL_VALIDATION_PROOF_REF_GATE"),
         "externalValidationCategoryRunbooks": env("FATE_LOCAL_CI_EXTERNAL_VALIDATION_CATEGORY_RUNBOOKS"),
+        "externalValidationOperatorExecutionPacket": env("FATE_LOCAL_CI_EXTERNAL_VALIDATION_OPERATOR_EXECUTION_PACKET"),
         "productionLiveOperatorExecutionPacket": env("FATE_LOCAL_CI_PRODUCTION_LIVE_OPERATOR_EXECUTION_PACKET"),
         "productionLiveDeliveryEvidenceBundle": env("FATE_LOCAL_CI_PRODUCTION_LIVE_DELIVERY_EVIDENCE_BUNDLE"),
         "externalValidationLiveProofGate": env("FATE_LOCAL_CI_EXTERNAL_VALIDATION_LIVE_PROOF_GATE"),

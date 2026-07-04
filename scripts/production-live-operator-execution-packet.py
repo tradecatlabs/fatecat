@@ -73,7 +73,7 @@ CATEGORY_EXECUTION: dict[str, dict[str, Any]] = {
             "FATE_REPORT_JOB_DATABASE_URL",
             "FATE_WEBHOOK_LIVE_URL",
             "FATE_WEBHOOK_LIVE_SECRET",
-            "FATE_WEBHOOK_ALLOWED_HOSTS",
+            "FATE_WEBHOOK_LIVE_ALLOWED_HOSTS",
         ),
         "command": (
             "bash scripts/postgres-public-webhook-live-smoke.sh "

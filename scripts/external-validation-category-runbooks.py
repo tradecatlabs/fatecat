@@ -258,8 +258,8 @@ CATEGORY_PROFILES: dict[str, CategoryProfile] = {
         evidence_type="postgres_runtime_live",
         required_credentials=("Postgres DSN", "migration owner access", "worker lease test access"),
         operator_commands=(
-            "bash scripts/postgres-job-store-live-smoke.sh --require-live --output-json <postgres-live-json>",
-            "bash scripts/postgres-worker-heartbeat-polling-smoke.sh --require-live --output-json <heartbeat-json>",
+            "bash scripts/postgres-job-store-live-smoke.sh --output-json <postgres-live-json>",
+            "bash scripts/postgres-worker-heartbeat-polling-smoke.sh --output-json <heartbeat-json>",
         ),
         proof_ref_slug="runtime-postgres-live",
         failure_rollback="Keep SQLite/local backend as default and block Postgres production promotion.",
@@ -269,7 +269,7 @@ CATEGORY_PROFILES: dict[str, CategoryProfile] = {
         evidence_type="public_webhook_live",
         required_credentials=("Postgres DSN", "public HTTPS webhook receiver", "webhook signing secret"),
         operator_commands=(
-            "bash scripts/postgres-public-webhook-live-smoke.sh --require-live --output-json <public-webhook-json>",
+            "bash scripts/postgres-public-webhook-live-smoke.sh --output-json <public-webhook-json>",
             "bash scripts/runtime-proof-gate.sh --output-json <runtime-proof-json>",
         ),
         proof_ref_slug="runtime-public-webhook-live",

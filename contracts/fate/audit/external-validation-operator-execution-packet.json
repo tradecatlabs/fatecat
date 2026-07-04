@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.external_validation_operator_execution_packet_contract",
+  "resourceType": "ExternalValidationOperatorExecutionPacket",
+  "id": "audit.external.validation.operatorExecutionPacket",
+  "status": "baseline",
+  "description": "外部验证 operator execution packet 契约。该执行包消费 closure work queue、proof-ref gate 和 category runbooks，输出覆盖所有外部验证 category 的脱敏操作步骤、证据模板、domain 分组和最终复核命令。该执行包不连接真实外部系统，不保存真实凭证或 endpoint，不把 operator packet ready 等同于 live passed。",
+  "generator": {
+    "command": "bash scripts/external-validation-operator-execution-packet.sh --work-queue-json <external-validation-closure-work-queue.json> --proof-ref-gate-json <external-validation-proof-ref-gate.json> --category-runbooks-json <external-validation-category-runbooks.json> --output-json <external-validation-operator-execution-packet.json>",
+    "pythonEntrypoint": "scripts/external-validation-operator-execution-packet.py",
+    "defaultOutput": "infra/runtime/local-state/exports/audit/external-validation-operator-execution-packet.json"
+  },
+  "outputKind": "fatecat.external_validation_operator_execution_packet",
+  "requiredInputs": [
+    "fatecat.external_validation_closure_work_queue",
+    "fatecat.external_validation_proof_ref_gate_summary",
+    "fatecat.external_validation_category_runbooks"
+  ],
+  "requiredOutputFields": [
+    "schemaVersion",
+    "kind",
+    "status",
+    "generatedAt",
+    "source",
+    "summary",
+    "packetGate",
+    "operatorWorkspace",
+    "domainGroups",
+    "operatorSteps",
+    "proofRefBundleTemplate",
+    "finalGateCommands",
+    "privacyBoundary",
+    "nonClaims"
+  ],
+  "executionPolicy": {
+    "status": "operator_action_required",
+    "packetGate": "blocked until real operator executes category runbooks, uploads redacted proof refs and downstream gates accept evidence.",
+    "noNetwork": "This generator must not execute production API, HF Space, Telegram Bot, Postgres, OTel, IdP, SIEM, Vault, developer portal or third-party audit commands.",
+    "redaction": "Output may contain owner/category ids, work item ids, command templates, required credential names, proof-ref patterns and hashes only; it must not contain endpoint URLs, credential values, DSNs, webhook secrets, chat ids, payloads, user inputs or production logs.",
+    "sourceBinding": "Output must bind to work queue sha256, proof-ref gate sha256, category runbooks sha256, proof-ref contract sha256 and current commit."
+  },
+  "proofRefPolicy": {
+    "templateOnly": true,
+    "bundleKind": "fatecat.external_validation_proof_ref_bundle",
+    "acceptedBy": "scripts/external-validation-proof-ref-gate.sh",
+    "redactionBoundary": "redacted_no_secret_values"
+  },
+  "privacyBoundary": "Operator execution packet 只保存 category、owner、workItemId、occurrence id、required credential 名称、脱敏命令模板、proof-ref pattern、artifact hash 指令、source hash、失败回滚和关闭条件；不得保存真实 URL、token、secret、DSN、webhook secret、chat id、外部账号、生产日志、trace payload、报告正文或用户输入。",
+  "nonClaims": [
+    "Does not execute external live checks.",
+    "Does not prove any external live validation has passed.",
+    "Does not create accepted proof refs by itself.",
+    "Does not replace category-specific live gates.",
+    "Does not replace external-validation-proof-ref-gate.",
+    "Does not replace external-validation-live-proof-gate.",
+    "Does not replace third-party audit.",
+    "Does not mean FateCat is 100% production infrastructure."
+  ]
+}

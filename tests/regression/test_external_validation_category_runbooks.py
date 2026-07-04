@@ -140,6 +140,9 @@ def test_external_validation_category_runbooks_builds_per_category_runbook(tmp_p
     manual_runbook = next(item for item in summary["runbooks"] if item["category"] == "manual_triage")
     assert manual_runbook["priority"] == "P1"
     assert manual_runbook["status"] == "manual_triage_required"
+    assert "postgres-job-store-live-smoke.sh --require-live" not in serialized
+    assert "postgres-worker-heartbeat-polling-smoke.sh --require-live" not in serialized
+    assert "postgres-public-webhook-live-smoke.sh --require-live" not in serialized
     assert "https://" not in serialized
     assert "token=" not in serialized
     assert "secret=" not in serialized
