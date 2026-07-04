@@ -148,6 +148,16 @@ def _write_evidence_dir(root: Path, *, blocked: bool) -> Path:
         },
     )
     _write_json(
+        root / "external-validation-operator-execution-packet.json",
+        {
+            "status": "operator_action_required" if blocked else "passed",
+            "packetGate": {
+                "status": "blocked" if blocked else "passed",
+                "blockingItems": ["operator_external_credentials_required"] if blocked else [],
+            },
+        },
+    )
+    _write_json(
         root / "external-validation-live-proof-gate.json",
         {
             "status": "passed",
@@ -176,6 +186,16 @@ def _write_evidence_dir(root: Path, *, blocked: bool) -> Path:
             },
         },
     )
+    _write_json(
+        root / "external-validation-closure-evidence-summary.json",
+        {
+            "status": "passed",
+            "closureGate": {
+                "status": "blocked" if blocked else "passed",
+                "blockingItems": {"proof_ref_missing": 1, "category_live_evidence_missing": 1} if blocked else {},
+            },
+        },
+    )
     return root
 
 
@@ -187,8 +207,10 @@ def test_certification_contract_lists_required_evidence_files():
     assert "runtime-proof-gate.json" in contract["requiredEvidenceFiles"]
     assert "external-validation-proof-ref-gate.json" in contract["requiredEvidenceFiles"]
     assert "external-validation-category-runbooks.json" in contract["requiredEvidenceFiles"]
+    assert "external-validation-operator-execution-packet.json" in contract["requiredEvidenceFiles"]
     assert "external-validation-live-proof-gate.json" in contract["requiredEvidenceFiles"]
     assert "external-validation-closure-trend-dashboard.json" in contract["requiredEvidenceFiles"]
+    assert "external-validation-closure-evidence-summary.json" in contract["requiredEvidenceFiles"]
     assert "evidenceOverrides" in contract["requiredOutputFields"]
     assert "live-release-gate.json" in contract["optionalEvidenceOverrides"]
     assert "current-audit-bundle/current-audit-bundle.json" in contract["requiredEvidenceFiles"]

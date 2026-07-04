@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.external_validation_closure_evidence_summary_contract",
+  "resourceType": "ExternalValidationClosureEvidenceSummary",
+  "id": "audit.external.validation.closureEvidenceSummary",
+  "status": "baseline",
+  "description": "外部验证 closure evidence summary 契约。该摘要消费 work queue、proof-ref gate、category runbooks、operator execution packet、live proof gate 和 closure trend dashboard，输出按 domain/category/owner 聚合的外部验证关闭状态、缺失证据、operator step、凭证名称和审计可读 next action。它不执行外部请求，不保存真实凭证或 endpoint，不把 pending summary 伪装成 live passed。",
+  "generator": {
+    "command": "bash scripts/external-validation-closure-evidence-summary.sh --work-queue-json <external-validation-closure-work-queue.json> --proof-ref-gate-json <external-validation-proof-ref-gate.json> --category-runbooks-json <external-validation-category-runbooks.json> --operator-packet-json <external-validation-operator-execution-packet.json> --live-proof-gate-json <external-validation-live-proof-gate.json> --closure-trend-dashboard-json <external-validation-closure-trend-dashboard.json> --output-json <external-validation-closure-evidence-summary.json>",
+    "pythonEntrypoint": "scripts/external-validation-closure-evidence-summary.py",
+    "defaultOutput": "infra/runtime/local-state/exports/audit/external-validation-closure-evidence-summary.json"
+  },
+  "outputKind": "fatecat.external_validation_closure_evidence_summary",
+  "requiredInputs": [
+    "fatecat.external_validation_closure_work_queue",
+    "fatecat.external_validation_proof_ref_gate_summary",
+    "fatecat.external_validation_category_runbooks",
+    "fatecat.external_validation_operator_execution_packet",
+    "fatecat.external_validation_live_proof_gate_summary",
+    "fatecat.external_validation_closure_trend_dashboard"
+  ],
+  "requiredOutputFields": [
+    "schemaVersion",
+    "kind",
+    "status",
+    "generatedAt",
+    "source",
+    "summary",
+    "closureGate",
+    "domainSummaries",
+    "categorySummaries",
+    "ownerSummaries",
+    "workItemSummaries",
+    "externalPending",
+    "privacyBoundary",
+    "nonClaims"
+  ],
+  "closurePolicy": {
+    "passed": "Only when every work item has accepted proof-ref and accepted live proof.",
+    "blocked": "Any missing proof-ref, missing live proof, stale alert, manual triage or policy guardrail keeps closure blocked.",
+    "evidenceSource": "This summary is an index of existing local gate artifacts; it does not create proof refs or live proofs."
+  },
+  "privacyBoundary": "Closure evidence summary 只保存 category、domain、owner、workItemId、occurrence count、required credential 名称、operator step id、proof-ref/live 状态、阻断原因和 source hash；不得保存真实 URL、token、secret、DSN、webhook secret、chat id、外部账号、生产日志、trace payload、报告正文或用户输入。",
+  "nonClaims": [
+    "Does not execute external live checks.",
+    "Does not create proof refs or live proofs.",
+    "Does not prove any external live validation has passed.",
+    "Does not replace external-validation-proof-ref-gate.",
+    "Does not replace external-validation-live-proof-gate.",
+    "Does not replace third-party audit.",
+    "Does not mean FateCat is 100% production infrastructure."
+  ]
+}

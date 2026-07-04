@@ -13,6 +13,7 @@ audit/
 ├── dry-run.json
 ├── external-validation-category-runbooks.json
 ├── external-validation-closure.json
+├── external-validation-closure-evidence-summary.json
 ├── external-validation-closure-trend-dashboard.json
 ├── external-validation-closure-work-queue.json
 ├── external-validation-live-proof-gate.json
@@ -34,6 +35,7 @@ audit/
 - `current-bundle.json`：定义 current audit bundle 的输入证据、必备输出、required/local 模式和隐私边界。
 - `external-validation-category-runbooks.json`：定义外部验证 category runbook 契约，为每个 work queue category 固化 required credential、operator command、proof-ref artifact pattern、redaction rule、expiry policy、failure rollback 和 closure condition。
 - `external-validation-closure.json`：定义外部待验证项关闭计划门禁的输入、输出字段、owner/凭证/关闭条件要求和隐私边界。
+- `external-validation-closure-evidence-summary.json`：定义外部验证关闭证据摘要契约，聚合 work queue、proof-ref gate、category runbooks、operator packet、live proof gate 和 trend dashboard，输出审计可读的 domain/category/owner/work item 关闭状态与待补证据。
 - `external-validation-closure-trend-dashboard.json`：定义外部验证关闭趋势 dashboard 契约，聚合 closure plan、work queue、proof-ref gate、category runbooks 和可选 live proof gate，输出 owner/category/status 趋势与 stale alert；不发送真实通知，不关闭 live evidence。
 - `external-validation-closure-work-queue.json`：定义外部待验证项 owner/category 工作队列契约，把 closure plan 聚合成可派发、可跟踪、但仍 pending 的 work item。
 - `external-validation-live-proof-gate.json`：定义外部验证 live proof gate 契约，校验 operator 脱敏 live evidence 与 work item、proof-ref、category runbook 和当前 commit 的绑定；不执行真实生产请求，不替代第三方审计。
@@ -51,6 +53,7 @@ audit/
 - external validation closure work queue 位于 `scripts/external-validation-closure-work-queue.py`，只把 closure plan 按 owner/category 聚合成 work item，补齐 assignee、proofRef、lastCheckedAt、staleReason 和 closeConditionResult；空 proofRef 必须保持 blocked，不连接真实外部系统。
 - external validation proof-ref gate 位于 `scripts/external-validation-proof-ref-gate.py`，消费 work queue 和可选 operator 脱敏 evidence bundle；接受结构不等于生产放行，`shipGate` 必须继续 blocked，直到 category live gate 和第三方审计另行闭合。
 - external validation category runbooks gate 位于 `scripts/external-validation-category-runbooks.py`，消费 work queue，为每个 category 生成 operator runbook；runbook ready 只代表可执行指引齐备，不证明 live evidence 已完成。
+- external validation closure evidence summary generator 位于 `scripts/external-validation-closure-evidence-summary.py`，消费 work queue、proof-ref gate、category runbooks、operator packet、live proof gate 和 trend dashboard，输出审计可读的外部验证关闭状态索引；它不执行外部请求、不生成 proof-ref/live proof、不证明 live passed。
 - external validation closure trend dashboard 位于 `scripts/external-validation-closure-trend-dashboard.py`，消费 closure plan、work queue、proof-ref gate、category runbooks 和可选 live proof gate，输出本地 owner/category/status dashboard 与 stale alert；alert 只是待办提醒，不发送外部通知，不关闭 proof-ref/category live/第三方审计阻断。
 - external validation live proof gate 位于 `scripts/external-validation-live-proof-gate.py`，消费 work queue、proof-ref gate、category runbooks 和可选 operator 脱敏 live evidence bundle；只接受已 schema-accepted proof-ref 对应的 live proof，并继续保持第三方审计/认证阻断。
 - external validation operator execution packet generator 位于 `scripts/external-validation-operator-execution-packet.py`，消费外部验证三件套，输出覆盖所有 category 的 operator 步骤、required credential 名称、proof-ref bundle 模板、domain 分组和最终复核命令；它不执行外部请求、不保存真实 URL/token/DSN/webhook secret、不证明 live passed。

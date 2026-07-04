@@ -323,6 +323,14 @@ run_quick() {
     --category-runbooks-json "${output_dir}/external-validation-category-runbooks.json" \
     --live-proof-gate-json "${output_dir}/external-validation-live-proof-gate.json" \
     --output-json "${output_dir}/external-validation-closure-trend-dashboard.json"
+  run_step "external validation closure evidence summary" bash "${script_dir}/external-validation-closure-evidence-summary.sh" \
+    --work-queue-json "${output_dir}/external-validation-closure-work-queue.json" \
+    --proof-ref-gate-json "${output_dir}/external-validation-proof-ref-gate.json" \
+    --category-runbooks-json "${output_dir}/external-validation-category-runbooks.json" \
+    --operator-packet-json "${output_dir}/external-validation-operator-execution-packet.json" \
+    --live-proof-gate-json "${output_dir}/external-validation-live-proof-gate.json" \
+    --closure-trend-dashboard-json "${output_dir}/external-validation-closure-trend-dashboard.json" \
+    --output-json "${output_dir}/external-validation-closure-evidence-summary.json"
   run_step "measurement infrastructure certification dry-run" bash "${script_dir}/measurement-infrastructure-certification.sh" \
     --evidence-dir "${output_dir}" \
     --output-json "${output_dir}/measurement-infrastructure-certification.json"
@@ -399,6 +407,7 @@ run_quick() {
       tests/regression/test_production_live_delivery_evidence_bundle.py \
       tests/regression/test_external_validation_live_proof_gate.py \
       tests/regression/test_external_validation_closure_trend_dashboard.py \
+      tests/regression/test_external_validation_closure_evidence_summary.py \
       tests/regression/test_measurement_infrastructure_certification.py \
       tests/regression/test_current_release_proof.py \
       tests/regression/test_live_release_gate.py \
@@ -566,6 +575,7 @@ write_summary() {
   FATE_LOCAL_CI_PRODUCTION_LIVE_DELIVERY_EVIDENCE_BUNDLE="${output_dir}/production-live-delivery-evidence-bundle.json" \
   FATE_LOCAL_CI_EXTERNAL_VALIDATION_LIVE_PROOF_GATE="${output_dir}/external-validation-live-proof-gate.json" \
   FATE_LOCAL_CI_EXTERNAL_VALIDATION_CLOSURE_TREND_DASHBOARD="${output_dir}/external-validation-closure-trend-dashboard.json" \
+  FATE_LOCAL_CI_EXTERNAL_VALIDATION_CLOSURE_EVIDENCE_SUMMARY="${output_dir}/external-validation-closure-evidence-summary.json" \
   FATE_LOCAL_CI_MEASUREMENT_INFRASTRUCTURE_CERTIFICATION="${output_dir}/measurement-infrastructure-certification.json" \
   "${summary_python}" - <<'PY'
 import json
@@ -658,6 +668,9 @@ payload = {
         "productionLiveDeliveryEvidenceBundle": env("FATE_LOCAL_CI_PRODUCTION_LIVE_DELIVERY_EVIDENCE_BUNDLE"),
         "externalValidationLiveProofGate": env("FATE_LOCAL_CI_EXTERNAL_VALIDATION_LIVE_PROOF_GATE"),
         "externalValidationClosureTrendDashboard": env("FATE_LOCAL_CI_EXTERNAL_VALIDATION_CLOSURE_TREND_DASHBOARD"),
+        "externalValidationClosureEvidenceSummary": env(
+            "FATE_LOCAL_CI_EXTERNAL_VALIDATION_CLOSURE_EVIDENCE_SUMMARY"
+        ),
         "measurementInfrastructureCertification": env("FATE_LOCAL_CI_MEASUREMENT_INFRASTRUCTURE_CERTIFICATION"),
     },
     "privacyBoundary": "只记录命令产物路径、commit 和状态，不复制测试日志全文或用户报告内容。",
