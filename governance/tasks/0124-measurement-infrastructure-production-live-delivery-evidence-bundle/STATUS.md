@@ -21,7 +21,7 @@
 | TP-02 | ROOT | 1 | TP-01 | No | Done | Contract/script/wrapper added | - | - |
 | TP-03 | ROOT | 1 | TP-02 | No | Done | local-ci/live-proof/AGENTS wiring added | - | - |
 | TP-04 | ROOT | 1 | TP-03 | No | Done | Targeted pytest 19 passed; ruff check/format passed; task docs passed; secret scan passed; artifact chain passed; quick CI 337 passed | - | - |
-| TP-05 | ROOT | 1 | TP-04 | No | Done | Commit `109a964` pushed; remote Acceptance and Container observed success for implementation commit | - | - |
+| TP-05 | ROOT | 1 | TP-04 | No | Done | Commits `109a964` and `8b59d99` pushed; remote Acceptance `28694370390` and Container `28694370250` observed success for final closeout commit `8b59d99` | - | - |
 
 # Blockers
 
@@ -36,3 +36,6 @@ No blocker for this local infrastructure slice. Real production live execution s
   - `/tmp/fatecat-production-live-delivery-chain-0124/production-live-delivery-evidence-bundle.json`
   - `/tmp/fatecat-production-live-delivery-chain-0124/external-validation-live-proof-gate.json`
   - `/tmp/fatecat-local-ci-production-live-delivery-0124/summary.json`
+- Remote CI evidence:
+  - Acceptance: `https://github.com/tradecatlabs/fatecat/actions/runs/28694370390`
+  - Container: `https://github.com/tradecatlabs/fatecat/actions/runs/28694370250`
