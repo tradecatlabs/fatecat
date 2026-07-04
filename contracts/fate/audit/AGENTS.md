@@ -18,6 +18,7 @@ audit/
 ├── external-validation-closure-work-queue.json
 ├── external-validation-issue-export.json
 ├── external-validation-tracker-import-package.json
+├── external-validation-tracker-issue-evidence.json
 ├── external-validation-live-proof-gate.json
 ├── external-validation-operator-execution-packet.json
 ├── external-validation-proof-ref.json
@@ -43,6 +44,7 @@ audit/
 - `external-validation-closure-work-queue.json`：定义外部待验证项 owner/category 工作队列契约，把 closure plan 聚合成可派发、可跟踪、但仍 pending 的 work item。
 - `external-validation-issue-export.json`：定义外部验证 issue export 契约，把 pending work item 转成可导入 issue tracker 的脱敏执行卡片；不创建真实 issue、不请求网络、不证明 live evidence 已完成。
 - `external-validation-tracker-import-package.json`：定义外部验证 tracker import package 契约，把 issue export 转成独立 issue body 文件、import manifest 和人工可复核 tracker CLI 命令文本；不创建真实 issue、不执行 `gh`、不证明 live evidence 已完成。
+- `external-validation-tracker-issue-evidence.json`：定义外部验证 tracker issue 创建证据门禁契约，验证 operator 提供的脱敏 issue ref、workItemId、issueTemplateId 和 body hash 与 tracker import package 绑定；不创建真实 issue、不执行 `gh`、不证明 live evidence 已完成。
 - `external-validation-live-proof-gate.json`：定义外部验证 live proof gate 契约，校验 operator 脱敏 live evidence 与 work item、proof-ref、category runbook 和当前 commit 的绑定；不执行真实生产请求，不替代第三方审计。
 - `external-validation-operator-execution-packet.json`：定义外部验证 operator execution packet 契约，为当前 22 个 external validation category 生成统一脱敏操作包、proof-ref 模板、domain 分组和最终复核命令。
 - `external-validation-proof-ref.json`：定义外部验证 proof-ref 与 evidence upload 契约，只校验证据句柄、hash、时间窗、redaction、current commit 与 work item 绑定，不证明外部 live 已通过。
@@ -62,6 +64,7 @@ audit/
 - external validation closure evidence summary generator 位于 `scripts/external-validation-closure-evidence-summary.py`，消费 work queue、proof-ref gate、category runbooks、operator packet、live proof gate 和 trend dashboard，输出审计可读的外部验证关闭状态索引；它不执行外部请求、不生成 proof-ref/live proof、不证明 live passed。
 - external validation issue export generator 位于 `scripts/external-validation-issue-export.py`，消费 work queue、category runbooks、operator packet 和 closure evidence summary，把仍 pending 的外部验证 work item 转为脱敏 issue 模板；它不创建真实 issue、不请求网络、不保存真实 URL/token/DSN/webhook secret、不证明 live passed。
 - external validation tracker import package generator 位于 `scripts/external-validation-tracker-import-package.py`，消费 issue export，输出独立 issue body files、import manifest 和人工可复核的 tracker CLI command text；它不创建真实 issue、不执行 `gh`、不请求网络、不保存真实 URL/token/DSN/webhook secret、不证明 live passed。
+- external validation tracker issue evidence gate 位于 `scripts/external-validation-tracker-issue-evidence-gate.py`，消费 tracker import package 和可选 operator 脱敏 issue evidence bundle；它只验证 tracker issue ref/hash/work item 绑定，不创建真实 issue、不执行 `gh`、不请求网络、不证明 live passed。
 - external validation closure trend dashboard 位于 `scripts/external-validation-closure-trend-dashboard.py`，消费 closure plan、work queue、proof-ref gate、category runbooks 和可选 live proof gate，输出本地 owner/category/status dashboard 与 stale alert；alert 只是待办提醒，不发送外部通知，不关闭 proof-ref/category live/第三方审计阻断。
 - external validation live proof gate 位于 `scripts/external-validation-live-proof-gate.py`，消费 work queue、proof-ref gate、category runbooks 和可选 operator 脱敏 live evidence bundle；只接受已 schema-accepted proof-ref 对应的 live proof，并继续保持第三方审计/认证阻断。
 - external validation operator execution packet generator 位于 `scripts/external-validation-operator-execution-packet.py`，消费外部验证三件套，输出覆盖所有 category 的 operator 步骤、required credential 名称、proof-ref bundle 模板、domain 分组和最终复核命令；它不执行外部请求、不保存真实 URL/token/DSN/webhook secret、不证明 live passed。

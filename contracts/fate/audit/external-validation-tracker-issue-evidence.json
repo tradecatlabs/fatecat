@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.external_validation_tracker_issue_evidence_contract",
+  "resourceType": "ExternalValidationTrackerIssueEvidenceGate",
+  "id": "audit.external.validation.trackerIssueEvidenceGate",
+  "status": "baseline",
+  "description": "外部验证 tracker issue 创建证据门禁契约。该门禁消费 external validation tracker import package 和可选 operator 提供的脱敏 tracker issue evidence bundle，验证真实创建的 tracker issue 引用、body hash、workItemId 与 import package 逐项绑定。该门禁不创建 issue、不请求网络、不执行 gh、不证明 live proof 或第三方审计已完成。",
+  "generator": {
+    "command": "bash scripts/external-validation-tracker-issue-evidence-gate.sh --tracker-import-package-json <external-validation-tracker-import-package.json> --output-json <external-validation-tracker-issue-evidence-gate.json>",
+    "pythonEntrypoint": "scripts/external-validation-tracker-issue-evidence-gate.py",
+    "defaultOutputJson": "infra/runtime/local-state/exports/audit/external-validation-tracker-issue-evidence-gate.json"
+  },
+  "inputKind": "fatecat.external_validation_tracker_import_package",
+  "optionalEvidenceKind": "fatecat.external_validation_tracker_issue_evidence_bundle",
+  "outputKind": "fatecat.external_validation_tracker_issue_evidence_gate",
+  "requiredOutputFields": [
+    "schemaVersion",
+    "kind",
+    "status",
+    "generatedAt",
+    "source",
+    "summary",
+    "issueCreation",
+    "issueEvidenceGate",
+    "shipGate",
+    "acceptedIssues",
+    "rejectedIssues",
+    "pendingWorkItems",
+    "privacyBoundary",
+    "nonClaims"
+  ],
+  "evidenceBundlePolicy": {
+    "createsIssues": false,
+    "executesCommands": false,
+    "acceptedTrackerIssueRefPattern": "github:<owner>/<repo>#<number>",
+    "requiredLabels": [
+      "external-validation",
+      "measurement-infrastructure",
+      "operator-action-required"
+    ],
+    "sourceBinding": [
+      "trackerImportPackageSha256",
+      "commit",
+      "workItemId",
+      "issueTemplateId",
+      "bodySha256"
+    ],
+    "redactionStatus": "redacted_no_secret_values"
+  },
+  "executionPolicy": {
+    "defaultStatus": "external_connectivity_pending",
+    "noNetwork": "This gate must not call GitHub, gh, production API, HF Space, Telegram Bot, Postgres, OTel, IdP, SIEM, Vault, developer portal or third-party audit services.",
+    "redaction": "Evidence may contain sanitized tracker issue refs, labels, work item ids, issue template ids, body hashes, artifact hashes, createdAt and createdByRole only; it must not contain raw URLs, credential values, DSNs, webhook secrets, chat ids, payloads, user inputs or production logs.",
+    "sourceBinding": "Output must bind to tracker import package sha256, tracker import package kind and current commit.",
+    "shipGate": "Even when all tracker issue evidence is accepted, production live proof, certification and third-party audit gates remain blocked until their own evidence is supplied."
+  },
+  "privacyBoundary": "Tracker issue evidence gate 只保存脱敏 tracker issue ref、label、workItemId、issueTemplateId、body hash、artifact hash、createdAt、createdByRole 和 gate 状态；不得保存真实 URL、token、secret、DSN、webhook secret、chat id、外部账号、生产日志、trace payload、报告正文或用户输入。",
+  "nonClaims": [
+    "Does not create issues in GitHub or any external tracker.",
+    "Does not execute gh or tracker CLI commands.",
+    "Does not execute external live checks.",
+    "Does not prove any external live validation has passed.",
+    "Does not create accepted proof refs by itself.",
+    "Does not replace external-validation-proof-ref-gate.",
+    "Does not replace external-validation-live-proof-gate.",
+    "Does not replace third-party audit.",
+    "Does not mean FateCat is 100% production infrastructure."
+  ]
+}
