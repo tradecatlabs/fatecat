@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.external_validation_tracker_import_package_contract",
+  "resourceType": "ExternalValidationTrackerImportPackage",
+  "id": "audit.external.validation.trackerImportPackage",
+  "status": "baseline",
+  "description": "外部验证 tracker import package 契约。该包消费 external validation issue export，生成独立 issue body 文件、导入 manifest 和人工可复核的 tracker CLI 命令清单。该包不创建真实 issue、不请求网络、不执行 gh、不保存凭证或 endpoint、不把 package ready 等同于 issue created 或 live passed。",
+  "generator": {
+    "command": "bash scripts/external-validation-tracker-import-package.sh --issue-export-json <external-validation-issue-export.json> --package-dir <external-validation-tracker-import-package> --output-json <external-validation-tracker-import-package.json> --output-markdown <EXTERNAL_VALIDATION_TRACKER_IMPORT_PACKAGE.md>",
+    "pythonEntrypoint": "scripts/external-validation-tracker-import-package.py",
+    "defaultPackageDir": "infra/runtime/local-state/exports/audit/external-validation-tracker-import-package",
+    "defaultOutputJson": "infra/runtime/local-state/exports/audit/external-validation-tracker-import-package.json",
+    "defaultOutputMarkdown": "infra/runtime/local-state/exports/audit/EXTERNAL_VALIDATION_TRACKER_IMPORT_PACKAGE.md"
+  },
+  "inputKind": "fatecat.external_validation_issue_export",
+  "outputKind": "fatecat.external_validation_tracker_import_package",
+  "requiredOutputFields": [
+    "schemaVersion",
+    "kind",
+    "status",
+    "generatedAt",
+    "source",
+    "summary",
+    "packageGate",
+    "trackerImport",
+    "files",
+    "commands",
+    "privacyBoundary",
+    "nonClaims"
+  ],
+  "executionPolicy": {
+    "status": "operator_action_required",
+    "packageGate": "blocked until an operator reviews the package, creates tracker issues, executes real external validations, and proof-ref/live-proof gates accept redacted evidence.",
+    "noNetwork": "This generator must not call GitHub, gh, production API, HF Space, Telegram Bot, Postgres, OTel, IdP, SIEM, Vault, developer portal or third-party audit services.",
+    "redaction": "Output may contain issue titles, labels, owner/category ids, work item ids, occurrence ids, credential variable names, command templates, body file paths and hashes only; it must not contain endpoint URLs, credential values, DSNs, webhook secrets, chat ids, payloads, user inputs or production logs.",
+    "sourceBinding": "Output must bind to issue export sha256, issue export kind and current commit."
+  },
+  "trackerPolicy": {
+    "tracker": "github_issues",
+    "createsIssues": false,
+    "executesCommands": false,
+    "allowedUse": "Operator may review issue body files and command text, then manually run or import them in an approved tracker session.",
+    "requiredLabels": [
+      "external-validation",
+      "measurement-infrastructure",
+      "operator-action-required"
+    ]
+  },
+  "privacyBoundary": "Tracker import package 只保存 issue body markdown、body file path、title、label、owner/category/workItemId、required credential 名称、脱敏命令文本、hash 和关闭条件；不得保存真实 URL、token、secret、DSN、webhook secret、chat id、外部账号、生产日志、trace payload、报告正文或用户输入。",
+  "nonClaims": [
+    "Does not create issues in GitHub or any external tracker.",
+    "Does not execute gh or tracker CLI commands.",
+    "Does not execute external live checks.",
+    "Does not prove any external live validation has passed.",
+    "Does not create accepted proof refs by itself.",
+    "Does not replace external-validation-proof-ref-gate.",
+    "Does not replace external-validation-live-proof-gate.",
+    "Does not replace third-party audit.",
+    "Does not mean FateCat is 100% production infrastructure."
+  ]
+}

@@ -338,6 +338,11 @@ run_quick() {
     --closure-evidence-summary-json "${output_dir}/external-validation-closure-evidence-summary.json" \
     --output-json "${output_dir}/external-validation-issue-export.json" \
     --output-markdown "${output_dir}/EXTERNAL_VALIDATION_ISSUE_EXPORT.md"
+  run_step "external validation tracker import package" bash "${script_dir}/external-validation-tracker-import-package.sh" \
+    --issue-export-json "${output_dir}/external-validation-issue-export.json" \
+    --package-dir "${output_dir}/external-validation-tracker-import-package" \
+    --output-json "${output_dir}/external-validation-tracker-import-package.json" \
+    --output-markdown "${output_dir}/EXTERNAL_VALIDATION_TRACKER_IMPORT_PACKAGE.md"
   run_step "measurement infrastructure certification dry-run" bash "${script_dir}/measurement-infrastructure-certification.sh" \
     --evidence-dir "${output_dir}" \
     --output-json "${output_dir}/measurement-infrastructure-certification.json"
@@ -424,6 +429,7 @@ run_quick() {
       tests/regression/test_external_validation_closure_trend_dashboard.py \
       tests/regression/test_external_validation_closure_evidence_summary.py \
       tests/regression/test_external_validation_issue_export.py \
+      tests/regression/test_external_validation_tracker_import_package.py \
       tests/regression/test_measurement_infrastructure_certification.py \
       tests/regression/test_third_party_audit_rehearsal.py \
       tests/regression/test_current_release_proof.py \
@@ -595,6 +601,9 @@ write_summary() {
   FATE_LOCAL_CI_EXTERNAL_VALIDATION_CLOSURE_EVIDENCE_SUMMARY="${output_dir}/external-validation-closure-evidence-summary.json" \
   FATE_LOCAL_CI_EXTERNAL_VALIDATION_ISSUE_EXPORT="${output_dir}/external-validation-issue-export.json" \
   FATE_LOCAL_CI_EXTERNAL_VALIDATION_ISSUE_EXPORT_MARKDOWN="${output_dir}/EXTERNAL_VALIDATION_ISSUE_EXPORT.md" \
+  FATE_LOCAL_CI_EXTERNAL_VALIDATION_TRACKER_IMPORT_PACKAGE="${output_dir}/external-validation-tracker-import-package.json" \
+  FATE_LOCAL_CI_EXTERNAL_VALIDATION_TRACKER_IMPORT_PACKAGE_DIR="${output_dir}/external-validation-tracker-import-package" \
+  FATE_LOCAL_CI_EXTERNAL_VALIDATION_TRACKER_IMPORT_PACKAGE_MARKDOWN="${output_dir}/EXTERNAL_VALIDATION_TRACKER_IMPORT_PACKAGE.md" \
   FATE_LOCAL_CI_MEASUREMENT_INFRASTRUCTURE_CERTIFICATION="${output_dir}/measurement-infrastructure-certification.json" \
   FATE_LOCAL_CI_THIRD_PARTY_AUDIT_REHEARSAL="${output_dir}/third-party-audit-rehearsal.json" \
   FATE_LOCAL_CI_THIRD_PARTY_AUDIT_REHEARSAL_MARKDOWN="${output_dir}/THIRD_PARTY_AUDIT_REHEARSAL.md" \
@@ -694,6 +703,15 @@ payload = {
         ),
         "externalValidationIssueExport": env("FATE_LOCAL_CI_EXTERNAL_VALIDATION_ISSUE_EXPORT"),
         "externalValidationIssueExportMarkdown": env("FATE_LOCAL_CI_EXTERNAL_VALIDATION_ISSUE_EXPORT_MARKDOWN"),
+        "externalValidationTrackerImportPackage": env(
+            "FATE_LOCAL_CI_EXTERNAL_VALIDATION_TRACKER_IMPORT_PACKAGE"
+        ),
+        "externalValidationTrackerImportPackageDir": env(
+            "FATE_LOCAL_CI_EXTERNAL_VALIDATION_TRACKER_IMPORT_PACKAGE_DIR"
+        ),
+        "externalValidationTrackerImportPackageMarkdown": env(
+            "FATE_LOCAL_CI_EXTERNAL_VALIDATION_TRACKER_IMPORT_PACKAGE_MARKDOWN"
+        ),
         "measurementInfrastructureCertification": env("FATE_LOCAL_CI_MEASUREMENT_INFRASTRUCTURE_CERTIFICATION"),
         "thirdPartyAuditRehearsal": env("FATE_LOCAL_CI_THIRD_PARTY_AUDIT_REHEARSAL"),
         "thirdPartyAuditRehearsalMarkdown": env("FATE_LOCAL_CI_THIRD_PARTY_AUDIT_REHEARSAL_MARKDOWN"),
