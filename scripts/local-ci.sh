@@ -369,6 +369,16 @@ run_quick() {
     --independent-audit-result-gate-json "${output_dir}/independent-audit-result-gate.json" \
     --output-json "${output_dir}/third-party-audit-rehearsal.json" \
     --output-markdown "${output_dir}/THIRD_PARTY_AUDIT_REHEARSAL.md"
+  run_step "external evidence submission readiness audit" bash "${script_dir}/external-evidence-submission-readiness-audit.sh" \
+    --work-queue-json "${output_dir}/external-validation-closure-work-queue.json" \
+    --proof-ref-gate-json "${output_dir}/external-validation-proof-ref-gate.json" \
+    --live-proof-gate-json "${output_dir}/external-validation-live-proof-gate.json" \
+    --operator-packet-json "${output_dir}/external-validation-operator-execution-packet.json" \
+    --core-quality-human-review-json "${output_dir}/core-quality-human-review-gate.json" \
+    --third-party-audit-rehearsal-json "${output_dir}/third-party-audit-rehearsal.json" \
+    --certification-json "${output_dir}/measurement-infrastructure-certification.json" \
+    --output-json "${output_dir}/external-evidence-submission-readiness-audit.json" \
+    --output-markdown "${output_dir}/EXTERNAL_EVIDENCE_SUBMISSION_READINESS_AUDIT.md"
   run_step "ruff check" env RUFF_CACHE_DIR="${RUFF_CACHE_DIR:-/tmp/fatecat-ruff-cache}" \
     "${python_bin}" -m ruff check "${runtime_root}"
   run_step "ruff format check" env RUFF_CACHE_DIR="${RUFF_CACHE_DIR:-/tmp/fatecat-ruff-cache}" \
@@ -451,6 +461,7 @@ run_quick() {
       tests/regression/test_independent_audit_result_gate.py \
       tests/regression/test_measurement_infrastructure_certification.py \
       tests/regression/test_third_party_audit_rehearsal.py \
+      tests/regression/test_external_evidence_submission_readiness_audit.py \
       tests/regression/test_current_release_proof.py \
       tests/regression/test_live_release_gate.py \
       tests/regression/test_container_release_evidence.py \
@@ -631,6 +642,8 @@ write_summary() {
   FATE_LOCAL_CI_MEASUREMENT_INFRASTRUCTURE_CERTIFICATION="${output_dir}/measurement-infrastructure-certification.json" \
   FATE_LOCAL_CI_THIRD_PARTY_AUDIT_REHEARSAL="${output_dir}/third-party-audit-rehearsal.json" \
   FATE_LOCAL_CI_THIRD_PARTY_AUDIT_REHEARSAL_MARKDOWN="${output_dir}/THIRD_PARTY_AUDIT_REHEARSAL.md" \
+  FATE_LOCAL_CI_EXTERNAL_EVIDENCE_SUBMISSION_READINESS_AUDIT="${output_dir}/external-evidence-submission-readiness-audit.json" \
+  FATE_LOCAL_CI_EXTERNAL_EVIDENCE_SUBMISSION_READINESS_AUDIT_MARKDOWN="${output_dir}/EXTERNAL_EVIDENCE_SUBMISSION_READINESS_AUDIT.md" \
   "${summary_python}" - <<'PY'
 import json
 import os
@@ -750,6 +763,12 @@ payload = {
         "measurementInfrastructureCertification": env("FATE_LOCAL_CI_MEASUREMENT_INFRASTRUCTURE_CERTIFICATION"),
         "thirdPartyAuditRehearsal": env("FATE_LOCAL_CI_THIRD_PARTY_AUDIT_REHEARSAL"),
         "thirdPartyAuditRehearsalMarkdown": env("FATE_LOCAL_CI_THIRD_PARTY_AUDIT_REHEARSAL_MARKDOWN"),
+        "externalEvidenceSubmissionReadinessAudit": env(
+            "FATE_LOCAL_CI_EXTERNAL_EVIDENCE_SUBMISSION_READINESS_AUDIT"
+        ),
+        "externalEvidenceSubmissionReadinessAuditMarkdown": env(
+            "FATE_LOCAL_CI_EXTERNAL_EVIDENCE_SUBMISSION_READINESS_AUDIT_MARKDOWN"
+        ),
     },
     "privacyBoundary": "只记录命令产物路径、commit 和状态，不复制测试日志全文或用户报告内容。",
     "limitations": [

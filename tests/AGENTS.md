@@ -32,6 +32,7 @@ tests/
 	    ├── test_external_validation_live_proof_gate.py
 	    ├── test_external_validation_operator_execution_packet.py
 	    ├── test_external_validation_closure_trend_dashboard.py
+	    ├── test_external_evidence_submission_readiness_audit.py
 	    ├── test_production_live_operator_execution_packet.py
 	    ├── test_independent_audit_result_gate.py
 	    ├── test_measurement_infrastructure_certification.py
@@ -83,6 +84,7 @@ tests/
 - `regression/test_production_live_operator_execution_packet.py`：production live operator execution packet 合同；验证执行包 contract、脱敏 operator steps、proof-ref bundle 模板、CLI 输出、敏感赋值拒绝和 local-ci/AGENTS/roadmap 接线，不执行真实外部请求。
 - `regression/test_production_live_delivery_evidence_bundle.py`：production live delivery evidence bundle 合同；验证 API/HF/Bot/webhook/parity 脱敏 summary 可转换为 live proof bundle，默认无真实 summary 只 pending，敏感输入拒绝，输出不复制 raw URL，并可被 external validation live proof gate 接受。
 - `regression/test_external_validation_closure_trend_dashboard.py`：external validation closure trend dashboard 合同；验证 closure plan/work queue/proof-ref/category runbook/live proof gate 聚合、owner/category/status 趋势、stale alert、缺 runbook 拒绝、local-ci/certification 接线，以及 alert 不等于 live evidence closure。
+- `regression/test_external_evidence_submission_readiness_audit.py`：external evidence submission readiness audit 合同；验证 proof-ref、live proof、operator packet、core quality human review、third-party audit rehearsal 和 certification 聚合为提交准备度矩阵，默认阻断不被伪造通过，合成全绿可通过，CLI/Markdown 输出和敏感值/raw URL 拒绝。
 - `regression/test_measurement_infrastructure_certification.py`：100% 测算基础设施 certification aggregator dry-run 合同；验证 local-ci 产物聚合、external validation tracker import/template/gate 审计桥接、blocked dry-run、require-certified 拒绝、缺证据失败和合成全绿通过。
 - `regression/test_independent_audit_result_gate.py`：独立第三方审计结果 intake gate 合同；验证默认 pending、脱敏 signed result bundle accepted、审计 rejected、commit mismatch、raw URL/敏感片段/占位证据拒绝和 CLI 输出。
 - `regression/test_third_party_audit_rehearsal.py`：第三方审计预演包合同；验证 current audit bundle、audit dry-run、release proof、certification、closure evidence summary、tracker import package、tracker issue evidence template、tracker issue evidence gate 和 independent audit result gate 能聚合成审计 checklist，且外部 pending/tracker issue evidence/独立审计 gate 未通过时 rehearsalGate 仍 blocked。

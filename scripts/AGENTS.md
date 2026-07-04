@@ -53,6 +53,8 @@ scripts/
 ├── external-validation-live-proof-gate.py
 ├── external-validation-operator-execution-packet.sh
 ├── external-validation-operator-execution-packet.py
+├── external-evidence-submission-readiness-audit.sh
+├── external-evidence-submission-readiness-audit.py
 ├── production-live-delivery-evidence-bundle.sh
 ├── production-live-delivery-evidence-bundle.py
 ├── production-live-operator-execution-packet.sh
@@ -188,6 +190,7 @@ scripts/
 - `external-validation-closure-trend-dashboard.sh` / `external-validation-closure-trend-dashboard.py` 是外部验证关闭趋势 dashboard 门禁；消费 closure plan、work queue、proof-ref gate、category runbooks 和可选 live proof gate，输出 owner/category/status 趋势、stale owner alert 和本地 summary artifact；不发送真实通知、不连接 issue tracker、不把 alert ack 当作 live evidence closure。
 - `external-validation-live-proof-gate.sh` / `external-validation-live-proof-gate.py` 是外部验证 live proof 门禁；消费 work queue、proof-ref gate、category runbooks 和可选 operator 脱敏 live evidence bundle，校验 live proof 与 proof-ref/runbook/source/current commit 的绑定；不发起真实生产请求，不把 operator evidence 直接等同第三方审计。
 - `external-validation-operator-execution-packet.sh` / `external-validation-operator-execution-packet.py` 是外部验证 operator execution packet 生成器；消费 work queue、proof-ref gate 和 category runbooks，为全部 external validation category 输出脱敏操作步骤、required credential 名称、proof-ref bundle 模板、domain 分组和最终复核命令；不执行真实外部请求，不保存敏感值，不声明 live passed。
+- `external-evidence-submission-readiness-audit.sh` / `external-evidence-submission-readiness-audit.py` 是外部证据提交准备度审计器；聚合 work queue、proof-ref gate、live proof gate、operator packet、core quality human review gate、third-party audit rehearsal 和 certification，输出 current commit 可提交/待提交/阻断矩阵；不执行真实 live、不上传证据、不解除 certification 阻断。
 - `production-live-delivery-evidence-bundle.sh` / `production-live-delivery-evidence-bundle.py` 是生产交付 live evidence bundle 装配器；消费 live-release gate、Postgres public webhook live smoke 和 multi-surface semantic diff 的脱敏 summary，把 API/HF/Bot/webhook/parity 的通过证据转换为 `fatecat.external_validation_live_evidence_bundle`，默认无真实证据时只输出 pending，不复制 URL/token/DSN/webhook secret。
 - `production-live-operator-execution-packet.sh` / `production-live-operator-execution-packet.py` 是生产 live operator execution packet 生成器；消费 work queue、proof-ref gate 和 category runbooks，输出执行顺序、必需环境变量名、proof-ref bundle 模板和最终 gate 命令，供真实凭证到位后按同一套证据链执行；不连接真实 API/Bot/Postgres/webhook，不保存敏感值，不声明 live passed。
 - `container-build.sh`：构建 FateCat delivery 镜像。
