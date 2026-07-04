@@ -1,8 +1,8 @@
 # Task Status
-- Overall Status: `In Progress`
+- Overall Status: `Done`
 
 # Next Executable Leaves
-- TP-05.02 | Wave 5 | Depends On: TP-05.01 | Gate: 提交推送完成，远端 Acceptance 对当前 commit 成功或明确记录 pending/failure。
+- None.
 
 # Task Package Status Table
 | Node ID | Parent | Depth | Depends On | Ready | Status | Recent Evidence | Blocker | Unblock Needed |
@@ -19,9 +19,9 @@
 | TP-04 | ROOT | 1 | TP-03.01, TP-03.02 | No | Done | Roadmap, AGENTS, registry and task docs synced. | - | - |
 | TP-04.01 | TP-04 | 2 | TP-03.01, TP-03.02 | No | Done | Roadmap markers for `6.42`, `0152`, `core_quality_human_review_bundle`, `template-only` and `Post-0151` are present. | - | - |
 | TP-04.02 | TP-04 | 2 | TP-03.01, TP-03.02 | No | Done | `python3 /home/lenovo/.codex/skills/auto-tasks/scripts/validate_task_docs.py --task-dir governance/tasks/0152-measurement-infrastructure-core-quality-evidence-bundle-rehearsal --phase decompose` passed during compile/apply and will be rerun before commit. | - | - |
-| TP-05 | ROOT | 1 | TP-04.01, TP-04.02 | No | In Progress | Local validation completed; git delivery remains. | - | - |
+| TP-05 | ROOT | 1 | TP-04.01, TP-04.02 | No | Done | Local validation, commit, push and remote Acceptance evidence completed for the implementation delivery. | - | - |
 | TP-05.01 | TP-05 | 2 | TP-04.01, TP-04.02 | No | Done | Related regression `16 passed`; data supply chain gate passed; quick local-ci `/tmp/fatecat-local-ci-0152-core-quality-template` passed with `401 passed`; template artifact remains `operator_action_required`; core quality human review gate remains blocked-as-expected. | - | - |
-| TP-05.02 | TP-05 | 2 | TP-04.01, TP-04.02, TP-05.01 | No | Pending | - | git delivery pending | Commit, push, then watch remote Acceptance for current commit. |
+| TP-05.02 | TP-05 | 2 | TP-04.01, TP-04.02, TP-05.01 | No | Done | Commit `5aa1bf1 feat: add core quality review bundle template` was pushed to `origin/main`; GitHub Actions `FateCat Acceptance` run `28720084583` completed with `success` for head SHA `5aa1bf17c933ab301fe56be310d6dd7f53af14bc`. | - | - |
 
 # Blockers
 - No local implementation blocker remains.
@@ -37,4 +37,5 @@
 | control-plane gate | passed, `resources=4`, `checks=217`, EvaluationRun count now `7` |
 | quick local-ci | `/tmp/fatecat-local-ci-0152-core-quality-template`, focused regression `401 passed` |
 | certification | `status=blocked`, `canClaim100Percent=false`, expected because external evidence is still missing |
-| next action | TP-05.02 commit/push/remote Acceptance |
+| git delivery | implementation commit `5aa1bf1` pushed; remote Acceptance `28720084583` passed |
+| next action | no 0152 task-tree leaves remain; continue future external evidence work under a new task |

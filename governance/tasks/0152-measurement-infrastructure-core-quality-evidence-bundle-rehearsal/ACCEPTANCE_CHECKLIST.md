@@ -183,16 +183,16 @@
 ## TP-05
 - 标题: 验证、审查与版本控制
 - 验收项:
-  - [ ] 达成 `验证、审查与版本控制` 的 objective，且输出物可复核
+  - [x] 达成 `验证、审查与版本控制` 的 objective，且输出物可复核
 - Verify: 确认子节点范围、依赖与状态闭环
 - Gate: 前置步骤已完成: docs_and_roadmap
 - 输出物:
-  - [ ] 执行 targeted tests、lint、local-ci、diff check、提交推送并观察远端 CI。
+  - [x] 执行 targeted tests、lint、local-ci、diff check、提交推送并观察远端 CI。
 - 标准清单:
-  - [ ] Verify: 确认子节点范围、依赖与状态闭环
-  - [ ] Gate: 前置步骤已完成: docs_and_roadmap
-  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`
-  - [ ] 交付前完成 REVIEW / SHIP 自检
+  - [x] Verify: 确认子节点范围、依赖与状态闭环
+  - [x] Gate: 前置步骤已完成: docs_and_roadmap
+  - [x] 完成后更新 `STATUS.md` 的 `Recent Evidence`
+  - [x] 交付前完成 REVIEW / SHIP 自检
 
 ### TP-05.01
 - 标题: 执行本地验证
@@ -211,13 +211,13 @@
 ### TP-05.02
 - 标题: 提交推送并观察远端 Acceptance
 - 验收项:
-  - [ ] 达成 `提交推送并观察远端 Acceptance` 的 objective，且输出物可复核
+  - [x] 达成 `提交推送并观察远端 Acceptance` 的 objective，且输出物可复核
 - Verify: git status --short --branch && git log -1 --oneline --decorate && gh run list --workflow Acceptance --limit 5
 - Gate: 提交推送完成，远端 Acceptance 对当前 commit 成功或明确记录 pending/failure。
 - 输出物:
-  - [ ] Git commit and remote Acceptance evidence
+  - [x] Git commit and remote Acceptance evidence
 - 标准清单:
-  - [ ] Verify: git status --short --branch && git log -1 --oneline --decorate && gh run list --workflow Acceptance --limit 5
-  - [ ] Gate: 提交推送完成，远端 Acceptance 对当前 commit 成功或明确记录 pending/failure。
-  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`
-  - [ ] 交付前完成 REVIEW / SHIP 自检
+  - [x] Verify: git status --short --branch && git log -1 --oneline --decorate && gh run list --workflow Acceptance --limit 5
+  - [x] Gate: 提交推送完成，远端 Acceptance 对当前 commit 成功或明确记录 pending/failure。
+  - [x] 完成后更新 `STATUS.md` 的 `Recent Evidence`
+  - [x] 交付前完成 REVIEW / SHIP 自检
