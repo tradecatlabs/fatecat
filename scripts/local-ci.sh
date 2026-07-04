@@ -199,6 +199,8 @@ run_quick() {
     --year 2025 \
     --sample 5 \
     --output-json "${output_dir}/mingli-bench-gate.json"
+  run_step "core quality human review gate" bash "${script_dir}/core-quality-human-review-gate.sh" \
+    --output-json "${output_dir}/core-quality-human-review-gate.json"
   run_step "data supply chain gate" bash "${script_dir}/data-supply-chain-gate.sh" \
     --output-json "${output_dir}/data-supply-chain-gate.json"
   run_step "runtime backend gate" bash "${script_dir}/runtime-backend-gate.sh" \
@@ -402,6 +404,7 @@ run_quick() {
       tests/regression/test_external_secret_provider_gate.py \
       tests/regression/test_mingli_bench_aggregate_gate.py \
       tests/regression/test_mingli_bench_gate.py \
+      tests/regression/test_core_quality_human_review_gate.py \
       tests/regression/test_observability_smoke.py \
       tests/regression/test_observability_trace_slo.py \
       tests/regression/test_otel_backend_slo_gate.py \
@@ -575,6 +578,7 @@ write_summary() {
   FATE_LOCAL_CI_EVIDENCE_COVERAGE_TREND_GATE="${output_dir}/evidence-coverage-trend-gate.json" \
   FATE_LOCAL_CI_CORE_QUALITY_CORPUS_GATE="${output_dir}/core-quality-corpus-gate.json" \
   FATE_LOCAL_CI_MINGLI_BENCH_GATE="${output_dir}/mingli-bench-gate.json" \
+  FATE_LOCAL_CI_CORE_QUALITY_HUMAN_REVIEW_GATE="${output_dir}/core-quality-human-review-gate.json" \
   FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE="${output_dir}/data-supply-chain-gate.json" \
   FATE_LOCAL_CI_RUNTIME_BACKEND_GATE="${output_dir}/runtime-backend-gate.json" \
   FATE_LOCAL_CI_MULTI_REPLICA_RUNTIME_EVIDENCE="${output_dir}/multi-replica-runtime-evidence.json" \
@@ -680,6 +684,7 @@ payload = {
         "evidenceCoverageTrendGate": env("FATE_LOCAL_CI_EVIDENCE_COVERAGE_TREND_GATE"),
         "coreQualityCorpusGate": env("FATE_LOCAL_CI_CORE_QUALITY_CORPUS_GATE"),
         "mingliBenchGate": env("FATE_LOCAL_CI_MINGLI_BENCH_GATE"),
+        "coreQualityHumanReviewGate": env("FATE_LOCAL_CI_CORE_QUALITY_HUMAN_REVIEW_GATE"),
         "dataSupplyChainGate": env("FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE"),
         "runtimeBackendGate": env("FATE_LOCAL_CI_RUNTIME_BACKEND_GATE"),
         "multiReplicaRuntimeEvidence": env("FATE_LOCAL_CI_MULTI_REPLICA_RUNTIME_EVIDENCE"),

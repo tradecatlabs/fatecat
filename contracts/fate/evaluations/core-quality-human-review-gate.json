@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.core_quality_human_review_contract",
+  "description": "八字/紫微核心质量外部专家评审、外部 benchmark 汇总与 no-leak signoff 的 intake 门禁契约。该契约只允许接收脱敏证据引用、聚合统计、hash 和评审 disposition，不保存专家真实身份、真实用户命例、题目、标准答案、逐题结果或完整报告正文。",
+  "inputKind": "fatecat.core_quality_human_review_bundle",
+  "outputKind": "fatecat.core_quality_human_review_gate",
+  "privacyBoundary": "redacted_no_secret_values",
+  "requiredOutputFields": [
+    "schemaVersion",
+    "kind",
+    "generatedAt",
+    "status",
+    "source",
+    "coreQualityHumanReview",
+    "humanReviewGate",
+    "externalBenchmarkGate",
+    "noLeakGate",
+    "shipGate",
+    "summary",
+    "privacyBoundary",
+    "releaseBoundary",
+    "nonClaims"
+  ],
+  "inputBundle": {
+    "requiredTopLevelFields": [
+      "schemaVersion",
+      "kind",
+      "source",
+      "reviewer",
+      "professionalReview",
+      "externalBenchmark",
+      "noLeakReview",
+      "reviewedArtifacts",
+      "privacyBoundary"
+    ],
+    "sourceRequiredFields": [
+      "commit",
+      "rubricVersion",
+      "coreQualityCorpusManifest",
+      "mingliBenchGateReportRef"
+    ],
+    "reviewerRequiredFields": [
+      "reviewerRole",
+      "reviewerRef",
+      "signedAt",
+      "signedReviewArtifactSha256"
+    ],
+    "professionalReviewRequiredFields": [
+      "decision",
+      "dimensions"
+    ],
+    "dimensionRequiredFields": [
+      "id",
+      "decision",
+      "evidenceRef",
+      "artifactSha256",
+      "findingCount"
+    ],
+    "externalBenchmarkRequiredFields": [
+      "decision",
+      "benchmarkRef",
+      "aggregateArtifactSha256",
+      "sampleCount",
+      "accuracy",
+      "noPerQuestionLeak"
+    ],
+    "noLeakReviewRequiredFields": [
+      "decision",
+      "privacyScanArtifactSha256",
+      "forbiddenFragmentsFound",
+      "redactionStatus"
+    ]
+  },
+  "requiredCapabilities": ["bazi", "ziwei"],
+  "requiredReviewDecisions": ["accepted_no_blockers", "accepted_with_findings"],
+  "allowedRejectedDecision": "rejected",
+  "requiredDimensionDecisionPassValues": ["pass", "pass_with_findings"],
+  "requiredExternalBenchmarkDecision": "accepted",
+  "requiredNoLeakDecision": "passed",
+  "requiredArtifacts": [
+    "professional-quality-rubric",
+    "core-quality-corpus-gate",
+    "mingli-bench-gate",
+    "evidence-coverage-trend-gate",
+    "bazi-ziwei-l4-golden-smoke"
+  ],
+  "forbiddenReportFragments": [
+    "https://",
+    "http://",
+    "token=",
+    "secret=",
+    "password=",
+    "passwd=",
+    "DATABASE_URL",
+    "DB_DSN",
+    "api_key=",
+    "private_key",
+    "BEGIN RSA",
+    "BEGIN OPENSSH",
+    "\"birth_info\"",
+    "\"question\"",
+    "\"options\"",
+    "\"answer\"",
+    "\"expected\"",
+    "\"predicted\"",
+    "\"results\"",
+    "\"markdown\"",
+    "\"content\"",
+    "\"fullReport\"",
+    "\"reportText\"",
+    "placeholder proof",
+    "fake proof",
+    "dummy proof",
+    "localhost proof"
+  ],
+  "releaseBoundary": "该门禁只证明脱敏专家评审 disposition、外部 benchmark 聚合证据和 no-leak signoff 的结构可接收、可校验、可阻断；不证明专家结论真实性、不替代独立审计、不声明预测准确率或专业能力 100%。",
+  "nonClaims": [
+    "Does not mean bazi/ziwei professional quality is 100% proven.",
+    "Does not store or reveal reviewer identity, real user birth data, benchmark questions, answers or report bodies.",
+    "Does not replace independent third-party audit or final measurement infrastructure certification.",
+    "Does not allow AI or Agent to recalculate charts outside the structured capability output."
+  ]
+}

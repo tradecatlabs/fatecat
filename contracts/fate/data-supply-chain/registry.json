@@ -397,7 +397,7 @@
           "path": "contracts/fate/evaluations/registry.json",
           "role": "evaluation_registry",
           "required": true,
-          "sha256": "7746c2f50e8c29adbc2889e8d9110ef31c9cadaf419532e352837fe8d2c969ae"
+          "sha256": "6f6102c8f35027f9ce967733621fbce6dcb908df256f576f580ed306e106c957"
         }
       ],
       "manifests": [

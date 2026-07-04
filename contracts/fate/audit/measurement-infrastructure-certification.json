@@ -19,6 +19,7 @@
     "provider-drift-trend-gate.json",
     "core-quality-corpus-gate.json",
     "mingli-bench-gate.json",
+    "core-quality-human-review-gate.json",
     "data-supply-chain-gate.json",
     "event-contract-gate.json",
     "developer-platform-gate.json",

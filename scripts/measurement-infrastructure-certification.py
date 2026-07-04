@@ -39,7 +39,14 @@ DOMAIN_SPECS = (
     DomainSpec(
         "core_quality",
         "Core bazi/ziwei quality",
-        ("core-quality-corpus-gate.json", "mingli-bench-gate.json", "data-supply-chain-gate.json"),
+        (
+            "core-quality-corpus-gate.json",
+            "mingli-bench-gate.json",
+            "core-quality-human-review-gate.json",
+            "data-supply-chain-gate.json",
+        ),
+        pending_markers=("humanReviewStatus", "externalBenchmarkStatus", "noLeakReviewStatus"),
+        blocked_markers=("humanReviewGate",),
     ),
     DomainSpec("event_platform", "Event platform", ("event-contract-gate.json",)),
     DomainSpec(

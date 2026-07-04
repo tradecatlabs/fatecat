@@ -31,6 +31,7 @@ def _write_evidence_dir(root: Path, *, blocked: bool) -> Path:
         "provider-drift-trend-gate.json",
         "core-quality-corpus-gate.json",
         "mingli-bench-gate.json",
+        "core-quality-human-review-gate.json",
         "data-supply-chain-gate.json",
         "event-contract-gate.json",
         "production-security-gate.json",
@@ -40,6 +41,20 @@ def _write_evidence_dir(root: Path, *, blocked: bool) -> Path:
         "runtime-backend-gate.json",
     ]:
         _write_json(root / rel_path, passed)
+
+    _write_json(
+        root / "core-quality-human-review-gate.json",
+        {
+            "status": "passed",
+            "humanReviewStatus": "external_review_pending" if blocked else "accepted",
+            "externalBenchmarkStatus": "external_benchmark_pending" if blocked else "accepted",
+            "noLeakReviewStatus": "external_no_leak_review_pending" if blocked else "accepted",
+            "humanReviewGate": {
+                "status": "blocked" if blocked else "passed",
+                "blockingItems": ["professional_rubric_disposition_required"] if blocked else [],
+            },
+        },
+    )
 
     _write_json(
         root / "developer-platform-gate.json",
@@ -240,6 +255,7 @@ def test_certification_contract_lists_required_evidence_files():
     assert contract["kind"] == "fatecat.measurement_infrastructure_certification_contract"
     assert "provider-drift-trend-gate.json" in contract["requiredEvidenceFiles"]
     assert "runtime-proof-gate.json" in contract["requiredEvidenceFiles"]
+    assert "core-quality-human-review-gate.json" in contract["requiredEvidenceFiles"]
     assert "external-validation-proof-ref-gate.json" in contract["requiredEvidenceFiles"]
     assert "external-validation-category-runbooks.json" in contract["requiredEvidenceFiles"]
     assert "external-validation-operator-execution-packet.json" in contract["requiredEvidenceFiles"]

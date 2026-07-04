@@ -26,6 +26,8 @@ scripts/
 ├── check-public-release-policy.sh
 ├── core-quality-corpus-gate.sh
 ├── core-quality-corpus-gate.py
+├── core-quality-human-review-gate.sh
+├── core-quality-human-review-gate.py
 ├── container-build.sh
 ├── container-release.sh
 ├── container-smoke.sh
@@ -220,6 +222,7 @@ scripts/
 - `capability-cli.sh` 是根级 capability CLI 入口；只转发到 `fate_core.cli capability`，测算逻辑必须继续由 `CapabilityExecutor` 和 provider registry 执行。
 - `capability-cli-smoke.sh` / `capability-cli-smoke.py` 是 capability CLI 交付面本地 smoke；验证 bazi/ziwei/almanac/meihua production capability 可执行、planned capability 拒绝执行，并只保存 hash、字节数、字段名和状态。
 - `core-quality-corpus-gate.sh` / `core-quality-corpus-gate.py` 是八字/紫微核心质量语料门禁；校验 evaluation manifest、report diff policy、匿名 fixture 数量、紫微覆盖标签、summary-only 报告结构 diff 策略、北京测试样本和 registry 链接，不读取真实用户或生产数据。
+- `core-quality-human-review-gate.sh` / `core-quality-human-review-gate.py` 是八字/紫微外部专家评审与 benchmark intake 门禁；默认无脱敏 bundle 时输出 blocked gate，具备 bundle 时只校验 commit、rubric dimensions、artifact hash、benchmark 聚合统计、no-leak signoff 和隐私边界，不保存专家身份、真实命例、题目答案、逐题结果或完整报告正文。
 - `observability-smoke.sh` / `observability-smoke.py` 是本地观测 smoke；用 TestClient 验证 health、ready、metrics、request-id、结构化日志和 observability registry metadata。
 - `observability-slo-gate.sh` / `observability-slo-gate.py` 是本地 SLO/alert policy gate；校验 observability registry、SLO objectives、alert rules、runbook 引用和隐私边界，不读取真实生产指标或日志。
 - `observability-trace-slo-smoke.sh` / `observability-trace-slo-smoke.py` 是本地 trace/SLO smoke；验证 W3C `traceparent` 传播、OpenTelemetry 语义兼容 span 日志、API/provider/report trace、SLO policy 和 alert rules，不接外部 collector。

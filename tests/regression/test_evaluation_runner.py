@@ -34,6 +34,7 @@ def test_evaluation_runner_defaults_to_local_required_dry_run(tmp_path):
     run_ids = {item["runId"] for item in stored["runs"]}
     assert run_ids == {
         "run.core_quality_corpus_gate",
+        "run.core_quality_human_review_gate",
         "run.evaluation_dashboard_smoke",
         "run.local_ci_quick",
         "run.solar_terms_golden",
@@ -87,3 +88,4 @@ def test_evaluation_runner_cli_list_exposes_registered_runs(capsys):
     assert "run.solar_terms_golden" in captured.out
     assert "run.evaluation_dashboard_smoke" in captured.out
     assert "run.mingli_bench_offline" in captured.out
+    assert "run.core_quality_human_review_gate" in captured.out

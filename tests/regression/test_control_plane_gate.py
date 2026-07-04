@@ -70,6 +70,7 @@ def test_control_plane_registry_defines_core_resource_envelopes():
     evaluations = resources["control.evaluation_runs"]
     assert evaluations["resourceType"] == "EvaluationRun"
     assert "run.local_ci_quick" in evaluations["spec"]["desiredState"]["requiredRunIds"]
+    assert "run.core_quality_human_review_gate" in evaluations["spec"]["desiredState"]["requiredRunIds"]
 
 
 def test_control_plane_gate_reconciles_existing_registries(tmp_path):
@@ -87,7 +88,7 @@ def test_control_plane_gate_reconciles_existing_registries(tmp_path):
     assert stored["observed"]["capabilities"] == {"total": 9, "production": 4, "planned": 5}
     assert stored["observed"]["providers"] == {"productionProviders": 4}
     assert stored["observed"]["releaseGate"]["requiredEvidence"] == 10
-    assert stored["observed"]["evaluationRuns"] == {"datasets": 5, "evaluationRuns": 5}
+    assert stored["observed"]["evaluationRuns"] == {"datasets": 5, "evaluationRuns": 6}
     assert "token" in stored["privacyBoundary"]
 
 

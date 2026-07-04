@@ -330,6 +330,35 @@
     {
       "resourceType": "EvaluationRun",
       "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "run.core_quality_human_review_gate",
+      "name": "八字/紫微外部专家评审与 benchmark intake gate",
+      "runType": "external_review_intake",
+      "gateType": "required_for_100_percent_claim",
+      "datasetIds": [
+        "dataset.bazi_ziwei_core_quality_corpus",
+        "dataset.mingli_bench_offline"
+      ],
+      "commands": ["bash scripts/core-quality-human-review-gate.sh"],
+      "releaseRequired": true,
+      "localAvailability": "tracked_in_repo",
+      "lastKnownStatusPolicy": "tracked_by_task_evidence",
+      "links": {
+        "self": "/evaluations/run.core_quality_human_review_gate",
+        "collection": "/evaluations",
+        "schema": "contracts/fate/evaluations/schemas/evaluation-run.schema.json",
+        "datasets": "/evaluations"
+      },
+      "metadata": {
+        "owner": "contracts/fate/evaluations",
+        "verificationScope": "脱敏专家评审 disposition、外部 benchmark 聚合证据和 no-leak signoff intake；默认无外部证据时保持 blocked。",
+        "resultStorage": "infra/runtime/local-state/exports/quality/core-quality-human-review-gate.json 与任务 closeout evidence",
+        "externalConnectivity": "operator_or_human_evidence_required",
+        "risk": "只校验证据结构和隐私边界；不证明专家结论真实性、不保存专家身份、不保存真实命例或逐题 benchmark 内容。"
+      }
+    },
+    {
+      "resourceType": "EvaluationRun",
+      "apiVersion": "fatecat.tradecatlabs/v1",
       "id": "run.mingli_bench_offline",
       "name": "MingLi-Bench 离线 aggregate benchmark smoke",
       "runType": "offline_benchmark",
@@ -370,7 +399,9 @@
     "coreQualityCorpusManifest": "contracts/fate/evaluations/core-quality-corpus.json",
     "reportDiffPolicy": "contracts/fate/evaluations/report-diff-policy.json",
     "professionalQualityRubric": "contracts/fate/evaluations/professional-quality-rubric.json",
+    "coreQualityHumanReviewGateContract": "contracts/fate/evaluations/core-quality-human-review-gate.json",
     "coreQualityCorpusGateCommand": "bash scripts/core-quality-corpus-gate.sh",
+    "coreQualityHumanReviewGateCommand": "bash scripts/core-quality-human-review-gate.sh",
     "diffCommand": "bash scripts/compare-evaluations.sh --baseline-json <baseline> --current-json <current>",
     "trendCommand": "bash scripts/evaluation-trend-gate.sh",
     "dashboardCommand": "bash scripts/evaluation-dashboard.sh --summary-json <summary> --output-html <dashboard>",
