@@ -1,17 +1,17 @@
 # Task Status
 
-- Overall Status: `In Progress`
+- Overall Status: `Done`
 
 | Field | Value |
 | --- | --- |
 | Task | 0124 measurement-infrastructure-production-live-delivery-evidence-bundle |
 | Priority | P0 |
 | Phase | SHIP |
-| Current gate | ready for commit/push and remote CI observation |
+| Current gate | complete; closeout docs ready |
 
 # Next Executable Leaves
 
-- TP-05: commit/push and observe remote CI after validation.
+- No remaining executable leaves for this local infrastructure slice.
 
 # Task Package Status Table
 
@@ -21,7 +21,7 @@
 | TP-02 | ROOT | 1 | TP-01 | No | Done | Contract/script/wrapper added | - | - |
 | TP-03 | ROOT | 1 | TP-02 | No | Done | local-ci/live-proof/AGENTS wiring added | - | - |
 | TP-04 | ROOT | 1 | TP-03 | No | Done | Targeted pytest 19 passed; ruff check/format passed; task docs passed; secret scan passed; artifact chain passed; quick CI 337 passed | - | - |
-| TP-05 | ROOT | 1 | TP-04 | No | Pending | - | - | Commit, push and observe remote CI |
+| TP-05 | ROOT | 1 | TP-04 | No | Done | Commit `109a964` pushed; remote Acceptance and Container observed success for implementation commit | - | - |
 
 # Blockers
 

@@ -10,7 +10,7 @@
 - [x] Ruff check and format check pass.
 - [x] Secret scan passes.
 - [x] Quick local CI passes.
-- [ ] Commit/push and remote CI observation complete.
+- [x] Commit/push and remote CI observation complete.
 
 # Task Package Checklists
 
@@ -51,9 +51,9 @@
 
 ## TP-05
 
-- [ ] Git commit created.
-- [ ] Push completed.
-- [ ] Remote Acceptance observed.
-- [ ] Remote Container observed if triggered.
+- [x] Git commit created.
+- [x] Push completed.
+- [x] Remote Acceptance observed.
+- [x] Remote Container observed if triggered.
 - Verify: git log, git status, gh run view for triggered workflows.
 - Gate: current pushed commit has remote CI evidence or failure is fixed before closeout.
