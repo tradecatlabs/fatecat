@@ -27,6 +27,7 @@ tests/
 	    ├── test_external_validation_closure_work_queue.py
 	    ├── test_external_validation_live_proof_gate.py
 	    ├── test_external_validation_closure_trend_dashboard.py
+	    ├── test_production_live_operator_execution_packet.py
 	    ├── test_measurement_infrastructure_certification.py
 	    ├── test_current_release_proof.py
 	    ├── test_operability_docs.py
@@ -65,6 +66,7 @@ tests/
 - `regression/test_external_validation_proof_ref_gate.py`：external validation proof-ref gate 合同；验证 proof-ref schema、脱敏 evidence bundle、raw URL/placeholder 拒绝、local-ci 接线，以及 schema accepted 仍不等于 production live passed。
 - `regression/test_external_validation_category_runbooks.py`：external validation category runbook 合同；验证 22 个 category 均有 operator runbook、未知 category 拒绝、raw URL/敏感片段防护、local-ci/certification 接线，以及 runbook ready 仍不等于 production live passed。
 - `regression/test_external_validation_live_proof_gate.py`：external validation live proof gate 合同；验证 live evidence bundle 与 work queue、proof-ref gate、category runbook 和 current commit 绑定，拒绝未接受 proof-ref、raw URL、placeholder 和敏感片段；live proof 接受后仍保留审计/certification 阻断。
+- `regression/test_production_live_operator_execution_packet.py`：production live operator execution packet 合同；验证执行包 contract、脱敏 operator steps、proof-ref bundle 模板、CLI 输出、敏感赋值拒绝和 local-ci/AGENTS/roadmap 接线，不执行真实外部请求。
 - `regression/test_production_live_delivery_evidence_bundle.py`：production live delivery evidence bundle 合同；验证 API/HF/Bot/webhook/parity 脱敏 summary 可转换为 live proof bundle，默认无真实 summary 只 pending，敏感输入拒绝，输出不复制 raw URL，并可被 external validation live proof gate 接受。
 - `regression/test_external_validation_closure_trend_dashboard.py`：external validation closure trend dashboard 合同；验证 closure plan/work queue/proof-ref/category runbook/live proof gate 聚合、owner/category/status 趋势、stale alert、缺 runbook 拒绝、local-ci/certification 接线，以及 alert 不等于 live evidence closure。
 - `regression/test_measurement_infrastructure_certification.py`：100% 测算基础设施 certification aggregator dry-run 合同；验证 local-ci 产物聚合、blocked dry-run、require-certified 拒绝、缺证据失败和合成全绿通过。

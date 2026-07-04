@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.production_live_operator_execution_packet_contract",
+  "resourceType": "ProductionLiveOperatorExecutionPacket",
+  "id": "audit.production.live.operatorExecutionPacket",
+  "status": "baseline",
+  "description": "生产 live evidence 操作员执行包契约。该执行包聚合 closure work queue、proof-ref gate、category runbooks、0123 live proof gate 和 0124 production live delivery evidence bundle，输出不含敏感值的命令顺序、环境变量名、脱敏证据模板和最终 gate 链，供真实凭证到位时执行。",
+  "generator": {
+    "command": "bash scripts/production-live-operator-execution-packet.sh --work-queue-json <external-validation-closure-work-queue.json> --proof-ref-gate-json <external-validation-proof-ref-gate.json> --category-runbooks-json <external-validation-category-runbooks.json> --output-json <production-live-operator-execution-packet.json>",
+    "pythonEntrypoint": "scripts/production-live-operator-execution-packet.py",
+    "defaultOutput": "infra/runtime/local-state/exports/audit/production-live-operator-execution-packet.json"
+  },
+  "outputKind": "fatecat.production_live_operator_execution_packet",
+  "supportedCategories": [
+    "release.production_api_live",
+    "release.hf_space_live",
+    "release.telegram_bot_live",
+    "runtime.public_webhook_live",
+    "delivery.multi_surface_live"
+  ],
+  "requiredInputs": [
+    "fatecat.external_validation_closure_work_queue",
+    "fatecat.external_validation_proof_ref_gate_summary",
+    "fatecat.external_validation_category_runbooks"
+  ],
+  "executionPolicy": {
+    "status": "operator_action_required",
+    "packetGate": "blocked until real operator executes live commands and generated redacted proof-ref/live evidence bundles pass 0123/0124 gates.",
+    "noNetwork": "This generator must not execute production API, HF Space, Telegram Bot, Postgres webhook or multi-surface live commands.",
+    "redaction": "Output may contain environment variable names and placeholder artifact paths only; it must not contain environment variable assignments, raw endpoint URLs, token values, DSNs, webhook secrets, chat ids, report bodies or production logs.",
+    "sourceBinding": "Output must bind to work queue sha256, proof-ref gate sha256, category runbooks sha256, 0123 contract sha256, 0124 contract sha256 and current commit."
+  },
+  "requiredOutputFields": [
+    "schemaVersion",
+    "kind",
+    "status",
+    "generatedAt",
+    "source",
+    "summary",
+    "packetGate",
+    "operatorWorkspace",
+    "operatorSteps",
+    "proofRefBundleTemplate",
+    "finalGateCommands",
+    "privacyBoundary",
+    "nonClaims"
+  ],
+  "privacyBoundary": "Execution packet output may contain work item ids、owner、category、runbook id、required environment variable names、placeholder output paths、artifact hash instructions、command templates and source hashes; it must not contain real URL、token、secret、DSN、webhook secret、chat id、external account、production log、report body or user input.",
+  "nonClaims": [
+    "Does not execute production live checks.",
+    "Does not prove production API/HF/Bot/webhook live has passed.",
+    "Does not create accepted proof refs by itself.",
+    "Does not replace production-live-delivery-evidence-bundle.",
+    "Does not replace external-validation-live-proof-gate.",
+    "Does not replace third-party audit.",
+    "Does not mean FateCat is 100% production infrastructure."
+  ]
+}
