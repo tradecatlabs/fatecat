@@ -1,0 +1,333 @@
+{
+  "schema_version": "1.0.0",
+  "task": {
+    "objective": "基于当前 0151 readiness audit 和基础设施同构调研，落地 core_quality_human_review_bundle 提交前演练模板、hash 计算说明、no-leak checklist 和 100% 基础设施后续计划刷新；不填真实专家或 benchmark 内容，不改变 core quality gate 结论。",
+    "overall_status": "In Progress",
+    "in_scope": [
+      "读取当前 worktree、0151 readiness audit、core-quality-human-review-gate 契约、professional rubric 和 local-ci 接线。",
+      "基于 OpenAPI、AsyncAPI、CloudEvents、Kubernetes controller、Backstage catalog、Temporal durable execution、OpenTelemetry、Google SRE、OWASP/NIST/SLSA/CycloneDX/GitHub artifact attestations 等一手资料刷新 100% 基础设施执行计划。",
+      "新增 core_quality_human_review_bundle 的提交前演练模板、hash 计算说明、no-leak checklist 和 operator checklist。",
+      "保证模板不会被 core-quality-human-review-gate 误判为真实 accepted evidence。",
+      "补齐回归测试、local-ci 接线、AGENTS/roadmap/任务文档同步。"
+    ],
+    "out_of_scope": [
+      "不填写真实专家身份、真实命例、外部 benchmark 逐题内容、答案、完整报告正文或真实用户资料。",
+      "不执行真实专家评审、外部 benchmark、生产 API/HF/Bot/webhook、OIDC/SIEM/OTel/Vault/KMS 或第三方审计。",
+      "不改变八字、紫微 provider 算法，不新增术数 capability。",
+      "不把模板、dry-run、operator checklist 或 local-ci 结果写成 100% 基础设施完成。"
+    ],
+    "task_level_acceptance": [
+      "生成的模板契约明确 template-only、operator-action-required 和 non-claim 边界。",
+      "模板包含 artifact hash 计算说明、rubric dimension checklist、benchmark aggregate skeleton、no-leak checklist、gate 执行命令和禁止泄露字段。",
+      "测试证明模板不会被 core-quality-human-review-gate 接受。",
+      "local-ci quick 生成模板 JSON/Markdown，但 core quality gate 仍保持 blocked-as-expected。",
+      "100% 路线图新增 Post-0151/0152 切片，下一步任务清楚区分本地可做与外部 operator 阻断。"
+    ],
+    "validation_plan": [
+      "python3 /home/lenovo/.codex/skills/auto-tasks/scripts/validate_task_docs.py --task-dir governance/tasks/0152-measurement-infrastructure-core-quality-evidence-bundle-rehearsal --phase decompose",
+      ".venv/bin/python -m pytest tests/regression/test_core_quality_human_review_bundle_template.py tests/regression/test_core_quality_human_review_gate.py",
+      "bash scripts/core-quality-human-review-bundle-template.sh --output-json /tmp/fatecat-core-quality-template.json --output-markdown /tmp/fatecat-core-quality-template.md",
+      ".venv/bin/ruff check scripts/core-quality-human-review-bundle-template.py tests/regression/test_core_quality_human_review_bundle_template.py",
+      ".venv/bin/ruff format --check scripts/core-quality-human-review-bundle-template.py tests/regression/test_core_quality_human_review_bundle_template.py",
+      "bash scripts/local-ci.sh --profile quick --output /tmp/fatecat-local-ci-0152-core-quality-template",
+      "git diff --check"
+    ],
+    "acceptance_standards": [
+      "不得输出真实密钥、token、专家身份、真实用户资料、benchmark 题目/答案或完整报告正文。",
+      "不得新增旧路径 fallback 或绕过统一 core-quality-human-review-gate。",
+      "不得让 planned/external/pending evidence 被模板伪装成 accepted。",
+      "所有新增文件必须有测试或文档验证命令。"
+    ]
+  },
+  "context_packet": {
+    "requirement_alignment": [
+      "用户要求使用 auto-tasks 深度调研并制作 100% 基础设施完整实现计划。",
+      "当前路线图 6.40.5 已列出 0152：Core quality evidence bundle rehearsal。",
+      "本任务把 planning refresh 和下一步可执行本地切片合并：既刷新后续计划，又提供真实外部人审前的模板/检查清单。"
+    ],
+    "repo_evidence": [
+      "git status --short --branch: ## main...origin/main，开始任务前工作树 clean。",
+      "HEAD: 6e07615 feat: add external evidence readiness audit。",
+      "docs/reference-materials/roadmap/测算基础设施100%实现计划.md 6.41 记录 0151 已完成 readiness audit。",
+      "contracts/fate/evaluations/core-quality-human-review-gate.json 和 scripts/core-quality-human-review-gate.py 已存在。",
+      "contracts/fate/evaluations/professional-quality-rubric.json 已作为 core quality 人审维度来源。"
+    ],
+    "constraints": [
+      "只允许分析和修改当前分支/current worktree。",
+      "真实外部证据仍必须标记为外部连通验证待执行。",
+      "模板不得包含 raw URL、secret、token、DSN、专家身份、真实用户资料、benchmark 逐题信息或报告正文。",
+      "任务文档必须通过 auto-tasks decompose 校验。"
+    ],
+    "risks": [
+      "模板如果过于像真实 bundle，可能被误用为 accepted evidence。",
+      "hash 说明如果缺少 no-leak 检查，人工提交材料可能污染仓库。",
+      "路线图如果只写计划不写阻断，会让 100% 结论被夸大。"
+    ],
+    "assumptions": [
+      "当前没有真实专家评审、外部 benchmark aggregate 或 no-leak signoff 可写入仓库。",
+      "模板可以使用占位符和 operator commands，但不能使用虚构证据。",
+      "后续真实提交材料应在仓库外脱敏生成，只把合规 bundle 句柄和 hash 写入 gate 输入。"
+    ],
+    "change_boundary": [
+      "contracts/fate/evaluations/*",
+      "scripts/core-quality-human-review-bundle-template.*",
+      "tests/regression/test_core_quality_human_review_bundle_template.py",
+      "scripts/local-ci.sh",
+      "docs/reference-materials/roadmap/测算基础设施100%实现计划.md",
+      "governance/tasks/0152-measurement-infrastructure-core-quality-evidence-bundle-rehearsal/*",
+      "相关 AGENTS.md 目录说明"
+    ],
+    "critical_ambiguities": [
+      "真实专家评审、外部 benchmark 和 no-leak signoff 的执行者与时间未知；本任务只生成提交前演练资产。",
+      "100% 基础设施最终认证仍依赖外部 live/release/audit evidence；本任务不能解除这些阻断。"
+    ],
+    "blockers": [
+      "无本地实现 blocker。",
+      "全局 100% 仍被外部 operator evidence、人审、生产 live、最终 release proof 和 independent audit 阻断。"
+    ],
+    "debug_mode": "Optional"
+  },
+  "plan": {
+    "planning_summary": "把 0152 做成低风险本地可执行切片：先对齐仓库事实和外部基础设施模式，再新增 core quality 人审 evidence bundle 模板，最后刷新路线图和验证链路。模板只降低人工提交摩擦，不改变 gate blocked 结论。",
+    "simplest_path": "复用现有 core-quality-human-review-gate 与 professional rubric；新增一个 template generator 输出 JSON/Markdown；测试模板被 gate 拒绝；local-ci 只保存模板和 blocked gate summary。",
+    "split_strategy": "按资料对齐、契约设计、实现接线、文档计划、验证交付拆包；所有叶子节点能独立验证。",
+    "lifecycle_gates": [
+      "SPEC: 明确 template-only、operator-action-required、external verification pending；不得跳过 gate。",
+      "PLAN: 任务树、验证命令、non-claim 和 falsifier 写入任务包；不得跳过 gate。",
+      "BUILD: 只实现模板/说明/测试/local-ci 文档接线，不扩大到真实外部执行；不得跳过 gate。",
+      "TEST: 证明模板不会被真实 gate 接受，local-ci quick 通过；不得跳过 gate。",
+      "REVIEW: 检查敏感信息、伪证、文档漂移、路线图夸大；不得跳过 gate。",
+      "SHIP: git clean、提交推送、远端 CI 当前 commit；不得跳过 gate。"
+    ],
+    "review_gate": [
+      "Future-optimal: 本轮切片必须通向 100% 基础设施证据闭环，不形成孤立文档。",
+      "Ponytail: 新模板对象必须降低人工提交错误率，并由测试证明不能被当成真实证据。",
+      "Document drift: README/SKILL/API docs/roadmap/AGENTS 中与 100% 状态相关口径不能冲突。"
+    ],
+    "ship_readiness": [
+      "所有本地验证通过。",
+      "core quality gate 对模板仍 blocked-as-expected。",
+      "路线图明确 0152 不代表专家评审/benchmark/no-leak 完成。",
+      "提交推送后等待远端 Acceptance。"
+    ],
+    "steps": [
+      {
+        "key": "source_alignment",
+        "title": "资料与仓库事实对齐",
+        "objective": "读取 0151、core quality gate、professional rubric、local-ci 和官方基础设施资料，形成 0152 的事实边界。",
+        "priority": "P0",
+        "type": "package",
+        "status": "In Progress",
+        "parallelizable": false,
+        "children": [
+          {
+            "key": "repo_state_review",
+            "title": "盘点当前仓库证据链",
+            "objective": "确认 HEAD、0151 readiness audit、core-quality-human-review-gate、rubric 和 local-ci 接线。",
+            "priority": "P0",
+            "type": "action",
+            "status": "Done",
+            "parallelizable": false,
+            "verify": "git status --short --branch && git log -1 --oneline --decorate && rg -n \"core-quality-human-review|professional-quality-rubric|external-evidence-submission-readiness\" contracts scripts tests docs/reference-materials/roadmap/测算基础设施100%实现计划.md",
+            "gate": "仓库事实来自命令输出，未脑补外部证据。",
+            "outputs": [
+              "0152 CONTEXT/STATUS 事实基线。"
+            ]
+          },
+          {
+            "key": "infra_research_mapping",
+            "title": "基础设施同构资料映射",
+            "objective": "把官方 infra 范式映射到 FateCat 100% 剩余证据链。",
+            "priority": "P0",
+            "type": "action",
+            "status": "Done",
+            "parallelizable": true,
+            "verify": "rg -n \"OpenAPI|AsyncAPI|CloudEvents|Kubernetes|OpenTelemetry|SRE|SLSA|CycloneDX|OWASP|NIST|Backstage|Temporal\" docs/reference-materials/roadmap/测算基础设施100%实现计划.md governance/tasks/0152-measurement-infrastructure-core-quality-evidence-bundle-rehearsal",
+            "gate": "调研使用一手资料 URL，且只映射要求，不宣称外部 live 完成。",
+            "outputs": [
+              "路线图 Post-0151 同构矩阵。"
+            ]
+          }
+        ]
+      },
+      {
+        "key": "template_contract_design",
+        "title": "Core quality bundle 模板契约设计",
+        "objective": "定义 template-only 输出、artifact hash 指南、rubric checklist、benchmark aggregate skeleton、no-leak checklist 和 gate expectation。",
+        "priority": "P0",
+        "type": "package",
+        "depends_on": [
+          "source_alignment"
+        ],
+        "status": "Not Started",
+        "parallelizable": false,
+        "children": [
+          {
+            "key": "contract_template",
+            "title": "新增模板契约",
+            "objective": "新增 machine-readable template contract，明确 non-claim 和 forbidden leak policy。",
+            "priority": "P0",
+            "type": "action",
+            "status": "Not Started",
+            "parallelizable": true,
+            "verify": ".venv/bin/python -m json.tool contracts/fate/evaluations/core-quality-human-review-bundle-template.json >/dev/null",
+            "gate": "契约声明模板不能作为 accepted review bundle。",
+            "outputs": [
+              "contracts/fate/evaluations/core-quality-human-review-bundle-template.json"
+            ]
+          },
+          {
+            "key": "template_generator_design",
+            "title": "设计模板生成器输出",
+            "objective": "生成 JSON/Markdown 模板，包含 operator checklist、hash commands、no-leak commands 和 gate run command。",
+            "priority": "P0",
+            "type": "action",
+            "status": "Not Started",
+            "parallelizable": true,
+            "verify": "bash scripts/core-quality-human-review-bundle-template.sh --output-json /tmp/fatecat-core-quality-template.json --output-markdown /tmp/fatecat-core-quality-template.md && .venv/bin/python -m json.tool /tmp/fatecat-core-quality-template.json >/dev/null",
+            "gate": "输出中没有 raw URL、secret/token/DSN、专家身份、题目答案或完整报告正文。",
+            "outputs": [
+              "scripts/core-quality-human-review-bundle-template.py",
+              "scripts/core-quality-human-review-bundle-template.sh"
+            ]
+          }
+        ]
+      },
+      {
+        "key": "implementation_and_tests",
+        "title": "实现、测试与 local-ci 接线",
+        "objective": "落地模板生成器、回归测试和 quick local-ci artifact，证明模板不会解除 blocked gate。",
+        "priority": "P0",
+        "type": "package",
+        "depends_on": [
+          "template_contract_design"
+        ],
+        "status": "Not Started",
+        "parallelizable": false,
+        "children": [
+          {
+            "key": "regression_tests",
+            "title": "新增回归测试",
+            "objective": "覆盖模板字段、敏感信息防护、CLI 输出和 gate 拒绝模板。",
+            "priority": "P0",
+            "type": "action",
+            "status": "Not Started",
+            "parallelizable": true,
+            "verify": ".venv/bin/python -m pytest tests/regression/test_core_quality_human_review_bundle_template.py tests/regression/test_core_quality_human_review_gate.py",
+            "gate": "模板不会被 core-quality-human-review-gate 接受。",
+            "outputs": [
+              "tests/regression/test_core_quality_human_review_bundle_template.py"
+            ]
+          },
+          {
+            "key": "local_ci_wiring",
+            "title": "接入 local-ci artifact",
+            "objective": "让 quick local-ci 生成模板 JSON/Markdown 并继续运行 core quality gate blocked-as-expected。",
+            "priority": "P0",
+            "type": "action",
+            "status": "Not Started",
+            "parallelizable": false,
+            "depends_on": [
+              "regression_tests"
+            ],
+            "verify": "bash scripts/local-ci.sh --profile quick --output /tmp/fatecat-local-ci-0152-core-quality-template",
+            "gate": "local-ci summary 可发现模板 artifact，certification 仍 blocked。",
+            "outputs": [
+              "scripts/local-ci.sh"
+            ]
+          }
+        ]
+      },
+      {
+        "key": "docs_and_roadmap",
+        "title": "文档和路线图同步",
+        "objective": "刷新 100% 基础设施实现计划、AGENTS 目录说明和 0152 任务文档。",
+        "priority": "P0",
+        "type": "package",
+        "depends_on": [
+          "implementation_and_tests"
+        ],
+        "status": "Not Started",
+        "parallelizable": false,
+        "children": [
+          {
+            "key": "roadmap_refresh",
+            "title": "刷新 100% 路线图",
+            "objective": "新增 Post-0151/0152 实现计划，列出下一批任务和不可伪造证据口径。",
+            "priority": "P0",
+            "type": "action",
+            "status": "Not Started",
+            "parallelizable": true,
+            "verify": "rg -n \"6\\.42|0152|core_quality_human_review_bundle|template-only|Post-0151\" docs/reference-materials/roadmap/测算基础设施100%实现计划.md",
+            "gate": "路线图区分本地模板演练与真实人审/benchmark/no-leak accepted evidence。",
+            "outputs": [
+              "docs/reference-materials/roadmap/测算基础设施100%实现计划.md"
+            ]
+          },
+          {
+            "key": "agents_task_docs",
+            "title": "同步 AGENTS 与任务文档",
+            "objective": "更新相关 AGENTS 和 0152 TODO/STATUS/ACCEPTANCE。",
+            "priority": "P0",
+            "type": "action",
+            "status": "Not Started",
+            "parallelizable": true,
+            "verify": "python3 /home/lenovo/.codex/skills/auto-tasks/scripts/validate_task_docs.py --task-dir governance/tasks/0152-measurement-infrastructure-core-quality-evidence-bundle-rehearsal --phase decompose",
+            "gate": "任务文档无占位符，AGENTS 说明新模板职责。",
+            "outputs": [
+              "governance/tasks/0152-measurement-infrastructure-core-quality-evidence-bundle-rehearsal/*",
+              "contracts/fate/evaluations/AGENTS.md",
+              "scripts/AGENTS.md",
+              "tests/AGENTS.md"
+            ]
+          }
+        ]
+      },
+      {
+        "key": "validation_and_delivery",
+        "title": "验证、审查与版本控制",
+        "objective": "执行 targeted tests、lint、local-ci、diff check、提交推送并观察远端 CI。",
+        "priority": "P0",
+        "type": "package",
+        "depends_on": [
+          "docs_and_roadmap"
+        ],
+        "status": "Not Started",
+        "parallelizable": false,
+        "children": [
+          {
+            "key": "local_validation",
+            "title": "执行本地验证",
+            "objective": "运行任务文档校验、测试、lint、format、local-ci 和 diff check。",
+            "priority": "P0",
+            "type": "action",
+            "status": "Not Started",
+            "parallelizable": false,
+            "verify": "python3 /home/lenovo/.codex/skills/auto-tasks/scripts/validate_task_docs.py --task-dir governance/tasks/0152-measurement-infrastructure-core-quality-evidence-bundle-rehearsal --phase decompose && .venv/bin/python -m pytest tests/regression/test_core_quality_human_review_bundle_template.py tests/regression/test_core_quality_human_review_gate.py && .venv/bin/ruff check scripts/core-quality-human-review-bundle-template.py tests/regression/test_core_quality_human_review_bundle_template.py && .venv/bin/ruff format --check scripts/core-quality-human-review-bundle-template.py tests/regression/test_core_quality_human_review_bundle_template.py && bash scripts/local-ci.sh --profile quick --output /tmp/fatecat-local-ci-0152-core-quality-template && git diff --check",
+            "gate": "所有本地验证通过，或失败原因写入 STATUS。",
+            "outputs": [
+              "STATUS.md validation evidence"
+            ]
+          },
+          {
+            "key": "git_delivery",
+            "title": "提交推送并观察远端 Acceptance",
+            "objective": "完成版本控制交付并记录当前 commit 的远端 CI 证据。",
+            "priority": "P0",
+            "type": "action",
+            "status": "Not Started",
+            "parallelizable": false,
+            "depends_on": [
+              "local_validation"
+            ],
+            "verify": "git status --short --branch && git log -1 --oneline --decorate && gh run list --workflow Acceptance --limit 5",
+            "gate": "提交推送完成，远端 Acceptance 对当前 commit 成功或明确记录 pending/failure。",
+            "outputs": [
+              "Git commit and remote Acceptance evidence"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

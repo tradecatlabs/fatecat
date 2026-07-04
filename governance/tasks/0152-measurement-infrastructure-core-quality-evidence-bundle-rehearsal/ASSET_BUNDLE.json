@@ -1,0 +1,225 @@
+{
+  "schema_version": "1.0.0",
+  "task_meta": {
+    "objective": "基于当前 0151 readiness audit 和基础设施同构调研，落地 core_quality_human_review_bundle 提交前演练模板、hash 计算说明、no-leak checklist 和 100% 基础设施后续计划刷新；不填真实专家或 benchmark 内容，不改变 core quality gate 结论。",
+    "overall_status": "In Progress",
+    "task_dir": "governance/tasks/0152-measurement-infrastructure-core-quality-evidence-bundle-rehearsal"
+  },
+  "source_plan": {
+    "schema_version": "1.0.0",
+    "plan_path": "governance/tasks/0152-measurement-infrastructure-core-quality-evidence-bundle-rehearsal/APPROVED_PLAN.json"
+  },
+  "generated_assets": [
+    {
+      "id": "tree-spec",
+      "type": "task-tree-spec",
+      "path": "governance/tasks/0152-measurement-infrastructure-core-quality-evidence-bundle-rehearsal/TREE_SPEC.json",
+      "description": "approved plan 编译后的递归任务树规格",
+      "source_step_keys": [
+        "source_alignment",
+        "repo_state_review",
+        "infra_research_mapping",
+        "template_contract_design",
+        "contract_template",
+        "template_generator_design",
+        "implementation_and_tests",
+        "regression_tests",
+        "local_ci_wiring",
+        "docs_and_roadmap",
+        "roadmap_refresh",
+        "agents_task_docs",
+        "validation_and_delivery",
+        "local_validation",
+        "git_delivery"
+      ]
+    },
+    {
+      "id": "asset-bundle",
+      "type": "asset-bundle-manifest",
+      "path": "governance/tasks/0152-measurement-infrastructure-core-quality-evidence-bundle-rehearsal/ASSET_BUNDLE.json",
+      "description": "编译输出的资产包 manifest",
+      "source_step_keys": [
+        "source_alignment",
+        "repo_state_review",
+        "infra_research_mapping",
+        "template_contract_design",
+        "contract_template",
+        "template_generator_design",
+        "implementation_and_tests",
+        "regression_tests",
+        "local_ci_wiring",
+        "docs_and_roadmap",
+        "roadmap_refresh",
+        "agents_task_docs",
+        "validation_and_delivery",
+        "local_validation",
+        "git_delivery"
+      ]
+    },
+    {
+      "id": "task-package-set",
+      "type": "task-package-set",
+      "path": "governance/tasks/0152-measurement-infrastructure-core-quality-evidence-bundle-rehearsal/TASK_PACKAGE_SET.json",
+      "description": "编译输出的结构化任务包集合",
+      "source_step_keys": [
+        "source_alignment",
+        "repo_state_review",
+        "infra_research_mapping",
+        "template_contract_design",
+        "contract_template",
+        "template_generator_design",
+        "implementation_and_tests",
+        "regression_tests",
+        "local_ci_wiring",
+        "docs_and_roadmap",
+        "roadmap_refresh",
+        "agents_task_docs",
+        "validation_and_delivery",
+        "local_validation",
+        "git_delivery"
+      ]
+    },
+    {
+      "id": "task-doc-set",
+      "type": "task-docs",
+      "description": "README/CONTEXT/ACCEPTANCE/PLAN/TODO/STATUS 任务文档集合",
+      "source_step_keys": [
+        "source_alignment",
+        "repo_state_review",
+        "infra_research_mapping",
+        "template_contract_design",
+        "contract_template",
+        "template_generator_design",
+        "implementation_and_tests",
+        "regression_tests",
+        "local_ci_wiring",
+        "docs_and_roadmap",
+        "roadmap_refresh",
+        "agents_task_docs",
+        "validation_and_delivery",
+        "local_validation",
+        "git_delivery"
+      ],
+      "path": "governance/tasks/0152-measurement-infrastructure-core-quality-evidence-bundle-rehearsal"
+    }
+  ],
+  "logical_deliverables": [
+    {
+      "step_key": "source_alignment",
+      "step_id": "TP-01",
+      "outputs": [
+        "读取 0151、core quality gate、professional rubric、local-ci 和官方基础设施资料，形成 0152 的事实边界。"
+      ]
+    },
+    {
+      "step_key": "repo_state_review",
+      "step_id": "TP-01.01",
+      "outputs": [
+        "0152 CONTEXT/STATUS 事实基线。"
+      ]
+    },
+    {
+      "step_key": "infra_research_mapping",
+      "step_id": "TP-01.02",
+      "outputs": [
+        "路线图 Post-0151 同构矩阵。"
+      ]
+    },
+    {
+      "step_key": "template_contract_design",
+      "step_id": "TP-02",
+      "outputs": [
+        "定义 template-only 输出、artifact hash 指南、rubric checklist、benchmark aggregate skeleton、no-leak checklist 和 gate expectation。"
+      ]
+    },
+    {
+      "step_key": "contract_template",
+      "step_id": "TP-02.01",
+      "outputs": [
+        "contracts/fate/evaluations/core-quality-human-review-bundle-template.json"
+      ]
+    },
+    {
+      "step_key": "template_generator_design",
+      "step_id": "TP-02.02",
+      "outputs": [
+        "scripts/core-quality-human-review-bundle-template.py",
+        "scripts/core-quality-human-review-bundle-template.sh"
+      ]
+    },
+    {
+      "step_key": "implementation_and_tests",
+      "step_id": "TP-03",
+      "outputs": [
+        "落地模板生成器、回归测试和 quick local-ci artifact，证明模板不会解除 blocked gate。"
+      ]
+    },
+    {
+      "step_key": "regression_tests",
+      "step_id": "TP-03.01",
+      "outputs": [
+        "tests/regression/test_core_quality_human_review_bundle_template.py"
+      ]
+    },
+    {
+      "step_key": "local_ci_wiring",
+      "step_id": "TP-03.02",
+      "outputs": [
+        "scripts/local-ci.sh"
+      ]
+    },
+    {
+      "step_key": "docs_and_roadmap",
+      "step_id": "TP-04",
+      "outputs": [
+        "刷新 100% 基础设施实现计划、AGENTS 目录说明和 0152 任务文档。"
+      ]
+    },
+    {
+      "step_key": "roadmap_refresh",
+      "step_id": "TP-04.01",
+      "outputs": [
+        "docs/reference-materials/roadmap/测算基础设施100%实现计划.md"
+      ]
+    },
+    {
+      "step_key": "agents_task_docs",
+      "step_id": "TP-04.02",
+      "outputs": [
+        "governance/tasks/0152-measurement-infrastructure-core-quality-evidence-bundle-rehearsal/*",
+        "contracts/fate/evaluations/AGENTS.md",
+        "scripts/AGENTS.md",
+        "tests/AGENTS.md"
+      ]
+    },
+    {
+      "step_key": "validation_and_delivery",
+      "step_id": "TP-05",
+      "outputs": [
+        "执行 targeted tests、lint、local-ci、diff check、提交推送并观察远端 CI。"
+      ]
+    },
+    {
+      "step_key": "local_validation",
+      "step_id": "TP-05.01",
+      "outputs": [
+        "STATUS.md validation evidence"
+      ]
+    },
+    {
+      "step_key": "git_delivery",
+      "step_id": "TP-05.02",
+      "outputs": [
+        "Git commit and remote Acceptance evidence"
+      ]
+    }
+  ],
+  "execution_snapshot": {
+    "total_nodes": 15,
+    "total_leaf_nodes": 10,
+    "ready_leaf_ids": [
+      "TP-01.01",
+      "TP-01.02"
+    ]
+  }
+}

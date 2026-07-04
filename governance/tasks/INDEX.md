@@ -264,3 +264,5 @@
 | 0150 | measurement-infrastructure-100-post-0149-deep-research-plan | Done | P0 | 基于当前 main、0149 core quality human review intake 已完成本地与远端交付但真实专家/benchmark/no-leak 证据仍阻断的事实，结合成熟基础设施官方资料，刷新 FateCat 达到 100% 测算基础设施所需的剩余任务树、验收门禁、外部阻断项和不可伪造证据口径；本任务只做调研与计划落盘，不执行生产 live、不伪造专家评审或 100% 完成。 | 0150-measurement-infrastructure-100-post-0149-deep-research-plan/ |
 
 | 0151 | measurement-infrastructure-external-evidence-submission-readiness-audit | In Progress | P0 | 实现外部证据提交准备度审计：聚合 0144-0149 proof-ref、live proof、operator packet、human review、audit rehearsal 与 certification 产物，输出 current HEAD 可提交/待提交/阻断矩阵，不执行真实 live、不伪造外部证据。 | 0151-measurement-infrastructure-external-evidence-submission-readiness-audit/ |
+
+| 0152 | measurement-infrastructure-core-quality-evidence-bundle-rehearsal | In Progress | P0 | 基于当前 0151 readiness audit 和基础设施同构调研，落地 core_quality_human_review_bundle 提交前演练模板、hash 计算说明、no-leak checklist 和 100% 基础设施后续计划刷新；不填真实专家或 benchmark 内容，不改变 core quality gate 结论。 | 0152-measurement-infrastructure-core-quality-evidence-bundle-rehearsal/ |

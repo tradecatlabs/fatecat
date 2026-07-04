@@ -359,6 +359,35 @@
     {
       "resourceType": "EvaluationRun",
       "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "run.core_quality_human_review_bundle_template",
+      "name": "八字/紫微 core quality 人审证据 bundle 提交模板",
+      "runType": "external_review_template",
+      "gateType": "operator_preparation",
+      "datasetIds": [
+        "dataset.bazi_ziwei_core_quality_corpus",
+        "dataset.mingli_bench_offline"
+      ],
+      "commands": ["bash scripts/core-quality-human-review-bundle-template.sh"],
+      "releaseRequired": false,
+      "localAvailability": "tracked_in_repo",
+      "lastKnownStatusPolicy": "tracked_by_task_evidence",
+      "links": {
+        "self": "/evaluations/run.core_quality_human_review_bundle_template",
+        "collection": "/evaluations",
+        "schema": "contracts/fate/evaluations/schemas/evaluation-run.schema.json",
+        "datasets": "/evaluations"
+      },
+      "metadata": {
+        "owner": "contracts/fate/evaluations",
+        "verificationScope": "生成 core_quality_human_review_bundle 可填写骨架、hash 计算说明、rubric dimension checklist、no-leak checklist 和 target gate 命令。",
+        "resultStorage": "infra/runtime/local-state/exports/quality/core-quality-human-review-bundle-template.json 与 CORE_QUALITY_HUMAN_REVIEW_BUNDLE_TEMPLATE.md",
+        "externalConnectivity": "not_required_template_only",
+        "risk": "模板只服务 operator 准备，不代表专家评审、外部 benchmark、no-leak signoff、独立审计或 100% certification 已完成。"
+      }
+    },
+    {
+      "resourceType": "EvaluationRun",
+      "apiVersion": "fatecat.tradecatlabs/v1",
       "id": "run.mingli_bench_offline",
       "name": "MingLi-Bench 离线 aggregate benchmark smoke",
       "runType": "offline_benchmark",

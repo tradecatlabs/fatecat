@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.core_quality_human_review_bundle_template_contract",
+  "description": "八字/紫微 core_quality_human_review_bundle 提交前演练模板契约。该契约只生成可填写骨架、hash 计算说明、no-leak checklist 和 operator checklist；模板本身不能作为真实专家评审、外部 benchmark 或 no-leak signoff 证据。",
+  "outputKind": "fatecat.core_quality_human_review_bundle_template",
+  "targetEvidenceKind": "fatecat.core_quality_human_review_bundle",
+  "targetGate": "fatecat.core_quality_human_review_gate",
+  "targetGateCommand": "bash scripts/core-quality-human-review-gate.sh --review-evidence-json <redacted-bundle-json> --require-accepted --output-json <gate-output-json>",
+  "privacyBoundary": "redacted_no_secret_values",
+  "requiredOutputFields": [
+    "schemaVersion",
+    "kind",
+    "status",
+    "generatedAt",
+    "source",
+    "summary",
+    "templateGate",
+    "templatePolicy",
+    "bundleSkeleton",
+    "dimensionChecklist",
+    "artifactHashInstructions",
+    "noLeakChecklist",
+    "operatorChecklist",
+    "gateExpectation",
+    "privacyBoundary",
+    "releaseBoundary",
+    "nonClaims"
+  ],
+  "templatePolicy": {
+    "templateOnly": true,
+    "operatorActionRequired": true,
+    "acceptedByTargetGate": false,
+    "storesRealEvidence": false,
+    "storesReviewerIdentity": false,
+    "storesRealUserBirthData": false,
+    "storesBenchmarkItemDetails": false,
+    "storesReportBody": false,
+    "executesExternalReview": false,
+    "executesExternalBenchmark": false
+  },
+  "hashPolicy": {
+    "algorithm": "sha256",
+    "acceptedFormat": "64 lowercase hex chars",
+    "commandPattern": "sha256sum <redacted-artifact-file>",
+    "artifactBoundary": "Only hash redacted artifacts after reviewer and benchmark no-leak checks."
+  },
+  "noLeakPolicy": {
+    "forbiddenFragmentSource": "contracts/fate/evaluations/core-quality-human-review-gate.json:forbiddenReportFragments",
+    "requiredResult": "forbiddenFragmentsFound must be 0",
+    "redactionStatus": "redacted_no_secret_values",
+    "rawEndpointPolicy": "Do not place raw public endpoints, account identifiers, production paths or credentials in the bundle."
+  },
+  "requiredTargetArtifacts": [
+    "professional-quality-rubric",
+    "core-quality-corpus-gate",
+    "mingli-bench-gate",
+    "evidence-coverage-trend-gate",
+    "bazi-ziwei-l4-golden-smoke"
+  ],
+  "releaseBoundary": "该模板只证明提交前材料结构、hash 说明和 no-leak 检查清单已准备；不证明专家评审完成、外部 benchmark 通过、no-leak signoff 已签署、八字/紫微专业能力 100% 或 FateCat 可声明 100% 测算基础设施。",
+  "nonClaims": [
+    "Does not mean professional review is complete.",
+    "Does not mean external benchmark is accepted.",
+    "Does not mean no-leak signoff is accepted.",
+    "Does not mean bazi/ziwei professional quality is 100% proven.",
+    "Does not mean FateCat can claim 100% measurement infrastructure.",
+    "Does not store reviewer identity, real user birth data, benchmark item details or report body."
+  ]
+}

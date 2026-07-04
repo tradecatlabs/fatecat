@@ -169,14 +169,15 @@
         "owner": "contracts/fate/evaluations",
         "desiredState": {
           "datasetCount": 5,
-          "evaluationRunCount": 6,
+          "evaluationRunCount": 7,
           "requiredRunIds": [
             "run.local_ci_quick",
             "run.solar_terms_golden",
             "run.evaluation_dashboard_smoke",
             "run.core_quality_corpus_gate",
             "run.mingli_bench_offline",
-            "run.core_quality_human_review_gate"
+            "run.core_quality_human_review_gate",
+            "run.core_quality_human_review_bundle_template"
           ]
         },
         "admission": {
@@ -196,7 +197,7 @@
         "lastKnownStatePolicy": "computed_by_control_plane_gate",
         "reconciliation": {
           "status": "in_sync",
-          "summary": "Control-plane gate checks dataset/run counts, required run ids and evaluation-only boundaries.",
+          "summary": "Control-plane gate checks dataset/run counts, required run ids, template preparation runs and evaluation-only boundaries.",
           "driftPolicy": "fail if dataset/run count, required run ids, dataset links or releaseRequired policy drift"
         }
       },

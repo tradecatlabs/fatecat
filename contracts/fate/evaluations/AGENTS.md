@@ -11,6 +11,7 @@ evaluations/
 ├── AGENTS.md
 ├── core-quality-corpus.json
 ├── diff-policy.json
+├── core-quality-human-review-bundle-template.json
 ├── core-quality-human-review-gate.json
 ├── mingli-bench-gate.json
 ├── professional-quality-rubric.json
@@ -27,6 +28,7 @@ evaluations/
 - `registry.json`：登记 Dataset 与 EvaluationRun 资源，记录路径、用途、命令、本地可验证性、隐私和风险边界。
 - `core-quality-corpus.json`：登记八字/紫微核心质量语料、最小样本数量、覆盖标签、隐私边界和 release gate，不保存真实用户命例。
 - `professional-quality-rubric.json`：定义八字/紫微专业质量评审维度、证据要求、人工复核边界和禁止宣称；只作 evaluation-only 契约，不证明真实命例准确率。
+- `core-quality-human-review-bundle-template.json`：定义 `core_quality_human_review_bundle` 提交前演练模板契约；只生成可填写骨架、hash 说明和 no-leak checklist，不作为真实专家评审或 benchmark 证据。
 - `core-quality-human-review-gate.json`：定义外部专家评审、外部 benchmark 聚合和 no-leak signoff 的脱敏 intake 契约；只接收 disposition、artifact ref、hash 与统计，不保存专家身份、真实命例、题目答案或报告正文。
 - `diff-policy.json`：定义本地 Evaluation summary diff 的失败阈值和隐私边界；只比较状态与命令结果，不解析标准答案。
 - `trend-policy.json`：定义 EvaluationRun 历史趋势门禁策略；拒绝最新失败、连续失败、缺失 required run 和失败命令，不保存命令输出、benchmark 标准答案或报告正文。
@@ -37,6 +39,7 @@ evaluations/
 - `scripts/run-evaluations.sh`：本地 EvaluationRun 执行入口；读取本 registry，输出机器可读 summary JSON。
 - `scripts/core-quality-corpus-gate.sh`：核心质量语料门禁；校验 `core-quality-corpus.json`、`report-diff-policy.json`、`professional-quality-rubric.json`、registry 链接、匿名样本数量、覆盖标签、summary-only 报告 diff 策略和北京测试样本隐私边界。
 - `scripts/core-quality-human-review-gate.sh`：核心质量外部专家评审 intake 门禁；默认无证据时输出 blocked gate，具备脱敏 bundle 时校验 commit、rubric dimensions、benchmark aggregate、no-leak signoff、artifact hash 和隐私边界。
+- `scripts/core-quality-human-review-bundle-template.sh`：核心质量外部专家评审 bundle 提交前模板生成器；输出可填写 JSON 骨架、hash 计算说明、no-leak checklist 和 operator checklist，模板本身必须被真实 intake gate 拒绝。
 - `scripts/mingli-bench-gate.sh`：MingLi-Bench 离线聚合门禁；复用 core corpus gate 与 FateCat baseline runner，只写聚合 summary，不写题目、出生信息、标准答案或逐题结果。
 - `scripts/compare-evaluations.sh`：本地 Evaluation summary diff 入口；读取两个 summary JSON 和 `diff-policy.json` 判定是否回归。
 - `scripts/evaluation-trend-gate.sh`：本地 EvaluationRun 历史趋势门禁入口；读取 `trend-policy.json` 与 history/latest summary，输出 summary-only trend gate JSON。

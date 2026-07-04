@@ -201,6 +201,9 @@ run_quick() {
     --output-json "${output_dir}/mingli-bench-gate.json"
   run_step "core quality human review gate" bash "${script_dir}/core-quality-human-review-gate.sh" \
     --output-json "${output_dir}/core-quality-human-review-gate.json"
+  run_step "core quality human review bundle template" bash "${script_dir}/core-quality-human-review-bundle-template.sh" \
+    --output-json "${output_dir}/core-quality-human-review-bundle-template.json" \
+    --output-markdown "${output_dir}/CORE_QUALITY_HUMAN_REVIEW_BUNDLE_TEMPLATE.md"
   run_step "data supply chain gate" bash "${script_dir}/data-supply-chain-gate.sh" \
     --output-json "${output_dir}/data-supply-chain-gate.json"
   run_step "runtime backend gate" bash "${script_dir}/runtime-backend-gate.sh" \
@@ -590,6 +593,8 @@ write_summary() {
   FATE_LOCAL_CI_CORE_QUALITY_CORPUS_GATE="${output_dir}/core-quality-corpus-gate.json" \
   FATE_LOCAL_CI_MINGLI_BENCH_GATE="${output_dir}/mingli-bench-gate.json" \
   FATE_LOCAL_CI_CORE_QUALITY_HUMAN_REVIEW_GATE="${output_dir}/core-quality-human-review-gate.json" \
+  FATE_LOCAL_CI_CORE_QUALITY_HUMAN_REVIEW_BUNDLE_TEMPLATE="${output_dir}/core-quality-human-review-bundle-template.json" \
+  FATE_LOCAL_CI_CORE_QUALITY_HUMAN_REVIEW_BUNDLE_TEMPLATE_MARKDOWN="${output_dir}/CORE_QUALITY_HUMAN_REVIEW_BUNDLE_TEMPLATE.md" \
   FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE="${output_dir}/data-supply-chain-gate.json" \
   FATE_LOCAL_CI_RUNTIME_BACKEND_GATE="${output_dir}/runtime-backend-gate.json" \
   FATE_LOCAL_CI_MULTI_REPLICA_RUNTIME_EVIDENCE="${output_dir}/multi-replica-runtime-evidence.json" \
@@ -698,6 +703,10 @@ payload = {
         "coreQualityCorpusGate": env("FATE_LOCAL_CI_CORE_QUALITY_CORPUS_GATE"),
         "mingliBenchGate": env("FATE_LOCAL_CI_MINGLI_BENCH_GATE"),
         "coreQualityHumanReviewGate": env("FATE_LOCAL_CI_CORE_QUALITY_HUMAN_REVIEW_GATE"),
+        "coreQualityHumanReviewBundleTemplate": env("FATE_LOCAL_CI_CORE_QUALITY_HUMAN_REVIEW_BUNDLE_TEMPLATE"),
+        "coreQualityHumanReviewBundleTemplateMarkdown": env(
+            "FATE_LOCAL_CI_CORE_QUALITY_HUMAN_REVIEW_BUNDLE_TEMPLATE_MARKDOWN"
+        ),
         "dataSupplyChainGate": env("FATE_LOCAL_CI_DATA_SUPPLY_CHAIN_GATE"),
         "runtimeBackendGate": env("FATE_LOCAL_CI_RUNTIME_BACKEND_GATE"),
         "multiReplicaRuntimeEvidence": env("FATE_LOCAL_CI_MULTI_REPLICA_RUNTIME_EVIDENCE"),
