@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.production_live_delivery_evidence_bundle_contract",
+  "resourceType": "ProductionLiveDeliveryEvidenceBundle",
+  "id": "audit.production.live.delivery.evidenceBundle",
+  "status": "baseline",
+  "description": "生产交付 live evidence bundle 装配契约。该装配器消费 closure work queue、proof-ref gate、category runbooks，以及操作员提供的脱敏 live summary JSON，把 production API、HF Space、Telegram Bot、公网 webhook 和多端 live parity 的通过证据转换为 external-validation-live-proof-gate 可校验的 live evidence bundle。",
+  "generator": {
+    "command": "bash scripts/production-live-delivery-evidence-bundle.sh --work-queue-json <external-validation-closure-work-queue.json> --proof-ref-gate-json <external-validation-proof-ref-gate.json> --category-runbooks-json <external-validation-category-runbooks.json> [--live-release-gate-json <live-release-gate.json>] [--public-webhook-json <postgres-public-webhook-live-smoke.json>] [--multi-surface-json <multi-surface-semantic-diff.json>] --output-json <external-validation-live-evidence-bundle.json>",
+    "pythonEntrypoint": "scripts/production-live-delivery-evidence-bundle.py",
+    "defaultOutput": "infra/runtime/local-state/exports/audit/production-live-delivery-evidence-bundle.json"
+  },
+  "outputKind": "fatecat.external_validation_live_evidence_bundle",
+  "outputSchema": "contracts/fate/audit/schemas/external-validation-live-evidence.schema.json",
+  "supportedCategories": [
+    "release.production_api_live",
+    "release.hf_space_live",
+    "release.telegram_bot_live",
+    "runtime.public_webhook_live",
+    "delivery.multi_surface_live"
+  ],
+  "acceptedEvidenceInputs": [
+    {
+      "category": "release.production_api_live",
+      "summaryPathArgument": "--live-release-gate-json",
+      "requiredCheck": "evidence.production_api_live",
+      "requiredStatus": "pass"
+    },
+    {
+      "category": "release.hf_space_live",
+      "summaryPathArgument": "--live-release-gate-json",
+      "requiredCheck": "evidence.hf_space_live",
+      "requiredStatus": "pass"
+    },
+    {
+      "category": "release.telegram_bot_live",
+      "summaryPathArgument": "--live-release-gate-json",
+      "requiredCheck": "evidence.telegram_bot_live",
+      "requiredStatus": "pass"
+    },
+    {
+      "category": "runtime.public_webhook_live",
+      "summaryPathArgument": "--public-webhook-json",
+      "requiredKind": "fatecat.postgres_public_webhook_live_smoke",
+      "requiredStatus": "passed"
+    },
+    {
+      "category": "delivery.multi_surface_live",
+      "summaryPathArgument": "--multi-surface-json + --live-release-gate-json",
+      "requiredKind": "fatecat.multi_surface_semantic_diff",
+      "requiredStatus": "passed",
+      "additionalRequirement": "production API、HF Space 和 Telegram Bot checks must all be pass in live-release-gate.json."
+    }
+  ],
+  "assemblyPolicy": {
+    "pendingMode": "No evidence or incomplete evidence produces status=external_connectivity_pending and liveProofs=[] or partial liveProofs.",
+    "proofRefDependency": "A live proof can only be emitted for work items whose proofRef was already schema-accepted by external-validation-proof-ref-gate.",
+    "runbookDependency": "Each live proof must bind to the category runbook id for the same category.",
+    "artifactPolicy": "The emitted artifactHash is the sha256 digest of the operator-provided summary JSON; raw summary body is not copied.",
+    "shipGate": "This assembler never changes ship/certification status by itself; external-validation-live-proof-gate and measurement-infrastructure-certification remain authoritative."
+  },
+  "requiredOutputFields": [
+    "schemaVersion",
+    "kind",
+    "status",
+    "generatedAt",
+    "source",
+    "liveProofs",
+    "privacyBoundary",
+    "nonClaims"
+  ],
+  "privacyBoundary": "Assembler output may contain proof id、proofRefId、workItemId、owner、category、runbookId、liveGateKind、artifactHash、sourceBinding、operatorAttestation 和脱敏命令；不得复制真实 URL、token、secret、DSN、webhook secret、外部账号、生产日志、trace payload、报告正文或用户输入。",
+  "nonClaims": [
+    "Does not execute production API/HF/Bot/Postgres/webhook checks.",
+    "Does not verify hidden external artifacts without operator and audit review.",
+    "Does not replace external-validation-live-proof-gate.",
+    "Does not replace third-party audit.",
+    "Does not mean FateCat is 100% production infrastructure."
+  ]
+}

@@ -236,7 +236,7 @@ CATEGORY_PROFILES: dict[str, CategoryProfile] = {
         evidence_type="telegram_bot_live_smoke",
         required_credentials=("Telegram Bot token", "Bot webhook or polling access", "redacted chat test context"),
         operator_commands=(
-            "bash scripts/live-bot-smoke.sh --require-live --output-json <bot-smoke-json>",
+            "bash scripts/live-release-gate.sh --run-live-bot --output-json <live-release-gate-json>",
             "bash scripts/production-readiness.sh --require-live-bot",
         ),
         proof_ref_slug="release-telegram-bot-live",

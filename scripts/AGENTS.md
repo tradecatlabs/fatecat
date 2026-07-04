@@ -35,6 +35,8 @@ scripts/
 ├── external-validation-closure-work-queue.py
 ├── external-validation-live-proof-gate.sh
 ├── external-validation-live-proof-gate.py
+├── production-live-delivery-evidence-bundle.sh
+├── production-live-delivery-evidence-bundle.py
 ├── external-validation-category-runbooks.sh
 ├── external-validation-category-runbooks.py
 ├── data-supply-chain-gate.sh
@@ -158,6 +160,7 @@ scripts/
 - `external-validation-category-runbooks.sh` / `external-validation-category-runbooks.py` 是外部验证 category runbook 门禁；消费 work queue，为每个 category 生成 required credential、operator command、proof-ref artifact pattern、redaction、expiry、rollback 和 closure condition；runbook ready 不等于 production live passed。
 - `external-validation-closure-trend-dashboard.sh` / `external-validation-closure-trend-dashboard.py` 是外部验证关闭趋势 dashboard 门禁；消费 closure plan、work queue、proof-ref gate、category runbooks 和可选 live proof gate，输出 owner/category/status 趋势、stale owner alert 和本地 summary artifact；不发送真实通知、不连接 issue tracker、不把 alert ack 当作 live evidence closure。
 - `external-validation-live-proof-gate.sh` / `external-validation-live-proof-gate.py` 是外部验证 live proof 门禁；消费 work queue、proof-ref gate、category runbooks 和可选 operator 脱敏 live evidence bundle，校验 live proof 与 proof-ref/runbook/source/current commit 的绑定；不发起真实生产请求，不把 operator evidence 直接等同第三方审计。
+- `production-live-delivery-evidence-bundle.sh` / `production-live-delivery-evidence-bundle.py` 是生产交付 live evidence bundle 装配器；消费 live-release gate、Postgres public webhook live smoke 和 multi-surface semantic diff 的脱敏 summary，把 API/HF/Bot/webhook/parity 的通过证据转换为 `fatecat.external_validation_live_evidence_bundle`，默认无真实证据时只输出 pending，不复制 URL/token/DSN/webhook secret。
 - `container-build.sh`：构建 FateCat delivery 镜像。
 - `container-smoke.sh`：启动临时容器并验证 `/health` 与真实排盘 API。
 - `container-release.sh`：构建、smoke，并在显式 `--push` 时推送 registry。
