@@ -1,0 +1,90 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-12T01:00:00+08:00",
+  "task": {
+    "task_id": "0153",
+    "slug": "revoke-web-workbench-layout-exception",
+    "task_dir": "governance/tasks/0153-revoke-web-workbench-layout-exception",
+    "detected_phase": "closeout",
+    "overall_status": "Done"
+  },
+  "source_refs": {
+    "task_context_packet": null,
+    "task_package_set": null,
+    "git_delivery_evidence": null,
+    "audit_case_sampling_decision": "governance/tasks/0153-revoke-web-workbench-layout-exception/AUDIT_CASE_SAMPLING.md"
+  },
+  "closeout_gate": {
+    "ready": true,
+    "failures": []
+  },
+  "summary": {
+    "leaf_total": 3,
+    "leaf_done": 3,
+    "todo_total": 3,
+    "todo_checked": 3,
+    "blocker_count": 0
+  },
+  "leaves": [
+    {
+      "id": "TP-01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`tests/regression/test_web_html.py` 首轮 `11 passed`；源码扫描无 style/class/section/div/workbench layout token。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "当前实现、测试、AGENTS/README、standard、Gate、module context、lesson、feedback 已改为无例外规则。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "fresh quick CI `401 passed`；governance strict、sampling、task docs、diff check 与 review 均 PASS。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    }
+  ],
+  "git_delivery": null,
+  "audit_case_sampling": {
+    "ok": true,
+    "file": "/home/lenovo/.projects/fatecat/governance/tasks/0153-revoke-web-workbench-layout-exception/AUDIT_CASE_SAMPLING.md",
+    "summary": {
+      "decision": "no-case",
+      "source": "governance/tasks/0153-revoke-web-workbench-layout-exception",
+      "case_id": "-",
+      "case_path": "-",
+      "root_cause_class": "stale-exception-and-source-of-truth-drift",
+      "has_no_case_reason": true,
+      "has_trigger_signals": true,
+      "has_evidence": true
+    },
+    "issues": [],
+    "required": true,
+    "loaded": true
+  },
+  "recommended_asset_handoff": {
+    "source_refs": [
+      "governance/tasks/0153-revoke-web-workbench-layout-exception/AUDIT_CASE_SAMPLING.md"
+    ],
+    "artifacts": [
+      "audit-case-sampling-decision",
+      "task-closeout-packet.json"
+    ]
+  },
+  "upstream_packets": {
+    "task_context_packet_loaded": false,
+    "task_package_set_loaded": false,
+    "git_delivery_evidence_loaded": false,
+    "audit_case_sampling_loaded": true
+  }
+}

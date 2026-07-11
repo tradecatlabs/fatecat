@@ -6,4 +6,8 @@
 
 ## 2026-06-15
 
-- FateCat Web HTML 必须严格遵守 `/home/lenovo/.codex/Design.md` 的零美化语义界面规范。代理不得擅自加入授权例外之外的 CSS、视觉 class、颜色、圆角、卡片、响应式布局或装饰性容器；当前唯一授权例外是 `/web` 复刻 `D:\.projects\pdf` 工作台黄金三块全屏生产空间：左上 TradeCat Labs 资产声明、右上服务端生成报告、底部参数输入。任何 `/web` 变更必须用 `tests/regression/test_web_html.py::assert_web_production_layout_html` 和 `bash scripts/local-ci.sh --profile quick` 证明禁用项没有回潮。
+- FateCat Web HTML 变更前必须读取 `/home/lenovo/.codex/Design.md`，不能把一般前端审美凌驾于项目明确设计契约之上。
+
+## 2026-07-12
+
+- `/web` 三块工作台授权已撤销，当前不存在 CSS、视觉 class、颜色、圆角、卡片、响应式布局或装饰性容器例外。任何 `/web` 变更必须用 `tests/regression/test_web_html.py::assert_zero_beauty_semantic_html` 和 `bash scripts/local-ci.sh --profile quick` 证明禁用项没有回潮。

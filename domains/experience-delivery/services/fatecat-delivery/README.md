@@ -23,5 +23,5 @@ bash scripts/delivery-smoke.sh --target api
 - 公开 Web 工作台默认走进程内有界异步任务队列；免费 Space 不保存任务到数据库，多副本生产需要 Redis/RQ/Celery 等外部队列。
 - 不把未来 capability 混入默认综合八字报告。
 - Web HTML 必须遵守 `/home/lenovo/.codex/Design.md` 的零美化语义界面规范：禁止 CSS、视觉 class、颜色、圆角、卡片、响应式布局和装饰性容器。
-- `/web` 当前唯一授权布局例外是 `D:\.projects\pdf` 工作台同类的黄金比例三块全屏生产空间：左上 TradeCat Labs 资产声明、右上服务端生成报告、底部参数输入；只允许 `web-production-*` 结构 class、必要 grid CSS、面板边界和控件可读性 CSS，不允许卡片、圆角、阴影、动画或营销视觉。
+- `/web` 当前不存在布局授权例外；浏览器默认渲染即为预期呈现。
 - 修改 `src/web_ui.py` 后必须跑 `python -m pytest -q tests/regression/test_web_html.py` 或 `bash scripts/local-ci.sh --profile quick`。

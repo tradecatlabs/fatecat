@@ -2,7 +2,6 @@
 
 该模块只负责 FastAPI 交付层的 HTML 呈现，不定义新的命理字段契约。
 页面遵循零美化语义界面规范：服务端直出、原生表单、psql ASCII 表格、Markdown 原文可复制。
-Web 生产空间复用 pdf 工作台的黄金三块全屏布局契约；CSS 只服务该操作结构。
 """
 
 from __future__ import annotations
@@ -75,10 +74,10 @@ def _render_document(
         '<meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
         "<title>FateCat Web Markdown 报告</title>",
-        _render_workspace_style(),
         "</head>",
         "<body>",
-        _render_production_workspace(form=form, result=result, errors=errors, job=job, generated_at=generated_at),
+        "<h1>FateCat Web Markdown 报告</h1>",
+        _render_semantic_page(form=form, result=result, errors=errors, job=job, generated_at=generated_at),
     ]
 
     body_parts.extend(
@@ -91,156 +90,7 @@ def _render_document(
     return "\n".join(body_parts)
 
 
-def _render_workspace_style() -> str:
-    """渲染 Web 生产空间的黄金比例三块布局；对齐 pdf 工作台全屏结构。"""
-    return "\n".join(
-        [
-            "<style>",
-            ":root {",
-            "  --phi-major: 61.8034%;",
-            "  --phi-minor: 38.1966%;",
-            "  --phi-major-fr: 1.61803398875fr;",
-            "  --phi-minor-fr: 1fr;",
-            "  --web-production-panel-gap: 0;",
-            "  --web-production-panel-border: #3a3a3a;",
-            "  --web-production-panel-bg: #202020;",
-            "  --web-production-body-bg: #111;",
-            "  --web-production-text: #f2f2f2;",
-            "  --web-production-link: #9db5ff;",
-            "}",
-            "html { height: 100%; overflow: hidden; }",
-            "body {",
-            "  margin: 0;",
-            "  padding: 1rem;",
-            "  box-sizing: border-box;",
-            "  height: 100%;",
-            "  overflow: hidden;",
-            "  color: var(--web-production-text);",
-            "  background: var(--web-production-body-bg);",
-            '  font-family: "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif;',
-            "}",
-            "a { color: var(--web-production-link); }",
-            "h1, h2, h3 { margin: 0 0 0.75rem; }",
-            "p { margin: 0 0 0.75rem; }",
-            "form { margin: 0; }",
-            "label {",
-            "  display: block;",
-            "  margin-bottom: 0.25rem;",
-            "  font-weight: 700;",
-            "}",
-            "input, select, textarea, button {",
-            "  box-sizing: border-box;",
-            "  max-width: 100%;",
-            "  font: inherit;",
-            "}",
-            'input[type="text"], input[type="date"], input[type="time"], select, textarea {',
-            "  width: 100%;",
-            "  border: 1px solid #777;",
-            "  border-radius: 0;",
-            "  padding: 0.55rem;",
-            "  color: #111;",
-            "  background: #fff;",
-            "}",
-            "button {",
-            "  width: 100%;",
-            "  border: 1px solid #f2f2f2;",
-            "  border-radius: 0;",
-            "  padding: 0.8rem 1rem;",
-            "  color: #111;",
-            "  background: #f2f2f2;",
-            "  font-weight: 700;",
-            "  cursor: pointer;",
-            "}",
-            "pre {",
-            "  overflow: auto;",
-            "  padding: 0.75rem;",
-            "  background: #050505;",
-            "  color: #f2f2f2;",
-            "  border: 1px solid #444;",
-            "}",
-            "details {",
-            "  margin-top: 1rem;",
-            "  border-top: 1px solid #333;",
-            "  padding-top: 0.75rem;",
-            "}",
-            "summary { cursor: pointer; font-weight: 700; }",
-            ".web-production-grid {",
-            "  height: calc(100vh - 2rem);",
-            "  display: grid;",
-            "  grid-template-columns:",
-            "    minmax(0, min(var(--phi-minor), calc((100vh - 2rem) * 0.618034)))",
-            "    minmax(0, 1fr);",
-            "  grid-template-rows: minmax(0, var(--phi-major-fr)) minmax(0, var(--phi-minor-fr));",
-            "  gap: var(--web-production-panel-gap);",
-            "  min-height: 0;",
-            "}",
-            ".web-production-panel {",
-            "  min-width: 0;",
-            "  min-height: 0;",
-            "  overflow: auto;",
-            "  padding: 0.9rem;",
-            "  border: 1px solid var(--web-production-panel-border);",
-            "  background: var(--web-production-panel-bg);",
-            "  color: var(--web-production-text);",
-            "}",
-            ".web-production-brand {",
-            "  grid-column: 1;",
-            "  grid-row: 1;",
-            "  display: grid;",
-            "  align-content: start;",
-            "}",
-            ".web-production-report {",
-            "  grid-column: 2;",
-            "  grid-row: 1;",
-            "}",
-            ".web-production-report-header {",
-            "  display: flex;",
-            "  align-items: center;",
-            "  justify-content: space-between;",
-            "  gap: 0.75rem;",
-            "  margin-bottom: 0.75rem;",
-            "}",
-            ".web-production-report-header h2 { margin: 0; }",
-            ".web-production-submit-button {",
-            "  flex: 0 0 auto;",
-            "  width: auto;",
-            "  min-width: 10rem;",
-            "}",
-            ".web-production-input {",
-            "  grid-column: 1 / span 2;",
-            "  grid-row: 2;",
-            "}",
-            ".web-production-control-grid {",
-            "  display: grid;",
-            "  grid-template-columns: repeat(6, minmax(0, 1fr));",
-            "  gap: 0.75rem;",
-            "  align-items: end;",
-            "}",
-            ".web-production-control-grid p { margin: 0; }",
-            ".web-production-control-wide { grid-column: span 2; }",
-            "@media (max-width: 56rem) {",
-            "  html, body { height: auto; overflow: auto; }",
-            "  .web-production-grid {",
-            "    display: block;",
-            "    height: auto;",
-            "    min-height: 0;",
-            "  }",
-            "  .web-production-panel {",
-            "    overflow: visible;",
-            "  }",
-            "  .web-production-control-grid {",
-            "    grid-template-columns: 1fr;",
-            "  }",
-            "  .web-production-control-wide {",
-            "    grid-column: auto;",
-            "  }",
-            "}",
-            "</style>",
-        ]
-    )
-
-
-def _render_production_workspace(
+def _render_semantic_page(
     *,
     form: WebReportForm,
     result: WebReportResult | None,
@@ -250,28 +100,17 @@ def _render_production_workspace(
 ) -> str:
     return "\n".join(
         [
-            '<form id="web-report-form" class="web-production-grid" method="get" action="/web">',
-            '<section class="web-production-panel web-production-brand" aria-labelledby="project-brand">',
             _render_branding_panel(),
-            "</section>",
-            '<section class="web-production-panel web-production-report" aria-labelledby="production-report">',
+            _render_page_nav(has_result=result is not None, has_errors=bool(errors)),
+            _render_input_panel(form=form, result=result, errors=errors),
             _render_report_panel(result=result, errors=errors, job=job),
-            "</section>",
-            '<section class="web-production-panel web-production-input" aria-labelledby="input-form">',
-            _render_input_panel(form=form, result=result, errors=errors, generated_at=generated_at),
-            "</section>",
-            "</form>",
+            _render_page_info(generated_at),
         ]
     )
 
 
 def _render_report_panel(*, result: WebReportResult | None, errors: list[str], job: WebReportJobView | None) -> str:
-    parts = [
-        '<div class="web-production-report-header">',
-        '<h2 id="production-report">生成报告</h2>',
-        '<button class="web-production-submit-button" type="submit" form="web-report-form">生成 Markdown 报告</button>',
-        "</div>",
-    ]
+    parts = ['<h2 id="production-report">生成报告</h2>']
     if job:
         parts.append(_render_job_status(job))
     if errors:
@@ -419,14 +258,14 @@ def _render_field_contract() -> str:
     return f'<h2 id="field-contract">字段契约</h2>\n<pre><code>{_h(table)}</code></pre>'
 
 
-def _render_input_panel(
-    form: WebReportForm, result: WebReportResult | None, errors: list[str], generated_at: str
-) -> str:
+def _render_input_panel(form: WebReportForm, result: WebReportResult | None, errors: list[str]) -> str:
     birth_place_value = form.birth_place if errors else public_birth_place(form.birth_place)
     parts = [
         '<h2 id="input-form">参数控件</h2>',
+        '<form id="web-report-form" method="get" action="/web">',
+        "<fieldset>",
+        "<legend>排盘参数</legend>",
         '<input type="hidden" name="submitted" value="1">',
-        '<div class="web-production-control-grid">',
         "<p>",
         '<label for="birthDate">出生日期（必填）</label><br>',
         f'<input id="birthDate" name="birthDate" type="date" value="{_attr(form.birth_date)}">',
@@ -435,7 +274,7 @@ def _render_input_panel(
         '<label for="birthTime">出生时间（必填）</label><br>',
         f'<input id="birthTime" name="birthTime" type="time" value="{_attr(_time_value(form.birth_time))}">',
         "</p>",
-        '<p class="web-production-control-wide">',
+        "<p>",
         '<label for="birthPlace">出生地区（必填）</label><br>',
         (
             '<input id="birthPlace" name="birthPlace" type="text" '
@@ -451,20 +290,20 @@ def _render_input_panel(
         f'<option value="female"{_selected(form.gender, "female")}>女 female</option>',
         "</select>",
         "</p>",
-        '<p class="web-production-control-wide">',
+        "<p>",
         '<label for="reportSystem">输出体系</label><br>',
         '<select id="reportSystem" name="reportSystem">',
         *_render_report_system_options(form.report_system),
         "</select>",
         "</p>",
-        '<p class="web-production-control-wide">',
+        "<p>",
         '<label for="name">姓名（非必填）</label><br>',
         f'<input id="name" name="name" type="text" value="{_attr(form.name)}" placeholder="可为空">',
         "</p>",
-        "</div>",
+        '<p><button type="submit">生成 Markdown 报告</button></p>',
+        "</fieldset>",
+        "</form>",
         _render_field_contract(),
-        _render_page_nav(has_result=result is not None, has_errors=bool(errors)),
-        _render_page_info(generated_at),
     ]
     if form.submitted or form.has_input():
         parts.append(_render_submitted_input(form, result))
@@ -559,7 +398,6 @@ def _render_bazi_workbench(workbench: dict[str, Any]) -> str:
     rule_rows = _rule_depth_summary_rows(rule_depth)
     return "\n".join(
         [
-            '<section id="bazi-workbench">',
             '<h2 id="workbench">八字工作台</h2>',
             "<p>该区域只展示后端结构化字段；复制 Markdown 内容不受工作台影响。</p>",
             "<details open><summary>四柱 / 十神 / 藏干</summary>",
@@ -624,7 +462,6 @@ def _render_bazi_workbench(workbench: dict[str, Any]) -> str:
             )
             + "</code></pre>",
             "</details>",
-            "</section>",
         ]
     )
 
@@ -671,7 +508,6 @@ def _render_ziwei_workbench(workbench: dict[str, Any]) -> str:
     rule_depth = workbench.get("ruleDepth", {}) if isinstance(workbench.get("ruleDepth"), dict) else {}
     return "\n".join(
         [
-            '<section id="ziwei-workbench">',
             '<h2 id="workbench">紫微工作台</h2>',
             "<p>该区域只展示后端 iztro 结构化字段与解释索引；紫微仍为 standalone 输出。</p>",
             "<details open><summary>十二宫 / 星曜</summary>",
@@ -688,7 +524,6 @@ def _render_ziwei_workbench(workbench: dict[str, Any]) -> str:
             "<details><summary>规则深度 / 冲突策略</summary>",
             "<pre><code>" + _h(json.dumps(rule_depth, ensure_ascii=False, indent=2)) + "</code></pre>",
             "</details>",
-            "</section>",
         ]
     )
 
@@ -712,7 +547,7 @@ def _render_copy_script() -> str:
             '  const reportState = document.getElementById("production-report-state");',
             "  if (!form) { return; }",
             "  const setSubmitting = () => {",
-            '    const buttons = document.querySelectorAll(\'#web-report-form button[type="submit"], button[type="submit"][form="web-report-form"]\');',
+            "    const buttons = document.querySelectorAll('#web-report-form button[type=\"submit\"]');",
             "    buttons.forEach((submitButton) => {",
             '      submitButton.setAttribute("aria-busy", "true");',
             '      submitButton.textContent = "生成中...";',
@@ -720,7 +555,7 @@ def _render_copy_script() -> str:
             '    if (reportState) { reportState.textContent = "正在生成 Markdown 报告..."; }',
             "  };",
             "  const setIdle = () => {",
-            '    const buttons = document.querySelectorAll(\'#web-report-form button[type="submit"], button[type="submit"][form="web-report-form"]\');',
+            "    const buttons = document.querySelectorAll('#web-report-form button[type=\"submit\"]');",
             "    buttons.forEach((submitButton) => {",
             '      submitButton.removeAttribute("aria-busy");',
             '      submitButton.textContent = "生成 Markdown 报告";',

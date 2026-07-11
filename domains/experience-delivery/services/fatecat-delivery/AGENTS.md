@@ -46,8 +46,8 @@ fatecat-delivery/
 - `src/bot_progress.py` 只承载 Telegram Bot 进度项和提示文案；Bot 主流程仍在 `src/bot.py`。
 - `src/service_config.py` 只读取交付服务环境配置；运行期常量仍由 `src/main.py` 初始化，便于测试 monkeypatch 和 FastAPI 启动时固定配置。
 - `tests/test_bot_send_queue.py` 覆盖 Telegram Bot 本地补发 outbox 的幂等入队、原子保存和 ACK 删除；不得把它误认为跨进程分布式队列测试。
-- `/web` 当前唯一授权布局例外是 `D:\.projects\pdf` 工作台同类的黄金比例三块全屏生产空间：左上 TradeCat Labs 资产声明、右上服务端生成报告、底部参数输入；只允许 `web-production-*` 结构 class、必要 grid CSS、面板边界和控件可读性 CSS。
-- Web HTML 禁止授权例外之外的 CSS、视觉 class、颜色、圆角、卡片、响应式布局和装饰性容器；修改前必须读取 `/home/lenovo/.codex/Design.md` 与 `GATE-0001`。
+- `/web` 不存在布局授权例外；Web HTML 禁止 CSS、`style`、视觉 class、颜色、圆角、卡片、响应式布局和装饰性容器。
+- 修改 Web HTML 前必须读取 `/home/lenovo/.codex/Design.md` 与 `GATE-0001`。
 
 ## Principle Gate Evidence
 

@@ -510,6 +510,8 @@ Result:
 
 ## 2026-06-15 Web bug: golden layout copied as ratio but not workbench
 
+> 历史记录：该布局授权已由用户于 2026-07-12 撤销。以下内容仅说明当时的故障与修复，不再代表当前 Web 设计契约；当前规则以 `/home/lenovo/.codex/Design.md`、`GATE-0001` 和 `assert_zero_beauty_semantic_html` 为准。
+
 ### Bug
 
 用户要求把 `D:\.projects\pdf` 的 Web 生产空间三块黄金分割布局引用到 FateCat `/web`，但第一版只复制了比例和三个语义区块，没有复制目标工作台的全屏结构。用户截图对比后确认当前 FateCat 页面仍像普通文档流，不像目标工作台。

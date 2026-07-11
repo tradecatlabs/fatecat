@@ -4,7 +4,7 @@ type: record
 status: current
 owner: engineering
 created: 2026-06-15
-last_reviewed: 2026-06-15
+last_reviewed: 2026-07-12
 source: user-correction-2026-06-15-web-css-regression
 related_gates:
   - GATE-0001
@@ -22,23 +22,23 @@ related_gates:
 
 FateCat `/web` 和同类工程报表页必须遵守零美化语义界面规范：
 
-- 除用户明确授权的黄金三块生产空间布局外，禁止 `<style>`、外部 CSS、行内 `style`。
-- 禁止授权例外之外的自定义颜色、背景、字体、间距、圆角、阴影、卡片、响应式布局优化。
-- 除 `web-production-*` 结构 class 和三块生产空间 section 外，禁止仅用于视觉的 `class`、视觉容器、卡片包装、装饰性分组。
+- 禁止 `<style>`、外部 CSS、行内 `style`；当前不存在授权例外。
+- 禁止自定义颜色、背景、字体、间距、圆角、阴影、卡片、响应式布局优化。
+- 禁止仅用于视觉的 `class`、视觉容器、卡片包装、装饰性分组。
 - 禁止把普通链接伪装成按钮，或把按钮用于普通跳转。
 - 允许使用原生语义结构：`h1-h6`、`p`、`dl`、`ul/ol/li`、`nav`、`form/fieldset/legend/label/input/select/button`、`pre/code`、`details/summary`。
 - 允许 JavaScript 仅用于复制 Markdown 等渐进增强；核心内容必须服务端直出且无脚本可读。
 - 所有结构化数据必须优先用 `tabulate(tablefmt="psql")` 输出到 `<pre><code>`。
 
-2026-06-15 后续明确授权例外：`/web` 可借鉴 `D:\.projects\pdf` 的黄金分割三块生产空间，左上 TradeCat Labs 资产声明、右上服务端生成报告、底部参数输入。该例外允许复刻 pdf 工作台外壳 CSS：全屏深色工作台、面板边界、黄金比例 grid、控件可读性和窄屏自然堆叠；不允许扩展为卡片、圆角、阴影、动画、图标或营销视觉。
+2026-07-12 用户明确撤销此前 `/web` 三块工作台布局授权。自此 `/web` 与其他 HTML 页面统一执行无例外的零美化语义界面规则。
 
 ## 证据
 
 - 设计真相源：`/home/lenovo/.codex/Design.md`
 - 修复提交：`d66a9d8 fix: restore semantic web html`
-- 机械回归：`tests/regression/test_web_html.py::assert_web_production_layout_html`
+- 机械回归：`tests/regression/test_web_html.py::assert_zero_beauty_semantic_html`
 - 本地验证：`bash scripts/local-ci.sh --profile quick --output /tmp/fatecat-local-ci-design-postcommit`
-- 实际页面扫描：`curl -fsS http://127.0.0.1:8001/web | rg 'style=|box-shadow|linear-gradient|animation|transition|<main>'` 无匹配；`<style>`、`@media`、`class` 和三块 `<section>` 仅允许用于黄金三块生产空间。
+- 实际页面扫描必须确认 `<style>`、`style=`、外部 CSS、`class=`、`@media`、`main`、`section` 和无必要 `div` 均不存在。
 
 ## 影响范围
 

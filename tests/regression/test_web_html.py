@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 import sys
 from pathlib import Path
 
@@ -18,46 +17,27 @@ if str(FATE_CORE_SRC) not in sys.path:
 from main import app  # noqa: E402
 
 
-def assert_web_production_layout_html(text: str) -> None:
+def assert_zero_beauty_semantic_html(text: str) -> None:
+    assert "<style" not in text
     assert "style=" not in text
+    assert 'rel="stylesheet"' not in text
+    assert "class=" not in text
     assert "<main>" not in text
-    assert '<body>\n<form id="web-report-form" class="web-production-grid"' in text
-    assert "<h1>FateCat Web Markdown 报告</h1>" not in text
-    assert "--phi-major: 61.8034%;" in text
-    assert "--phi-minor: 38.1966%;" in text
-    assert "--phi-major-fr: 1.61803398875fr;" in text
-    assert "--phi-minor-fr: 1fr;" in text
-    assert "--web-production-panel-gap: 0;" in text
-    assert "--web-production-panel-border: #3a3a3a;" in text
-    assert "--web-production-panel-bg: #202020;" in text
-    assert "--web-production-body-bg: #111;" in text
-    assert "html { height: 100%; overflow: hidden; }" in text
-    assert "height: calc(100vh - 2rem);" in text
-    assert "minmax(0, min(var(--phi-minor), calc((100vh - 2rem) * 0.618034)))" in text
-    assert "grid-template-rows: minmax(0, var(--phi-major-fr)) minmax(0, var(--phi-minor-fr));" in text
-    assert "border: 1px solid var(--web-production-panel-border);" in text
-    assert "background: var(--web-production-panel-bg);" in text
-    assert "@media (max-width: 56rem)" in text
+    assert "<section" not in text
+    assert "<div" not in text
+    assert "<body>\n<h1>FateCat Web Markdown 报告</h1>" in text
+    assert '<form id="web-report-form" method="get" action="/web">' in text
     for forbidden in [
+        "@media",
         "box-shadow",
+        "border-radius",
+        "font-family",
+        "grid-template",
         "linear-gradient",
         "animation",
         "transition",
     ]:
         assert forbidden not in text
-    allowed_classes = {
-        "web-production-grid",
-        "web-production-panel",
-        "web-production-brand",
-        "web-production-report",
-        "web-production-report-header",
-        "web-production-submit-button",
-        "web-production-input",
-        "web-production-control-grid",
-        "web-production-control-wide",
-    }
-    for class_value in re.findall(r'class="([^"]+)"', text):
-        assert set(class_value.split()).issubset(allowed_classes)
 
 
 def test_web_page_renders_semantic_form():
@@ -67,7 +47,7 @@ def test_web_page_renders_semantic_form():
     assert response.headers["content-type"].startswith("text/html")
     text = response.text
     assert "<title>FateCat Web Markdown 报告</title>" in text
-    assert "<h1>FateCat Web Markdown 报告</h1>" not in text
+    assert "<h1>FateCat Web Markdown 报告</h1>" in text
     assert '<h2 id="project-brand">项目归属</h2>' in text
     assert "TradeCat Labs｜FateCat 测算基础设施" in text
     assert "FateCat 是面向 Agent 与应用开发者的测算基础设施。" in text
@@ -81,22 +61,13 @@ def test_web_page_renders_semantic_form():
     assert '<a href="#project-brand">项目</a>' in text
     assert '<a href="#production-report">报告</a>' in text
     assert '<a href="#input-form">参数</a>' in text
-    assert_web_production_layout_html(text)
-    assert '<form id="web-report-form" class="web-production-grid" method="get" action="/web">' in text
-    assert '<section class="web-production-panel web-production-brand" aria-labelledby="project-brand">' in text
-    assert '<section class="web-production-panel web-production-report" aria-labelledby="production-report">' in text
-    assert '<section class="web-production-panel web-production-input" aria-labelledby="input-form">' in text
-    assert text.index('class="web-production-panel web-production-brand"') < text.index(
-        'class="web-production-panel web-production-report"'
-    )
-    assert text.index('class="web-production-panel web-production-report"') < text.index(
-        'class="web-production-panel web-production-input"'
-    )
+    assert_zero_beauty_semantic_html(text)
+    assert '<form id="web-report-form" method="get" action="/web">' in text
+    assert text.index('<h2 id="project-brand">') < text.index('<h2 id="input-form">')
+    assert text.index('<h2 id="input-form">') < text.index('<h2 id="production-report">')
     assert '<h2 id="production-report">生成报告</h2>' in text
-    assert '<div class="web-production-report-header">' in text
-    assert (
-        '<button class="web-production-submit-button" type="submit" form="web-report-form">生成 Markdown 报告</button>'
-    ) in text
+    assert "<fieldset>\n<legend>排盘参数</legend>" in text
+    assert '<p><button type="submit">生成 Markdown 报告</button></p>' in text
     assert "尚未生成报告。提交底部参数后，服务端会在这里写入 Markdown 输出。" in text
     assert 'id="production-report-state"' in text
     assert 'form.addEventListener("submit"' in text
@@ -109,9 +80,9 @@ def test_web_page_renders_semantic_form():
     assert " required>" not in text
     assert '<details id="page-info">\n<summary>页面说明与元信息</summary>' in text
     assert "<details open>\n<summary>页面说明与元信息</summary>" not in text
-    assert text.index(
-        '<form id="web-report-form" class="web-production-grid" method="get" action="/web">'
-    ) < text.index("<summary>页面说明与元信息</summary>")
+    assert text.index('<form id="web-report-form" method="get" action="/web">') < text.index(
+        "<summary>页面说明与元信息</summary>"
+    )
     assert "页面元信息" in text
     assert "POST /api/v1/report/jobs/web；GET /api/v1/report/jobs/{job_id}" in text
     assert "免费公开入口默认不写数据库" in text
@@ -163,7 +134,7 @@ def test_web_page_empty_submit_reports_server_side_errors():
 
     assert response.status_code == 200
     text = response.text
-    assert_web_production_layout_html(text)
+    assert_zero_beauty_semantic_html(text)
     assert '<h2 id="errors">错误</h2>' in text
     assert "缺少必填字段" in text
     assert "出生日期" in text
@@ -203,20 +174,20 @@ def test_web_page_generates_copyable_markdown_report():
 
     assert response.status_code == 200
     text = response.text
-    assert_web_production_layout_html(text)
+    assert_zero_beauty_semantic_html(text)
     assert '<a href="#workbench">工作台</a>' in text
     assert '<a href="#markdown-output">Markdown</a>' in text
     assert '<button type="button" id="copy-report">复制 Markdown</button>' in text
     assert '<h2 id="markdown-output">Markdown 输出</h2>' in text
     assert '<pre><code id="report-markdown">' in text
-    assert '<section id="bazi-workbench">' in text
+    assert '<h2 id="workbench">八字工作台</h2>' in text
     assert "<details><summary>专题 profile / 风险边界</summary>" in text
     assert "财运 profile 只作结构趋势证据" in text
     assert "健康 profile 只作五行结构压力证据" in text
     assert "lifecycle" not in text
     for forbidden in ("医疗建议", "投资建议", "法律建议", "心理建议", "必然", "保证", "灾祸"):
         assert forbidden not in text
-    assert text.index('<pre><code id="report-markdown">') < text.index('<section id="bazi-workbench">')
+    assert text.index('<pre><code id="report-markdown">') < text.index('<h2 id="workbench">八字工作台</h2>')
     assert text.index('<pre><code id="report-markdown">') < text.index("<summary>页面说明与元信息</summary>")
     assert "## TradeCat Labs 实验室" in text
     assert "# 命理排盘报告：测试样本" in text
@@ -277,8 +248,8 @@ def test_web_page_can_select_ziwei_report_without_bazi_blocks():
     assert "## 八字排盘详情" not in text
     assert "## 袁天罡称骨" not in text
     assert '"reportSystem": "ziwei"' in text
-    assert '<section id="ziwei-workbench">' in text
-    assert text.index('<pre><code id="report-markdown">') < text.index('<section id="ziwei-workbench">')
+    assert '<h2 id="workbench">紫微工作台</h2>' in text
+    assert text.index('<pre><code id="report-markdown">') < text.index('<h2 id="workbench">紫微工作台</h2>')
 
 
 def test_web_page_rejects_retired_report_systems():
@@ -295,7 +266,7 @@ def test_web_page_rejects_retired_report_systems():
     )
 
     assert response.status_code == 200
-    assert_web_production_layout_html(response.text)
+    assert_zero_beauty_semantic_html(response.text)
     assert '<h2 id="errors">错误</h2>' in response.text
     assert "报告体系必须为: bazi、ziwei。未来体系需等独立功能实现后启用。" in response.text
     assert "# 建除十二神报告" not in response.text
@@ -312,7 +283,7 @@ def test_web_page_rejects_retired_report_systems():
         },
     )
     assert bone_response.status_code == 200
-    assert_web_production_layout_html(bone_response.text)
+    assert_zero_beauty_semantic_html(bone_response.text)
     assert "报告体系必须为: bazi、ziwei。未来体系需等独立功能实现后启用。" in bone_response.text
     assert "# 袁天罡称骨报告" not in bone_response.text
 
@@ -330,7 +301,7 @@ def test_web_page_rejects_out_of_range_direct_coordinates():
     )
 
     assert response.status_code == 200
-    assert_web_production_layout_html(response.text)
+    assert_zero_beauty_semantic_html(response.text)
     assert '<h2 id="errors">错误</h2>' in response.text
     assert "经度必须在 -180 到 180 之间" in response.text
 

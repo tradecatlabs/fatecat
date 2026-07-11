@@ -94,11 +94,10 @@ fatecat/
 ## Web HTML 设计硬规则
 
 - `GET /web` 和同类工程报表页必须遵守 `/home/lenovo/.codex/Design.md` 的零美化语义界面规范。
-- 禁止擅自加入 CSS、`style`、视觉 class、颜色、圆角、卡片、响应式布局、装饰性容器或前端视觉效果。
-- 当前唯一授权例外：`GET /web` 可使用 `D:\.projects\pdf` 工作台同类的黄金比例三块全屏生产空间，左上 TradeCat Labs 资产声明、右上服务端生成报告、底部参数输入；CSS 只允许复刻该工作台外壳、`web-production-*` 结构 class、黄金比例 grid、`gap: 0`、面板边界、控件可读性、滚动行为和窄屏自然堆叠，不得扩展为卡片、圆角、阴影、动画或营销视觉。
+- 禁止加入 CSS、`style`、视觉 class、颜色、圆角、卡片、响应式布局、装饰性容器或前端视觉效果；当前不存在授权例外。
 - 页面结构只允许服务信息结构和操作结构：原生表单、真实链接、`dl` 元信息、`pre/code` 原始数据、`details/summary` 非核心长内容。
 - 修改 `domains/experience-delivery/services/fatecat-delivery/src/web_ui.py` 前必须读取 `governance/standards/零美化语义界面标准.md`、`GATE-0001` 和对应 module context。
-- 验证必须覆盖 `tests/regression/test_web_html.py::assert_web_production_layout_html`，默认跑 `bash scripts/local-ci.sh --profile quick`。
+- 验证必须覆盖 `tests/regression/test_web_html.py::assert_zero_beauty_semantic_html`，默认跑 `bash scripts/local-ci.sh --profile quick`。
 
 ## 依赖方向
 
