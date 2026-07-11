@@ -89,10 +89,19 @@ def test_web_page_renders_semantic_form():
         "<summary>页面说明与元信息</summary>"
     )
     assert "页面元信息" in text
+    assert "| 入口     | GET /web" in text
+    assert "| 异步任务 | POST /api/v1/report/jobs/web；GET /api/v1/report/jobs/{job_id}" in text
+    assert "| 输出     | Markdown 文本" in text
+    assert "| 时区     | Asia/Hong_Kong" in text
     assert "POST /api/v1/report/jobs/web；GET /api/v1/report/jobs/{job_id}" in text
     assert "免费公开入口默认不写数据库" in text
     assert "FateCat 不会自动发送报告到 Gemini" in text
     assert "相关入口" in text
+    assert "| 健康检查     | GET /health" in text
+    assert "| API 文档     | FastAPI /docs" in text
+    assert "| Web 空表单   | GET /web 空表单" in text
+    assert "| 报告体系列表 | GET /api/v1/report/systems" in text
+    assert "<h3>可访问链接</h3>" in text
     assert "参数控件" in text
     assert "出生日期（必填）" in text
     assert "出生时间（必填）" in text

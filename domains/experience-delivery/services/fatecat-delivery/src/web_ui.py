@@ -231,20 +231,32 @@ def _render_meta(generated_at: str) -> str:
         ("时间", generated_at),
         ("时区", "Asia/Hong_Kong"),
     ]
-    items = "\n".join(f"<dt>{_h(k)}</dt><dd>{_h(v)}</dd>" for k, v in rows)
-    return f"<h2>页面元信息</h2>\n<dl>\n{items}\n</dl>"
+    table = tabulate(rows, headers=["字段", "内容"], tablefmt="psql", missingval="")
+    return f"<h2>页面元信息</h2>\n<pre><code>{_h(table)}</code></pre>"
 
 
 def _render_navigation() -> str:
+    links = [
+        ("健康检查", "/health", "GET /health"),
+        ("API 文档", "/docs", "FastAPI /docs"),
+        ("Web 空表单", "/web", "GET /web 空表单"),
+        ("报告体系列表", "/api/v1/report/systems", "GET /api/v1/report/systems"),
+    ]
+    table = tabulate(
+        [[label, text] for label, _href, text in links],
+        headers=["入口", "路径"],
+        tablefmt="psql",
+        missingval="",
+    )
+    link_items = "\n".join(f'<li><a href="{_attr(href)}">{_h(text)}</a></li>' for _label, href, text in links)
     return "\n".join(
         [
             "<h2>相关入口</h2>",
+            "<pre><code>" + _h(table) + "</code></pre>",
+            "<h3>可访问链接</h3>",
             "<nav>",
             "<ul>",
-            '<li><a href="/health">GET /health</a></li>',
-            '<li><a href="/docs">FastAPI /docs</a></li>',
-            '<li><a href="/web">GET /web 空表单</a></li>',
-            '<li><a href="/api/v1/report/systems">GET /api/v1/report/systems</a></li>',
+            link_items,
             "</ul>",
             "</nav>",
         ]
