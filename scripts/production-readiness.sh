@@ -241,6 +241,7 @@ assert_int_setting("FATE_WEBHOOK_RETRY_BACKOFF_SECONDS", 0, 0, 300)
 assert_int_setting("FATE_TELEGRAM_WEBHOOK_QUEUE_SIZE", 20, 1, 10_000)
 assert_int_setting("FATE_TELEGRAM_WEBHOOK_DEDUPE_SIZE", 2048, 1, 100_000)
 assert_int_setting("FATE_TELEGRAM_WEBHOOK_MAX_CONNECTIONS", 4, 1, 100)
+assert_int_setting("FATE_TELEGRAM_WEBHOOK_RETRY_SECONDS", 30, 5, 300)
 rate_limit = assert_int_setting("FATE_RATE_LIMIT_PER_MINUTE", 120, 0, 10_000)
 if rate_limit == 0:
     fail("FATE_RATE_LIMIT_PER_MINUTE=0 会关闭公网限流")

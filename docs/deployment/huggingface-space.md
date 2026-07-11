@@ -169,6 +169,8 @@ https://<space-host>/api/v1/integrations/telegram/webhook
 如需覆盖，可设置 `FATE_TELEGRAM_WEBHOOK_URL`，但必须是 HTTPS 且路径保持不变。启动时服务会调用
 Telegram `setWebhook`，使用 `X-Telegram-Bot-Api-Secret-Token` 验证请求，再把 Update 放入有界内存队列并
 立即返回。队列满时返回 `503` 让 Telegram 重试；重复 `update_id` 在当前进程内去重。
+Telegram API 瞬时不可达时不会拖垮 Web/API，运行时默认每 30 秒后台重试注册 Webhook；恢复前
+`/ready` 的 `telegramWebhook` 为 `not_ready`。
 
 验证：
 

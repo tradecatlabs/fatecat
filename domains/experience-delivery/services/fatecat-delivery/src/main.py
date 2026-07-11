@@ -459,7 +459,7 @@ def _require_owner_or_admin(principal: ApiPrincipal, user_id: str) -> None:
 
 @asynccontextmanager
 async def _app_lifespan(_app: FastAPI):
-    await telegram_webhook_runtime.start()
+    await telegram_webhook_runtime.start_managed()
     try:
         yield
     finally:
@@ -1556,6 +1556,9 @@ def metrics():
             f'fatecat_telegram_webhook_updates_total{{result="queue_full"}} {telegram_webhook_status["queueFullTotal"]}',
             f'fatecat_telegram_webhook_updates_total{{result="unauthorized"}} {telegram_webhook_status["unauthorizedTotal"]}',
             f'fatecat_telegram_webhook_updates_total{{result="invalid"}} {telegram_webhook_status["invalidTotal"]}',
+            "# HELP fatecat_telegram_webhook_start_failures_total Telegram webhook startup failures.",
+            "# TYPE fatecat_telegram_webhook_start_failures_total counter",
+            f"fatecat_telegram_webhook_start_failures_total {telegram_webhook_status['startFailureTotal']}",
         ]
     )
     return PlainTextResponse("\n".join(lines) + "\n", media_type="text/plain; version=0.0.4")

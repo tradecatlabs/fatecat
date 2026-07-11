@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import os
 import re
 import secrets
@@ -20,6 +21,7 @@ from service_config import env_flag, env_int
 TELEGRAM_DELIVERY_PATH = "/api/v1/integrations/telegram/webhook"
 TELEGRAM_ALLOWED_UPDATES = ("message", "callback_query")
 _SECRET_PATTERN = re.compile(r"^[A-Za-z0-9_-]{32,256}$")
+logger = logging.getLogger(__name__)
 
 
 class TelegramWebhookError(RuntimeError):
@@ -51,6 +53,7 @@ class TelegramWebhookConfig:
     queue_size: int = 20
     dedupe_size: int = 2048
     max_connections: int = 4
+    retry_seconds: int = 30
 
     @classmethod
     def from_env(cls) -> TelegramWebhookConfig:
@@ -68,6 +71,7 @@ class TelegramWebhookConfig:
             queue_size=env_int("FATE_TELEGRAM_WEBHOOK_QUEUE_SIZE", 20, minimum=1),
             dedupe_size=env_int("FATE_TELEGRAM_WEBHOOK_DEDUPE_SIZE", 2048, minimum=1),
             max_connections=env_int("FATE_TELEGRAM_WEBHOOK_MAX_CONNECTIONS", 4, minimum=1),
+            retry_seconds=env_int("FATE_TELEGRAM_WEBHOOK_RETRY_SECONDS", 30, minimum=5),
         )
         config.validate()
         return config
@@ -119,6 +123,8 @@ class TelegramWebhookRuntime:
         self._application_factory = application_factory
         self._command_configurer = command_configurer
         self._application: Any | None = None
+        self._retry_task: asyncio.Task[None] | None = None
+        self._stopping = False
         self._accepted_update_ids: deque[int] = deque()
         self._accepted_update_id_set: set[int] = set()
         self._stats_lock = Lock()
@@ -127,6 +133,8 @@ class TelegramWebhookRuntime:
         self._queue_full_total = 0
         self._unauthorized_total = 0
         self._invalid_total = 0
+        self._start_failure_total = 0
+        self._last_start_error = ""
 
     @property
     def enabled(self) -> bool:
@@ -156,15 +164,62 @@ class TelegramWebhookRuntime:
             )
             if not registered:
                 raise RuntimeError("Telegram setWebhook 返回失败")
-        except Exception:
+        except BaseException:
             if getattr(application, "running", False):
                 await application.stop()
             if initialized:
                 await application.shutdown()
             raise
         self._application = application
+        self._last_start_error = ""
+
+    async def start_managed(self) -> None:
+        """启动 Webhook；外部瞬时故障由后台重试，不阻断 Web/API。"""
+        self._stopping = False
+        if not self.enabled:
+            return
+        try:
+            await self.start()
+        except Exception as exc:
+            self._record_start_failure(exc)
+            self._retry_task = asyncio.create_task(self._retry_until_ready(), name="telegram-webhook-retry")
+
+    def _record_start_failure(self, exc: Exception) -> None:
+        error_name = type(exc).__name__
+        with self._stats_lock:
+            self._start_failure_total += 1
+            self._last_start_error = error_name
+        logger.warning(
+            "Telegram Webhook 启动失败，%s 秒后重试: %s",
+            self.config.retry_seconds,
+            error_name,
+        )
+
+    async def _retry_until_ready(self) -> None:
+        while not self._stopping and not self.ready:
+            await asyncio.sleep(self.config.retry_seconds)
+            if self._stopping:
+                return
+            try:
+                await self.start()
+            except asyncio.CancelledError:
+                raise
+            except Exception as exc:
+                self._record_start_failure(exc)
+            else:
+                logger.info("Telegram Webhook 后台重试成功")
+                return
 
     async def stop(self) -> None:
+        self._stopping = True
+        retry_task = self._retry_task
+        self._retry_task = None
+        if retry_task is not None and not retry_task.done():
+            retry_task.cancel()
+            try:
+                await retry_task
+            except asyncio.CancelledError:
+                pass
         application = self._application
         self._application = None
         if application is None:
@@ -227,6 +282,8 @@ class TelegramWebhookRuntime:
                 "queueFullTotal": self._queue_full_total,
                 "unauthorizedTotal": self._unauthorized_total,
                 "invalidTotal": self._invalid_total,
+                "startFailureTotal": self._start_failure_total,
+                "lastStartError": self._last_start_error,
             }
 
 

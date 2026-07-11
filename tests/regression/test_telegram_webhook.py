@@ -38,14 +38,17 @@ class FakeBot:
 
 
 class FakeApplication:
-    def __init__(self, update_queue: asyncio.Queue[object]) -> None:
+    def __init__(self, update_queue: asyncio.Queue[object], *, initialize_error: Exception | None = None) -> None:
         self.bot = FakeBot()
         self.update_queue = update_queue
+        self.initialize_error = initialize_error
         self.running = False
         self.initialized = False
         self.shutdown_called = False
 
     async def initialize(self) -> None:
+        if self.initialize_error is not None:
+            raise self.initialize_error
         self.initialized = True
 
     async def start(self) -> None:
@@ -58,7 +61,7 @@ class FakeApplication:
         self.shutdown_called = True
 
 
-def _config(*, queue_size: int = 2) -> TelegramWebhookConfig:
+def _config(*, queue_size: int = 2, retry_seconds: int = 30) -> TelegramWebhookConfig:
     return TelegramWebhookConfig(
         enabled=True,
         token="123456:test-token",
@@ -67,6 +70,7 @@ def _config(*, queue_size: int = 2) -> TelegramWebhookConfig:
         queue_size=queue_size,
         dedupe_size=2,
         max_connections=4,
+        retry_seconds=retry_seconds,
     )
 
 
@@ -194,6 +198,37 @@ async def test_telegram_webhook_runtime_returns_backpressure_when_queue_is_full(
     await runtime.stop()
 
 
+@pytest.mark.asyncio
+async def test_telegram_webhook_managed_start_retries_without_blocking_api():
+    applications: list[FakeApplication] = []
+
+    def factory(_token: str, update_queue: asyncio.Queue[object]) -> FakeApplication:
+        initialize_error = TimeoutError("temporary") if not applications else None
+        application = FakeApplication(update_queue, initialize_error=initialize_error)
+        applications.append(application)
+        return application
+
+    async def configure_commands(_application: FakeApplication) -> None:
+        return None
+
+    runtime = TelegramWebhookRuntime(
+        _config(retry_seconds=0),
+        application_factory=factory,
+        command_configurer=configure_commands,
+    )
+
+    await runtime.start_managed()
+    for _ in range(20):
+        if runtime.ready:
+            break
+        await asyncio.sleep(0)
+
+    assert runtime.ready is True
+    assert runtime.status()["startFailureTotal"] == 1
+    assert runtime.status()["lastStartError"] == ""
+    await runtime.stop()
+
+
 def test_telegram_webhook_http_surface_is_disabled_without_configuration():
     client = TestClient(main.app)
 
@@ -276,7 +311,7 @@ def test_fastapi_lifespan_starts_and_stops_telegram_runtime(monkeypatch: pytest.
             self.started = False
             self.stopped = False
 
-        async def start(self) -> None:
+        async def start_managed(self) -> None:
             self.started = True
 
         async def stop(self) -> None:

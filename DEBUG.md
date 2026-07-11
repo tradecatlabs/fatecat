@@ -850,17 +850,21 @@ HF Space 配置 `FATE_BOT_TOKEN`、`FATE_TELEGRAM_WEBHOOK_SECRET` 和
 - HF 构建成功，应用在 FastAPI lifespan 导入 `bot.py` 时退出。
 - 容器日志明确指出缺少 `/app/infra/environments/local/.env`。
 - Bot Token 已由 HF Secret 注入环境变量，平台不会生成仓库内本地 `.env` 文件。
+- 修复本地 `.env` 假设后，HF 再次启动时 Telegram `getMe` 发生瞬时 `TimedOut`，可选交付面仍导致
+  FastAPI 整体退出。
 
 ### Root Cause
 
 `_paths.check_dependencies()` 和 `bot.py` 把本地开发配置文件错误地当成所有部署环境的必需静态资产，导致
 合法的平台 Secret 配置在导入阶段被拒绝。
+同时，FastAPI lifespan 将 Telegram 外部 API 的首次连通成功设为整个服务的启动前置条件，缺少交付面隔离。
 
 ### Fix
 
 - Bot 启动允许从平台环境变量或本地 `.env` 获取 Token，二者至少存在一个。
 - 本地 `.env` 仍按 `override=False` 加载，不覆盖 HF/容器注入的生产 Secret。
 - 数据、schema 和必需 reference repo 的启动检查保持不变。
+- Telegram 外部调用首次失败时 Web/API 继续启动，Webhook 运行时按有界间隔后台重试并暴露失败计数。
 
 ### Regression Evidence
 
