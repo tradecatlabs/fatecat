@@ -186,10 +186,10 @@ def _render_header_panel(*, generated_at: str, has_result: bool, has_errors: boo
             ]
         )
     rows = [
+        ["CA", branding["ca"]],
         ["项目归属", branding["heroTitle"]],
         ["项目定位", branding["sponsorText"]],
         ["核心能力", branding["tagline"]],
-        ["CA", branding["ca"]],
         ["页面说明", "使用原生 HTML 表单生成标准命理排盘 Markdown 报告；公开入口优先走异步任务。"],
         ["入口", "GET /web"],
         ["异步任务", "POST /api/v1/report/jobs/web；GET /api/v1/report/jobs/{job_id}"],
