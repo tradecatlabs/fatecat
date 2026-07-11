@@ -12,7 +12,6 @@ from html import escape
 from typing import Any
 
 from fastapi.responses import HTMLResponse
-from tabulate import tabulate
 
 from branding import get_branding_payload
 from prediction_systems import PREDICTION_SYSTEMS, report_system_allowed_text
@@ -148,14 +147,13 @@ def _render_job_status(job: WebReportJobView) -> str:
     ]
     if job.error:
         rows.append(["错误", job.error])
-    table = tabulate(rows, headers=["字段", "值"], tablefmt="psql", missingval="")
     return "\n".join(
         [
             (
                 f'<p id="report-job-status" data-job-id="{_attr(job.job_id)}" '
                 f'data-job-status="{_attr(job.status)}">任务状态：{_h(status_label)}</p>'
             ),
-            "<pre><code>" + _h(table) + "</code></pre>",
+            _render_table(rows, ["字段", "值"], table_id="report-job-table"),
         ]
     )
 
@@ -215,12 +213,11 @@ def _render_header_panel(*, generated_at: str, has_result: bool, has_errors: boo
         ],
         ["name", "姓名｜必填：否｜格式：文本｜为空时报告标题使用命主"],
     ]
-    table = tabulate(rows, headers=["字段", "内容"], tablefmt="psql", missingval="")
     link_items = "\n".join(f'<li><a href="{_attr(url)}">{_h(label)}</a></li>' for label, url in links)
     return "\n".join(
         [
             '<h2 id="project-brand">项目与页面信息</h2>',
-            "<pre><code>" + _h(table) + "</code></pre>",
+            _render_table(rows, ["字段", "内容"], table_id="project-metadata-table"),
             "<h3>全部链接</h3>",
             '<nav aria-label="项目、页面与服务链接">',
             f"<ul>\n{link_items}\n</ul>",
@@ -298,8 +295,40 @@ def _render_submitted_input(form: WebReportForm, result: WebReportResult | None)
                 ["latitude", result.resolved_latitude, "location.get"],
             ]
         )
-    table = tabulate(rows, headers=["字段", "值", "来源"], tablefmt="psql", missingval="")
-    return f'<h2 id="submitted-input">当前输入</h2>\n<pre><code>{_h(table)}</code></pre>'
+    return "\n".join(
+        [
+            '<h2 id="submitted-input">当前输入</h2>',
+            _render_table(rows, ["字段", "值", "来源"], table_id="submitted-input-table"),
+        ]
+    )
+
+
+def _render_table(rows: list[list[object]], headers: list[str], *, table_id: str | None = None) -> str:
+    """渲染浏览器原生语义表格，避免中英文字符宽度导致 ASCII 表格错位。"""
+    table_attr = f' id="{_attr(table_id)}"' if table_id else ""
+    head_cells = "\n".join(f'<th scope="col">{_h(header)}</th>' for header in headers)
+    body_rows = []
+    for row in rows:
+        cells = []
+        for index, value in enumerate(row):
+            text = "" if value is None else str(value)
+            tag = 'th scope="row"' if index == 0 else "td"
+            cells.append(f"<{tag}>{_h(text)}</{tag.split()[0]}>")
+        body_rows.append("<tr>\n" + "\n".join(cells) + "\n</tr>")
+    return "\n".join(
+        [
+            f"<table{table_attr}>",
+            "<thead>",
+            "<tr>",
+            head_cells,
+            "</tr>",
+            "</thead>",
+            "<tbody>",
+            *body_rows,
+            "</tbody>",
+            "</table>",
+        ]
+    )
 
 
 def _render_errors(errors: list[str]) -> str:
@@ -371,9 +400,7 @@ def _render_bazi_workbench(workbench: dict[str, Any]) -> str:
             '<h2 id="workbench">八字工作台</h2>',
             "<p>该区域只展示后端结构化字段；复制 Markdown 内容不受工作台影响。</p>",
             "<details open><summary>四柱 / 十神 / 藏干</summary>",
-            "<pre><code>"
-            + _h(tabulate(pillar_rows, headers=["柱位", "干支", "天干", "地支"], tablefmt="psql"))
-            + "</code></pre>",
+            _render_table(pillar_rows, ["柱位", "干支", "天干", "地支"]),
             "</details>",
             "<details><summary>五行强弱与人元司令</summary>",
             "<pre><code>"
@@ -406,31 +433,13 @@ def _render_bazi_workbench(workbench: dict[str, Any]) -> str:
             + "</code></pre>",
             "</details>",
             "<details><summary>大运流年触发</summary>",
-            "<pre><code>"
-            + _h(tabulate(trigger_rows, headers=["年份", "干支", "触发依据"], tablefmt="psql"))
-            + "</code></pre>",
+            _render_table(trigger_rows, ["年份", "干支", "触发依据"]),
             "</details>",
             "<details><summary>专题 profile / 风险边界</summary>",
-            "<pre><code>"
-            + _h(
-                tabulate(
-                    profile_rows,
-                    headers=["专题", "分数", "生命周期", "依据", "证据字段", "风险边界"],
-                    tablefmt="psql",
-                )
-            )
-            + "</code></pre>",
+            _render_table(profile_rows, ["专题", "分数", "生命周期", "依据", "证据字段", "风险边界"]),
             "</details>",
             "<details><summary>规则深度 / 冲突策略</summary>",
-            "<pre><code>"
-            + _h(
-                tabulate(
-                    rule_rows,
-                    headers=["规则", "主题", "状态", "置信度", "证据字段", "风险边界"],
-                    tablefmt="psql",
-                )
-            )
-            + "</code></pre>",
+            _render_table(rule_rows, ["规则", "主题", "状态", "置信度", "证据字段", "风险边界"]),
             "</details>",
         ]
     )
@@ -481,9 +490,7 @@ def _render_ziwei_workbench(workbench: dict[str, Any]) -> str:
             '<h2 id="workbench">紫微工作台</h2>',
             "<p>该区域只展示后端 iztro 结构化字段与解释索引；紫微仍为 standalone 输出。</p>",
             "<details open><summary>十二宫 / 星曜</summary>",
-            "<pre><code>"
-            + _h(tabulate(palace_rows, headers=["宫位", "地支", "主星", "命宫", "身宫"], tablefmt="psql"))
-            + "</code></pre>",
+            _render_table(palace_rows, ["宫位", "地支", "主星", "命宫", "身宫"]),
             "</details>",
             "<details><summary>星曜分类 / 庙旺利陷</summary>",
             "<pre><code>" + _h(json.dumps(taxonomy, ensure_ascii=False, indent=2)) + "</code></pre>",
