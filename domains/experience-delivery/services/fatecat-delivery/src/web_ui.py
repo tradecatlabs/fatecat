@@ -170,7 +170,6 @@ def _render_header_panel(*, generated_at: str, has_result: bool, has_errors: boo
         ("免费 AI 分析入口（Gemini Gem）", branding["geminiGemUrl"]),
         ("页面：项目与页面信息", "#project-brand"),
         ("页面：参数控件", "#input-form"),
-        ("页面：字段契约", "#field-contract"),
         ("页面：生成报告", "#production-report"),
         ("服务：GET /health", "/health"),
         ("服务：FastAPI /docs", "/docs"),
@@ -204,6 +203,15 @@ def _render_header_panel(*, generated_at: str, has_result: bool, has_errors: boo
         ["服务入口", "GET /api/v1/report/systems"],
         ["生成时间", generated_at],
         ["时区", "Asia/Hong_Kong"],
+        ["字段契约 · birthDate", "出生日期｜必填：是｜格式：YYYY-MM-DD｜HTML date；例 1990-01-01"],
+        ["字段契约 · birthTime", "出生时间｜必填：是｜格式：HH:MM 或 HH:MM:SS｜HTML time；例 08:00"],
+        ["字段契约 · birthPlace", "出生地区｜必填：是｜格式：中文地点或 lng,lat｜例 北京 / 116.4074,39.9042"],
+        ["字段契约 · gender", "性别｜必填：是｜格式：male/female｜计算必需；不能默认猜测"],
+        [
+            "字段契约 · reportSystem",
+            f"输出体系｜必填：否｜格式：{report_system_allowed_text()}｜默认 bazi；每次只输出一个已实现体系",
+        ],
+        ["字段契约 · name", "姓名｜必填：否｜格式：文本｜为空时报告标题使用命主"],
     ]
     table = tabulate(rows, headers=["字段", "内容"], tablefmt="psql", missingval="")
     link_items = "\n".join(f'<li><a href="{_attr(url)}">{_h(label)}</a></li>' for label, url in links)
@@ -217,19 +225,6 @@ def _render_header_panel(*, generated_at: str, has_result: bool, has_errors: boo
             "</nav>",
         ]
     )
-
-
-def _render_field_contract() -> str:
-    rows = [
-        ["birthDate", "出生日期", "是", "YYYY-MM-DD", "HTML date；例 1990-01-01"],
-        ["birthTime", "出生时间", "是", "HH:MM 或 HH:MM:SS", "HTML time；例 08:00"],
-        ["birthPlace", "出生地区", "是", "中文地点或 lng,lat", "例 北京 / 116.4074,39.9042"],
-        ["gender", "性别", "是", "male/female", "计算必需；不能默认猜测"],
-        ["reportSystem", "输出体系", "否", report_system_allowed_text(), "默认 bazi；每次只输出一个已实现体系"],
-        ["name", "姓名", "否", "文本", "为空时报告标题使用命主"],
-    ]
-    table = tabulate(rows, headers=["参数", "字段", "必填", "格式", "说明"], tablefmt="psql", missingval="")
-    return f'<h2 id="field-contract">字段契约</h2>\n<pre><code>{_h(table)}</code></pre>'
 
 
 def _render_input_panel(form: WebReportForm, result: WebReportResult | None, errors: list[str]) -> str:
@@ -277,7 +272,6 @@ def _render_input_panel(form: WebReportForm, result: WebReportResult | None, err
         '<p><button type="submit">生成 Markdown 报告</button></p>',
         "</fieldset>",
         "</form>",
-        _render_field_contract(),
     ]
     if form.submitted or form.has_input():
         parts.append(_render_submitted_input(form, result))
