@@ -3,6 +3,7 @@ FateCat 路径管理模块
 统一管理仓库内静态资产、运行时数据与模块路径，避免路径继续带旧项目影子。
 """
 
+import os
 from pathlib import Path
 from typing import Any
 
@@ -97,7 +98,6 @@ def check_dependencies() -> dict[str, Any]:
     results: dict[str, Any] = {"ok": True, "errors": [], "warnings": []}
 
     required = [
-        (ENV_FILE, "配置文件"),
         (BAZI_SCHEMA_PATH, "数据库 schema"),
         (LUNAR_PYTHON_DIR, "lunar-python 库"),
         (BAZI_1_DIR, "bazi-1 库"),
@@ -126,13 +126,16 @@ def check_dependencies() -> dict[str, Any]:
         if not path.exists():
             results["warnings"].append(f"缺少可选依赖: {name} ({path})")
 
+    file_token = ""
     if ENV_FILE.exists():
         from dotenv import dotenv_values
 
         config = dotenv_values(ENV_FILE)
-        if not config.get("FATE_BOT_TOKEN"):
-            results["ok"] = False
-            results["errors"].append("未配置 FATE_BOT_TOKEN")
+        file_token = str(config.get("FATE_BOT_TOKEN") or "").strip()
+
+    if not (os.getenv("FATE_BOT_TOKEN", "").strip() or file_token):
+        results["ok"] = False
+        results["errors"].append("未配置 FATE_BOT_TOKEN（环境变量或本地 .env）")
 
     return results
 

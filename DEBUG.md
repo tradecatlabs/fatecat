@@ -837,3 +837,33 @@ Result:
 - public release policy 通过。
 - 本地 delivery smoke 通过。
 - HF `/health`、`/ready`、`/metrics` live 验证通过。
+
+## 2026-07-12 HF Telegram Webhook 启动失败
+
+### Bug
+
+HF Space 配置 `FATE_BOT_TOKEN`、`FATE_TELEGRAM_WEBHOOK_SECRET` 和
+`FATE_TELEGRAM_WEBHOOK_ENABLED=1` 后进入 `RUNTIME_ERROR`。
+
+### Observations
+
+- HF 构建成功，应用在 FastAPI lifespan 导入 `bot.py` 时退出。
+- 容器日志明确指出缺少 `/app/infra/environments/local/.env`。
+- Bot Token 已由 HF Secret 注入环境变量，平台不会生成仓库内本地 `.env` 文件。
+
+### Root Cause
+
+`_paths.check_dependencies()` 和 `bot.py` 把本地开发配置文件错误地当成所有部署环境的必需静态资产，导致
+合法的平台 Secret 配置在导入阶段被拒绝。
+
+### Fix
+
+- Bot 启动允许从平台环境变量或本地 `.env` 获取 Token，二者至少存在一个。
+- 本地 `.env` 仍按 `override=False` 加载，不覆盖 HF/容器注入的生产 Secret。
+- 数据、schema 和必需 reference repo 的启动检查保持不变。
+
+### Regression Evidence
+
+- `tests/regression/test_telegram_webhook.py` 新增无本地 `.env`、仅平台 Token 的依赖检查。
+- Telegram Webhook 与 Bot queue 聚焦回归：`14 passed`。
+- 独立进程实验在缺少本地 `.env` 时成功导入 Bot 并构建共享 Application。

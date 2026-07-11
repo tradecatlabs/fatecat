@@ -33,7 +33,7 @@ from telegram.ext import (
     filters,
 )
 
-from _paths import LOGS_DIR, PROMPTS_DIR, QUEUE_DIR, TXT_DIR, ensure_dirs, get_env_file, startup_check
+from _paths import ENV_FILE, LOGS_DIR, PROMPTS_DIR, QUEUE_DIR, TXT_DIR, ensure_dirs, startup_check
 from branding import (
     append_branding_markdown,
     append_branding_text,
@@ -41,11 +41,9 @@ from branding import (
 )
 from utils.timezone import fmt_cn, now_cn
 
-# 启动检查（目录、依赖、配置）
+# 本地开发读取 .env；HF/容器生产直接使用平台注入的环境变量。
+load_dotenv(ENV_FILE, override=False)
 startup_check()
-
-# 统一从仓库内 infra/environments/local/.env 加载配置
-load_dotenv(get_env_file())
 ADMIN_CHAT_ID = (os.getenv("FATE_ADMIN_USER_IDS") or "").split(",")[0] or None
 BOT_PROXY_URL = (os.getenv("FATE_BOT_PROXY_URL") or "").strip() or None
 BOT_DRY_RUN = (os.getenv("FATE_BOT_DRY_RUN") or "").strip().lower() in {"1", "true", "yes", "on"}

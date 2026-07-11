@@ -17,6 +17,7 @@ for source_dir in (DELIVERY_SRC, FATE_CORE_SRC):
     if str(source_dir) not in sys.path:
         sys.path.insert(0, str(source_dir))
 
+import _paths  # noqa: E402
 import main  # noqa: E402
 from telegram_webhook import (  # noqa: E402
     TELEGRAM_DELIVERY_PATH,
@@ -104,6 +105,19 @@ def test_telegram_webhook_config_is_disabled_by_default(monkeypatch: pytest.Monk
 
     assert config.enabled is False
     assert "test-token" not in repr(config)
+
+
+def test_bot_dependency_check_accepts_platform_token_without_local_env(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+):
+    monkeypatch.setattr(_paths, "ENV_FILE", tmp_path / "missing.env")
+    monkeypatch.setenv("FATE_BOT_TOKEN", "123456:platform-token")
+
+    result = _paths.check_dependencies()
+
+    assert result["ok"] is True
+    assert not any("配置文件" in error for error in result["errors"])
 
 
 def test_telegram_webhook_config_derives_hf_url(monkeypatch: pytest.MonkeyPatch):
