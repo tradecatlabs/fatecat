@@ -50,7 +50,7 @@ assert "class=" not in text
 assert "<main>" not in text
 assert "<section" not in text
 assert "<div" not in text
-assert "<h1>FateCat Web Markdown 报告</h1>" in text
+assert "<h1>faetcat</h1>" in text
 assert forbidden visual CSS tokens not in text
 ```
 

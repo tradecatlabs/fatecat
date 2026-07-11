@@ -73,10 +73,10 @@ def _render_document(
         "<head>",
         '<meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
-        "<title>FateCat Web Markdown 报告</title>",
+        "<title>faetcat</title>",
         "</head>",
         "<body>",
-        "<h1>FateCat Web Markdown 报告</h1>",
+        "<h1>faetcat</h1>",
         _render_semantic_page(form=form, result=result, errors=errors, job=job, generated_at=generated_at),
     ]
 

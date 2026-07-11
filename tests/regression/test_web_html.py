@@ -31,7 +31,7 @@ def assert_zero_beauty_semantic_html(text: str) -> None:
     assert "<main>" not in text
     assert "<section" not in text
     assert "<div" not in text
-    assert "<body>\n<h1>FateCat Web Markdown 报告</h1>" in text
+    assert "<body>\n<h1>faetcat</h1>" in text
     assert '<form id="web-report-form" method="get" action="/web">' in text
     for forbidden in [
         "@media",
@@ -52,8 +52,8 @@ def test_web_page_renders_semantic_form():
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/html")
     text = response.text
-    assert "<title>FateCat Web Markdown 报告</title>" in text
-    assert "<h1>FateCat Web Markdown 报告</h1>" in text
+    assert "<title>faetcat</title>" in text
+    assert "<h1>faetcat</h1>" in text
     assert '<h2 id="project-brand">项目与页面信息</h2>' in text
     assert_psql_row(text, "项目归属", "TradeCat Labs｜FateCat 测算基础设施")
     assert_psql_row(text, "项目定位", "FateCat 是面向 Agent 与应用开发者的测算基础设施。")
