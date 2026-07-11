@@ -48,12 +48,12 @@ def test_web_page_renders_semantic_form():
     text = response.text
     assert "<title>FateCat Web Markdown 报告</title>" in text
     assert "<h1>FateCat Web Markdown 报告</h1>" in text
-    assert '<h2 id="project-brand">项目归属</h2>' in text
+    assert '<h2 id="project-brand">项目与页面信息</h2>' in text
     assert "| 项目归属 | TradeCat Labs｜FateCat 测算基础设施" in text
     assert "| 项目定位 | FateCat 是面向 Agent 与应用开发者的测算基础设施。" in text
     assert "| 核心能力 | 提供统一的能力协议、可复现计算核心、证据化解释层和多端交付接口。" in text
-    assert "| 外部入口 | 5" in text
-    assert "<h3>项目链接</h3>" in text
+    assert "| 页面说明 | 使用原生 HTML 表单生成标准命理排盘 Markdown 报告；公开入口优先走异步任务。" in text
+    assert "<h3>全部链接</h3>" in text
     assert "TradeCat Labs｜FateCat 测算基础设施" in text
     assert "FateCat 是面向 Agent 与应用开发者的测算基础设施。" in text
     assert "https://dexscreener.com/bsc/0x8a99b8d53eff6bc331af529af74ad267f3167777" in text
@@ -62,10 +62,10 @@ def test_web_page_renders_semantic_form():
     assert "https://huggingface.co/tradecatlabs" in text
     assert "免费 AI 分析入口（Gemini Gem）" in text
     assert "https://gemini.google.com/gem/1d9XompAC8xk0xV6655X9IxZYQUNkDJoG?usp=sharing" in text
-    assert '<nav aria-label="页面导航">' in text
-    assert '<a href="#project-brand">项目</a>' in text
-    assert '<a href="#production-report">报告</a>' in text
-    assert '<a href="#input-form">参数</a>' in text
+    assert '<nav aria-label="项目、页面与服务链接">' in text
+    assert '<a href="#project-brand">页面：项目与页面信息</a>' in text
+    assert '<a href="#production-report">页面：生成报告</a>' in text
+    assert '<a href="#input-form">页面：参数控件</a>' in text
     assert_zero_beauty_semantic_html(text)
     assert '<form id="web-report-form" method="get" action="/web">' in text
     assert text.index('<h2 id="project-brand">') < text.index('<h2 id="input-form">')
@@ -83,12 +83,8 @@ def test_web_page_renders_semantic_form():
     assert 'submitButton.textContent = "生成 Markdown 报告";' in text
     assert '<input type="hidden" name="submitted" value="1">' in text
     assert " required>" not in text
-    assert '<details id="page-info">\n<summary>页面说明与元信息</summary>' in text
-    assert "<details open>\n<summary>页面说明与元信息</summary>" not in text
-    assert text.index('<form id="web-report-form" method="get" action="/web">') < text.index(
-        "<summary>页面说明与元信息</summary>"
-    )
-    assert "页面元信息" in text
+    assert '<details id="page-info">' not in text
+    assert "<summary>页面说明与元信息</summary>" not in text
     assert "| 入口     | GET /web" in text
     assert "| 异步任务 | POST /api/v1/report/jobs/web；GET /api/v1/report/jobs/{job_id}" in text
     assert "| 输出     | Markdown 文本" in text
@@ -96,12 +92,12 @@ def test_web_page_renders_semantic_form():
     assert "POST /api/v1/report/jobs/web；GET /api/v1/report/jobs/{job_id}" in text
     assert "免费公开入口默认不写数据库" in text
     assert "FateCat 不会自动发送报告到 Gemini" in text
-    assert "相关入口" in text
-    assert "| 健康检查     | GET /health" in text
-    assert "| API 文档     | FastAPI /docs" in text
-    assert "| Web 空表单   | GET /web 空表单" in text
-    assert "| 报告体系列表 | GET /api/v1/report/systems" in text
-    assert "<h3>可访问链接</h3>" in text
+    assert "| 服务入口 | GET /health" in text
+    assert "| 服务入口 | FastAPI /docs" in text
+    assert "| 服务入口 | GET /web 空表单" in text
+    assert "| 服务入口 | GET /api/v1/report/systems" in text
+    assert '<a href="/health">服务：GET /health</a>' in text
+    assert '<a href="/docs">服务：FastAPI /docs</a>' in text
     assert "参数控件" in text
     assert "出生日期（必填）" in text
     assert "出生时间（必填）" in text
@@ -189,8 +185,8 @@ def test_web_page_generates_copyable_markdown_report():
     assert response.status_code == 200
     text = response.text
     assert_zero_beauty_semantic_html(text)
-    assert '<a href="#workbench">工作台</a>' in text
-    assert '<a href="#markdown-output">Markdown</a>' in text
+    assert '<a href="#workbench">页面：工作台</a>' in text
+    assert '<a href="#markdown-output">页面：Markdown 输出</a>' in text
     assert '<button type="button" id="copy-report">复制 Markdown</button>' in text
     assert '<h2 id="markdown-output">Markdown 输出</h2>' in text
     assert '<pre><code id="report-markdown">' in text
@@ -202,7 +198,7 @@ def test_web_page_generates_copyable_markdown_report():
     for forbidden in ("医疗建议", "投资建议", "法律建议", "心理建议", "必然", "保证", "灾祸"):
         assert forbidden not in text
     assert text.index('<pre><code id="report-markdown">') < text.index('<h2 id="workbench">八字工作台</h2>')
-    assert text.index('<pre><code id="report-markdown">') < text.index("<summary>页面说明与元信息</summary>")
+    assert text.index('<h2 id="project-brand">项目与页面信息</h2>') < text.index('<pre><code id="report-markdown">')
     assert "## TradeCat Labs 实验室" in text
     assert "# 命理排盘报告：测试样本" in text
     assert "当前输出体系：综合八字" in text

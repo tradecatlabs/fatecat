@@ -100,11 +100,13 @@ def _render_semantic_page(
 ) -> str:
     return "\n".join(
         [
-            _render_branding_panel(),
-            _render_page_nav(has_result=result is not None, has_errors=bool(errors)),
+            _render_header_panel(
+                generated_at=generated_at,
+                has_result=result is not None,
+                has_errors=bool(errors),
+            ),
             _render_input_panel(form=form, result=result, errors=errors),
             _render_report_panel(result=result, errors=errors, job=job),
-            _render_page_info(generated_at),
         ]
     )
 
@@ -158,7 +160,7 @@ def _render_job_status(job: WebReportJobView) -> str:
     )
 
 
-def _render_branding_panel() -> str:
+def _render_header_panel(*, generated_at: str, has_result: bool, has_errors: bool) -> str:
     branding = get_branding_payload()
     links = [
         ("DEX Screener", branding["dexScreenerUrl"]),
@@ -166,98 +168,52 @@ def _render_branding_panel() -> str:
         ("GitHub", branding["githubUrl"]),
         ("Hugging Face", branding["huggingFaceUrl"]),
         ("免费 AI 分析入口（Gemini Gem）", branding["geminiGemUrl"]),
+        ("页面：项目与页面信息", "#project-brand"),
+        ("页面：参数控件", "#input-form"),
+        ("页面：字段契约", "#field-contract"),
+        ("页面：生成报告", "#production-report"),
+        ("服务：GET /health", "/health"),
+        ("服务：FastAPI /docs", "/docs"),
+        ("服务：GET /web 空表单", "/web"),
+        ("服务：GET /api/v1/report/systems", "/api/v1/report/systems"),
     ]
+    if has_errors:
+        links.append(("页面：错误", "#errors"))
+    if has_result:
+        links.extend(
+            [
+                ("页面：Markdown 输出", "#markdown-output"),
+                ("页面：工作台", "#workbench"),
+            ]
+        )
     rows = [
         ["项目归属", branding["heroTitle"]],
         ["项目定位", branding["sponsorText"]],
         ["核心能力", branding["tagline"]],
-        ["外部入口", len(links)],
+        ["页面说明", "使用原生 HTML 表单生成标准命理排盘 Markdown 报告；公开入口优先走异步任务。"],
+        ["入口", "GET /web"],
+        ["异步任务", "POST /api/v1/report/jobs/web；GET /api/v1/report/jobs/{job_id}"],
+        ["输出", "Markdown 文本"],
+        ["报告模板", "report_generator.generate_full_report(report_system)"],
+        ["存储策略", "免费公开入口默认不写数据库；任务只在进程内短暂保留，TTL 到期或 Space 重启后消失"],
+        ["AI 分析", "FateCat 不会自动发送报告到 Gemini；用户复制 Markdown 后自行打开 Gemini Gem"],
+        ["地区解析", "location.get"],
+        ["服务入口", "GET /health"],
+        ["服务入口", "FastAPI /docs"],
+        ["服务入口", "GET /web 空表单"],
+        ["服务入口", "GET /api/v1/report/systems"],
+        ["生成时间", generated_at],
+        ["时区", "Asia/Hong_Kong"],
     ]
     table = tabulate(rows, headers=["字段", "内容"], tablefmt="psql", missingval="")
     link_items = "\n".join(f'<li><a href="{_attr(url)}">{_h(label)}</a></li>' for label, url in links)
     return "\n".join(
         [
-            '<h2 id="project-brand">项目归属</h2>',
+            '<h2 id="project-brand">项目与页面信息</h2>',
             "<pre><code>" + _h(table) + "</code></pre>",
-            "<h3>项目链接</h3>",
+            "<h3>全部链接</h3>",
+            '<nav aria-label="项目、页面与服务链接">',
             f"<ul>\n{link_items}\n</ul>",
-        ]
-    )
-
-
-def _render_page_nav(*, has_result: bool, has_errors: bool) -> str:
-    links = [
-        ("#project-brand", "项目"),
-        ("#production-report", "报告"),
-        ("#input-form", "参数"),
-        ("#field-contract", "字段契约"),
-    ]
-    if has_errors:
-        links.append(("#errors", "错误"))
-    if has_result:
-        links.extend(
-            [
-                ("#workbench", "工作台"),
-                ("#markdown-output", "Markdown"),
-            ]
-        )
-    links.append(("#page-info", "页面信息"))
-    items = "\n".join(f'<li><a href="{href}">{label}</a></li>' for href, label in links)
-    return f'<nav aria-label="页面导航">\n<ul>\n{items}\n</ul>\n</nav>'
-
-
-def _render_page_info(generated_at: str) -> str:
-    return "\n".join(
-        [
-            '<details id="page-info">',
-            "<summary>页面说明与元信息</summary>",
-            "<p>该页面使用原生 HTML 表单生成标准命理排盘 Markdown 报告。公开入口优先走异步任务，核心结果由服务端直接写入页面。</p>",
-            _render_meta(generated_at),
-            _render_navigation(),
-            "</details>",
-        ]
-    )
-
-
-def _render_meta(generated_at: str) -> str:
-    rows = [
-        ("入口", "GET /web"),
-        ("异步任务", "POST /api/v1/report/jobs/web；GET /api/v1/report/jobs/{job_id}"),
-        ("输出", "Markdown 文本"),
-        ("报告模板", "report_generator.generate_full_report(report_system)"),
-        ("存储策略", "免费公开入口默认不写数据库；报告任务只在进程内短暂保留，TTL 到期或 Space 重启后消失"),
-        ("AI 分析", "FateCat 不会自动发送报告到 Gemini；用户复制 Markdown 后自行打开 Gemini Gem"),
-        ("地区解析", "location.get"),
-        ("时间", generated_at),
-        ("时区", "Asia/Hong_Kong"),
-    ]
-    table = tabulate(rows, headers=["字段", "内容"], tablefmt="psql", missingval="")
-    return f"<h2>页面元信息</h2>\n<pre><code>{_h(table)}</code></pre>"
-
-
-def _render_navigation() -> str:
-    links = [
-        ("健康检查", "/health", "GET /health"),
-        ("API 文档", "/docs", "FastAPI /docs"),
-        ("Web 空表单", "/web", "GET /web 空表单"),
-        ("报告体系列表", "/api/v1/report/systems", "GET /api/v1/report/systems"),
-    ]
-    table = tabulate(
-        [[label, text] for label, _href, text in links],
-        headers=["入口", "路径"],
-        tablefmt="psql",
-        missingval="",
-    )
-    link_items = "\n".join(f'<li><a href="{_attr(href)}">{_h(text)}</a></li>' for _label, href, text in links)
-    return "\n".join(
-        [
-            "<h2>相关入口</h2>",
-            "<pre><code>" + _h(table) + "</code></pre>",
-            "<h3>可访问链接</h3>",
-            "<nav>",
-            "<ul>",
-            link_items,
-            "</ul>",
             "</nav>",
         ]
     )
