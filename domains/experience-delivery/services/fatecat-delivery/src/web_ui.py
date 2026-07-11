@@ -203,15 +203,16 @@ def _render_header_panel(*, generated_at: str, has_result: bool, has_errors: boo
         ["服务入口", "GET /api/v1/report/systems"],
         ["生成时间", generated_at],
         ["时区", "Asia/Hong_Kong"],
-        ["字段契约 · birthDate", "出生日期｜必填：是｜格式：YYYY-MM-DD｜HTML date；例 1990-01-01"],
-        ["字段契约 · birthTime", "出生时间｜必填：是｜格式：HH:MM 或 HH:MM:SS｜HTML time；例 08:00"],
-        ["字段契约 · birthPlace", "出生地区｜必填：是｜格式：中文地点或 lng,lat｜例 北京 / 116.4074,39.9042"],
-        ["字段契约 · gender", "性别｜必填：是｜格式：male/female｜计算必需；不能默认猜测"],
+        ["字段契约", "以下为 Web 报告输入参数"],
+        ["birthDate", "出生日期｜必填：是｜格式：YYYY-MM-DD｜HTML date；例 1990-01-01"],
+        ["birthTime", "出生时间｜必填：是｜格式：HH:MM 或 HH:MM:SS｜HTML time；例 08:00"],
+        ["birthPlace", "出生地区｜必填：是｜格式：中文地点或 lng,lat｜例 北京 / 116.4074,39.9042"],
+        ["gender", "性别｜必填：是｜格式：male/female｜计算必需；不能默认猜测"],
         [
-            "字段契约 · reportSystem",
+            "reportSystem",
             f"输出体系｜必填：否｜格式：{report_system_allowed_text()}｜默认 bazi；每次只输出一个已实现体系",
         ],
-        ["字段契约 · name", "姓名｜必填：否｜格式：文本｜为空时报告标题使用命主"],
+        ["name", "姓名｜必填：否｜格式：文本｜为空时报告标题使用命主"],
     ]
     table = tabulate(rows, headers=["字段", "内容"], tablefmt="psql", missingval="")
     link_items = "\n".join(f'<li><a href="{_attr(url)}">{_h(label)}</a></li>' for label, url in links)
