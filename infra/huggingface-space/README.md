@@ -20,6 +20,7 @@ FateCat 是面向 Agent 与应用开发者的测算基础设施，提供统一�
 - 健康检查：`/health`
 - Markdown API：`POST /api/v1/report/markdown`
 - 异步报告任务：`POST /api/v1/report/jobs`、`GET /api/v1/report/jobs/{job_id}`
+- Telegram Webhook（可选）：`POST /api/v1/integrations/telegram/webhook`
 - 免费 AI 分析入口：项目归属块中的 `Gemini Gem` 外链；用户复制 Markdown 报告后自行打开分析。
 
 ## 自助部署
@@ -37,6 +38,13 @@ FateCat 是面向 Agent 与应用开发者的测算基础设施，提供统一�
 5. 自行粘贴 Markdown 进行 AI 分析。
 
 FateCat 不会自动把用户输入或报告发送给 Gemini。
+
+## Telegram 消费端（可选）
+
+Telegram 与 Web/API 共用 FastAPI 进程和测算链路，不启动第二套计算服务。默认关闭；启用时在
+Space Secrets 配置 `FATE_BOT_TOKEN`、`FATE_TELEGRAM_WEBHOOK_SECRET`，并把 Variable
+`FATE_TELEGRAM_WEBHOOK_ENABLED` 设为 `1`。应用启动后会自动向 Telegram 注册当前 Space 的
+HTTPS Webhook。免费 Space 休眠、重建或重启期间 Bot 会暂时离线，内存中的对话、队列和去重状态也会消失。
 
 ## 隐私说明
 

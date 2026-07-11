@@ -218,7 +218,9 @@ scripts/
 - `developer-platform-gate.sh` / `developer-platform-gate.py`：校验 developer platform contract、SDK/package baseline、sandbox token contract 与 API changelog；只证明本地契约和示例自洽，不证明 PyPI/npm SDK 发布或公网 token 服务上线。
 - `developer-portal-gate.sh` / `developer-portal-gate.py`：校验 developer portal、SDK release baseline、sandbox fixed output snapshot、API changelog 和 no-overclaim 边界；只证明本地 release-readiness baseline，不证明公网门户、PyPI/npm 发布或公网 sandbox token 服务上线。
 - `sandbox-access-gateway-gate.sh` / `sandbox-access-gateway-gate.py`：校验本地 sandbox access gateway 的 token scope enforcement、缺 token/错 scope 拒绝、限流、OpenAPI path 和 audit 脱敏；使用环境变量临时 smoke token，不证明公网 token issuer、revocation service 或生产 API gateway 已上线。
-- `check-public-release-policy.sh`：检查公开 Web 工作台发布策略，防止 GitHub 自动验收回潮、HF 免费 Space 误开记录存储、container workflow 丢失 registry digest/attestation verify 或文档口径缺失。
+- `check-public-release-policy.sh`：检查公开 Web 工作台发布策略，防止 GitHub 自动验收回潮、HF 免费 Space 误开记录存储或 Telegram Webhook、container workflow 丢失 registry digest/attestation verify，以及文档口径缺失。
+- `live-bot-smoke.sh`：使用真实 Telegram 凭证执行 Bot 连通验证；Webhook 模式额外核对 Telegram 已登记的固定 URL，不打印 token 或 secret。
+- `production-readiness.sh`：校验生产环境、API、Bot、Webhook、CORS 与本地 CI 证据；Webhook 启用时强制要求合法 secret、HTTPS 固定路径、有界队列和单副本部署。
 - `hf-space-deploy.sh`：生成 Hugging Face Docker Space 分发包，使用 `hf` CLI 校验身份，再通过官方 `HfApi` 查询、按需创建并上传指定 Space；`--no-create` 不调用创建 API；默认目标 `tradecatlabs/fatecat`，默认拒绝非 `tradecatlabs` 认证。
 - `local-ci.sh`：本地 CI/CD 调度入口；只编排本仓脚本，不调用 GitHub Actions；成功或失败都会写 `summary.txt` 与机器可读 `summary.json`，其中 `summary.json` 是 live release gate 的 `evidence.local_ci_quick` 输入。
 - `live-release-gate.sh` / `live-release-gate.py` 是 live release evidence gate；聚合 local CI、远端 CI、生产 API、HF Space、Telegram Bot、container digest、SBOM/provenance、rollback drill 和 clean git state，输出机器可读 JSON。默认只做本地合同检查并标注外部连通验证待执行；`--local-ci-summary` 必须指向 `kind=fatecat.local_ci_summary`、`profile=quick`、`status=passed` 且 commit 匹配当前 HEAD 的 JSON；`--require-live` 才要求真实外部证据全部通过。

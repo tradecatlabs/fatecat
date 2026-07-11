@@ -293,7 +293,14 @@ FATE_MAX_INFLIGHT_CALCULATIONS=1
 FATE_REPORT_JOB_QUEUE_SIZE=20
 FATE_REPORT_JOB_WORKERS=1
 FATE_REPORT_JOB_TTL_SECONDS=1800
+FATE_TELEGRAM_WEBHOOK_ENABLED=0
 ```
+
+可选 Telegram 消费端与 FastAPI 运行在同一进程，通过
+`POST /api/v1/integrations/telegram/webhook` 接收 Update，并继续复用 Bot 现有
+`calculation_service -> fate-core -> report_generator` 链路。不要把 Space 改为 `start.py both`。
+启用时在 Space Secrets 配置 `FATE_BOT_TOKEN`、`FATE_TELEGRAM_WEBHOOK_SECRET`，再把
+Variable `FATE_TELEGRAM_WEBHOOK_ENABLED` 设为 `1`；Webhook URL 默认从 `SPACE_HOST` 推导。
 
 <a id="report-structure"></a>
 

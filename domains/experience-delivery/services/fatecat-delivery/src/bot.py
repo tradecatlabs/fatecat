@@ -1027,26 +1027,30 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 
-def main() -> int:
-    token = os.getenv("FATE_BOT_TOKEN")
-    if not token:
-        print(
-            _with_branding_text("错误: 未设置 FATE_BOT_TOKEN (请在 infra/environments/local/.env 中配置)", compact=True)
-        )
-        return 1
+async def configure_bot_commands(app: Application) -> None:
+    """注册各交付模式共用的 Bot 命令。"""
+    await app.bot.set_my_commands(
+        [
+            BotCommand("start", "开始/重新排盘"),
+            BotCommand("help", "查看帮助"),
+        ]
+    )
 
-    async def post_init(app: Application):
-        await app.bot.set_my_commands(
-            [
-                BotCommand("start", "开始/重新排盘"),
-                BotCommand("help", "查看帮助"),
-            ]
-        )
+
+def build_bot_application(
+    token: str,
+    *,
+    update_queue: asyncio.Queue[object] | None = None,
+    stop_on_health_failure: bool = True,
+) -> Application:
+    """构建共用 Telegram Application；调用方负责选择 polling 或 webhook。"""
+    if not token.strip():
+        raise ValueError("FATE_BOT_TOKEN 不能为空")
 
     builder = (
         Application.builder()
         .token(token)
-        .post_init(post_init)
+        .post_init(configure_bot_commands)
         .http_version("1.1")
         .connect_timeout(10)
         .read_timeout(10)
@@ -1057,6 +1061,8 @@ def main() -> int:
         .get_updates_write_timeout(10)
         .get_updates_pool_timeout(10)
     )
+    if update_queue is not None:
+        builder = builder.update_queue(update_queue)
 
     if BOT_PROXY_URL:
         print(f"[fatecat] Telegram 代理已启用: {BOT_PROXY_URL}")
@@ -1081,7 +1087,7 @@ def main() -> int:
             fail = app_ctx.bot_data.get("health_fail", 0) + 1
             app_ctx.bot_data["health_fail"] = fail
             logger.warning(f"[HEALTH] bot.get_me 失败 {fail}/3: {e}")
-            if fail >= 3:
+            if fail >= 3 and stop_on_health_failure:
                 logger.error("[HEALTH] 停止应用以便外层重启")
                 await app_ctx.stop()
                 await app_ctx.shutdown()
@@ -1112,6 +1118,18 @@ def main() -> int:
 
     app.add_handler(conv)
     app.add_handler(CommandHandler("help", help_cmd))
+    return app
+
+
+def main() -> int:
+    token = os.getenv("FATE_BOT_TOKEN")
+    if not token:
+        print(
+            _with_branding_text("错误: 未设置 FATE_BOT_TOKEN (请在 infra/environments/local/.env 中配置)", compact=True)
+        )
+        return 1
+
+    app = build_bot_application(token)
 
     if BOT_DRY_RUN:
         print("Bot dry-run 初始化成功，未连接 Telegram。")

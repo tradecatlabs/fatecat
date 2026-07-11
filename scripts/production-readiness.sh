@@ -63,9 +63,11 @@ fi
 from __future__ import annotations
 
 import os
+import re
 import sys
 import json
 from pathlib import Path
+from urllib.parse import urlparse
 
 from dotenv import dotenv_values
 
@@ -199,6 +201,31 @@ if bot_token:
 else:
     print("[production-readiness] WARN: 未配置 FATE_BOT_TOKEN；Bot live 验收无法执行")
 
+telegram_webhook_enabled = value("FATE_TELEGRAM_WEBHOOK_ENABLED").lower() in {"1", "true", "yes"}
+if telegram_webhook_enabled:
+    if not bot_token:
+        fail("FATE_TELEGRAM_WEBHOOK_ENABLED=1 时必须配置 FATE_BOT_TOKEN")
+    webhook_secret = value("FATE_TELEGRAM_WEBHOOK_SECRET")
+    assert_real_secret("FATE_TELEGRAM_WEBHOOK_SECRET", webhook_secret)
+    if not re.fullmatch(r"[A-Za-z0-9_-]{32,256}", webhook_secret):
+        fail("FATE_TELEGRAM_WEBHOOK_SECRET 必须为 32-256 位字母、数字、下划线或连字符")
+    webhook_url = value("FATE_TELEGRAM_WEBHOOK_URL")
+    if not webhook_url:
+        space_host = value("SPACE_HOST").strip("/")
+        webhook_url = (
+            f"https://{space_host}/api/v1/integrations/telegram/webhook" if space_host else ""
+        )
+    parsed_webhook_url = urlparse(webhook_url)
+    if (
+        parsed_webhook_url.scheme != "https"
+        or not parsed_webhook_url.netloc
+        or parsed_webhook_url.path != "/api/v1/integrations/telegram/webhook"
+    ):
+        fail("Telegram Webhook URL 必须使用 HTTPS 和固定 /api/v1/integrations/telegram/webhook 路径")
+    ok("Telegram Webhook Secret 与 HTTPS URL 配置通过")
+else:
+    ok("Telegram Webhook 默认关闭")
+
 assert_int_setting("FATE_MAX_REQUEST_BYTES", 1_048_576, 1024, 10 * 1024 * 1024)
 assert_int_setting("FATE_REQUEST_TIMEOUT_SECONDS", 30, 1, 120)
 assert_int_setting("FATE_MAX_INFLIGHT_CALCULATIONS", 2, 1, 64)
@@ -211,11 +238,16 @@ assert_int_setting("FATE_REPORT_JOB_RETRY_BACKOFF_SECONDS", 0, 0, 300)
 assert_int_setting("FATE_WEBHOOK_TIMEOUT_SECONDS", 5, 1, 30)
 assert_int_setting("FATE_WEBHOOK_MAX_ATTEMPTS", 1, 1, 10)
 assert_int_setting("FATE_WEBHOOK_RETRY_BACKOFF_SECONDS", 0, 0, 300)
+assert_int_setting("FATE_TELEGRAM_WEBHOOK_QUEUE_SIZE", 20, 1, 10_000)
+assert_int_setting("FATE_TELEGRAM_WEBHOOK_DEDUPE_SIZE", 2048, 1, 100_000)
+assert_int_setting("FATE_TELEGRAM_WEBHOOK_MAX_CONNECTIONS", 4, 1, 100)
 rate_limit = assert_int_setting("FATE_RATE_LIMIT_PER_MINUTE", 120, 0, 10_000)
 if rate_limit == 0:
     fail("FATE_RATE_LIMIT_PER_MINUTE=0 会关闭公网限流")
 
 replicas = assert_int_setting("FATE_DEPLOYMENT_REPLICAS", 1, 1, 100)
+if telegram_webhook_enabled and replicas != 1:
+    fail("当前 Telegram Webhook 使用进程内会话、队列和去重，只允许 FATE_DEPLOYMENT_REPLICAS=1")
 rate_limit_backend = (value("FATE_RATE_LIMIT_BACKEND") or "memory").lower()
 allowed_rate_limit_backends = {"memory", "gateway", "redis", "waf", "external"}
 if rate_limit_backend not in allowed_rate_limit_backends:

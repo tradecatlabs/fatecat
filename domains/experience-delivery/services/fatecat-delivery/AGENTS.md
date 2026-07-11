@@ -22,6 +22,7 @@ fatecat-delivery/
 │   ├── webhook_config_store.py
 │   ├── report_markdown.py
 │   ├── service_config.py
+│   ├── telegram_webhook.py
 │   ├── web_report_service.py
 │   └── web_forms.py
 └── tests/
@@ -45,6 +46,7 @@ fatecat-delivery/
 - `src/main.py` 负责 HTTP requestId、W3C `traceparent` 传播、OpenTelemetry 语义兼容本地 span 日志接入、metrics、结构化日志和本地 sandbox access gateway；sandbox gateway 只做 `FATE_SANDBOX_TOKENS` 环境变量 smoke、scope enforcement、rate limit 与 audit 脱敏，不发行公网 token。trace context 真相源在 `fate_core.observability`，delivery 不自建第二套 trace 协议。
 - `src/bot_progress.py` 只承载 Telegram Bot 进度项和提示文案；Bot 主流程仍在 `src/bot.py`。
 - `src/service_config.py` 只读取交付服务环境配置；运行期常量仍由 `src/main.py` 初始化，便于测试 monkeypatch 和 FastAPI 启动时固定配置。
+- `src/telegram_webhook.py` 只承载 FastAPI 生命周期内的 Telegram Webhook 注册、Secret Header 校验、有界 Update 队列、进程内去重和运行指标；它复用 `bot.py` 的 Application builder，不实现命理规则或第二套 Bot handler。
 - `tests/test_bot_send_queue.py` 覆盖 Telegram Bot 本地补发 outbox 的幂等入队、原子保存和 ACK 删除；不得把它误认为跨进程分布式队列测试。
 - `/web` 不存在布局授权例外；Web HTML 禁止 CSS、`style`、视觉 class、颜色、圆角、卡片、响应式布局和装饰性容器。
 - 修改 Web HTML 前必须读取 `/home/lenovo/.codex/Design.md` 与 `GATE-0001`。

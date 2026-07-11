@@ -102,10 +102,15 @@
       "name": "Telegram Bot",
       "surfaceType": "bot",
       "status": "available",
-      "entrypoints": ["scripts/serve-bot.sh", "bash scripts/delivery-smoke.sh --target bot"],
+      "entrypoints": [
+        "scripts/serve-bot.sh",
+        "POST /api/v1/integrations/telegram/webhook",
+        "bash scripts/delivery-smoke.sh --target bot"
+      ],
       "supportedOutputs": ["markdown", "document"],
       "supportedReportSystems": ["bazi", "ziwei"],
       "canonicalChain": [
+        "domains/experience-delivery/services/fatecat-delivery/src/telegram_webhook.py",
         "domains/experience-delivery/services/fatecat-delivery/src/bot.py",
         "domains/experience-delivery/services/fatecat-delivery/src/calculation_service.py::calculate_delivery_result",
         "domains/experience-delivery/services/fatecat-delivery/src/report_generator.py::generate_full_report"
@@ -113,6 +118,7 @@
       "outputContracts": ["references/live-bot-verification.md", "scripts/live-bot-smoke.sh"],
       "localVerification": [
         "bash scripts/delivery-smoke.sh --target bot --startup-timeout 8",
+        ".venv/bin/python -m pytest -q tests/regression/test_telegram_webhook.py",
         ".venv/bin/python -m pytest -q tests/regression/test_entrypoint_consistency.py",
         "bash scripts/multi-surface-semantic-diff.sh --output-json <path>"
       ],
@@ -124,8 +130,8 @@
         "schema": "contracts/fate/delivery/schemas/delivery-surface.schema.json"
       },
       "metadata": {
-        "owner": "domains/experience-delivery/services/fatecat-delivery/src/bot.py",
-        "sameSourceScope": "Bot 采集输入并调用 delivery calculation/report chain；dry-run 可本地验证，真实 Telegram API 需要 live token。",
+        "owner": "domains/experience-delivery/services/fatecat-delivery/src/telegram_webhook.py + bot.py",
+        "sameSourceScope": "Bot polling 与 FastAPI webhook 共用同一个 Telegram Application builder，并调用 delivery calculation/report chain；dry-run 可本地验证，真实 Telegram API 需要 live token。",
         "failureMode": "Bot 添加独立命理计算或绕过 calculation_service 时 entrypoint consistency 测试必须失败。",
         "releaseImpact": "Bot 发布前必须通过 dry-run；live 发布需真实 Bot smoke",
         "risk": "缺真实 FATE_BOT_TOKEN 时不能宣称 live Bot 已通过。"

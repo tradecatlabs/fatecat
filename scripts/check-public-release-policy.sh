@@ -56,7 +56,9 @@ assert_contains ".github/workflows/container.yml" "push-to-registry: true" "Cont
 assert_contains ".github/workflows/container.yml" "gh attestation verify" "Container workflow 必须 verify registry attestation"
 
 assert_contains "infra/huggingface-space/Dockerfile" "FATE_RECORDS_ENABLED=0" "HF 免费 Space 必须默认关闭记录存储"
+assert_contains "infra/huggingface-space/Dockerfile" "FATE_TELEGRAM_WEBHOOK_ENABLED=0" "HF 免费 Space 必须默认关闭 Telegram Webhook"
 assert_contains "infra/huggingface-space/README.md" "免费公开 Space 默认不保存用户记录" "HF README 必须说明默认不保存"
+assert_contains "infra/huggingface-space/README.md" "Telegram 消费端（可选）" "HF README 必须说明可选 Telegram Webhook"
 assert_contains "docs/deployment/huggingface-space.md" "Duplicate this Space" "自助部署文档必须包含网页复制路径"
 assert_contains "docs/deployment/huggingface-space.md" "GitHub + HF 云端自部署" "自助部署文档必须包含 GitHub + HF 路径"
 assert_contains "README.md" "FateCat 不会自动把排盘输入或报告发送给 Gemini" "README 必须说明 Gemini 隐私边界"

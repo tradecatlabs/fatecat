@@ -63,6 +63,31 @@ async def main() -> None:
     bot = Bot(token=token)
     me = await bot.get_me()
     print(f"live bot smoke ok: id={me.id} username=@{me.username or ''}")
+    webhook_enabled = (
+        os.getenv("FATE_TELEGRAM_WEBHOOK_ENABLED")
+        or env_values.get("FATE_TELEGRAM_WEBHOOK_ENABLED")
+        or ""
+    ).strip().lower() in {"1", "true", "yes"}
+    if not webhook_enabled:
+        return
+    expected_url = (
+        os.getenv("FATE_TELEGRAM_WEBHOOK_URL")
+        or env_values.get("FATE_TELEGRAM_WEBHOOK_URL")
+        or ""
+    ).strip()
+    if not expected_url:
+        space_host = (os.getenv("SPACE_HOST") or env_values.get("SPACE_HOST") or "").strip().strip("/")
+        if space_host:
+            expected_url = f"https://{space_host}/api/v1/integrations/telegram/webhook"
+    if not expected_url:
+        raise SystemExit("启用 Telegram Webhook live smoke 时必须提供 FATE_TELEGRAM_WEBHOOK_URL 或 SPACE_HOST")
+    webhook_info = await bot.get_webhook_info()
+    if webhook_info.url != expected_url:
+        raise SystemExit("Telegram 当前登记的 Webhook URL 与 FateCat 配置不一致")
+    print(
+        "live telegram webhook smoke ok: "
+        f"pending_updates={webhook_info.pending_update_count} custom_certificate={webhook_info.has_custom_certificate}"
+    )
 
 
 asyncio.run(main())

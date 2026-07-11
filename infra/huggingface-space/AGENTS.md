@@ -16,8 +16,8 @@ infra/huggingface-space/
 
 ## 职责边界
 
-- `README.md`：Hugging Face Space 根 README，包含 `sdk: docker`、`app_port: 7860` 和用户隐私说明。
-- `Dockerfile`：HF Space 专用镜像入口，默认关闭记录存储并监听 `7860`。
+- `README.md`：Hugging Face Space 根 README，包含 `sdk: docker`、`app_port: 7860`、用户隐私说明和可选 Telegram Webhook 配置。
+- `Dockerfile`：HF Space 专用镜像入口，默认关闭记录存储和 Telegram Webhook，并监听 `7860`。
 - `.hfignore`：Space repo 级别的额外忽略规则，防止运行态、缓存、secret、数据库和日志进入分发仓。
 - 本目录不保存 token、secret、真实用户记录、构建产物或 Space 运行态。
 
@@ -26,3 +26,4 @@ infra/huggingface-space/
 - `infra/huggingface-space -> scripts/hf-space-deploy.sh`
 - Space bundle 运行时依赖 `domains/`、`contracts/`、`infra/docker/entrypoint.delivery.sh`、`infra/environments/branding.json` 和必要 reference repos。
 - 业务代码、命理规则和 Web UI 不在本目录实现。
+- Telegram Webhook 与 Web/API 共用 delivery 进程；本目录只声明默认关闭的运行参数，不保存 Bot secret。

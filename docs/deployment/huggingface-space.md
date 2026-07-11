@@ -131,6 +131,7 @@ FATE_REPORT_JOB_ATTEMPT_TIMEOUT_SECONDS=0
 FATE_REPORT_JOB_RETRY_BACKOFF_SECONDS=0
 FATE_WEBHOOK_MAX_ATTEMPTS=1
 FATE_WEBHOOK_RETRY_BACKOFF_SECONDS=0
+FATE_TELEGRAM_WEBHOOK_ENABLED=0
 ```
 
 含义：
@@ -142,6 +143,44 @@ FATE_WEBHOOK_RETRY_BACKOFF_SECONDS=0
 - 最多 20 个等待任务。
 - 结果默认 30 分钟后过期。
 - Space 重启后队列和结果都会消失。
+
+## 同一 Space 启用 Telegram Webhook
+
+Telegram 作为独立 DeliverySurface 复用同一个 FastAPI 进程，不要把 Docker CMD 改成
+`start.py both`。在 Space `Settings -> Secrets` 添加：
+
+```text
+FATE_BOT_TOKEN=<BotFather token>
+FATE_TELEGRAM_WEBHOOK_SECRET=<32-256 位字母、数字、下划线或连字符>
+```
+
+在 `Settings -> Variables` 添加：
+
+```text
+FATE_TELEGRAM_WEBHOOK_ENABLED=1
+```
+
+默认 Webhook URL 会根据 HF 注入的 `SPACE_HOST` 生成：
+
+```text
+https://<space-host>/api/v1/integrations/telegram/webhook
+```
+
+如需覆盖，可设置 `FATE_TELEGRAM_WEBHOOK_URL`，但必须是 HTTPS 且路径保持不变。启动时服务会调用
+Telegram `setWebhook`，使用 `X-Telegram-Bot-Api-Secret-Token` 验证请求，再把 Update 放入有界内存队列并
+立即返回。队列满时返回 `503` 让 Telegram 重试；重复 `update_id` 在当前进程内去重。
+
+验证：
+
+```bash
+bash scripts/live-bot-smoke.sh
+curl -fsS https://<space-host>/ready
+curl -fsS https://<space-host>/metrics | grep fatecat_telegram_webhook
+```
+
+免费 Space 默认会休眠；冷启动期间 Telegram 可能重试。Space 重启后 ConversationHandler、Update 队列和
+去重窗口都会丢失，因此这里只适合演示和轻量使用。需要持续在线和持久会话时，应迁移到付费常驻实例并接入
+Redis/Postgres。
 
 ## 隐私与公开性
 

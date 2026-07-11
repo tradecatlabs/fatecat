@@ -1,0 +1,281 @@
+from __future__ import annotations
+
+import asyncio
+import sys
+from pathlib import Path
+from typing import Any
+
+import pytest
+from fastapi.testclient import TestClient
+
+ROOT = Path(__file__).resolve().parents[2]
+DELIVERY_SRC = ROOT / "domains" / "experience-delivery" / "services" / "fatecat-delivery" / "src"
+FATE_CORE_SRC = ROOT / "domains" / "fate-analysis" / "services" / "fate-core" / "src"
+TEST_SECRET = "test_webhook_secret_for_fatecat_2026"
+
+for source_dir in (DELIVERY_SRC, FATE_CORE_SRC):
+    if str(source_dir) not in sys.path:
+        sys.path.insert(0, str(source_dir))
+
+import main  # noqa: E402
+from telegram_webhook import (  # noqa: E402
+    TELEGRAM_DELIVERY_PATH,
+    TelegramWebhookConfig,
+    TelegramWebhookQueueFull,
+    TelegramWebhookRuntime,
+    TelegramWebhookUnauthorized,
+)
+
+
+class FakeBot:
+    def __init__(self) -> None:
+        self.webhook_kwargs: dict[str, Any] | None = None
+
+    async def set_webhook(self, **kwargs: Any) -> bool:
+        self.webhook_kwargs = kwargs
+        return True
+
+
+class FakeApplication:
+    def __init__(self, update_queue: asyncio.Queue[object]) -> None:
+        self.bot = FakeBot()
+        self.update_queue = update_queue
+        self.running = False
+        self.initialized = False
+        self.shutdown_called = False
+
+    async def initialize(self) -> None:
+        self.initialized = True
+
+    async def start(self) -> None:
+        self.running = True
+
+    async def stop(self) -> None:
+        self.running = False
+
+    async def shutdown(self) -> None:
+        self.shutdown_called = True
+
+
+def _config(*, queue_size: int = 2) -> TelegramWebhookConfig:
+    return TelegramWebhookConfig(
+        enabled=True,
+        token="123456:test-token",
+        secret=TEST_SECRET,
+        url=f"https://example.hf.space{TELEGRAM_DELIVERY_PATH}",
+        queue_size=queue_size,
+        dedupe_size=2,
+        max_connections=4,
+    )
+
+
+def _runtime(*, queue_size: int = 2) -> tuple[TelegramWebhookRuntime, list[FakeApplication]]:
+    applications: list[FakeApplication] = []
+
+    def factory(_token: str, update_queue: asyncio.Queue[object]) -> FakeApplication:
+        application = FakeApplication(update_queue)
+        applications.append(application)
+        return application
+
+    async def configure_commands(_application: FakeApplication) -> None:
+        return None
+
+    return (
+        TelegramWebhookRuntime(
+            _config(queue_size=queue_size),
+            application_factory=factory,
+            command_configurer=configure_commands,
+        ),
+        applications,
+    )
+
+
+def test_telegram_webhook_config_is_disabled_by_default(monkeypatch: pytest.MonkeyPatch):
+    for name in (
+        "FATE_TELEGRAM_WEBHOOK_ENABLED",
+        "FATE_BOT_TOKEN",
+        "FATE_TELEGRAM_WEBHOOK_SECRET",
+        "FATE_TELEGRAM_WEBHOOK_URL",
+        "SPACE_HOST",
+    ):
+        monkeypatch.delenv(name, raising=False)
+
+    config = TelegramWebhookConfig.from_env()
+
+    assert config.enabled is False
+    assert "test-token" not in repr(config)
+
+
+def test_telegram_webhook_config_derives_hf_url(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("FATE_TELEGRAM_WEBHOOK_ENABLED", "1")
+    monkeypatch.setenv("FATE_BOT_TOKEN", "123456:test-token")
+    monkeypatch.setenv("FATE_TELEGRAM_WEBHOOK_SECRET", TEST_SECRET)
+    monkeypatch.setenv("SPACE_HOST", "tradecatlabs-fatecat.hf.space")
+    monkeypatch.delenv("FATE_TELEGRAM_WEBHOOK_URL", raising=False)
+
+    config = TelegramWebhookConfig.from_env()
+
+    assert config.url == f"https://tradecatlabs-fatecat.hf.space{TELEGRAM_DELIVERY_PATH}"
+
+
+def test_telegram_webhook_config_rejects_missing_secret(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("FATE_TELEGRAM_WEBHOOK_ENABLED", "1")
+    monkeypatch.setenv("FATE_BOT_TOKEN", "123456:test-token")
+    monkeypatch.delenv("FATE_TELEGRAM_WEBHOOK_SECRET", raising=False)
+    monkeypatch.setenv("SPACE_HOST", "tradecatlabs-fatecat.hf.space")
+
+    with pytest.raises(RuntimeError, match="FATE_TELEGRAM_WEBHOOK_SECRET"):
+        TelegramWebhookConfig.from_env()
+
+
+def test_telegram_webhook_config_rejects_short_secret(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("FATE_TELEGRAM_WEBHOOK_ENABLED", "1")
+    monkeypatch.setenv("FATE_BOT_TOKEN", "123456:test-token")
+    monkeypatch.setenv("FATE_TELEGRAM_WEBHOOK_SECRET", "too-short")
+    monkeypatch.setenv("SPACE_HOST", "tradecatlabs-fatecat.hf.space")
+
+    with pytest.raises(RuntimeError, match="32-256"):
+        TelegramWebhookConfig.from_env()
+
+
+@pytest.mark.asyncio
+async def test_telegram_webhook_runtime_registers_and_queues_updates():
+    runtime, applications = _runtime()
+
+    await runtime.start()
+    application = applications[0]
+    assert runtime.ready is True
+    assert application.bot.webhook_kwargs == {
+        "url": f"https://example.hf.space{TELEGRAM_DELIVERY_PATH}",
+        "secret_token": TEST_SECRET,
+        "allowed_updates": ["message", "callback_query"],
+        "drop_pending_updates": False,
+        "max_connections": 4,
+    }
+
+    assert await runtime.enqueue({"update_id": 1001}, TEST_SECRET) == "accepted"
+    assert await runtime.enqueue({"update_id": 1001}, TEST_SECRET) == "duplicate"
+    assert application.update_queue.qsize() == 1
+    assert runtime.status()["acceptedTotal"] == 1
+    assert runtime.status()["duplicateTotal"] == 1
+
+    with pytest.raises(TelegramWebhookUnauthorized):
+        await runtime.enqueue({"update_id": 1002}, "wrong-secret")
+
+    await runtime.stop()
+    assert runtime.ready is False
+    assert application.shutdown_called is True
+
+
+@pytest.mark.asyncio
+async def test_telegram_webhook_runtime_returns_backpressure_when_queue_is_full():
+    runtime, _applications = _runtime(queue_size=1)
+    await runtime.start()
+
+    assert await runtime.enqueue({"update_id": 2001}, TEST_SECRET) == "accepted"
+    with pytest.raises(TelegramWebhookQueueFull):
+        await runtime.enqueue({"update_id": 2002}, TEST_SECRET)
+    assert runtime.status()["queueFullTotal"] == 1
+
+    await runtime.stop()
+
+
+def test_telegram_webhook_http_surface_is_disabled_without_configuration():
+    client = TestClient(main.app)
+
+    response = client.post(
+        TELEGRAM_DELIVERY_PATH,
+        json={"update_id": 1},
+        headers={"X-Telegram-Bot-Api-Secret-Token": TEST_SECRET},
+    )
+
+    assert response.status_code == 404
+    assert TELEGRAM_DELIVERY_PATH in client.get("/openapi.json").json()["paths"]
+    assert client.get("/ready").json()["checks"]["telegramWebhook"] == "disabled"
+    metrics = client.get("/metrics").text
+    assert "fatecat_telegram_webhook_enabled 0" in metrics
+    assert "fatecat_telegram_webhook_ready 0" in metrics
+
+
+def test_telegram_webhook_http_surface_accepts_authenticated_update(monkeypatch: pytest.MonkeyPatch):
+    class FakeRuntime:
+        enabled = True
+
+        async def enqueue(self, payload: dict[str, Any], supplied_secret: str | None) -> str:
+            assert payload == {"update_id": 3001}
+            assert supplied_secret == TEST_SECRET
+            return "accepted"
+
+    monkeypatch.setattr(main, "telegram_webhook_runtime", FakeRuntime())
+
+    response = TestClient(main.app).post(
+        TELEGRAM_DELIVERY_PATH,
+        json={"update_id": 3001},
+        headers={"X-Telegram-Bot-Api-Secret-Token": TEST_SECRET},
+    )
+
+    assert response.status_code == 202
+    assert response.json() == {"status": "accepted"}
+
+
+@pytest.mark.parametrize(
+    ("runtime_error", "expected_status", "expected_error"),
+    [
+        (TelegramWebhookUnauthorized("拒绝"), 403, "Telegram Webhook 未授权"),
+        (TelegramWebhookQueueFull("已满"), 503, None),
+    ],
+)
+def test_telegram_webhook_http_surface_maps_runtime_failures(
+    monkeypatch: pytest.MonkeyPatch,
+    runtime_error: Exception,
+    expected_status: int,
+    expected_error: str | None,
+):
+    class FakeRuntime:
+        enabled = True
+
+        async def enqueue(self, _payload: dict[str, Any], _supplied_secret: str | None) -> str:
+            raise runtime_error
+
+    monkeypatch.setattr(main, "telegram_webhook_runtime", FakeRuntime())
+
+    response = TestClient(main.app).post(
+        TELEGRAM_DELIVERY_PATH,
+        json={"update_id": 3002},
+        headers={"X-Telegram-Bot-Api-Secret-Token": TEST_SECRET},
+    )
+
+    assert response.status_code == expected_status
+    if expected_error is not None:
+        assert response.json()["error"] == expected_error
+    else:
+        assert response.json() == {"status": "queue_full"}
+    if expected_status == 503:
+        assert response.headers["Retry-After"] == "1"
+
+
+def test_fastapi_lifespan_starts_and_stops_telegram_runtime(monkeypatch: pytest.MonkeyPatch):
+    class FakeRuntime:
+        enabled = False
+
+        def __init__(self) -> None:
+            self.started = False
+            self.stopped = False
+
+        async def start(self) -> None:
+            self.started = True
+
+        async def stop(self) -> None:
+            self.stopped = True
+
+        def status(self) -> dict[str, int | bool | str]:
+            return {"enabled": False, "ready": False}
+
+    runtime = FakeRuntime()
+    monkeypatch.setattr(main, "telegram_webhook_runtime", runtime)
+
+    with TestClient(main.app) as client:
+        assert client.get("/health").status_code == 200
+        assert runtime.started is True
+
+    assert runtime.stopped is True

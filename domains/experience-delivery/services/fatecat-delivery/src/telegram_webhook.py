@@ -1,0 +1,241 @@
+"""Telegram Webhook 交付运行时。"""
+
+from __future__ import annotations
+
+import asyncio
+import os
+import re
+import secrets
+from collections import deque
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from threading import Lock
+from typing import Any
+from urllib.parse import urlparse
+
+from telegram import Update
+
+from service_config import env_flag, env_int
+
+TELEGRAM_DELIVERY_PATH = "/api/v1/integrations/telegram/webhook"
+TELEGRAM_ALLOWED_UPDATES = ("message", "callback_query")
+_SECRET_PATTERN = re.compile(r"^[A-Za-z0-9_-]{32,256}$")
+
+
+class TelegramWebhookError(RuntimeError):
+    """Telegram Webhook 可预期错误。"""
+
+
+class TelegramWebhookDisabled(TelegramWebhookError):
+    """Webhook 未启用。"""
+
+
+class TelegramWebhookUnauthorized(TelegramWebhookError):
+    """Webhook Secret 校验失败。"""
+
+
+class TelegramWebhookQueueFull(TelegramWebhookError):
+    """Webhook 更新队列已满。"""
+
+
+class TelegramWebhookInvalidUpdate(TelegramWebhookError):
+    """Telegram Update 无效。"""
+
+
+@dataclass(frozen=True, repr=False)
+class TelegramWebhookConfig:
+    enabled: bool
+    token: str = field(default="", repr=False)
+    secret: str = field(default="", repr=False)
+    url: str = ""
+    queue_size: int = 20
+    dedupe_size: int = 2048
+    max_connections: int = 4
+
+    @classmethod
+    def from_env(cls) -> TelegramWebhookConfig:
+        enabled = env_flag("FATE_TELEGRAM_WEBHOOK_ENABLED")
+        token = os.getenv("FATE_BOT_TOKEN", "").strip()
+        secret = os.getenv("FATE_TELEGRAM_WEBHOOK_SECRET", "").strip()
+        explicit_url = os.getenv("FATE_TELEGRAM_WEBHOOK_URL", "").strip()
+        space_host = os.getenv("SPACE_HOST", "").strip().strip("/")
+        url = explicit_url or (f"https://{space_host}{TELEGRAM_DELIVERY_PATH}" if space_host else "")
+        config = cls(
+            enabled=enabled,
+            token=token,
+            secret=secret,
+            url=url,
+            queue_size=env_int("FATE_TELEGRAM_WEBHOOK_QUEUE_SIZE", 20, minimum=1),
+            dedupe_size=env_int("FATE_TELEGRAM_WEBHOOK_DEDUPE_SIZE", 2048, minimum=1),
+            max_connections=env_int("FATE_TELEGRAM_WEBHOOK_MAX_CONNECTIONS", 4, minimum=1),
+        )
+        config.validate()
+        return config
+
+    def validate(self) -> None:
+        if not self.enabled:
+            return
+        if not self.token:
+            raise RuntimeError("启用 Telegram Webhook 时必须配置 FATE_BOT_TOKEN")
+        if not _SECRET_PATTERN.fullmatch(self.secret):
+            raise RuntimeError("FATE_TELEGRAM_WEBHOOK_SECRET 必须为 32-256 位字母、数字、下划线或连字符")
+        parsed = urlparse(self.url)
+        if parsed.scheme != "https" or not parsed.netloc or parsed.path != TELEGRAM_DELIVERY_PATH:
+            raise RuntimeError(f"FATE_TELEGRAM_WEBHOOK_URL 必须是 HTTPS 地址且路径为 {TELEGRAM_DELIVERY_PATH}")
+        if self.max_connections > 100:
+            raise RuntimeError("FATE_TELEGRAM_WEBHOOK_MAX_CONNECTIONS 不能超过 100")
+
+
+ApplicationFactory = Callable[[str, asyncio.Queue[object]], Any]
+
+
+def _build_application(token: str, update_queue: asyncio.Queue[object]) -> Any:
+    from bot import build_bot_application
+
+    return build_bot_application(
+        token,
+        update_queue=update_queue,
+        stop_on_health_failure=False,
+    )
+
+
+async def _configure_commands(application: Any) -> None:
+    from bot import configure_bot_commands
+
+    await configure_bot_commands(application)
+
+
+class TelegramWebhookRuntime:
+    """在 FastAPI 生命周期内运行 Telegram Application。"""
+
+    def __init__(
+        self,
+        config: TelegramWebhookConfig,
+        *,
+        application_factory: ApplicationFactory = _build_application,
+        command_configurer: Callable[[Any], Any] = _configure_commands,
+    ) -> None:
+        self.config = config
+        self._application_factory = application_factory
+        self._command_configurer = command_configurer
+        self._application: Any | None = None
+        self._accepted_update_ids: deque[int] = deque()
+        self._accepted_update_id_set: set[int] = set()
+        self._stats_lock = Lock()
+        self._accepted_total = 0
+        self._duplicate_total = 0
+        self._queue_full_total = 0
+        self._unauthorized_total = 0
+        self._invalid_total = 0
+
+    @property
+    def enabled(self) -> bool:
+        return self.config.enabled
+
+    @property
+    def ready(self) -> bool:
+        return bool(self._application is not None and getattr(self._application, "running", False))
+
+    async def start(self) -> None:
+        if not self.enabled:
+            return
+        update_queue: asyncio.Queue[object] = asyncio.Queue(maxsize=self.config.queue_size)
+        application = self._application_factory(self.config.token, update_queue)
+        initialized = False
+        try:
+            await application.initialize()
+            initialized = True
+            await self._command_configurer(application)
+            await application.start()
+            registered = await application.bot.set_webhook(
+                url=self.config.url,
+                secret_token=self.config.secret,
+                allowed_updates=list(TELEGRAM_ALLOWED_UPDATES),
+                drop_pending_updates=False,
+                max_connections=self.config.max_connections,
+            )
+            if not registered:
+                raise RuntimeError("Telegram setWebhook 返回失败")
+        except Exception:
+            if getattr(application, "running", False):
+                await application.stop()
+            if initialized:
+                await application.shutdown()
+            raise
+        self._application = application
+
+    async def stop(self) -> None:
+        application = self._application
+        self._application = None
+        if application is None:
+            return
+        if getattr(application, "running", False):
+            await application.stop()
+        await application.shutdown()
+
+    async def enqueue(self, payload: dict[str, Any], supplied_secret: str | None) -> str:
+        if not self.enabled or self._application is None:
+            raise TelegramWebhookDisabled("Telegram Webhook 未启用")
+        if not supplied_secret or not secrets.compare_digest(supplied_secret, self.config.secret):
+            with self._stats_lock:
+                self._unauthorized_total += 1
+            raise TelegramWebhookUnauthorized("Telegram Webhook 未授权")
+        try:
+            update = Update.de_json(payload, self._application.bot)
+        except Exception as exc:
+            with self._stats_lock:
+                self._invalid_total += 1
+            raise TelegramWebhookInvalidUpdate("Telegram Update 格式无效") from exc
+        if update.update_id is None:
+            with self._stats_lock:
+                self._invalid_total += 1
+            raise TelegramWebhookInvalidUpdate("Telegram Update 缺少 update_id")
+        if update.update_id in self._accepted_update_id_set:
+            with self._stats_lock:
+                self._duplicate_total += 1
+            return "duplicate"
+        try:
+            self._application.update_queue.put_nowait(update)
+        except asyncio.QueueFull as exc:
+            with self._stats_lock:
+                self._queue_full_total += 1
+            raise TelegramWebhookQueueFull("Telegram Webhook 队列已满") from exc
+        self._remember_update_id(update.update_id)
+        with self._stats_lock:
+            self._accepted_total += 1
+        return "accepted"
+
+    def _remember_update_id(self, update_id: int) -> None:
+        self._accepted_update_ids.append(update_id)
+        self._accepted_update_id_set.add(update_id)
+        while len(self._accepted_update_ids) > self.config.dedupe_size:
+            expired = self._accepted_update_ids.popleft()
+            self._accepted_update_id_set.discard(expired)
+
+    def status(self) -> dict[str, int | bool | str]:
+        application = self._application
+        queue = getattr(application, "update_queue", None) if application is not None else None
+        with self._stats_lock:
+            return {
+                "enabled": self.enabled,
+                "ready": self.ready,
+                "mode": "webhook" if self.enabled else "disabled",
+                "queueDepth": queue.qsize() if queue is not None else 0,
+                "queueCapacity": self.config.queue_size,
+                "acceptedTotal": self._accepted_total,
+                "duplicateTotal": self._duplicate_total,
+                "queueFullTotal": self._queue_full_total,
+                "unauthorizedTotal": self._unauthorized_total,
+                "invalidTotal": self._invalid_total,
+            }
+
+
+__all__ = [
+    "TELEGRAM_DELIVERY_PATH",
+    "TelegramWebhookConfig",
+    "TelegramWebhookDisabled",
+    "TelegramWebhookInvalidUpdate",
+    "TelegramWebhookQueueFull",
+    "TelegramWebhookRuntime",
+    "TelegramWebhookUnauthorized",
+]

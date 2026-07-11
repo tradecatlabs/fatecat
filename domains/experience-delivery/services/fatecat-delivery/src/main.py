@@ -8,7 +8,7 @@ import sys
 import time
 import uuid
 from collections import defaultdict, deque
-from contextlib import contextmanager
+from contextlib import asynccontextmanager, contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -125,12 +125,22 @@ from report_jobs import (  # noqa: E402
     ReportJobWebhookPolicy,
     SQLiteReportJobStore,
 )
+from telegram_webhook import (  # noqa: E402
+    TELEGRAM_DELIVERY_PATH,
+    TelegramWebhookConfig,
+    TelegramWebhookDisabled,
+    TelegramWebhookInvalidUpdate,
+    TelegramWebhookQueueFull,
+    TelegramWebhookRuntime,
+    TelegramWebhookUnauthorized,
+)
 from web_forms import WebReportForm, WebReportJobView, WebReportResult  # noqa: E402
 from web_report_service import build_web_report_result, validate_web_report_form  # noqa: E402
 from web_ui import render_web_report_page  # noqa: E402
 from webhook_callbacks import HttpWebhookDispatcher, WebhookConfig, parse_allowed_hosts  # noqa: E402
 
 logger = logging.getLogger(__name__)
+telegram_webhook_runtime = TelegramWebhookRuntime(TelegramWebhookConfig.from_env())
 _request_id_context: ContextVar[str | None] = ContextVar("fatecat_request_id", default=None)
 _metrics_lock = Lock()
 _request_counts: dict[tuple[str, str, int], int] = defaultdict(int)
@@ -143,7 +153,7 @@ _calculation_slots_lock = Lock()
 _calculation_slots_in_use = 0
 _rate_limit_lock = Lock()
 _rate_limit_windows: dict[str, deque[float]] = defaultdict(deque)
-_RATE_LIMIT_EXEMPT_PATHS = {"/health", "/live", "/ready", "/metrics"}
+_RATE_LIMIT_EXEMPT_PATHS = {"/health", "/live", "/ready", "/metrics", TELEGRAM_DELIVERY_PATH}
 _REQUEST_LATENCY_BUCKETS = (0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0)
 _BODY_LIMIT_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 
@@ -447,7 +457,16 @@ def _require_owner_or_admin(principal: ApiPrincipal, user_id: str) -> None:
     raise HTTPException(status_code=403, detail="无权访问该记录")
 
 
-app = FastAPI(title="八字排盘服务", version="1.0.0")
+@asynccontextmanager
+async def _app_lifespan(_app: FastAPI):
+    await telegram_webhook_runtime.start()
+    try:
+        yield
+    finally:
+        await telegram_webhook_runtime.stop()
+
+
+app = FastAPI(title="八字排盘服务", version="1.0.0", lifespan=_app_lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=cors_allow_origins(), allow_methods=["*"], allow_headers=["*"])
 
 
@@ -1343,6 +1362,33 @@ async def branded_exception_handler(request: Request, exc: Exception):
     )
 
 
+@app.post(TELEGRAM_DELIVERY_PATH, include_in_schema=True)
+async def receive_telegram_webhook(
+    request: Request,
+    secret_token: str | None = Header(default=None, alias="X-Telegram-Bot-Api-Secret-Token"),
+):
+    """接收 Telegram Update；只负责鉴权和入队，不同步执行测算。"""
+    if not telegram_webhook_runtime.enabled:
+        raise HTTPException(status_code=404, detail="Telegram Webhook 未启用")
+    try:
+        payload = await request.json()
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        raise HTTPException(status_code=400, detail="Telegram Update 必须是 JSON") from exc
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="Telegram Update 必须是 JSON 对象")
+    try:
+        status = await telegram_webhook_runtime.enqueue(payload, secret_token)
+    except TelegramWebhookDisabled as exc:
+        raise HTTPException(status_code=404, detail="Telegram Webhook 未启用") from exc
+    except TelegramWebhookUnauthorized as exc:
+        raise HTTPException(status_code=403, detail="Telegram Webhook 未授权") from exc
+    except TelegramWebhookInvalidUpdate as exc:
+        raise HTTPException(status_code=400, detail="Telegram Update 格式无效") from exc
+    except TelegramWebhookQueueFull:
+        return JSONResponse(status_code=503, headers={"Retry-After": "1"}, content={"status": "queue_full"})
+    return JSONResponse(status_code=200 if status == "duplicate" else 202, content={"status": status})
+
+
 @app.get("/health")
 def health():
     return attach_branding({"status": "ok"})
@@ -1355,7 +1401,14 @@ def live():
 
 @app.get("/ready")
 def ready():
-    checks = {"database": "disabled" if not _records_enabled() else "ok", "capabilities": "ok"}
+    telegram_status = telegram_webhook_runtime.status()
+    checks = {
+        "database": "disabled" if not _records_enabled() else "ok",
+        "capabilities": "ok",
+        "telegramWebhook": "ok"
+        if telegram_status["ready"]
+        else ("disabled" if not telegram_status["enabled"] else "not_ready"),
+    }
     try:
         if _records_enabled():
             db.ensure_db()
@@ -1366,6 +1419,8 @@ def ready():
             status_code=503,
             content=attach_branding({"status": "not_ready", "checks": checks, "error": str(exc)}),
         )
+    if telegram_status["enabled"] and not telegram_status["ready"]:
+        return JSONResponse(status_code=503, content=attach_branding({"status": "not_ready", "checks": checks}))
     return attach_branding({"status": "ready", "checks": checks})
 
 
@@ -1385,6 +1440,7 @@ def metrics():
         calculation_slots_in_use = _calculation_slots_in_use
     bot_queue_status = get_queue_status()
     report_job_status = report_job_manager.stats()
+    telegram_webhook_status = telegram_webhook_runtime.status()
 
     for (method, route, status_code), count in sorted(counts.items()):
         labels = f'method="{_escape_metric_label(method)}",route="{_escape_metric_label(route)}",status="{status_code}"'
@@ -1481,6 +1537,25 @@ def metrics():
             "# HELP fatecat_bot_user_daily_limit Configured per-user Bot daily request limit.",
             "# TYPE fatecat_bot_user_daily_limit gauge",
             f"fatecat_bot_user_daily_limit {bot_queue_status['user_daily_limit']}",
+            "# HELP fatecat_telegram_webhook_enabled Whether Telegram webhook delivery is enabled.",
+            "# TYPE fatecat_telegram_webhook_enabled gauge",
+            f"fatecat_telegram_webhook_enabled {int(bool(telegram_webhook_status['enabled']))}",
+            "# HELP fatecat_telegram_webhook_ready Whether Telegram webhook delivery is ready.",
+            "# TYPE fatecat_telegram_webhook_ready gauge",
+            f"fatecat_telegram_webhook_ready {int(bool(telegram_webhook_status['ready']))}",
+            "# HELP fatecat_telegram_webhook_queue_depth Current Telegram webhook update queue depth.",
+            "# TYPE fatecat_telegram_webhook_queue_depth gauge",
+            f"fatecat_telegram_webhook_queue_depth {telegram_webhook_status['queueDepth']}",
+            "# HELP fatecat_telegram_webhook_queue_capacity Configured Telegram webhook update queue capacity.",
+            "# TYPE fatecat_telegram_webhook_queue_capacity gauge",
+            f"fatecat_telegram_webhook_queue_capacity {telegram_webhook_status['queueCapacity']}",
+            "# HELP fatecat_telegram_webhook_updates_total Telegram webhook updates by result.",
+            "# TYPE fatecat_telegram_webhook_updates_total counter",
+            f'fatecat_telegram_webhook_updates_total{{result="accepted"}} {telegram_webhook_status["acceptedTotal"]}',
+            f'fatecat_telegram_webhook_updates_total{{result="duplicate"}} {telegram_webhook_status["duplicateTotal"]}',
+            f'fatecat_telegram_webhook_updates_total{{result="queue_full"}} {telegram_webhook_status["queueFullTotal"]}',
+            f'fatecat_telegram_webhook_updates_total{{result="unauthorized"}} {telegram_webhook_status["unauthorizedTotal"]}',
+            f'fatecat_telegram_webhook_updates_total{{result="invalid"}} {telegram_webhook_status["invalidTotal"]}',
         ]
     )
     return PlainTextResponse("\n".join(lines) + "\n", media_type="text/plain; version=0.0.4")
