@@ -167,13 +167,19 @@ def _render_branding_panel() -> str:
         ("Hugging Face", branding["huggingFaceUrl"]),
         ("免费 AI 分析入口（Gemini Gem）", branding["geminiGemUrl"]),
     ]
+    rows = [
+        ["项目归属", branding["heroTitle"]],
+        ["项目定位", branding["sponsorText"]],
+        ["核心能力", branding["tagline"]],
+        ["外部入口", len(links)],
+    ]
+    table = tabulate(rows, headers=["字段", "内容"], tablefmt="psql", missingval="")
     link_items = "\n".join(f'<li><a href="{_attr(url)}">{_h(label)}</a></li>' for label, url in links)
     return "\n".join(
         [
             '<h2 id="project-brand">项目归属</h2>',
-            f"<p>{_h(branding['heroTitle'])}</p>",
-            f"<p>{_h(branding['sponsorText'])}</p>",
-            f"<p>{_h(branding['tagline'])}</p>",
+            "<pre><code>" + _h(table) + "</code></pre>",
+            "<h3>项目链接</h3>",
             f"<ul>\n{link_items}\n</ul>",
         ]
     )

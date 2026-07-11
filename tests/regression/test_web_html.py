@@ -49,6 +49,11 @@ def test_web_page_renders_semantic_form():
     assert "<title>FateCat Web Markdown 报告</title>" in text
     assert "<h1>FateCat Web Markdown 报告</h1>" in text
     assert '<h2 id="project-brand">项目归属</h2>' in text
+    assert "| 项目归属 | TradeCat Labs｜FateCat 测算基础设施" in text
+    assert "| 项目定位 | FateCat 是面向 Agent 与应用开发者的测算基础设施。" in text
+    assert "| 核心能力 | 提供统一的能力协议、可复现计算核心、证据化解释层和多端交付接口。" in text
+    assert "| 外部入口 | 5" in text
+    assert "<h3>项目链接</h3>" in text
     assert "TradeCat Labs｜FateCat 测算基础设施" in text
     assert "FateCat 是面向 Agent 与应用开发者的测算基础设施。" in text
     assert "https://dexscreener.com/bsc/0x8a99b8d53eff6bc331af529af74ad267f3167777" in text
