@@ -147,6 +147,17 @@ def test_lunar_python_is_declared_as_runtime_dependency():
     assert "lunar-python==1.4.8" in locked
 
 
+def test_tabulate_wide_character_support_is_declared_as_runtime_dependency():
+    pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    dependencies = set(pyproject["project"]["dependencies"])
+    requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8").splitlines()
+    locked = (ROOT / "requirements.lock.txt").read_text(encoding="utf-8").splitlines()
+
+    assert "tabulate[widechars]>=0.9.0" in dependencies
+    assert "tabulate[widechars]>=0.9.0" in requirements
+    assert "wcwidth==0.8.1" in locked
+
+
 def test_project_classifier_matches_independent_deployment_beta_status():
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
 

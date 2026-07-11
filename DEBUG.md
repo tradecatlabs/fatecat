@@ -1,4 +1,63 @@
-# DEBUG.md - bootstrap build isolation network failure
+# DEBUG.md - FateCat 调试证据
+
+## 2026-07-12 HF psql 中文表格与本地显示不一致
+
+### Bug
+
+同一版本的 `web_ui.py` 在本地生成对齐的 psql ASCII 表格，在 Hugging Face Space 中生成的中文列宽不足，浏览器中表现为竖线错位。
+
+### Observations
+
+- 本地与 HF `web_ui.py` 的 SHA256 均为 `b9052b2ea4cff2e2cd0b644881d39ed6d6fabd3cff11d1954a017fa78174d917`。
+- 本地首个 psql 表格边框为 98 个 Python 字符，HF 为 80 个 Python 字符。
+- 本地 `tabulate==0.10.0`、`wcwidth==0.8.1`，且 `tabulate.WIDE_CHARS_MODE=True`。
+- 运行依赖只声明 `tabulate>=0.9.0`；`wcwidth` 仅存在于开发锁文件，没有进入 HF 使用的 `requirements.lock.txt`。
+- `tabulate` 元数据将 `wcwidth` 声明为 `widechars` extra，缺少该 extra 时会静默关闭中文宽字符计算。
+
+### Hypotheses
+
+1. HF 缺少 `wcwidth`，导致 `tabulate.WIDE_CHARS_MODE=False`。
+   - Supports: HF 表格宽度与本地关闭 wide chars 后的宽度相同。
+   - Test: 在本地设置 `tabulate.WIDE_CHARS_MODE=False` 后重新渲染页面并与 HF HTML 比较。
+2. 浏览器字体或域名缩放导致错位。
+   - Conflicts: 本地与 HF 的服务端 HTML 在 psql 空格数量上已经不同，故障在浏览器渲染前已经产生。
+3. HF 运行了旧源码。
+   - Conflicts: 本地与 HF 源文件 SHA256 完全一致。
+
+### Root Cause
+
+开发环境通过开发工具链间接安装了 `wcwidth`，而 HF 只安装生产依赖。生产依赖没有启用 `tabulate[widechars]`，使相同源码在两套环境中采用不同的中文列宽算法。
+
+### Fix
+
+- 将生产依赖统一为 `tabulate[widechars]>=0.9.0`。
+- 在 `requirements.lock.txt` 固定 `wcwidth==0.8.1`。
+- 增加运行依赖契约测试，阻止 `widechars` extra 或运行锁再次丢失。
+
+### Regression Evidence
+
+根因实验：
+
+```text
+WIDE_CHARS_MODE=True  -> 首行宽度 98，与 HF 不同
+WIDE_CHARS_MODE=False -> 首行宽度 80，与 HF 完全一致
+```
+
+修复验证命令：
+
+```bash
+.venv/bin/python -m pytest -q tests/regression/test_fate_policy_assets.py::test_tabulate_wide_character_support_is_declared_as_runtime_dependency
+.venv/bin/python -m pytest -q tests/regression/test_web_html.py
+bash scripts/local-ci.sh --profile quick
+```
+
+已完成结果：
+
+- 依赖解析 dry-run：将安装 `tabulate==0.10.0` 与 `wcwidth==0.8.1`。
+- 生产 Docker 镜像：`tabulate.WIDE_CHARS_MODE=True`。
+- 生产镜像 `/web` 与本地 `/web` 归一化生成时间后逐字节一致。
+- 依赖契约与 Web 回归：`12 passed`。
+- Quick CI：`414 passed`，ruff、format、mypy 与仓库门禁通过。
 
 ## 2026-07-04 CI follow-up: runtime proof registry literal drift
 
