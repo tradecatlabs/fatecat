@@ -12,7 +12,6 @@ upload_repo="1"
 private_flag="--no-private"
 allow_auth_mismatch="0"
 prune_remote="0"
-token_arg=()
 token_value=""
 
 usage() {
@@ -56,7 +55,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     --token)
       [[ $# -ge 2 ]] || usage_error "--token 缺少参数"
-      token_arg=(--token "$2")
       token_value="$2"
       shift 2
       ;;
@@ -113,7 +111,7 @@ if [[ "${create_repo}" == "1" || "${upload_repo}" == "1" ]]; then
   else
     whoami_output="$(hf auth whoami 2>&1 || true)"
   fi
-  if ! grep -Eq "(^|[[:space:]])user:[[:space:]]+${namespace}($|[[:space:]])|(^|[[:space:]])orgs:[[:space:]].*${namespace}" <<<"${whoami_output}"; then
+  if ! grep -Eq "(^|[[:space:]])user(:[[:space:]]+|=)${namespace}($|[[:space:]])|(^|[[:space:]])orgs(:[[:space:]]*|=).*${namespace}" <<<"${whoami_output}"; then
     if [[ "${allow_auth_mismatch}" != "1" ]]; then
       printf '%s\n' "${whoami_output}" >&2
       die "当前 hf 认证不属于 ${namespace}，也未显示 ${namespace} org 权限；请先运行 hf auth login 使用 ${namespace} 有权限的 token，或显式传 --allow-auth-mismatch。"
@@ -191,22 +189,55 @@ rm -f "${private_hits_file}"
 echo "[hf-space] bundle=${bundle_dir}"
 du -sh "${bundle_dir}" || true
 
-if [[ "${create_repo}" == "1" ]]; then
-  hf repo create "${space_id}" --repo-type space --space-sdk docker "${private_flag}" --exist-ok "${token_arg[@]}"
-fi
-
 if [[ "${upload_repo}" == "1" ]]; then
-  upload_args=(
-    "${space_id}"
-    "${bundle_dir}"
-    .
-    --repo-type space
-    --commit-message "${commit_message}"
-  )
-  if [[ "${prune_remote}" == "1" ]]; then
-    upload_args+=(--delete '*')
+  hf_executable="$(command -v hf)"
+  hf_python="$(head -n 1 "${hf_executable}")"
+  hf_python="${hf_python#\#!}"
+  if [[ ! -x "${hf_python}" ]]; then
+    ensure_command python3
+    hf_python="$(command -v python3)"
   fi
-  hf upload "${upload_args[@]}" "${token_arg[@]}"
+
+  FATECAT_HF_SPACE_ID="${space_id}" \
+  FATECAT_HF_BUNDLE_DIR="${bundle_dir}" \
+  FATECAT_HF_COMMIT_MESSAGE="${commit_message}" \
+  FATECAT_HF_CREATE_REPO="${create_repo}" \
+  FATECAT_HF_PRIVATE="$([[ "${private_flag}" == "--private" ]] && printf 1 || printf 0)" \
+  FATECAT_HF_PRUNE_REMOTE="${prune_remote}" \
+  FATECAT_HF_EXPLICIT_TOKEN="${token_value}" \
+    "${hf_python}" - <<'PY'
+import os
+
+from huggingface_hub import HfApi
+from huggingface_hub.errors import RepositoryNotFoundError
+
+space_id = os.environ["FATECAT_HF_SPACE_ID"]
+bundle_dir = os.environ["FATECAT_HF_BUNDLE_DIR"]
+token = os.environ.get("FATECAT_HF_EXPLICIT_TOKEN") or None
+api = HfApi(token=token)
+
+try:
+    api.repo_info(repo_id=space_id, repo_type="space")
+except RepositoryNotFoundError:
+    if os.environ["FATECAT_HF_CREATE_REPO"] != "1":
+        raise SystemExit(f"HF Space 不存在且已指定 --no-create: {space_id}")
+    api.create_repo(
+        repo_id=space_id,
+        repo_type="space",
+        space_sdk="docker",
+        private=os.environ["FATECAT_HF_PRIVATE"] == "1",
+    )
+
+result = api.upload_folder(
+    repo_id=space_id,
+    repo_type="space",
+    folder_path=bundle_dir,
+    path_in_repo=".",
+    commit_message=os.environ["FATECAT_HF_COMMIT_MESSAGE"],
+    delete_patterns="*" if os.environ["FATECAT_HF_PRUNE_REMOTE"] == "1" else None,
+)
+print(result)
+PY
   echo "[hf-space] uploaded https://huggingface.co/spaces/${space_id}"
   echo "[hf-space] web https://${namespace}-${space_id#*/}.hf.space/web"
 else
