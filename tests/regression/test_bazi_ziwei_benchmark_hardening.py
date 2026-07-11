@@ -170,7 +170,7 @@ def test_web_workbench_is_backend_structured_and_displays_birth_place():
         },
     )
     assert bazi_response.status_code == 200
-    assert '<section id="bazi-workbench">' in bazi_response.text
+    assert '<h2 id="workbench">八字工作台</h2>' in bazi_response.text
     assert "八字工作台" in bazi_response.text
     assert "四柱 / 十神 / 藏干" in bazi_response.text
     assert "格局与用神策略" in bazi_response.text
@@ -188,12 +188,12 @@ def test_web_workbench_is_backend_structured_and_displays_birth_place():
         },
     )
     assert ziwei_response.status_code == 200
-    assert '<section id="ziwei-workbench">' in ziwei_response.text
+    assert '<h2 id="workbench">紫微工作台</h2>' in ziwei_response.text
     assert "紫微工作台" in ziwei_response.text
     assert "十二宫 / 星曜" in ziwei_response.text
     assert "四化飞入 / 运限" in ziwei_response.text
-    assert "已填写（非北京地区已隐藏）" in ziwei_response.text
-    assert "上海" not in ziwei_response.text
+    assert "上海" in ziwei_response.text
+    assert "已填写（非北京地区已隐藏）" not in ziwei_response.text
 
 
 def test_api_and_web_share_benchmark_contract_fields():

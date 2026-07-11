@@ -810,5 +810,5 @@ def test_rule_depth_is_available_from_api_and_web_without_frontend_recalculation
     assert "命身宫-三方四正" in ziwei_web.text
     assert "规则深度 / 冲突策略" in ziwei_web.text
     assert "ziwei.depth.mutagen.scope_chain" in ziwei_web.text
-    assert "已填写（非北京地区已隐藏）" in ziwei_web.text
-    assert "上海" not in ziwei_web.text
+    assert "上海" in ziwei_web.text
+    assert "已填写（非北京地区已隐藏）" not in ziwei_web.text

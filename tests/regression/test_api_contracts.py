@@ -2716,5 +2716,5 @@ def test_markdown_report_displays_submitted_birth_place():
     assert response.status_code == 200
     markdown = response.json()["data"]["markdown"]
     assert "出生地区" in markdown
-    assert "已填写（非北京地区已隐藏）" in markdown
-    assert "上海市" not in markdown
+    assert "上海市" in markdown
+    assert "已填写（非北京地区已隐藏）" not in markdown

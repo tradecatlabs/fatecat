@@ -357,5 +357,5 @@ def test_web_page_displays_submitted_birth_place_in_frontend():
     assert response.status_code == 200
     text = response.text
     assert "出生地区" in text
-    assert "已填写（非北京地区已隐藏）" in text
-    assert "上海" not in text
+    assert "上海" in text
+    assert "已填写（非北京地区已隐藏）" not in text

@@ -116,7 +116,7 @@
         ".venv/bin/python -m pytest -q tests/regression/test_entrypoint_consistency.py",
         "bash scripts/multi-surface-semantic-diff.sh --output-json <path>"
       ],
-      "privacyBoundary": "Bot 消息确认页隐藏非北京真实地区；日志和队列不得保存 token 或用户报告正文作为公开资产。",
+      "privacyBoundary": "Bot 消息确认页正常显示用户提交的出生地区；日志和队列不得保存 token 或用户报告正文作为公开资产。",
       "externalConnectivity": "requires_real_credentials",
       "links": {
         "self": "/surfaces/surface.telegram_bot",

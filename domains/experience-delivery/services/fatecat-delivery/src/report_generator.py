@@ -31,18 +31,8 @@ from report_markdown import (
 
 
 def public_birth_place(value: str | None) -> str:
-    """返回可展示的出生地区。
-
-    报告输出只暴露北京作为默认公开地区；其他地区只证明已填写，不回显用户真实地点。
-    """
-    normalized = (value or "").strip()
-    if not normalized:
-        return ""
-    if normalized == "已填写（非北京地区已隐藏）":
-        return normalized
-    if normalized.startswith("北京"):
-        return "北京"
-    return "已填写（非北京地区已隐藏）"
+    """返回用户提交的出生地区展示文本。"""
+    return (value or "").strip()
 
 
 def _rule_depth_narrative(result: dict[str, Any], key: str) -> str:
