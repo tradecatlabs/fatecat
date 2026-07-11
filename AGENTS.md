@@ -95,8 +95,7 @@ fatecat/
 
 - `GET /web` 和同类工程报表页必须遵守 `/home/lenovo/.codex/Design.md` 的零美化语义界面规范。
 - 禁止加入 CSS、`style`、视觉 class、颜色、圆角、卡片、响应式布局、装饰性容器或前端视觉效果；当前不存在授权例外。
-- 页面结构只允许服务信息结构和操作结构：原生表单、真实链接、`dl` 元信息、原生语义 `table`、`pre/code` 原始数据、`details/summary` 非核心长内容。
-- `/web` 的结构化表格使用浏览器原生 `table/thead/tbody/th/td`，避免中英文字符宽度造成 psql ASCII 表格错位；不得借此加入 CSS 或视觉组件。
+- 页面结构只允许服务信息结构和操作结构：原生表单、真实链接、`dl` 元信息、`pre/code` 原始数据、`details/summary` 非核心长内容。
 - 修改 `domains/experience-delivery/services/fatecat-delivery/src/web_ui.py` 前必须读取 `governance/standards/零美化语义界面标准.md`、`GATE-0001` 和对应 module context。
 - 验证必须覆盖 `tests/regression/test_web_html.py::assert_zero_beauty_semantic_html`，默认跑 `bash scripts/local-ci.sh --profile quick`。
 

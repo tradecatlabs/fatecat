@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+import re
 import sys
-from html import escape
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -18,10 +18,9 @@ if str(FATE_CORE_SRC) not in sys.path:
 from main import app  # noqa: E402
 
 
-def assert_html_row(text: str, *cells: str) -> None:
-    row_cells = [f'<th scope="row">{escape(cells[0])}</th>']
-    row_cells.extend(f"<td>{escape(cell)}</td>" for cell in cells[1:])
-    assert "<tr>\n" + "\n".join(row_cells) + "\n</tr>" in text
+def assert_psql_row(text: str, *cells: str) -> None:
+    pattern = r"\|\s*" + r"\s*\|\s*".join(re.escape(cell) for cell in cells) + r"\s*\|"
+    assert re.search(pattern, text)
 
 
 def assert_zero_beauty_semantic_html(text: str) -> None:
@@ -56,12 +55,12 @@ def test_web_page_renders_semantic_form():
     assert "<title>faetcat</title>" in text
     assert "<h1>faetcat</h1>" in text
     assert '<h2 id="project-brand">项目与页面信息</h2>' in text
-    assert_html_row(text, "项目归属", "TradeCat Labs｜FateCat 测算基础设施")
-    assert_html_row(text, "项目定位", "FateCat 是面向 Agent 与应用开发者的测算基础设施。")
-    assert_html_row(text, "核心能力", "提供统一的能力协议、可复现计算核心、证据化解释层和多端交付接口。")
-    assert_html_row(text, "CA", "0x8a99b8d53eff6bc331af529af74ad267f3167777")
-    assert text.index('<th scope="row">CA</th>') < text.index('<th scope="row">项目归属</th>')
-    assert_html_row(text, "页面说明", "使用原生 HTML 表单生成标准命理排盘 Markdown 报告；公开入口优先走异步任务。")
+    assert_psql_row(text, "项目归属", "TradeCat Labs｜FateCat 测算基础设施")
+    assert_psql_row(text, "项目定位", "FateCat 是面向 Agent 与应用开发者的测算基础设施。")
+    assert_psql_row(text, "核心能力", "提供统一的能力协议、可复现计算核心、证据化解释层和多端交付接口。")
+    assert_psql_row(text, "CA", "0x8a99b8d53eff6bc331af529af74ad267f3167777")
+    assert text.index("| CA") < text.index("| 项目归属")
+    assert_psql_row(text, "页面说明", "使用原生 HTML 表单生成标准命理排盘 Markdown 报告；公开入口优先走异步任务。")
     assert "<h3>全部链接</h3>" in text
     assert "TradeCat Labs｜FateCat 测算基础设施" in text
     assert "FateCat 是面向 Agent 与应用开发者的测算基础设施。" in text
@@ -95,34 +94,34 @@ def test_web_page_renders_semantic_form():
     assert " required>" not in text
     assert '<details id="page-info">' not in text
     assert "<summary>页面说明与元信息</summary>" not in text
-    assert_html_row(text, "入口", "GET /web")
-    assert_html_row(text, "异步任务", "POST /api/v1/report/jobs/web；GET /api/v1/report/jobs/{job_id}")
-    assert_html_row(text, "输出", "Markdown 文本")
-    assert_html_row(text, "时区", "Asia/Hong_Kong")
+    assert_psql_row(text, "入口", "GET /web")
+    assert_psql_row(text, "异步任务", "POST /api/v1/report/jobs/web；GET /api/v1/report/jobs/{job_id}")
+    assert_psql_row(text, "输出", "Markdown 文本")
+    assert_psql_row(text, "时区", "Asia/Hong_Kong")
     assert "POST /api/v1/report/jobs/web；GET /api/v1/report/jobs/{job_id}" in text
     assert "免费公开入口默认不写数据库" in text
     assert "FateCat 不会自动发送报告到 Gemini" in text
-    assert_html_row(text, "服务入口", "GET /health")
-    assert_html_row(text, "服务入口", "FastAPI /docs")
-    assert_html_row(text, "服务入口", "GET /web 空表单")
-    assert_html_row(text, "服务入口", "GET /api/v1/report/systems")
+    assert_psql_row(text, "服务入口", "GET /health")
+    assert_psql_row(text, "服务入口", "FastAPI /docs")
+    assert_psql_row(text, "服务入口", "GET /web 空表单")
+    assert_psql_row(text, "服务入口", "GET /api/v1/report/systems")
     assert '<a href="/health">服务：GET /health</a>' in text
     assert '<a href="/docs">服务：FastAPI /docs</a>' in text
-    assert_html_row(text, "字段契约", "以下为 Web 报告输入参数")
-    assert_html_row(text, "birthDate", "出生日期｜必填：是｜格式：YYYY-MM-DD｜HTML date；例 1990-01-01")
-    assert_html_row(text, "birthTime", "出生时间｜必填：是｜格式：HH:MM 或 HH:MM:SS｜HTML time；例 08:00")
-    assert_html_row(
+    assert_psql_row(text, "字段契约", "以下为 Web 报告输入参数")
+    assert_psql_row(text, "birthDate", "出生日期｜必填：是｜格式：YYYY-MM-DD｜HTML date；例 1990-01-01")
+    assert_psql_row(text, "birthTime", "出生时间｜必填：是｜格式：HH:MM 或 HH:MM:SS｜HTML time；例 08:00")
+    assert_psql_row(
         text,
         "birthPlace",
         "出生地区｜必填：是｜格式：中文地点或 lng,lat｜例 北京 / 116.4074,39.9042",
     )
-    assert_html_row(text, "gender", "性别｜必填：是｜格式：male/female｜计算必需；不能默认猜测")
-    assert_html_row(
+    assert_psql_row(text, "gender", "性别｜必填：是｜格式：male/female｜计算必需；不能默认猜测")
+    assert_psql_row(
         text,
         "reportSystem",
         "输出体系｜必填：否｜格式：bazi、ziwei｜默认 bazi；每次只输出一个已实现体系",
     )
-    assert_html_row(text, "name", "姓名｜必填：否｜格式：文本｜为空时报告标题使用命主")
+    assert_psql_row(text, "name", "姓名｜必填：否｜格式：文本｜为空时报告标题使用命主")
     assert "字段契约 ·" not in text
     assert '<h2 id="field-contract">字段契约</h2>' not in text
     assert "参数控件" in text
@@ -140,8 +139,7 @@ def test_web_page_renders_semantic_form():
     assert "奇门遁甲 qimen（待实现）" in text
     assert "袁天罡称骨 bone" not in text
     assert "姓名（非必填）" in text
-    assert '<table id="project-metadata-table">' in text
-    assert '<th scope="col">字段</th>' in text
+    assert "<pre><code>+" in text
 
 
 def test_web_page_static_examples_do_not_show_non_beijing_regions():
