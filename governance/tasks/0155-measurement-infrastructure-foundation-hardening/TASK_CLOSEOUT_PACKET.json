@@ -1,0 +1,151 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-13T03:47:30+08:00",
+  "task": {
+    "task_id": "0155",
+    "slug": "measurement-infrastructure-foundation-hardening",
+    "task_dir": "governance/tasks/0155-measurement-infrastructure-foundation-hardening",
+    "detected_phase": "closeout",
+    "overall_status": "Done"
+  },
+  "source_refs": {
+    "task_context_packet": null,
+    "task_package_set": "governance/tasks/0155-measurement-infrastructure-foundation-hardening/TASK_PACKAGE_SET.json",
+    "git_delivery_evidence": "/tmp/fatecat-0155-git-delivery-evidence.json",
+    "audit_case_sampling_decision": "governance/tasks/0155-measurement-infrastructure-foundation-hardening/AUDIT_CASE_SAMPLING.md"
+  },
+  "closeout_gate": {
+    "ready": true,
+    "failures": []
+  },
+  "summary": {
+    "leaf_total": 7,
+    "leaf_done": 7,
+    "todo_total": 7,
+    "todo_checked": 7,
+    "blocker_count": 0
+  },
+  "leaves": [
+    {
+      "id": "TP-01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "sdist 可重建 wheel；clean-room CLI 明确 wheel 模式；lite export 33,587,527 bytes / 2676 files 并通过纯分析 smoke",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "Web/API/Bot/CLI 统一 CapabilityExecutor；入口一致性与 API 回归通过",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "Telegram 降级 readiness、有界指数退避、超时和状态回归通过",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-04",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "GitHub Quick CI run 29205516109 对应 8e0874b1，通过并上传 evidence artifact",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-05",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "public vendor policy 正确阻断 bazi-1/sxwnl；测试后 vendor-health 通过",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-06",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "governance strict 与 health 均 PASS，stale_count=0；事实文档与 module context 已同步",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-07",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "全量 pytest 639 passed/1 skipped；local-ci quick 446 passed；远端 quick run 29205516109 通过",
+      "blocker": "-",
+      "unblock_needed": "-"
+    }
+  ],
+  "git_delivery": {
+    "branch": {
+      "current": "main",
+      "upstream": "origin/main",
+      "ahead": 0,
+      "behind": 0
+    },
+    "head": {
+      "commit": "05e9b7073aadf939b0d90bc640e92013e2a2a355",
+      "summary": "chore(governance): close infrastructure hardening task",
+      "committed_at": "2026-07-13T03:37:55+08:00"
+    },
+    "pull_request": {
+      "available": false,
+      "number": null,
+      "url": null,
+      "review_decision": "",
+      "review_total": 0,
+      "checks_total": 0,
+      "attention_required_count": 0
+    }
+  },
+  "audit_case_sampling": {
+    "ok": true,
+    "file": "governance/tasks/0155-measurement-infrastructure-foundation-hardening/AUDIT_CASE_SAMPLING.md",
+    "summary": {
+      "decision": "no-case",
+      "source": "governance/tasks/0155-measurement-infrastructure-foundation-hardening",
+      "case_id": "CASE-0003",
+      "case_path": "/home/lenovo/.codex/skills/auto-review/audit-cases/CASE-0003-task-closeout-evidence-drift.json",
+      "root_cause_class": "implicit-caller-safety-and-closeout-evidence-drift",
+      "has_no_case_reason": true,
+      "has_trigger_signals": true,
+      "has_evidence": true
+    },
+    "issues": [],
+    "required": true,
+    "loaded": true
+  },
+  "recommended_asset_handoff": {
+    "source_refs": [
+      "governance/tasks/0155-measurement-infrastructure-foundation-hardening/TASK_PACKAGE_SET.json",
+      "/tmp/fatecat-0155-git-delivery-evidence.json",
+      "governance/tasks/0155-measurement-infrastructure-foundation-hardening/AUDIT_CASE_SAMPLING.md"
+    ],
+    "artifacts": [
+      "task-package-set.json",
+      "git-delivery-evidence.json",
+      "audit-case-sampling-decision",
+      "task-closeout-packet.json"
+    ]
+  },
+  "upstream_packets": {
+    "task_context_packet_loaded": false,
+    "task_package_set_loaded": true,
+    "git_delivery_evidence_loaded": true,
+    "audit_case_sampling_loaded": true
+  }
+}
