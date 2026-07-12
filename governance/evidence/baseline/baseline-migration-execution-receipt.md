@@ -1,14 +1,16 @@
 ---
 id: BASELINE-MIGRATION-EXECUTION-RECEIPT-FATECAT
 type: baseline-migration-execution-receipt
-status: active
+status: archived
 owner: engineering
 created: 2026-06-06
-last_reviewed: 2026-06-06
+last_reviewed: 2026-07-13
 review_cycle: P30D
 ---
 
 # Baseline Migration Execution Receipt
+
+> 历史快照：记录 canonical roots 迁移过程；当前运行路径已经是企业根。
 
 ## Executed
 

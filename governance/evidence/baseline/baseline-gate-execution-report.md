@@ -1,14 +1,16 @@
 ---
 id: BASELINE-GATE-EXECUTION-REPORT-FATECAT
 type: baseline-gate-execution-report
-status: active
+status: archived
 owner: engineering
 created: 2026-06-06
-last_reviewed: 2026-06-06
+last_reviewed: 2026-07-13
 review_cycle: P30D
 ---
 
 # Baseline Gate Execution Report
+
+> 历史快照：以下结果对应 2026-06 迁移阶段，不得引用为当前提交证据。
 
 ## Current Evidence
 

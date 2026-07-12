@@ -1,14 +1,16 @@
 ---
 id: BASELINE-AI-SYSTEM-REGULATORY-IMPACT-LEDGER-FATECAT
 type: baseline-ai-system-regulatory-impact-ledger
-status: active
+status: archived
 owner: engineering
 created: 2026-06-06
-last_reviewed: 2026-06-06
+last_reviewed: 2026-07-13
 review_cycle: P30D
 ---
 
 # Baseline AI System Regulatory Impact Ledger
+
+> 历史快照：记录 2026-06 企业迁移初期边界，不作为当前监管或生产准入结论。
 
 ## AI Boundary
 

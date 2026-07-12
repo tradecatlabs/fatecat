@@ -184,7 +184,7 @@ bash scripts/local-ci.sh --profile container
 bash scripts/local-ci.sh --profile public-service
 ```
 
-`local-ci.sh` 只调用本仓脚本，不调用 GitHub Actions；`full` 复用本地 `scripts/acceptance.sh --with-dev`，`container` 执行真实 Docker 容器 smoke，`public-service` 执行公网服务静态准入门禁。
+`local-ci.sh` 只调用本仓脚本，不调用 GitHub Actions；`quick` 会检查 wheel clean-room、核心性能预算和关键回归，`full` 复用本地 `scripts/acceptance.sh --with-dev`，`container` 执行真实 Docker 容器 smoke，`public-service` 执行公网服务静态准入门禁。GitHub `quick.yml` 在 pull request 与 `main` push 自动执行同一个 quick profile。
 
 公开 Web 工作台发布前使用：
 
@@ -192,7 +192,7 @@ bash scripts/local-ci.sh --profile public-service
 bash scripts/public-release-gate.sh --api-url https://tradecatlabs-fatecat.hf.space
 ```
 
-该门禁仍只调用本地脚本：quick CI、公开发布策略检查、delivery smoke、生产静态准入和可选线上 `/health` / `/ready` / `/metrics`。GitHub Acceptance 和容器工作流只保留手动触发，避免 push 自动跑远端验收。
+该门禁仍只调用本地脚本：quick CI、公开发布策略检查、公共导出许可检查、delivery smoke、生产静态准入和可选线上 `/health` / `/ready` / `/metrics`。GitHub Acceptance 和容器工作流只保留手动触发，避免 push 自动跑重型验收。
 
 ### 4. 执行一次命理排盘并输出文件
 
@@ -210,7 +210,7 @@ bash scripts/pure-analysis.sh \
 bash scripts/local-ci.sh --profile full
 ```
 
-完整验收覆盖 shell 语法、strict skill 校验、纯分析 smoke、vendor health、全量 pytest、ruff、format、`fate_core` mypy、API/Bot dry-run、导出包卫生检查与导出包 smoke。
+完整验收覆盖 shell 语法、strict skill 校验、纯分析 smoke、vendor health、wheel clean-room、核心性能预算、全量 pytest、ruff、format、`fate_core` mypy、API/Bot dry-run、导出包卫生检查与导出包 smoke。
 其中 pytest 已包含 1900-2030 节气 golden、月令/立春边界、起运样本、综合八字报告结构、隐私脱敏和 evidence 权重策略回归。
 
 <a id="web"></a>
@@ -498,6 +498,8 @@ fatecat/
 - 不分发 `__pycache__`、`*.pyc`、`*.pyo`。
 - 不把 `domains/*/services/*/output/`、运行态 `.db` / `.sqlite` 或本地 `.env` 放进导出包。
 - 导出后必须运行 `scripts/check-export-hygiene.sh`。
+- 内部 lite 运行包与公共分发包使用不同门禁：公共发布必须追加 `--public`，任何 `distributionAllowed != true` 的 vendor 都会阻断。
+- 当前 `bazi-1` 与 `sxwnl` 缺少可确认的上游分发许可证，因此不得把包含它们的内部运行包称为可公开分发包。
 - `tools/reference-repos/` 保存完整外部快照，体积偏大属于当前复用完整源码能力的明确取舍；如需瘦身，必须先改成 manifest / Git LFS / 按需下载方案，不能直接删除运行依赖。
 
 API 安全开关：

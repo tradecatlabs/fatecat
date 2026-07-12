@@ -98,6 +98,8 @@ bash scripts/acceptance.sh --with-dev
 bash scripts/acceptance.sh --with-dev --with-mingli-bench
 ```
 
+完整验收包含 wheel clean-room、核心性能预算、全量测试、静态检查、交付 smoke 和导出包 smoke。内部 lite 运行包不等于公共分发包；公共发布还必须通过 vendor 许可证门禁。
+
 ### 10. 清理本地运行态
 
 ```bash

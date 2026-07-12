@@ -1,0 +1,214 @@
+{
+  "schema_version": "1.0.0",
+  "task": {
+    "objective": "修复当前测算基础设施审查发现的本地可处理阻断项，使核心计算、分发包、交付面、CI、供应链和治理证据形成同一可验证闭环。",
+    "overall_status": "In Progress",
+    "in_scope": [
+      "可独立安装运行的 fatecat core wheel 与精简 skill 导出闭包",
+      "综合八字统一使用 capability 生产引擎并治理旧接口",
+      "Telegram 渠道故障隔离、退避重试与可观测错误摘要",
+      "PR/push quick CI 与当前提交发布证明入口",
+      "vendor 只读卫生、导出体积和供应链许可门禁",
+      "治理必需文档、module context、任务状态和事实文档同步",
+      "八字性能基线与现有专业质量外部门禁接线"
+    ],
+    "out_of_scope": [
+      "伪造真实专家命例评审、外部 benchmark、no-leak 签字或第三方审计结果",
+      "伪造生产 token、外部 Postgres、SIEM、OIDC、OTel、Bot live 或其他外部连通证据",
+      "新增黄历、六爻、梅花、奇门等业务体系",
+      "无行为证据支撑的大规模重写"
+    ],
+    "task_level_acceptance": [
+      "wheel 在仓库外干净虚拟环境中安装并执行 CLI smoke",
+      "lite skill 导出不包含运行态导出、无关媒体或禁止分发 reference assets，并满足体积/文件数预算",
+      "Web/API/Bot 的综合八字生产路径均通过 capability executor",
+      "Telegram 未就绪不再误判核心 Web/API 不可用，重试有界退避且错误类型可观测",
+      "quick CI 自动覆盖 pull_request 与 main push，重型发布流程保持明确触发边界",
+      "vendor 测试后无 pycache 污染，供应链分发策略可机械检查",
+      "治理 strict、任务 closeout、quick CI 和任务级 review 通过"
+    ],
+    "validation_plan": [
+      "仓库外 wheel install smoke",
+      "lite export hygiene/smoke/size gate",
+      "八字入口语义一致性回归",
+      "Telegram readiness/retry 单元与集成回归",
+      "workflow schema/trigger 回归",
+      "vendor before/after pollution gate",
+      "bash scripts/local-ci.sh --profile quick",
+      "governance strict 与任务 closeout 校验"
+    ],
+    "acceptance_standards": [
+      "不以本地证据替代外部 live 或人工专业审核",
+      "planned capability 继续拒绝执行",
+      "不泄露 token、secret、DSN、用户出生资料或完整报告正文",
+      "不保留 legacy/capability 双轨生产行为"
+    ]
+  },
+  "context_packet": {
+    "requirement_alignment": [
+      "用户要求先控制版本，再全面处理审查发现的问题",
+      "当前 main/acd17d7 与 origin/main 同步且工作树干净，作为修复基线",
+      "FateCat 定位是面向 Agent 与应用开发者的测算基础设施"
+    ],
+    "repo_evidence": [
+      "HF /health=200 而 /ready=503，Telegram webhook enabled 但 not_ready",
+      "当前 wheel 安装后在仓库外执行 CLI 无法定位企业仓库根",
+      "当前 skill RC ZIP 约 218 MiB，导出脚本为整仓 denylist rsync",
+      "综合八字 legacy 与 capability 顶层字段集合不一致",
+      "Acceptance 与 Container workflow 当前仅 workflow_dispatch",
+      "core quality human review/external benchmark/no-leak gate 仍 blocked"
+    ],
+    "constraints": [
+      "保持当前 main，不切分支、不改写历史",
+      "优先复用 importlib.resources、GitHub Actions、现有 CapabilityExecutor 和现有门禁脚本",
+      "Web 零美化语义 HTML 与现有字段契约保持不变",
+      "架构变化同步 AGENTS.md、contracts、catalog 或治理 context"
+    ],
+    "risks": [
+      "移除 legacy 可能影响未登记调用方，需兼容性测试和弃用记录",
+      "分发白名单遗漏资源会造成安装后运行失败，必须通过 clean-room smoke 证明闭包",
+      "Telegram readiness 拆分不能掩盖渠道故障，必须保留独立状态和告警",
+      "自动 CI 可能增加 GitHub Actions 使用量，quick 与 release gate 必须分层"
+    ],
+    "assumptions": [
+      "公开 Web/API 核心服务可以在 Telegram 渠道暂时故障时继续服务",
+      "capability bazi 是唯一目标生产引擎；legacy 只允许迁移期兼容",
+      "真实专家/外部 live 证据只能由具备凭证和权限的 operator 提交"
+    ],
+    "change_boundary": [
+      "只修改 packaging/export、bazi delivery orchestration、Telegram lifecycle、CI、vendor hygiene、governance/docs 和相应测试",
+      "不改变八字/紫微规则结论，不新增术数体系"
+    ],
+    "critical_ambiguities": [
+      "外部是否仍有调用 /api/v1/bazi/simple 或 /calculate 不可从仓库完全确认；采用明确弃用兼容层并统一底层引擎",
+      "Telegram 当前失败的具体外部错误值不可从公开指标获得；先补脱敏错误类型和退避，再用现有 HF secret 复验"
+    ],
+    "blockers": [
+      "真实专家评审、外部 benchmark、no-leak 签字与生产 live 仍需外部操作人和凭证"
+    ],
+    "debug_focus": [
+      "wheel repo-root discovery failure",
+      "Telegram fixed retry and global readiness coupling",
+      "legacy/capability semantic divergence",
+      "export recursion and vendor pycache pollution"
+    ],
+    "debug_mode": "Required"
+  },
+  "plan": {
+    "planning_summary": "先把可交付对象收敛为可独立运行的最小闭包，再统一计算真相源和渠道健康语义，随后补自动 CI、供应链与治理门禁，最后用性能和质量证据收口。",
+    "simplest_path": "复用 Python importlib.resources、现有 CapabilityExecutor、GitHub Actions 与现有 gate 脚本；删除整仓复制和双引擎默认值等错误概念，不新增平行框架。",
+    "split_strategy": "按独立失败边界拆成七个串行可验证切片，每个切片先补失败测试，再做最小实现并更新对应契约。",
+    "lifecycle_gates": [
+      "SPEC：目标终态、真实约束、外部门禁和兼容边界明确",
+      "PLAN：七个切片、验证命令、回滚路径和文档影响已登记",
+      "BUILD：实现只进入已登记模块，不扩展业务体系",
+      "TEST：定向回归、clean-room smoke、quick CI 和卫生门禁通过",
+      "REVIEW：correctness/security/reliability/performance/architecture/document drift 无 BLOCK",
+      "SHIP：语义提交、推送、当前提交 CI 证据和外部待验证项明确"
+    ],
+    "review_gate": [
+      "分发闭包不依赖源码仓库路径",
+      "核心计算不存在双生产引擎",
+      "渠道降级不掩盖故障也不拖垮核心 readiness",
+      "发布声明只引用当前 commit 的真实证据"
+    ],
+    "ship_readiness": [
+      "本地所有门禁必须通过后才提交",
+      "远端 quick CI 必须对应最终提交",
+      "外部 live 和人工专业审核保持 pending/blocked，除非真实证据到位"
+    ],
+    "steps": [
+      {
+        "key": "distribution",
+        "title": "建立可独立分发闭包",
+        "objective": "让 core wheel 和 lite skill 在仓库外独立运行，并阻止运行态、嵌套导出和无关大资产进入发布包。",
+        "priority": "P0",
+        "type": "Packaging",
+        "parallelizable": false,
+        "status": "Done",
+        "verify": "wheel clean-room smoke + export runtime smoke + size/file-count gate",
+        "gate": "独立安装和精简导出全部通过",
+        "outputs": ["包内资源闭包", "allowlist/明确分发清单", "分发回归测试"],
+        "acceptance": ["CLI 不再依赖企业仓库根", "导出包不含 infra/runtime/local-state", "包预算可机械验证"]
+      },
+      {
+        "key": "bazi-engine",
+        "title": "统一综合八字生产引擎",
+        "objective": "所有公开交付面通过 CapabilityExecutor 执行综合八字，旧接口只保留明确兼容契约。",
+        "priority": "P0",
+        "type": "Architecture",
+        "parallelizable": false,
+        "status": "Done",
+        "depends_on": ["distribution"],
+        "verify": "Web/API/Bot normalized semantic parity tests",
+        "gate": "不存在默认 legacy 生产路径",
+        "outputs": ["单引擎编排", "弃用契约", "语义一致性测试"]
+      },
+      {
+        "key": "telegram-readiness",
+        "title": "隔离 Telegram 渠道就绪状态",
+        "objective": "核心 readiness 与渠道 readiness 分层，Telegram 使用有界指数退避并输出脱敏失败类型。",
+        "priority": "P0",
+        "type": "Reliability",
+        "parallelizable": false,
+        "status": "Done",
+        "depends_on": ["bazi-engine"],
+        "verify": "Telegram lifecycle/readiness/metrics tests",
+        "gate": "核心 API 可用且渠道故障明确可见",
+        "outputs": ["分层 readiness", "指数退避", "错误观测与回归测试"]
+      },
+      {
+        "key": "ci-release",
+        "title": "补齐自动 CI 与发布证明",
+        "objective": "quick gate 自动覆盖 PR/main push，重型容器发布保持受控并可生成当前提交证明。",
+        "priority": "P0",
+        "type": "CI",
+        "parallelizable": false,
+        "status": "In Progress",
+        "depends_on": ["telegram-readiness"],
+        "verify": "workflow regression + action syntax + current release proof",
+        "gate": "最终提交拥有真实远端 quick CI 证据",
+        "outputs": ["自动 quick workflow", "受控 release workflow", "当前提交证据"]
+      },
+      {
+        "key": "supply-chain",
+        "title": "加固供应链与 vendor 卫生",
+        "objective": "阻止测试污染 reference repo，并让分发许可、revision 与分发允许状态可机械复核。",
+        "priority": "P1",
+        "type": "Supply Chain",
+        "parallelizable": false,
+        "status": "Done",
+        "depends_on": ["ci-release"],
+        "verify": "vendor health before/after tests + distribution policy gate",
+        "gate": "reference repo 只读且禁止资产不进入发行物",
+        "outputs": ["pycache 防污染", "分发策略门禁", "供应链证据"]
+      },
+      {
+        "key": "governance-truth",
+        "title": "恢复治理真相源",
+        "objective": "补齐 review standard/module contexts，刷新过期事实文档并收敛任务索引。",
+        "priority": "P1",
+        "type": "Governance",
+        "parallelizable": false,
+        "status": "Done",
+        "depends_on": ["supply-chain"],
+        "verify": "governance context bundle + strict validation + document drift review",
+        "gate": "治理路由不再 BLOCK 且事实与实现一致",
+        "outputs": ["评审标准", "module contexts", "事实文档和任务状态同步"]
+      },
+      {
+        "key": "quality-closeout",
+        "title": "性能、质量与交付收口",
+        "objective": "建立八字性能预算、执行完整门禁与审查，提交并推送所有已验证本地改动。",
+        "priority": "P0",
+        "type": "Verification",
+        "parallelizable": false,
+        "status": "In Progress",
+        "depends_on": ["governance-truth"],
+        "verify": "quick CI + performance baseline + task review + closeout + remote CI",
+        "gate": "本地实现无 BLOCK；外部人工/live 门禁真实保留",
+        "outputs": ["性能基线", "审查结论", "提交推送与远端证据"]
+      }
+    ]
+  }
+}

@@ -1,14 +1,16 @@
 ---
 id: MIG-FATECAT-ENTERPRISE-ASSESSMENT
 type: migration-assessment
-status: active
+status: archived
 owner: engineering
 created: 2026-06-06
-last_reviewed: 2026-06-06
+last_reviewed: 2026-07-13
 review_cycle: P30D
 ---
 
 # FateCat 企业级迁移前审计
+
+> 历史快照：本文描述迁移前状态，不能用于判断当前目录、Git 状态或生产能力。
 
 ## 目标
 

@@ -98,7 +98,9 @@ https://<你的HF用户名>-fatecat.hf.space/web
 
 如果 Space 名字不是 `fatecat`，URL 中最后一段改成你的 Space 名字。
 
-该 workflow 只通过 `workflow_dispatch` 手动触发。Fork 用户需要发布时自己点 `Run workflow`；push 不会自动部署，也不会自动跑 FateCat Acceptance。
+HF 部署 workflow 只通过 `workflow_dispatch` 手动触发。Fork 用户需要发布时自己点 `Run workflow`；push
+不会自动部署，也不会自动跑完整 FateCat Acceptance，但 PR 与 `main` push 会通过 `quick.yml` 自动执行
+`scripts/local-ci.sh --profile quick`。
 
 ## 路径 C：本地 hf CLI 部署
 
@@ -169,8 +171,10 @@ https://<space-host>/api/v1/integrations/telegram/webhook
 如需覆盖，可设置 `FATE_TELEGRAM_WEBHOOK_URL`，但必须是 HTTPS 且路径保持不变。启动时服务会调用
 Telegram `setWebhook`，使用 `X-Telegram-Bot-Api-Secret-Token` 验证请求，再把 Update 放入有界内存队列并
 立即返回。队列满时返回 `503` 让 Telegram 重试；重复 `update_id` 在当前进程内去重。
-Telegram API 瞬时不可达时不会拖垮 Web/API，运行时默认每 30 秒后台重试注册 Webhook；恢复前
-`/ready` 的 `telegramWebhook` 为 `not_ready`。
+Telegram API 瞬时不可达时不会拖垮 Web/API。运行时默认从 30 秒开始指数退避，最大 900 秒并加入
+20% 抖动；恢复前 `/ready` 仍返回核心服务 `ready`，同时把 `telegramWebhook` 标为 `not_ready`，并在
+`degradedSurfaces` 中列出该渠道。渠道真实可用性必须结合 `/metrics` 的
+`fatecat_telegram_webhook_ready` 与 live Bot smoke 判断。
 
 验证：
 

@@ -1,14 +1,16 @@
 ---
 id: BASELINE-MIGRATION-WORK-ORDER-FATECAT
 type: baseline-migration-work-order
-status: active
+status: archived
 owner: engineering
 created: 2026-06-06
-last_reviewed: 2026-06-06
+last_reviewed: 2026-07-13
 review_cycle: P30D
 ---
 
 # Baseline Migration Work Order
+
+> 历史快照：该迁移工单已结束，`scripts/project` 不再是活动运行根。
 
 ## Scope
 

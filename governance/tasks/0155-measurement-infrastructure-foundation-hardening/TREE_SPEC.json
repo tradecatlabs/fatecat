@@ -1,0 +1,211 @@
+{
+  "schema_version": "1.0.0",
+  "overall_status": "In Progress",
+  "nodes": [
+    {
+      "id": "TP-01",
+      "title": "建立可独立分发闭包",
+      "priority": "P0",
+      "type": "Packaging",
+      "objective": "让 core wheel 和 lite skill 在仓库外独立运行，并阻止运行态、嵌套导出和无关大资产进入发布包。",
+      "parent": null,
+      "depends_on": [],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "wheel clean-room smoke + export runtime smoke + size/file-count gate",
+      "gate": "独立安装和精简导出全部通过",
+      "outputs": [
+        "包内资源闭包",
+        "allowlist/明确分发清单",
+        "分发回归测试"
+      ],
+      "acceptance": [
+        "CLI 不再依赖企业仓库根",
+        "导出包不含 infra/runtime/local-state",
+        "包预算可机械验证"
+      ],
+      "status": "Done",
+      "evidence": "sdist 可重建 wheel；clean-room CLI 明确 wheel 模式；lite export 33,587,527 bytes / 2676 files 并通过纯分析 smoke",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-02",
+      "title": "统一综合八字生产引擎",
+      "priority": "P0",
+      "type": "Architecture",
+      "objective": "所有公开交付面通过 CapabilityExecutor 执行综合八字，旧接口只保留明确兼容契约。",
+      "parent": null,
+      "depends_on": [
+        "TP-01"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "Web/API/Bot normalized semantic parity tests",
+      "gate": "不存在默认 legacy 生产路径",
+      "outputs": [
+        "单引擎编排",
+        "弃用契约",
+        "语义一致性测试"
+      ],
+      "acceptance": [],
+      "status": "Done",
+      "evidence": "Web/API/Bot/CLI 统一 CapabilityExecutor；入口一致性与 API 回归通过",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-03",
+      "title": "隔离 Telegram 渠道就绪状态",
+      "priority": "P0",
+      "type": "Reliability",
+      "objective": "核心 readiness 与渠道 readiness 分层，Telegram 使用有界指数退避并输出脱敏失败类型。",
+      "parent": null,
+      "depends_on": [
+        "TP-02"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "Telegram lifecycle/readiness/metrics tests",
+      "gate": "核心 API 可用且渠道故障明确可见",
+      "outputs": [
+        "分层 readiness",
+        "指数退避",
+        "错误观测与回归测试"
+      ],
+      "acceptance": [],
+      "status": "Done",
+      "evidence": "Telegram 降级 readiness、有界指数退避、超时和状态回归通过",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-04",
+      "title": "补齐自动 CI 与发布证明",
+      "priority": "P0",
+      "type": "CI",
+      "objective": "quick gate 自动覆盖 PR/main push，重型容器发布保持受控并可生成当前提交证明。",
+      "parent": null,
+      "depends_on": [
+        "TP-03"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "workflow regression + action syntax + current release proof",
+      "gate": "最终提交拥有真实远端 quick CI 证据",
+      "outputs": [
+        "自动 quick workflow",
+        "受控 release workflow",
+        "当前提交证据"
+      ],
+      "acceptance": [],
+      "status": "In Progress",
+      "evidence": "quick workflow 合同与本地 quick CI 通过；等待最终提交对应的远端 run",
+      "blocker": "最终提交尚未生成",
+      "unblock": "提交并推送后核对 GitHub Actions"
+    },
+    {
+      "id": "TP-05",
+      "title": "加固供应链与 vendor 卫生",
+      "priority": "P1",
+      "type": "Supply Chain",
+      "objective": "阻止测试污染 reference repo，并让分发许可、revision 与分发允许状态可机械复核。",
+      "parent": null,
+      "depends_on": [
+        "TP-04"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "vendor health before/after tests + distribution policy gate",
+      "gate": "reference repo 只读且禁止资产不进入发行物",
+      "outputs": [
+        "pycache 防污染",
+        "分发策略门禁",
+        "供应链证据"
+      ],
+      "acceptance": [],
+      "status": "Done",
+      "evidence": "public vendor policy 正确阻断 bazi-1/sxwnl；测试后 vendor-health 通过",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-06",
+      "title": "恢复治理真相源",
+      "priority": "P1",
+      "type": "Governance",
+      "objective": "补齐 review standard/module contexts，刷新过期事实文档并收敛任务索引。",
+      "parent": null,
+      "depends_on": [
+        "TP-05"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "governance context bundle + strict validation + document drift review",
+      "gate": "治理路由不再 BLOCK 且事实与实现一致",
+      "outputs": [
+        "评审标准",
+        "module contexts",
+        "事实文档和任务状态同步"
+      ],
+      "acceptance": [],
+      "status": "Done",
+      "evidence": "governance strict 与 health 均 PASS，stale_count=0；事实文档与 module context 已同步",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-07",
+      "title": "性能、质量与交付收口",
+      "priority": "P0",
+      "type": "Verification",
+      "objective": "建立八字性能预算、执行完整门禁与审查，提交并推送所有已验证本地改动。",
+      "parent": null,
+      "depends_on": [
+        "TP-06"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "quick CI + performance baseline + task review + closeout + remote CI",
+      "gate": "本地实现无 BLOCK；外部人工/live 门禁真实保留",
+      "outputs": [
+        "性能基线",
+        "审查结论",
+        "提交推送与远端证据"
+      ],
+      "acceptance": [],
+      "status": "In Progress",
+      "evidence": "全量 pytest 638 passed/1 skipped，修复唯一文档失败后定向通过；local-ci quick 446 passed；等待提交、远端 CI 与 closeout",
+      "blocker": "远端 CI/closeout 未完成",
+      "unblock": "完成 Git 交付后收口"
+    }
+  ],
+  "document_blocks": {
+    "in_scope": "- 可独立安装运行的 fatecat core wheel 与精简 skill 导出闭包\n- 综合八字统一使用 capability 生产引擎并治理旧接口\n- Telegram 渠道故障隔离、退避重试与可观测错误摘要\n- PR/push quick CI 与当前提交发布证明入口\n- vendor 只读卫生、导出体积和供应链许可门禁\n- 治理必需文档、module context、任务状态和事实文档同步\n- 八字性能基线与现有专业质量外部门禁接线",
+    "out_of_scope": "- 伪造真实专家命例评审、外部 benchmark、no-leak 签字或第三方审计结果\n- 伪造生产 token、外部 Postgres、SIEM、OIDC、OTel、Bot live 或其他外部连通证据\n- 新增黄历、六爻、梅花、奇门等业务体系\n- 无行为证据支撑的大规模重写",
+    "requirement_alignment": "- 目标: 修复当前测算基础设施审查发现的本地可处理阻断项，使核心计算、分发包、交付面、CI、供应链和治理证据形成同一可验证闭环。\n- approved plan 顶层步骤数: 7\n- 编译后节点总数: 7\n- 编译后叶子节点数: 7\n- 对齐项: 用户要求先控制版本，再全面处理审查发现的问题\n- 对齐项: 当前 main/acd17d7 与 origin/main 同步且工作树干净，作为修复基线\n- 对齐项: FateCat 定位是面向 Agent 与应用开发者的测算基础设施\n- 计划摘要: 先把可交付对象收敛为可独立运行的最小闭包，再统一计算真相源和渠道健康语义，随后补自动 CI、供应链与治理门禁，最后用性能和质量证据收口。",
+    "repo_evidence": "- HF /health=200 而 /ready=503，Telegram webhook enabled 但 not_ready\n- 当前 wheel 安装后在仓库外执行 CLI 无法定位企业仓库根\n- 当前 skill RC ZIP 约 218 MiB，导出脚本为整仓 denylist rsync\n- 综合八字 legacy 与 capability 顶层字段集合不一致\n- Acceptance 与 Container workflow 当前仅 workflow_dispatch\n- core quality human review/external benchmark/no-leak gate 仍 blocked",
+    "constraints_matrix": "- 保持当前 main，不切分支、不改写历史\n- 优先复用 importlib.resources、GitHub Actions、现有 CapabilityExecutor 和现有门禁脚本\n- Web 零美化语义 HTML 与现有字段契约保持不变\n- 架构变化同步 AGENTS.md、contracts、catalog 或治理 context",
+    "change_boundary": "- 只修改 packaging/export、bazi delivery orchestration、Telegram lifecycle、CI、vendor hygiene、governance/docs 和相应测试\n- 不改变八字/紫微规则结论，不新增术数体系",
+    "risk_matrix": "- 移除 legacy 可能影响未登记调用方，需兼容性测试和弃用记录\n- 分发白名单遗漏资源会造成安装后运行失败，必须通过 clean-room smoke 证明闭包\n- Telegram readiness 拆分不能掩盖渠道故障，必须保留独立状态和告警\n- 自动 CI 可能增加 GitHub Actions 使用量，quick 与 release gate 必须分层",
+    "assumptions_and_falsification": "- 公开 Web/API 核心服务可以在 Telegram 渠道暂时故障时继续服务\n- capability bazi 是唯一目标生产引擎；legacy 只允许迁移期兼容\n- 真实专家/外部 live 证据只能由具备凭证和权限的 operator 提交",
+    "critical_ambiguities": "- 外部是否仍有调用 /api/v1/bazi/simple 或 /calculate 不可从仓库完全确认；采用明确弃用兼容层并统一底层引擎\n- Telegram 当前失败的具体外部错误值不可从公开指标获得；先补脱敏错误类型和退避，再用现有 HF secret 复验",
+    "debug_evidence_contract": "- 调试模式: Required\n- 若任务属于 bugfix / regression / flaky / crash / CI-only failure，必须切到 `Required`\n- `Required` 时必须在当前任务目录创建并维护 `DEBUG.md`\n- `DEBUG.md` 必须覆盖复现、观察、假设、实验、根因、修复、回归证据\n- 调试关注点: wheel repo-root discovery failure\n- 调试关注点: Telegram fixed retry and global readiness coupling\n- 调试关注点: legacy/capability semantic divergence\n- 调试关注点: export recursion and vendor pycache pollution",
+    "runtime_workflow_contract": "- workflow artifact 必须存入任务目录，而不是只留在聊天上下文。\n- worker 只能消费当前 packet 的最小上下文、允许工具、禁止动作、证据要求和停止条件。\n- verifier / 自审必须独立挑战关键发现，不能把 worker 自评当作验收。\n- integrator / closeout 必须报告 verified、rejected、unresolved、failed、not-covered。",
+    "runtime_verification_gate": "- [ ] 每个 tool/action 结果都有可回指证据或明确未执行原因。\n- [ ] 高风险动作没有由 worker/agent 自我批准；审批状态可追踪。\n- [ ] compaction / resume 后目标、计划、修改文件、审批状态和验证项未丢失。\n- [ ] verifier / 自审已检查关键发现是否有证据支持。\n- [ ] closeout 明确 coverage gaps、failed packets 和 unresolved questions。\n- [ ] TP-01: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-02: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-03: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-04: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-05: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-06: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-07: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据",
+    "runtime_state": "- Active workflow state: 以 `TASK_PACKAGE_SET.json` / `TASK_EXECUTION_WAVE_PACKET.json` 为准。\n- Approval state: 未记录即视为未授权。\n- Resume rule: 继续任务前重新读取当前 packet、Recent Evidence、Blockers、Runtime State。\n- TP-01: status=Done; verifier_context=自审\n- TP-02: status=Done; verifier_context=自审\n- TP-03: status=Done; verifier_context=自审\n- TP-04: status=In Progress; verifier_context=自审\n- TP-05: status=Done; verifier_context=自审\n- TP-06: status=Done; verifier_context=自审\n- TP-07: status=In Progress; verifier_context=自审",
+    "task_level_acceptance": "- wheel 在仓库外干净虚拟环境中安装并执行 CLI smoke\n- lite skill 导出不包含运行态导出、无关媒体或禁止分发 reference assets，并满足体积/文件数预算\n- Web/API/Bot 的综合八字生产路径均通过 capability executor\n- Telegram 未就绪不再误判核心 Web/API 不可用，重试有界退避且错误类型可观测\n- quick CI 自动覆盖 pull_request 与 main push，重型发布流程保持明确触发边界\n- vendor 测试后无 pycache 污染，供应链分发策略可机械检查\n- 治理 strict、任务 closeout、quick CI 和任务级 review 通过\n- approved plan 已成功编译为递归任务树\n- 叶子节点数量: 7\n- 当前可立即执行叶子节点: 无",
+    "validation_plan": "- 仓库外 wheel install smoke\n- lite export hygiene/smoke/size gate\n- 八字入口语义一致性回归\n- Telegram readiness/retry 单元与集成回归\n- workflow schema/trigger 回归\n- vendor before/after pollution gate\n- bash scripts/local-ci.sh --profile quick\n- governance strict 与任务 closeout 校验\n- TP-01 | Verify: wheel clean-room smoke + export runtime smoke + size/file-count gate | Gate: 独立安装和精简导出全部通过\n- TP-02 | Verify: Web/API/Bot normalized semantic parity tests | Gate: 不存在默认 legacy 生产路径\n- TP-03 | Verify: Telegram lifecycle/readiness/metrics tests | Gate: 核心 API 可用且渠道故障明确可见\n- TP-04 | Verify: workflow regression + action syntax + current release proof | Gate: 最终提交拥有真实远端 quick CI 证据\n- TP-05 | Verify: vendor health before/after tests + distribution policy gate | Gate: reference repo 只读且禁止资产不进入发行物\n- TP-06 | Verify: governance context bundle + strict validation + document drift review | Gate: 治理路由不再 BLOCK 且事实与实现一致\n- TP-07 | Verify: quick CI + performance baseline + task review + closeout + remote CI | Gate: 本地实现无 BLOCK；外部人工/live 门禁真实保留",
+    "review_gate": "- 分发闭包不依赖源码仓库路径\n- 核心计算不存在双生产引擎\n- 渠道降级不掩盖故障也不拖垮核心 readiness\n- 发布声明只引用当前 commit 的真实证据",
+    "ship_readiness": "- 本地所有门禁必须通过后才提交\n- 远端 quick CI 必须对应最终提交\n- 外部 live 和人工专业审核保持 pending/blocked，除非真实证据到位",
+    "global_acceptance_standards": "- [ ] 不以本地证据替代外部 live 或人工专业审核\n- [ ] planned capability 继续拒绝执行\n- [ ] 不泄露 token、secret、DSN、用户出生资料或完整报告正文\n- [ ] 不保留 legacy/capability 双轨生产行为",
+    "package_context_blocks": "## TP-01\n- Step Key: `distribution`\n- 标题: 建立可独立分发闭包\n- 类型: `Packaging`\n- 目标: 让 core wheel 和 lite skill 在仓库外独立运行，并阻止运行态、嵌套导出和无关大资产进入发布包。\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: 无\n- 依赖节点 ID: 无\n- 输入: 无\n- 输出: 包内资源闭包；allowlist/明确分发清单；分发回归测试\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n## TP-02\n- Step Key: `bazi-engine`\n- 标题: 统一综合八字生产引擎\n- 类型: `Architecture`\n- 目标: 所有公开交付面通过 CapabilityExecutor 执行综合八字，旧接口只保留明确兼容契约。\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: distribution\n- 依赖节点 ID: TP-01\n- 输入: 无\n- 输出: 单引擎编排；弃用契约；语义一致性测试\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n## TP-03\n- Step Key: `telegram-readiness`\n- 标题: 隔离 Telegram 渠道就绪状态\n- 类型: `Reliability`\n- 目标: 核心 readiness 与渠道 readiness 分层，Telegram 使用有界指数退避并输出脱敏失败类型。\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: bazi-engine\n- 依赖节点 ID: TP-02\n- 输入: 无\n- 输出: 分层 readiness；指数退避；错误观测与回归测试\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n## TP-04\n- Step Key: `ci-release`\n- 标题: 补齐自动 CI 与发布证明\n- 类型: `CI`\n- 目标: quick gate 自动覆盖 PR/main push，重型容器发布保持受控并可生成当前提交证明。\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: telegram-readiness\n- 依赖节点 ID: TP-03\n- 输入: 无\n- 输出: 自动 quick workflow；受控 release workflow；当前提交证据\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n## TP-05\n- Step Key: `supply-chain`\n- 标题: 加固供应链与 vendor 卫生\n- 类型: `Supply Chain`\n- 目标: 阻止测试污染 reference repo，并让分发许可、revision 与分发允许状态可机械复核。\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: ci-release\n- 依赖节点 ID: TP-04\n- 输入: 无\n- 输出: pycache 防污染；分发策略门禁；供应链证据\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n## TP-06\n- Step Key: `governance-truth`\n- 标题: 恢复治理真相源\n- 类型: `Governance`\n- 目标: 补齐 review standard/module contexts，刷新过期事实文档并收敛任务索引。\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: supply-chain\n- 依赖节点 ID: TP-05\n- 输入: 无\n- 输出: 评审标准；module contexts；事实文档和任务状态同步\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n## TP-07\n- Step Key: `quality-closeout`\n- 标题: 性能、质量与交付收口\n- 类型: `Verification`\n- 目标: 建立八字性能预算、执行完整门禁与审查，提交并推送所有已验证本地改动。\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: governance-truth\n- 依赖节点 ID: TP-06\n- 输入: 无\n- 输出: 性能基线；审查结论；提交推送与远端证据\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无",
+    "package_acceptance_blocks": "## TP-01\n- 标题: 建立可独立分发闭包\n- 验收标准:\n  - CLI 不再依赖企业仓库根\n  - 导出包不含 infra/runtime/local-state\n  - 包预算可机械验证\n- Verify: wheel clean-room smoke + export runtime smoke + size/file-count gate\n- Gate: 独立安装和精简导出全部通过\n- 输出物: 包内资源闭包；allowlist/明确分发清单；分发回归测试\n\n## TP-02\n- 标题: 统一综合八字生产引擎\n- 验收标准:\n  - 达成当前节点 objective，且输出物可复核\n- Verify: Web/API/Bot normalized semantic parity tests\n- Gate: 不存在默认 legacy 生产路径\n- 输出物: 单引擎编排；弃用契约；语义一致性测试\n\n## TP-03\n- 标题: 隔离 Telegram 渠道就绪状态\n- 验收标准:\n  - 达成当前节点 objective，且输出物可复核\n- Verify: Telegram lifecycle/readiness/metrics tests\n- Gate: 核心 API 可用且渠道故障明确可见\n- 输出物: 分层 readiness；指数退避；错误观测与回归测试\n\n## TP-04\n- 标题: 补齐自动 CI 与发布证明\n- 验收标准:\n  - 达成当前节点 objective，且输出物可复核\n- Verify: workflow regression + action syntax + current release proof\n- Gate: 最终提交拥有真实远端 quick CI 证据\n- 输出物: 自动 quick workflow；受控 release workflow；当前提交证据\n\n## TP-05\n- 标题: 加固供应链与 vendor 卫生\n- 验收标准:\n  - 达成当前节点 objective，且输出物可复核\n- Verify: vendor health before/after tests + distribution policy gate\n- Gate: reference repo 只读且禁止资产不进入发行物\n- 输出物: pycache 防污染；分发策略门禁；供应链证据\n\n## TP-06\n- 标题: 恢复治理真相源\n- 验收标准:\n  - 达成当前节点 objective，且输出物可复核\n- Verify: governance context bundle + strict validation + document drift review\n- Gate: 治理路由不再 BLOCK 且事实与实现一致\n- 输出物: 评审标准；module contexts；事实文档和任务状态同步\n\n## TP-07\n- 标题: 性能、质量与交付收口\n- 验收标准:\n  - 达成当前节点 objective，且输出物可复核\n- Verify: quick CI + performance baseline + task review + closeout + remote CI\n- Gate: 本地实现无 BLOCK；外部人工/live 门禁真实保留\n- 输出物: 性能基线；审查结论；提交推送与远端证据",
+    "package_acceptance_checklists": "## TP-01\n- 标题: 建立可独立分发闭包\n- 验收项:\n  - [ ] CLI 不再依赖企业仓库根\n  - [ ] 导出包不含 infra/runtime/local-state\n  - [ ] 包预算可机械验证\n- Verify: wheel clean-room smoke + export runtime smoke + size/file-count gate\n- Gate: 独立安装和精简导出全部通过\n- 输出物:\n  - [ ] 包内资源闭包\n  - [ ] allowlist/明确分发清单\n  - [ ] 分发回归测试\n- 标准清单:\n  - [ ] Verify: wheel clean-room smoke + export runtime smoke + size/file-count gate\n  - [ ] Gate: 独立安装和精简导出全部通过\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-02\n- 标题: 统一综合八字生产引擎\n- 验收项:\n  - [ ] 达成 `统一综合八字生产引擎` 的 objective，且输出物可复核\n- Verify: Web/API/Bot normalized semantic parity tests\n- Gate: 不存在默认 legacy 生产路径\n- 输出物:\n  - [ ] 单引擎编排\n  - [ ] 弃用契约\n  - [ ] 语义一致性测试\n- 标准清单:\n  - [ ] Verify: Web/API/Bot normalized semantic parity tests\n  - [ ] Gate: 不存在默认 legacy 生产路径\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-03\n- 标题: 隔离 Telegram 渠道就绪状态\n- 验收项:\n  - [ ] 达成 `隔离 Telegram 渠道就绪状态` 的 objective，且输出物可复核\n- Verify: Telegram lifecycle/readiness/metrics tests\n- Gate: 核心 API 可用且渠道故障明确可见\n- 输出物:\n  - [ ] 分层 readiness\n  - [ ] 指数退避\n  - [ ] 错误观测与回归测试\n- 标准清单:\n  - [ ] Verify: Telegram lifecycle/readiness/metrics tests\n  - [ ] Gate: 核心 API 可用且渠道故障明确可见\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-04\n- 标题: 补齐自动 CI 与发布证明\n- 验收项:\n  - [ ] 达成 `补齐自动 CI 与发布证明` 的 objective，且输出物可复核\n- Verify: workflow regression + action syntax + current release proof\n- Gate: 最终提交拥有真实远端 quick CI 证据\n- 输出物:\n  - [ ] 自动 quick workflow\n  - [ ] 受控 release workflow\n  - [ ] 当前提交证据\n- 标准清单:\n  - [ ] Verify: workflow regression + action syntax + current release proof\n  - [ ] Gate: 最终提交拥有真实远端 quick CI 证据\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-05\n- 标题: 加固供应链与 vendor 卫生\n- 验收项:\n  - [ ] 达成 `加固供应链与 vendor 卫生` 的 objective，且输出物可复核\n- Verify: vendor health before/after tests + distribution policy gate\n- Gate: reference repo 只读且禁止资产不进入发行物\n- 输出物:\n  - [ ] pycache 防污染\n  - [ ] 分发策略门禁\n  - [ ] 供应链证据\n- 标准清单:\n  - [ ] Verify: vendor health before/after tests + distribution policy gate\n  - [ ] Gate: reference repo 只读且禁止资产不进入发行物\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-06\n- 标题: 恢复治理真相源\n- 验收项:\n  - [ ] 达成 `恢复治理真相源` 的 objective，且输出物可复核\n- Verify: governance context bundle + strict validation + document drift review\n- Gate: 治理路由不再 BLOCK 且事实与实现一致\n- 输出物:\n  - [ ] 评审标准\n  - [ ] module contexts\n  - [ ] 事实文档和任务状态同步\n- 标准清单:\n  - [ ] Verify: governance context bundle + strict validation + document drift review\n  - [ ] Gate: 治理路由不再 BLOCK 且事实与实现一致\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-07\n- 标题: 性能、质量与交付收口\n- 验收项:\n  - [ ] 达成 `性能、质量与交付收口` 的 objective，且输出物可复核\n- Verify: quick CI + performance baseline + task review + closeout + remote CI\n- Gate: 本地实现无 BLOCK；外部人工/live 门禁真实保留\n- 输出物:\n  - [ ] 性能基线\n  - [ ] 审查结论\n  - [ ] 提交推送与远端证据\n- 标准清单:\n  - [ ] Verify: quick CI + performance baseline + task review + closeout + remote CI\n  - [ ] Gate: 本地实现无 BLOCK；外部人工/live 门禁真实保留\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检",
+    "planning_summary": "先把可交付对象收敛为可独立运行的最小闭包，再统一计算真相源和渠道健康语义，随后补自动 CI、供应链与治理门禁，最后用性能和质量证据收口。\n- 编译节点总数: 7\n- 叶子执行项: 7\n- 执行波次数: 7\n- 当前任务必须遵守 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP`",
+    "lifecycle_gates": "- SPEC：目标终态、真实约束、外部门禁和兼容边界明确\n- PLAN：七个切片、验证命令、回滚路径和文档影响已登记\n- BUILD：实现只进入已登记模块，不扩展业务体系\n- TEST：定向回归、clean-room smoke、quick CI 和卫生门禁通过\n- REVIEW：correctness/security/reliability/performance/architecture/document drift 无 BLOCK\n- SHIP：语义提交、推送、当前提交 CI 证据和外部待验证项明确",
+    "simplest_path": "复用 Python importlib.resources、现有 CapabilityExecutor、GitHub Actions 与现有 gate 脚本；删除整仓复制和双引擎默认值等错误概念，不新增平行框架。",
+    "split_strategy": "按独立失败边界拆成七个串行可验证切片，每个切片先补失败测试，再做最小实现并更新对应契约。",
+    "blockers": "- 真实专家评审、外部 benchmark、no-leak 签字与生产 live 仍需外部操作人和凭证"
+  }
+}

@@ -1,14 +1,16 @@
 ---
 id: BASELINE-GATE-NEGATIVE-TEST-SUITE-FATECAT
 type: baseline-gate-negative-test-suite
-status: active
+status: archived
 owner: engineering
 created: 2026-06-06
-last_reviewed: 2026-06-06
+last_reviewed: 2026-07-13
 review_cycle: P30D
 ---
 
 # Baseline Gate Negative Test Suite
+
+> 历史快照：表内 TODO 和“非北京”规则已被后续门禁与产品口径取代，不是当前待办真相源。
 
 ## Required Negative Tests
 
