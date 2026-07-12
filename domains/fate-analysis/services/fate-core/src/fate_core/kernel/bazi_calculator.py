@@ -1189,14 +1189,15 @@ class BaziCalculator:
                     if key in seen:
                         continue
                     seen.add(key)
+                    gan_zhi = ly.getGanZhi()
                     result.append(
                         {
                             "year": year,
                             "month": month_idx,
                             "monthCn": ly.getMonthInChinese(),
-                            "ganZhi": ly.getGanZhi(),
-                            "stem": ly.getGanZhi()[0],
-                            "branch": ly.getGanZhi()[1],
+                            "ganZhi": gan_zhi,
+                            "stem": gan_zhi[0],
+                            "branch": gan_zhi[1],
                         }
                     )
         result.sort(key=lambda x: (x["year"], x["month"]))

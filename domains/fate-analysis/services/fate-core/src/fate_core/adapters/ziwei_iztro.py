@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import contextlib
-import io
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -78,12 +76,11 @@ def calculate_ziwei_iztro(payload: ZiweiIztroInput) -> dict[str, Any]:
         use_true_solar_time=payload.use_true_solar_time,
     )
     as_of = payload.as_of or now_cn().replace(tzinfo=None)
-    with contextlib.redirect_stdout(io.StringIO()):
-        ziwei_result = FortelZiweiCalculator(
-            time_anchor.calc_dt,
-            payload.gender,
-            payload.longitude,
-        ).calculate_professional_ziwei(as_of=as_of)
+    ziwei_result = FortelZiweiCalculator(
+        time_anchor.calc_dt,
+        payload.gender,
+        payload.longitude,
+    ).calculate_professional_ziwei(as_of=as_of)
 
     chart = ziwei_result.get("professionalZiwei", {})
     palaces = chart.get("palaces", []) if isinstance(chart, dict) else []

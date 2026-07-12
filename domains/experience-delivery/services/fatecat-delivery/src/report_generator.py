@@ -1426,6 +1426,12 @@ def generate_monthly_section(result: dict[str, Any], recent_years: int | None = 
         # 以 monthlySpirits 为事实来源展开（每条含 year/monthCn/ganZhi/spirits）
         if not msp:
             raise RuntimeError("流月神煞数据缺失: monthlySpirits 为空")
+        monthly_by_ganzhi: dict[tuple[str, str], dict[str, Any]] = {}
+        for monthly in mf:
+            if not isinstance(monthly, dict):
+                continue
+            key = (str(monthly.get("year")), str(monthly.get("ganZhi", "")))
+            monthly_by_ganzhi.setdefault(key, monthly)
         rows: list[list[object]] = []
         for item in [x for x in msp if isinstance(x, dict)]:
             year = item.get("year", "")
@@ -1437,15 +1443,9 @@ def generate_monthly_section(result: dict[str, Any], recent_years: int | None = 
             sp_txt = "、".join([str(x) for x in sp if str(x).strip()]) if sp else ""
 
             # 从 monthlyFortune 补齐十神/纳音（若能匹配到）
-            ten_god = ""
-            nayin = ""
-            for m in mf:
-                if not isinstance(m, dict):
-                    continue
-                if str(m.get("year")) == str(year) and str(m.get("ganZhi", "")) == str(gz):
-                    ten_god = m.get("shiShen") or m.get("tenGod") or ""
-                    nayin = m.get("naYin") or ""
-                    break
+            monthly = monthly_by_ganzhi.get((str(year), str(gz)), {})
+            ten_god = monthly.get("shiShen") or monthly.get("tenGod") or ""
+            nayin = monthly.get("naYin") or ""
             rows.append([year, f"{month_cn}月", gz, ten_god, nayin, sp_txt])
 
         lines.extend(_render_table(["年份", "月份", "干支", "十神", "纳音", "神煞"], rows))

@@ -1,5 +1,51 @@
 # DEBUG.md - FateCat 调试证据
 
+## 2026-07-13 紫微并发计算污染进程 stdout
+
+### Bug
+
+两个紫微 capability 在线程中并发执行后，进程级 `sys.stdout` 可能被替换为内存缓冲区，导致后续日志、命令输出或测试输出消失。
+
+### Observations
+
+- 单线程紫微计算约 130 ms，两个和四个线程能够同时进入适配器。
+- 并发实验结束后 `id(sys.stdout)` 与实验前不同；使用文件描述符直接写入仍能输出，证明问题位于 Python 全局 stdout 对象而不是操作系统文件描述符。
+- `calculate_ziwei_iztro()` 使用 `contextlib.redirect_stdout(io.StringIO())` 包裹完整 iztro 调用。
+- 被包裹的 `FortelZiweiCalculator` 调用链没有 `print()`，子进程 stdout/stderr 已由 `subprocess.run(capture_output=True)` 独立捕获。
+
+### Hypotheses
+
+1. `redirect_stdout` 在线程交错退出时恢复了另一个线程的临时 stdout。
+   - Supports: `redirect_stdout` 修改进程全局 `sys.stdout`，并发实验后对象身份发生变化。
+   - Test: 强制第一个线程先退出重定向上下文、第二个线程后退出，检查最终 stdout 身份。
+2. Node/iztro 子进程修改了父进程 stdout。
+   - Conflicts: 子进程使用 `capture_output=True`，文件描述符直接输出仍然正常。
+3. delivery 日志或任务队列修改了 stdout。
+   - Conflicts: 直接调用 `CapabilityExecutor` 即可复现，不经过 delivery、Web 或任务队列。
+
+### Root Cause
+
+紫微适配器使用进程全局的 `contextlib.redirect_stdout` 抑制并不存在的直接输出；多个线程交错进入和退出上下文时，后退出线程可能把 `sys.stdout` 恢复为另一个线程的 `StringIO`。
+
+### Fix
+
+- 删除紫微适配器中的全局 stdout 重定向和无用导入。
+- 增加两个线程强制交错退出的回归测试，同时校验两次计算的结构化紫微结果保持一致。
+
+### Regression Evidence
+
+```bash
+.venv/bin/python -m pytest -q domains/fate-analysis/services/fate-core/tests/test_ziwei_adapter_concurrency.py
+.venv/bin/python -m pytest -q tests/regression/test_bazi_ziwei_l4_golden_smoke.py tests/regression/test_bazi_ziwei_rule_depth.py
+bash scripts/local-ci.sh --profile quick
+```
+
+- 并发 stdout 定向回归：`1 passed`。
+- 现有 L4 golden：`2 passed`；八字/紫微规则深度：`39 passed`。
+- 真实 iztro 四线程实验：`stdoutStable=true`、`chartsEqual=true`，四份结果均返回 12 宫。
+- Quick CI：`446 passed`；L4 golden、性能、供应链、结构、安全、ruff、format、mypy 和 vendor health 门禁通过。
+- Quick CI 性能基线：紫微 warm mean `123.853 ms`，未因修复增加计算耗时。
+
 ## 2026-07-12 Web 地区搜索错误限制为两个字
 
 ### Bug
