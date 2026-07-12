@@ -44,9 +44,11 @@ Observed public Hugging Face Space latency on 2026-07-13 from the project develo
 
 - The Web client waits 100 ms after the latest input before sending a request.
 - Public API warm round trip, 25 successful one-character queries: 344 ms median, 348 ms mean, 381 ms p95 and 382 ms maximum.
+- Browser input-to-candidate rendering after deployment, 10 warm one-character queries: 459 ms median, 458 ms mean and 472 ms maximum.
+- The first browser query after the Space rebuild took 4.51 s while the runtime location index initialized.
 - A fresh connection sample took 1.144 s total, including approximately 785 ms for TLS establishment.
 
-The public endpoint is rate limited. Clients should debounce input, cancel stale requests and honor HTTP 429 responses. The API measurements describe the public HF Space from one network vantage point. Browser input-to-candidate latency must be remeasured after deployment of the 100 ms debounce; these figures are not a latency SLA.
+The public endpoint is rate limited. Clients should debounce input, cancel stale requests and honor HTTP 429 responses. These measurements describe the public HF Space from one network vantage point; they are not a latency SLA.
 
 ## Asynchronous Web Report Jobs
 

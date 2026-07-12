@@ -156,7 +156,9 @@ def test_llms_txt_exposes_machine_contract_and_is_shipped_to_hf():
     assert "Public API warm round trip" in text
     assert "344 ms median" in text
     assert "waits 100 ms" in text
-    assert "remeasured after deployment" in text
+    assert "Browser input-to-candidate rendering after deployment" in text
+    assert "459 ms median" in text
+    assert "first browser query after the Space rebuild took 4.51 s" in text
     assert "not a latency SLA" in text
 
     deploy_script = (ROOT / "scripts" / "hf-space-deploy.sh").read_text(encoding="utf-8")
