@@ -28,6 +28,7 @@
 - Verify: `.venv/bin/python -m pytest -q tests/regression/test_web_html.py tests/regression/test_api_contracts.py`
 - Gate: Web/API 使用同源解析，原生无脚本路径和海外时间语义通过。
 - [x] Web 只显示一个原生地区输入框，模糊候选选择后提交稳定地点 ID。
+- [x] 地区搜索从第一个非空字符开始请求候选，不存在前端自行增加的两字门槛。
 - [x] 无 JavaScript 时唯一完整地区名称的服务端解析/生成路径保留。
 - [x] 地点搜索/detail API 完成。
 - [x] Bazi API 复用地点/时间标准化。

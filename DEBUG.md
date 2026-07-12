@@ -1,5 +1,39 @@
 # DEBUG.md - FateCat 调试证据
 
+## 2026-07-12 Web 地区搜索错误限制为两个字
+
+### Bug
+
+Web 出生地区输入框只有在输入至少两个字后才发起候选搜索，用户输入一个字时无法检索。
+
+### Observations
+
+- 地点 API 的 `q` 参数契约为 `min_length=1`，后端支持单字符查询。
+- Web 脚本额外使用 `query.length < 2` 阻断请求，并显示“输入至少两个字”文案。
+- 该限制不是数据源、性能或业务规则要求，而是前端自行增加的门槛。
+
+### Root Cause
+
+Web 渐进增强层没有复用地点 API 的最小查询长度契约，擅自把可搜索门槛从一个字符提高到两个字符。
+
+### Fix
+
+- 仅在查询为空时停止搜索；第一个非空字符即触发候选查询。
+- 删除全部“至少两个字”文案。
+- 增加 Web 契约和地点 API 单字符查询回归测试。
+
+### Regression Evidence
+
+```bash
+.venv/bin/python -m pytest -q tests/regression/test_web_html.py tests/regression/test_api_contracts.py::test_location_api_exposes_stable_ids_timezone_precision_and_catalog_status
+bash scripts/local-ci.sh --profile quick
+```
+
+- 定向回归：`14 passed`。
+- Quick CI：`443 passed`；Ruff、format、mypy、结构和安全门禁通过。
+- 移动端 Chrome `390x844`：输入单个“京”后返回 8 个候选，页面 JavaScript 错误为 0。
+- 单字符检索 200 次：平均 `5.317 ms`，P95 `6.656 ms`，最大 `11.838 ms`。
+
 ## 2026-07-12 HF psql 中文表格与本地显示不一致
 
 ### Bug

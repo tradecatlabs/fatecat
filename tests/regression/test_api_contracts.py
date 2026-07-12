@@ -537,6 +537,10 @@ def test_location_api_exposes_stable_ids_timezone_precision_and_catalog_status()
     assert fuzzy_response.status_code == 200
     assert fuzzy_response.json()["data"]["locations"][0]["locationId"] == "cn:610116"
 
+    single_character_response = client.get("/api/v1/locations", params={"q": "京", "mode": "domestic", "limit": 8})
+    assert single_character_response.status_code == 200
+    assert single_character_response.json()["data"]["count"] > 0
+
 
 def test_bazi_api_normalizes_overseas_local_civil_time_and_rejects_timezone_mismatch():
     payload = _payload()

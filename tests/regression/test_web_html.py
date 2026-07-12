@@ -125,7 +125,7 @@ def test_web_page_renders_semantic_form():
     assert_psql_row(text, "字段契约", "以下为 Web 报告输入参数")
     assert_psql_row(text, "birthDate", "出生日期｜必填：是｜格式：YYYY-MM-DD｜HTML date；例 1990-01-01")
     assert_psql_row(text, "birthTime", "出生时间｜必填：是｜格式：HH:MM 或 HH:MM:SS｜HTML time；例 08:00")
-    assert_psql_row(text, "birthPlace", "出生地区｜必填：是｜输入至少两个字并从完整路径候选中选择")
+    assert_psql_row(text, "birthPlace", "出生地区｜必填：是｜输入地区名称并从完整路径候选中选择")
     assert_psql_row(text, "gender", "性别｜必填：是｜格式：male/female｜计算必需；不能默认猜测")
     assert_psql_row(
         text,
@@ -169,6 +169,9 @@ def test_web_page_uses_one_native_fuzzy_location_input():
     assert "/api/v1/locations?q=" in text
     assert "mode=domestic&limit=8" in text
     assert "window.setTimeout(() => searchLocations(query), 250)" in text
+    assert "if (!query)" in text
+    assert "query.length < 2" not in text
+    assert "输入至少两个字" not in text
     assert "locationIdInput.value = '';" in text
     assert "请先从候选列表选择完整地区" in text
     for removed in [

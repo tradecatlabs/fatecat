@@ -233,7 +233,7 @@ def _render_header_panel(*, generated_at: str, has_result: bool, has_errors: boo
         ["字段契约", "以下为 Web 报告输入参数"],
         ["birthDate", "出生日期｜必填：是｜格式：YYYY-MM-DD｜HTML date；例 1990-01-01"],
         ["birthTime", "出生时间｜必填：是｜格式：HH:MM 或 HH:MM:SS｜HTML time；例 08:00"],
-        ["birthPlace", "出生地区｜必填：是｜输入至少两个字并从完整路径候选中选择"],
+        ["birthPlace", "出生地区｜必填：是｜输入地区名称并从完整路径候选中选择"],
         ["gender", "性别｜必填：是｜格式：male/female｜计算必需；不能默认猜测"],
         [
             "reportSystem",
@@ -313,7 +313,7 @@ def _render_birth_place_search(form: WebReportForm) -> str:
             ),
             f'<input id="locationId" name="locationId" type="hidden" value="{_attr(form.location_id)}">',
             '<datalist id="birth-place-options"></datalist>',
-            '<span id="birth-place-status" aria-live="polite">输入至少两个字后选择完整地区候选</span>',
+            '<span id="birth-place-status" aria-live="polite">输入地区名称后选择完整地区候选</span>',
             "</p>",
         ]
     )
@@ -613,8 +613,8 @@ def _render_copy_script() -> str:
             "      if (bindLocationCandidate()) { return; }",
             "      if (locationRequest) { locationRequest.abort(); }",
             "      renderLocationCandidates([]);",
-            "      if (query.length < 2) {",
-            "        setLocationStatus('输入至少两个字后选择完整地区候选');",
+            "      if (!query) {",
+            "        setLocationStatus('输入地区名称后选择完整地区候选');",
             "        return;",
             "      }",
             "      locationTimer = window.setTimeout(() => searchLocations(query), 250);",
