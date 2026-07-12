@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 import os
+import random
 import re
 import secrets
 from collections import deque
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from threading import Lock
 from typing import Any
@@ -54,6 +56,8 @@ class TelegramWebhookConfig:
     dedupe_size: int = 2048
     max_connections: int = 4
     retry_seconds: int = 30
+    retry_max_seconds: int = 900
+    retry_jitter_percent: int = 20
 
     @classmethod
     def from_env(cls) -> TelegramWebhookConfig:
@@ -72,6 +76,8 @@ class TelegramWebhookConfig:
             dedupe_size=env_int("FATE_TELEGRAM_WEBHOOK_DEDUPE_SIZE", 2048, minimum=1),
             max_connections=env_int("FATE_TELEGRAM_WEBHOOK_MAX_CONNECTIONS", 4, minimum=1),
             retry_seconds=env_int("FATE_TELEGRAM_WEBHOOK_RETRY_SECONDS", 30, minimum=5),
+            retry_max_seconds=env_int("FATE_TELEGRAM_WEBHOOK_RETRY_MAX_SECONDS", 900, minimum=5),
+            retry_jitter_percent=env_int("FATE_TELEGRAM_WEBHOOK_RETRY_JITTER_PERCENT", 20, minimum=0),
         )
         config.validate()
         return config
@@ -88,9 +94,14 @@ class TelegramWebhookConfig:
             raise RuntimeError(f"FATE_TELEGRAM_WEBHOOK_URL 必须是 HTTPS 地址且路径为 {TELEGRAM_DELIVERY_PATH}")
         if self.max_connections > 100:
             raise RuntimeError("FATE_TELEGRAM_WEBHOOK_MAX_CONNECTIONS 不能超过 100")
+        if self.retry_max_seconds < self.retry_seconds:
+            raise RuntimeError("FATE_TELEGRAM_WEBHOOK_RETRY_MAX_SECONDS 不能小于基础重试间隔")
+        if self.retry_jitter_percent > 100:
+            raise RuntimeError("FATE_TELEGRAM_WEBHOOK_RETRY_JITTER_PERCENT 不能超过 100")
 
 
 ApplicationFactory = Callable[[str, asyncio.Queue[object]], Any]
+SleepFunction = Callable[[float], Awaitable[None]]
 
 
 def _build_application(token: str, update_queue: asyncio.Queue[object]) -> Any:
@@ -118,10 +129,14 @@ class TelegramWebhookRuntime:
         *,
         application_factory: ApplicationFactory = _build_application,
         command_configurer: Callable[[Any], Any] = _configure_commands,
+        sleep: SleepFunction = asyncio.sleep,
+        jitter_source: Callable[[], float] = lambda: random.uniform(-1.0, 1.0),
     ) -> None:
         self.config = config
         self._application_factory = application_factory
         self._command_configurer = command_configurer
+        self._sleep = sleep
+        self._jitter_source = jitter_source
         self._application: Any | None = None
         self._retry_task: asyncio.Task[None] | None = None
         self._stopping = False
@@ -135,6 +150,8 @@ class TelegramWebhookRuntime:
         self._invalid_total = 0
         self._start_failure_total = 0
         self._last_start_error = ""
+        self._retry_attempt = 0
+        self._next_retry_seconds = 0.0
 
     @property
     def enabled(self) -> bool:
@@ -172,6 +189,8 @@ class TelegramWebhookRuntime:
             raise
         self._application = application
         self._last_start_error = ""
+        self._retry_attempt = 0
+        self._next_retry_seconds = 0.0
 
     async def start_managed(self) -> None:
         """启动 Webhook；外部瞬时故障由后台重试，不阻断 Web/API。"""
@@ -190,14 +209,29 @@ class TelegramWebhookRuntime:
             self._start_failure_total += 1
             self._last_start_error = error_name
         logger.warning(
-            "Telegram Webhook 启动失败，%s 秒后重试: %s",
-            self.config.retry_seconds,
+            "Telegram Webhook 启动失败: %s",
             error_name,
         )
 
+    def _retry_delay(self, attempt: int) -> float:
+        if self.config.retry_seconds <= 0:
+            base = 0.0
+        else:
+            max_exponent = max(0, math.ceil(math.log2(self.config.retry_max_seconds / self.config.retry_seconds)))
+            base = min(self.config.retry_seconds * (2 ** min(attempt, max_exponent)), self.config.retry_max_seconds)
+        jitter_ratio = self.config.retry_jitter_percent / 100
+        return max(0.0, base * (1 + jitter_ratio * self._jitter_source()))
+
     async def _retry_until_ready(self) -> None:
         while not self._stopping and not self.ready:
-            await asyncio.sleep(self.config.retry_seconds)
+            delay = self._retry_delay(self._retry_attempt)
+            self._next_retry_seconds = round(delay, 3)
+            logger.warning(
+                "Telegram Webhook 将在 %.3f 秒后重试，attempt=%s",
+                delay,
+                self._retry_attempt + 1,
+            )
+            await self._sleep(delay)
             if self._stopping:
                 return
             try:
@@ -206,6 +240,7 @@ class TelegramWebhookRuntime:
                 raise
             except Exception as exc:
                 self._record_start_failure(exc)
+                self._retry_attempt += 1
             else:
                 logger.info("Telegram Webhook 后台重试成功")
                 return
@@ -267,7 +302,7 @@ class TelegramWebhookRuntime:
             expired = self._accepted_update_ids.popleft()
             self._accepted_update_id_set.discard(expired)
 
-    def status(self) -> dict[str, int | bool | str]:
+    def status(self) -> dict[str, int | float | bool | str]:
         application = self._application
         queue = getattr(application, "update_queue", None) if application is not None else None
         with self._stats_lock:
@@ -284,6 +319,8 @@ class TelegramWebhookRuntime:
                 "invalidTotal": self._invalid_total,
                 "startFailureTotal": self._start_failure_total,
                 "lastStartError": self._last_start_error,
+                "retryAttempt": self._retry_attempt,
+                "nextRetrySeconds": self._next_retry_seconds,
             }
 
 

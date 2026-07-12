@@ -1437,9 +1437,17 @@ def ready():
             status_code=503,
             content=attach_branding({"status": "not_ready", "checks": checks, "error": str(exc)}),
         )
+    degraded_surfaces = []
     if telegram_status["enabled"] and not telegram_status["ready"]:
-        return JSONResponse(status_code=503, content=attach_branding({"status": "not_ready", "checks": checks}))
-    return attach_branding({"status": "ready", "checks": checks})
+        degraded_surfaces.append("telegramWebhook")
+    return attach_branding(
+        {
+            "status": "ready",
+            "checks": checks,
+            "degraded": bool(degraded_surfaces),
+            "degradedSurfaces": degraded_surfaces,
+        }
+    )
 
 
 @app.get("/metrics", response_class=PlainTextResponse)
@@ -2169,7 +2177,6 @@ def _build_bazi_data(
     result: dict,
     *,
     parsed: ParsedBaziRequest,
-    true_solar_time: datetime | None,
 ) -> BaziData:
     major_fortune = dict(result.get("majorFortune", {}))
     major_fortune["pillars"] = [
@@ -2184,10 +2191,15 @@ def _build_bazi_data(
     input_tz = ZoneInfo(parsed.normalized_time.input_timezone)
     input_time = parsed.wall_time.replace(tzinfo=input_tz, fold=parsed.normalized_time.fold)
     engine_tz = ZoneInfo("Asia/Shanghai")
+    true_solar_time = None
+    if result.get("inputTrace", {}).get("useTrueSolarTime"):
+        true_solar_value = str(result.get("inputTrace", {}).get("trueSolarTime") or result.get("trueSolarTime") or "")
+        if true_solar_value:
+            true_solar_time = datetime.fromisoformat(true_solar_value).replace(tzinfo=engine_tz)
     return BaziData(
         timeInfo=TimeInfo(
             inputTime=input_time.isoformat(),
-            trueSolarTime=true_solar_time.replace(tzinfo=engine_tz).isoformat() if true_solar_time else None,
+            trueSolarTime=true_solar_time.isoformat() if true_solar_time else None,
             lunarDate=f"{result['fourPillars']['year']['fullName']}年",
             solarTerm="",
         ),
@@ -2202,7 +2214,7 @@ def _build_bazi_data(
     )
 
 
-def _calculate_bazi_raw(req: BaziRequest, *, report_system: str = "bazi") -> tuple[dict, Any, ParsedBaziRequest]:
+def _calculate_bazi_raw(req: BaziRequest, *, report_system: str = "bazi") -> tuple[dict, ParsedBaziRequest]:
     parsed = _parse_bazi_request(req)
     calculation = calculate_delivery_result(
         birth_dt=parsed.engine_time,
@@ -2214,18 +2226,14 @@ def _calculate_bazi_raw(req: BaziRequest, *, report_system: str = "bazi") -> tup
         report_system=report_system,
         use_true_solar_time=req.options.useTrueSolarTime,
     )
-    if calculation.calculator is None:
-        raise RuntimeError("_calculate_bazi_raw 只用于 bazi 体系")
-    return calculation.data, calculation.calculator, parsed
+    return calculation.data, parsed
 
 
-@app.post("/api/v1/bazi/simple")
+@app.post("/api/v1/bazi/simple", deprecated=True)
 def calculate_bazi_simple(req: BaziRequest):
     """简化八字计算 - 直接返回原始结果"""
     try:
-        result, _calculator, _birth_dt = _run_with_calculation_slot(
-            lambda: _calculate_bazi_raw(req, report_system="bazi")
-        )
+        result, _parsed = _run_with_calculation_slot(lambda: _calculate_bazi_raw(req, report_system="bazi"))
 
         return attach_branding({"success": True, "data": result})
     except HTTPException:
@@ -2267,7 +2275,7 @@ def calculate_bazi_pure_analysis(req: BaziRequest):
         raise HTTPException(status_code=500, detail="服务器内部错误") from e
 
 
-@app.post("/api/v1/bazi/calculate", response_model=BaziResponse)
+@app.post("/api/v1/bazi/calculate", response_model=BaziResponse, deprecated=True)
 def calculate_bazi(
     req: BaziRequest,
     user_id: str | None = None,
@@ -2281,14 +2289,8 @@ def calculate_bazi(
             principal = _require_record_access(x_fatecat_api_key, authorization)
             _require_scope(principal, RECORD_SCOPE_WRITE)
             _require_owner_or_admin(principal, user_id)
-        result, calculator, parsed = _run_with_calculation_slot(lambda: _calculate_bazi_raw(req, report_system="bazi"))
-
-        ts_dt = calculator.true_solar_time if req.options.useTrueSolarTime else parsed.engine_time
-        data = _build_bazi_data(
-            result,
-            parsed=parsed,
-            true_solar_time=ts_dt if req.options.useTrueSolarTime else None,
-        )
+        result, parsed = _run_with_calculation_slot(lambda: _calculate_bazi_raw(req, report_system="bazi"))
+        data = _build_bazi_data(result, parsed=parsed)
 
         # 保存到数据库
         record_id = None
@@ -2353,7 +2355,6 @@ def _build_markdown_report_payload(req: BaziRequest) -> dict[str, Any]:
                 name=req.name,
                 report_system=req.options.reportSystem,
                 use_true_solar_time=req.options.useTrueSolarTime,
-                bazi_engine="capability",
             )
         )
     with trace_span("report.render_markdown", attributes=attributes):

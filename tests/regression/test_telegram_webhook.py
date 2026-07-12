@@ -61,7 +61,13 @@ class FakeApplication:
         self.shutdown_called = True
 
 
-def _config(*, queue_size: int = 2, retry_seconds: int = 30) -> TelegramWebhookConfig:
+def _config(
+    *,
+    queue_size: int = 2,
+    retry_seconds: int = 30,
+    retry_max_seconds: int = 900,
+    retry_jitter_percent: int = 20,
+) -> TelegramWebhookConfig:
     return TelegramWebhookConfig(
         enabled=True,
         token="123456:test-token",
@@ -71,6 +77,8 @@ def _config(*, queue_size: int = 2, retry_seconds: int = 30) -> TelegramWebhookC
         dedupe_size=2,
         max_connections=4,
         retry_seconds=retry_seconds,
+        retry_max_seconds=retry_max_seconds,
+        retry_jitter_percent=retry_jitter_percent,
     )
 
 
@@ -212,7 +220,7 @@ async def test_telegram_webhook_managed_start_retries_without_blocking_api():
         return None
 
     runtime = TelegramWebhookRuntime(
-        _config(retry_seconds=0),
+        _config(retry_seconds=0, retry_max_seconds=0, retry_jitter_percent=0),
         application_factory=factory,
         command_configurer=configure_commands,
     )
@@ -227,6 +235,51 @@ async def test_telegram_webhook_managed_start_retries_without_blocking_api():
     assert runtime.status()["startFailureTotal"] == 1
     assert runtime.status()["lastStartError"] == ""
     await runtime.stop()
+
+
+@pytest.mark.asyncio
+async def test_telegram_webhook_retry_uses_bounded_exponential_backoff():
+    delays: list[float] = []
+    attempts = 0
+
+    async def sleep(delay: float) -> None:
+        delays.append(delay)
+
+    def factory(_token: str, update_queue: asyncio.Queue[object]) -> FakeApplication:
+        nonlocal attempts
+        attempts += 1
+        error = TimeoutError("temporary") if attempts < 4 else None
+        return FakeApplication(update_queue, initialize_error=error)
+
+    async def configure_commands(_application: FakeApplication) -> None:
+        return None
+
+    runtime = TelegramWebhookRuntime(
+        _config(retry_seconds=5, retry_max_seconds=12, retry_jitter_percent=0),
+        application_factory=factory,
+        command_configurer=configure_commands,
+        sleep=sleep,
+    )
+
+    await runtime.start_managed()
+    for _ in range(20):
+        if runtime.ready:
+            break
+        await asyncio.sleep(0)
+
+    assert runtime.ready is True
+    assert delays == [5, 10, 12]
+    assert runtime.status()["retryAttempt"] == 0
+    assert runtime.status()["nextRetrySeconds"] == 0.0
+    await runtime.stop()
+
+
+def test_telegram_webhook_retry_does_not_build_unbounded_exponents():
+    runtime = TelegramWebhookRuntime(
+        _config(retry_seconds=5, retry_max_seconds=12, retry_jitter_percent=0),
+    )
+
+    assert runtime._retry_delay(1_000_000) == 12
 
 
 def test_telegram_webhook_http_surface_is_disabled_without_configuration():
@@ -244,6 +297,27 @@ def test_telegram_webhook_http_surface_is_disabled_without_configuration():
     metrics = client.get("/metrics").text
     assert "fatecat_telegram_webhook_enabled 0" in metrics
     assert "fatecat_telegram_webhook_ready 0" in metrics
+
+
+def test_core_readiness_reports_degraded_telegram_without_returning_503(monkeypatch: pytest.MonkeyPatch):
+    class DegradedRuntime:
+        def status(self) -> dict[str, int | float | bool | str]:
+            return {
+                "enabled": True,
+                "ready": False,
+                "startFailureTotal": 3,
+                "lastStartError": "TimedOut",
+            }
+
+    monkeypatch.setattr(main, "telegram_webhook_runtime", DegradedRuntime())
+
+    response = TestClient(main.app).get("/ready")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "ready"
+    assert response.json()["checks"]["telegramWebhook"] == "not_ready"
+    assert response.json()["degraded"] is True
+    assert response.json()["degradedSurfaces"] == ["telegramWebhook"]
 
 
 def test_telegram_webhook_http_surface_accepts_authenticated_update(monkeypatch: pytest.MonkeyPatch):

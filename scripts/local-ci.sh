@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export PYTHONDONTWRITEBYTECODE=1
+
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 source "${script_dir}/common.sh"
 
@@ -167,6 +169,8 @@ run_quick() {
     --output-json "${output_dir}/sandbox-access-gateway-gate.json"
   run_step "CLI capability smoke" bash "${script_dir}/capability-cli-smoke.sh" \
     --output-json "${output_dir}/capability-cli-smoke.json"
+  run_step "package distribution smoke" bash "${script_dir}/package-distribution-smoke.sh" \
+    "${output_dir}/package-distribution-smoke"
   run_step "control plane gate" bash "${script_dir}/control-plane-gate.sh" \
     --output-json "${output_dir}/control-plane-gate.json"
   run_step "multi-surface semantic diff" bash "${script_dir}/multi-surface-semantic-diff.sh" \
@@ -191,6 +195,9 @@ run_quick() {
   run_step "bazi ziwei L4 golden smoke" bash "${script_dir}/bazi-ziwei-l4-golden-smoke.sh" \
     --profile quick \
     --output-json "${output_dir}/bazi-ziwei-l4-golden-smoke.json"
+  run_step "core performance smoke" bash "${script_dir}/core-performance-smoke.sh" \
+    --samples 3 \
+    --output-json "${output_dir}/core-performance-smoke.json"
   run_step "evidence coverage trend gate" bash "${script_dir}/evidence-coverage-trend-gate.sh" \
     --output-json "${output_dir}/evidence-coverage-trend-gate.json"
   run_step "core quality corpus gate" bash "${script_dir}/core-quality-corpus-gate.sh" \
@@ -474,6 +481,7 @@ run_quick() {
       tests/regression/test_release_artifacts.py \
       tests/regression/test_rollback_drill.py
   )
+  run_step "vendor health after tests" bash "${script_dir}/vendor-health.sh"
   run_step "git whitespace check" git -C "${runtime_root}" diff --check
 }
 
@@ -581,6 +589,7 @@ write_summary() {
   FATE_LOCAL_CI_DEVELOPER_PORTAL_GATE="${output_dir}/developer-portal-gate.json" \
   FATE_LOCAL_CI_SANDBOX_ACCESS_GATEWAY_GATE="${output_dir}/sandbox-access-gateway-gate.json" \
   FATE_LOCAL_CI_CAPABILITY_CLI_SMOKE="${output_dir}/capability-cli-smoke.json" \
+  FATE_LOCAL_CI_PACKAGE_DISTRIBUTION_SMOKE="${output_dir}/package-distribution-smoke" \
   FATE_LOCAL_CI_MULTI_SURFACE_SEMANTIC_DIFF="${output_dir}/multi-surface-semantic-diff.json" \
   FATE_LOCAL_CI_OPENAPI="${output_dir}/openapi.json" \
   FATE_LOCAL_CI_PROVIDER_LIFECYCLE_GATE="${output_dir}/provider-lifecycle-gate.json" \
@@ -592,6 +601,7 @@ write_summary() {
   FATE_LOCAL_CI_OTEL_COLLECTOR_SLO_GATE="${output_dir}/otel-collector-slo-gate.json" \
   FATE_LOCAL_CI_OTEL_BACKEND_SLO_GATE="${output_dir}/otel-backend-slo-gate.json" \
   FATE_LOCAL_CI_BAZI_ZIWEI_L4_GOLDEN_SMOKE="${output_dir}/bazi-ziwei-l4-golden-smoke.json" \
+  FATE_LOCAL_CI_CORE_PERFORMANCE_SMOKE="${output_dir}/core-performance-smoke.json" \
   FATE_LOCAL_CI_EVIDENCE_COVERAGE_TREND_GATE="${output_dir}/evidence-coverage-trend-gate.json" \
   FATE_LOCAL_CI_CORE_QUALITY_CORPUS_GATE="${output_dir}/core-quality-corpus-gate.json" \
   FATE_LOCAL_CI_MINGLI_BENCH_GATE="${output_dir}/mingli-bench-gate.json" \
@@ -691,6 +701,7 @@ payload = {
         "developerPortalGate": env("FATE_LOCAL_CI_DEVELOPER_PORTAL_GATE"),
         "sandboxAccessGatewayGate": env("FATE_LOCAL_CI_SANDBOX_ACCESS_GATEWAY_GATE"),
         "capabilityCliSmoke": env("FATE_LOCAL_CI_CAPABILITY_CLI_SMOKE"),
+        "packageDistributionSmoke": env("FATE_LOCAL_CI_PACKAGE_DISTRIBUTION_SMOKE"),
         "multiSurfaceSemanticDiff": env("FATE_LOCAL_CI_MULTI_SURFACE_SEMANTIC_DIFF"),
         "openapi": env("FATE_LOCAL_CI_OPENAPI"),
         "providerLifecycleGate": env("FATE_LOCAL_CI_PROVIDER_LIFECYCLE_GATE"),
@@ -702,6 +713,7 @@ payload = {
         "otelCollectorSloGate": env("FATE_LOCAL_CI_OTEL_COLLECTOR_SLO_GATE"),
         "otelBackendSloGate": env("FATE_LOCAL_CI_OTEL_BACKEND_SLO_GATE"),
         "baziZiweiL4GoldenSmoke": env("FATE_LOCAL_CI_BAZI_ZIWEI_L4_GOLDEN_SMOKE"),
+        "corePerformanceSmoke": env("FATE_LOCAL_CI_CORE_PERFORMANCE_SMOKE"),
         "evidenceCoverageTrendGate": env("FATE_LOCAL_CI_EVIDENCE_COVERAGE_TREND_GATE"),
         "coreQualityCorpusGate": env("FATE_LOCAL_CI_CORE_QUALITY_CORPUS_GATE"),
         "mingliBenchGate": env("FATE_LOCAL_CI_MINGLI_BENCH_GATE"),

@@ -86,7 +86,6 @@ def build_web_report_result(form: WebReportForm) -> WebReportResult:
             name=form.name,
             report_system=validated.report_system,
             use_true_solar_time=True,
-            bazi_engine="capability",
         )
     with trace_span("web_report.render_markdown", attributes=attributes):
         markdown = generate_full_report(

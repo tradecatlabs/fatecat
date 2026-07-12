@@ -221,7 +221,6 @@ def render_bot_dry_run(report_system: str) -> SurfaceMarkdown:
         name="测试样本",
         report_system=report_system,
         use_true_solar_time=True,
-        bazi_engine="capability",
     )
     markdown = generate_full_report(
         calculation.data,
@@ -237,7 +236,9 @@ def render_bot_dry_run(report_system: str) -> SurfaceMarkdown:
 
 def static_bot_chain_checks() -> list[dict[str, Any]]:
     bot_path = DELIVERY_SRC / "bot.py"
+    calculation_service_path = DELIVERY_SRC / "calculation_service.py"
     source = bot_path.read_text(encoding="utf-8")
+    calculation_service_source = calculation_service_path.read_text(encoding="utf-8")
     tree = ast.parse(source)
     functions = {node.name: node for node in tree.body if isinstance(node, ast.FunctionDef)}
     errors: list[str] = []
@@ -249,8 +250,10 @@ def static_bot_chain_checks() -> list[dict[str, Any]]:
         errors.append("_build_bot_report_markdown must call calculate_delivery_result")
     if "generate_full_report" not in helper_source:
         errors.append("_build_bot_report_markdown must call generate_full_report")
-    if 'bazi_engine="capability"' not in helper_source:
-        errors.append('_build_bot_report_markdown must set bazi_engine="capability"')
+    if "CapabilityExecutor" not in calculation_service_source:
+        errors.append("calculate_delivery_result must delegate to CapabilityExecutor")
+    if "bazi_engine" in calculation_service_source:
+        errors.append("calculate_delivery_result must not expose a legacy/capability engine switch")
     if "_build_bot_report_markdown" not in calc_source:
         errors.append("_calc_and_save_report must reuse _build_bot_report_markdown")
     return [

@@ -8,6 +8,7 @@
   ],
   "fields": [
     "input",
+    "inputTrace",
     "meta",
     "fourPillars",
     "hiddenStems",

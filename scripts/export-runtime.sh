@@ -76,6 +76,10 @@ case "${dest_root}" in
     ;;
 esac
 
+if [[ -n "$(find "${dest_root}" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
+  die "导出目录必须为空，避免旧文件残留: ${dest_root}"
+fi
+
 dest_name="$(basename -- "${dest_root}")"
 
 rsync_args=(
@@ -103,12 +107,24 @@ rsync_args=(
   --exclude 'infra/environments/**/.env'
   --exclude 'domains/**/output/'
   --exclude 'domains/**/runtime/**/*.db'
-  --exclude 'infra/runtime/local-state/vendor-build/'
+  --exclude 'infra/runtime/local-state/'
   --exclude 'tools/reference-repos/**/node_modules/'
 )
 
 if [[ "${bundle_mode}" == "lite" ]]; then
-  rsync_args+=(--exclude 'docs/reference-materials/lifecycle/packs/')
+  rsync_args+=(
+    --exclude 'docs/reference-materials/lifecycle/packs/'
+    --exclude 'tools/reference-repos/datasets/'
+    --exclude 'tools/reference-repos/local/'
+    --exclude 'tools/reference-repos/web/'
+    --exclude 'tools/reference-repos/github/iztro-main/docs/'
+    --include 'tools/reference-repos/github/bazi-1-master/***'
+    --include 'tools/reference-repos/github/iztro-main/***'
+    --include 'tools/reference-repos/github/lunar-python-master/***'
+    --include 'tools/reference-repos/github/paipan-master/***'
+    --include 'tools/reference-repos/github/sxwnl-master/***'
+    --exclude 'tools/reference-repos/github/*'
+  )
 fi
 
 rsync "${rsync_args[@]}" "${skill_root}/" "${dest_root}/"

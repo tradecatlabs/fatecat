@@ -47,7 +47,8 @@ fatecat/
 │   └── workflows/
 │       ├── acceptance.yml
 │       ├── container.yml
-│       └── hf-space-deploy.yml
+│       ├── hf-space-deploy.yml
+│       └── quick.yml
 ├── references/
 │   ├── commands.md
 │   ├── execution-playbook.md
@@ -108,5 +109,6 @@ fatecat/
 - `.github/workflows/acceptance.yml -> scripts/acceptance.sh`
 - `.github/workflows/container.yml -> scripts/container-build.sh + scripts/container-smoke.sh`
 - `.github/workflows/hf-space-deploy.yml -> scripts/hf-space-deploy.sh + infra/huggingface-space`
+- `.github/workflows/quick.yml -> scripts/local-ci.sh --profile quick`
 - `scripts/* -> domains + contracts + infra + governance`
 - 禁止新增旧路径 fallback；退役路径只允许出现在迁移账本、历史证据、负例测试和防回潮规则中。

@@ -102,7 +102,7 @@ def test_multi_surface_semantic_diff_contract_registry_and_local_ci_wiring():
     assert "multi-surface-semantic-diff.json" in delivery_agents
 
 
-def test_standard_markdown_surfaces_use_capability_bazi_engine():
+def test_standard_surfaces_use_single_capability_engine():
     main_source = (
         ROOT / "domains" / "experience-delivery" / "services" / "fatecat-delivery" / "src" / "main.py"
     ).read_text(encoding="utf-8")
@@ -113,8 +113,13 @@ def test_standard_markdown_surfaces_use_capability_bazi_engine():
         ROOT / "domains" / "experience-delivery" / "services" / "fatecat-delivery" / "src" / "bot.py"
     ).read_text(encoding="utf-8")
 
-    assert 'bazi_engine="capability"' in main_source
-    assert 'bazi_engine="capability"' in web_source
-    assert 'bazi_engine="capability"' in bot_source
+    assert "bazi_engine" not in main_source
+    assert "bazi_engine" not in web_source
+    assert "bazi_engine" not in bot_source
+    calculation_service_source = (
+        ROOT / "domains" / "experience-delivery" / "services" / "fatecat-delivery" / "src" / "calculation_service.py"
+    ).read_text(encoding="utf-8")
+    assert "CapabilityExecutor" in calculation_service_source
+    assert "bazi_engine" not in calculation_service_source
     assert "def _build_bot_report_markdown" in bot_source
     assert "_calc_and_save_report" in bot_source

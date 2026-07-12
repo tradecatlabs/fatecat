@@ -67,6 +67,26 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["domains/fate-analysis/services/fate-core/src/fate_core"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"contracts/fate/capabilities/registry.json" = "fate_core/_bundled/contracts/fate/capabilities/registry.json"
+"contracts/fate/profiles/pure_analysis.json" = "fate_core/_bundled/contracts/fate/profiles/pure_analysis.json"
+"contracts/fate/rule_depth_registry.json" = "fate_core/_bundled/contracts/fate/rule_depth_registry.json"
+"contracts/fate/classics_rule_index.json" = "fate_core/_bundled/contracts/fate/classics_rule_index.json"
+"infra/environments/local/branding.json" = "fate_core/_bundled/config/branding.json"
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/domains/fate-analysis/services/fate-core/src/fate_core",
+  "/contracts/fate/capabilities/registry.json",
+  "/contracts/fate/profiles/pure_analysis.json",
+  "/contracts/fate/rule_depth_registry.json",
+  "/contracts/fate/classics_rule_index.json",
+  "/infra/environments/local/branding.json",
+  "/LICENSE",
+  "/README.md",
+  "/pyproject.toml",
+]
+
 [tool.ruff]
 target-version = "py312"
 line-length = 120

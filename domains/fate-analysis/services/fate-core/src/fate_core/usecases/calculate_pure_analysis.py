@@ -965,6 +965,15 @@ def calculate_pure_analysis(payload: PureAnalysisInput) -> dict[str, Any]:
     )
     raw = {}
     raw.update(build_base_chart_section(runtime))
+    raw["inputTrace"] = {
+        "birthDateTime": payload.birth_dt.strftime("%Y-%m-%d %H:%M:%S"),
+        "birthPlace": payload.birth_place,
+        "longitude": payload.longitude,
+        "latitude": payload.latitude,
+        "useTrueSolarTime": payload.use_true_solar_time,
+        "trueSolarTime": runtime.calculator.true_solar_time.strftime("%Y-%m-%d %H:%M:%S"),
+        "engine": "fate_core.usecases.calculate_pure_analysis",
+    }
     raw.update(build_fortune_section(runtime))
     raw.update(build_classical_section(runtime))
     raw["analysisEvidence"] = runtime.calculator._calc_analysis_evidence(

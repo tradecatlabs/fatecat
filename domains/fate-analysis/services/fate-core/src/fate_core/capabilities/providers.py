@@ -5,11 +5,6 @@ from dataclasses import dataclass, field
 from typing import Any, Protocol
 
 from fate_core.capabilities.contracts import Capability
-from fate_core.usecases import calculate_almanac, calculate_meihua, calculate_pure_analysis, calculate_ziwei
-from fate_core.usecases.calculate_almanac import build_almanac_input_from_payload
-from fate_core.usecases.calculate_meihua import build_meihua_input_from_payload
-from fate_core.usecases.calculate_pure_analysis import build_pure_analysis_input_from_payload
-from fate_core.usecases.calculate_ziwei import build_ziwei_input_from_payload
 
 # Ponytail existence: provider objects are the runtime boundary between capability
 # admission and concrete calculation usecases. They deliberately wrap existing
@@ -18,6 +13,54 @@ from fate_core.usecases.calculate_ziwei import build_ziwei_input_from_payload
 
 ProviderBuilder = Callable[[dict[str, Any]], Any]
 ProviderRunner = Callable[[Any], dict[str, Any]]
+
+
+def build_pure_analysis_input_from_payload(raw_payload: dict[str, Any]) -> Any:
+    from fate_core.usecases.calculate_pure_analysis import build_pure_analysis_input_from_payload
+
+    return build_pure_analysis_input_from_payload(raw_payload)
+
+
+def calculate_pure_analysis(normalized_input: Any) -> dict[str, Any]:
+    from fate_core.usecases import calculate_pure_analysis
+
+    return calculate_pure_analysis(normalized_input)
+
+
+def build_almanac_input_from_payload(raw_payload: dict[str, Any]) -> Any:
+    from fate_core.usecases.calculate_almanac import build_almanac_input_from_payload
+
+    return build_almanac_input_from_payload(raw_payload)
+
+
+def calculate_almanac(normalized_input: Any) -> dict[str, Any]:
+    from fate_core.usecases import calculate_almanac
+
+    return calculate_almanac(normalized_input)
+
+
+def build_ziwei_input_from_payload(raw_payload: dict[str, Any]) -> Any:
+    from fate_core.usecases.calculate_ziwei import build_ziwei_input_from_payload
+
+    return build_ziwei_input_from_payload(raw_payload)
+
+
+def calculate_ziwei(normalized_input: Any) -> dict[str, Any]:
+    from fate_core.usecases import calculate_ziwei
+
+    return calculate_ziwei(normalized_input)
+
+
+def build_meihua_input_from_payload(raw_payload: dict[str, Any]) -> Any:
+    from fate_core.usecases.calculate_meihua import build_meihua_input_from_payload
+
+    return build_meihua_input_from_payload(raw_payload)
+
+
+def calculate_meihua(normalized_input: Any) -> dict[str, Any]:
+    from fate_core.usecases import calculate_meihua
+
+    return calculate_meihua(normalized_input)
 
 
 @dataclass(frozen=True)

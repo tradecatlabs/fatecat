@@ -935,7 +935,6 @@ def _build_bot_report_markdown(d: dict, lng: float, lat: float):
         name=d.get("name"),
         report_system=report_system,
         use_true_solar_time=True,
-        bazi_engine="capability",
     )
     report_txt = generate_full_report(
         calculation.data,

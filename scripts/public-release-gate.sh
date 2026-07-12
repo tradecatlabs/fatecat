@@ -81,6 +81,14 @@ fi
 
 run_step "public release policy" bash "${script_dir}/check-public-release-policy.sh"
 
+public_skill_parent="${output_dir}/public-skill"
+run_step "public skill export" bash "${script_dir}/export-runtime.sh" \
+  --output-parent "${public_skill_parent}" \
+  --mode lite
+run_step "public skill supply-chain policy" bash "${script_dir}/check-export-hygiene.sh" \
+  "${public_skill_parent}/fatecat" \
+  --public
+
 if [[ "${skip_delivery_smoke}" != "1" ]]; then
   run_step "delivery web smoke" env FATE_RECORDS_ENABLED=0 bash "${script_dir}/delivery-smoke.sh" \
     --target api \

@@ -14,16 +14,10 @@ from fate_core.support.paths import (
     FATE_CONFIG_ROOT,
     FATE_DATA_ROOT,
     FATE_DATABASE_ROOT,
+    FATE_DISTRIBUTION_MODE,
     FATE_PROFILE_DIR,
     FATE_REPO_ROOT,
     FATE_VENDOR_ROOT,
-)
-from fate_core.usecases import (
-    PureAnalysisInput,
-    build_pure_analysis_input_from_payload,
-    calculate_pure_analysis,
-    normalize_pure_analysis_payload,
-    parse_datetime,
 )
 
 
@@ -38,7 +32,16 @@ class BrandingArgumentParser(argparse.ArgumentParser):
         raise SystemExit(2)
 
 
+def calculate_pure_analysis(payload: Any) -> dict[str, Any]:
+    """惰性加载纯分析引擎，保留 CLI 测试与调用方的替换接口。"""
+    from fate_core.usecases import calculate_pure_analysis as run_pure_analysis
+
+    return run_pure_analysis(payload)
+
+
 def _parse_datetime(value: str) -> datetime:
+    from fate_core.usecases import parse_datetime
+
     return parse_datetime(value)
 
 
@@ -95,10 +98,14 @@ def _load_json_payload(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def _normalize_payload(raw_payload: dict[str, Any]) -> dict[str, Any]:
+    from fate_core.usecases import normalize_pure_analysis_payload
+
     return normalize_pure_analysis_payload(raw_payload)
 
 
-def _build_pure_analysis_input(payload: dict[str, Any]) -> PureAnalysisInput:
+def _build_pure_analysis_input(payload: dict[str, Any]) -> Any:
+    from fate_core.usecases import build_pure_analysis_input_from_payload
+
     return build_pure_analysis_input_from_payload(payload)
 
 
@@ -230,7 +237,27 @@ def _run_capabilities(args: argparse.Namespace) -> int:
         }
         for item in list_capabilities()
     ]
-    _write_json_payload(attach_branding({"success": True, "capabilities": capabilities}), pretty=args.pretty)
+    provider_assets_available = all(
+        (
+            (FATE_VENDOR_ROOT / "github" / "lunar-python-master").is_dir(),
+            (FATE_VENDOR_ROOT / "github" / "bazi-1-master").is_dir(),
+            (FATE_VENDOR_ROOT / "github" / "sxwnl-master").is_dir(),
+            (FATE_VENDOR_ROOT / "github" / "iztro-main").is_dir(),
+        )
+    )
+    _write_json_payload(
+        attach_branding(
+            {
+                "success": True,
+                "runtime": {
+                    "distributionMode": FATE_DISTRIBUTION_MODE,
+                    "providerAssetsAvailable": provider_assets_available,
+                },
+                "capabilities": capabilities,
+            }
+        ),
+        pretty=args.pretty,
+    )
     return 0
 
 

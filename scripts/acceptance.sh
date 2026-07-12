@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export PYTHONDONTWRITEBYTECODE=1
+
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 source "${script_dir}/common.sh"
 
@@ -118,6 +120,9 @@ bash "${script_dir}/vendor-health.sh"
 echo "[acceptance] source hygiene"
 bash "${script_dir}/check-source-hygiene.sh"
 
+echo "[acceptance] package distribution smoke"
+bash "${script_dir}/package-distribution-smoke.sh" "${output_dir}/package-distribution-smoke"
+
 echo "[acceptance] structure gate"
 bash "${script_dir}/check-structure.sh"
 
@@ -150,6 +155,9 @@ echo "[acceptance] pytest"
   "${skill_root}/domains/fate-analysis/services/fate-core/tests" \
   "${skill_root}/domains/experience-delivery/services/fatecat-delivery/tests" \
   "${skill_root}/tests/regression"
+
+echo "[acceptance] vendor health after tests"
+bash "${script_dir}/vendor-health.sh"
 
 echo "[acceptance] ruff"
 RUFF_CACHE_DIR="${RUFF_CACHE_DIR:-/tmp/fatecat-ruff-cache}" \

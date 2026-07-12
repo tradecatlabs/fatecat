@@ -7,9 +7,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Literal
+from typing import Any
 
-from bazi_calculator import BaziCalculator
 from fate_core.capabilities import CapabilityExecutor, CapabilityInput
 from report_generator import build_report_hide, normalize_report_system, public_birth_place
 
@@ -23,7 +22,6 @@ class DeliveryCalculationResult:
     report_hide: dict[str, Any]
     birth_dt: datetime
     display_birth_place: str
-    calculator: BaziCalculator | None = None
 
 
 def calculate_delivery_result(
@@ -36,57 +34,35 @@ def calculate_delivery_result(
     name: str | None,
     report_system: str = "bazi",
     use_true_solar_time: bool = True,
-    bazi_engine: Literal["legacy", "capability"] = "legacy",
 ) -> DeliveryCalculationResult:
     """按报告体系执行 canonical 计算，不在交付层定义命理规则。"""
     normalized_system = normalize_report_system(report_system)
     report_hide = build_report_hide(normalized_system)
     display_birth_place = public_birth_place(birth_place)
 
-    if normalized_system == "ziwei" or bazi_engine == "capability":
-        capability_id = "ziwei" if normalized_system == "ziwei" else "bazi"
-        data = (
-            CapabilityExecutor()
-            .execute(
-                CapabilityInput(
-                    capability_id=capability_id,
-                    payload={
-                        "birthDateTime": birth_dt.strftime("%Y-%m-%d %H:%M:%S"),
-                        "gender": gender,
-                        "longitude": longitude,
-                        "latitude": latitude,
-                        "birthPlace": display_birth_place,
-                        "name": name,
-                        "useTrueSolarTime": use_true_solar_time,
-                    },
-                )
+    capability_id = "ziwei" if normalized_system == "ziwei" else "bazi"
+    data = (
+        CapabilityExecutor()
+        .execute(
+            CapabilityInput(
+                capability_id=capability_id,
+                payload={
+                    "birthDateTime": birth_dt.strftime("%Y-%m-%d %H:%M:%S"),
+                    "gender": gender,
+                    "longitude": longitude,
+                    "latitude": latitude,
+                    "birthPlace": display_birth_place,
+                    "name": name,
+                    "useTrueSolarTime": use_true_solar_time,
+                },
             )
-            .data
         )
-        return DeliveryCalculationResult(
-            data=data,
-            report_system=normalized_system,
-            report_hide=report_hide,
-            birth_dt=birth_dt,
-            display_birth_place=display_birth_place,
-            calculator=None,
-        )
-
-    calculator = BaziCalculator(
-        birth_dt,
-        gender,
-        longitude,
-        latitude=latitude,
-        name=name,
-        birth_place=display_birth_place,
-        use_true_solar_time=use_true_solar_time,
+        .data
     )
-    data = calculator.calculate(hide=report_hide)
     return DeliveryCalculationResult(
         data=data,
         report_system=normalized_system,
         report_hide=report_hide,
         birth_dt=birth_dt,
         display_birth_place=display_birth_place,
-        calculator=calculator,
     )

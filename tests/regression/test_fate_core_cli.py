@@ -160,6 +160,8 @@ def test_main_capabilities_lists_registry(capsys):
 
     assert exit_code == 0
     assert result["success"] is True
+    assert result["runtime"]["distributionMode"] == "enterprise_repo"
+    assert result["runtime"]["providerAssetsAvailable"] is True
     capability_ids = {item["capabilityId"] for item in result["capabilities"]}
     assert "bazi" in capability_ids
     assert "liuyao" in capability_ids
