@@ -160,11 +160,17 @@ def test_web_page_uses_one_native_fuzzy_location_input():
     text = response.text
     assert (
         '<input id="birthPlace" name="birthPlace" type="text" list="birth-place-options" '
-        'aria-describedby="birth-place-status" autocomplete="off" maxlength="160"' in text
+        'autocomplete="off" maxlength="160"' in text
     )
     assert '<input id="locationId" name="locationId" type="hidden" value="">' in text
     assert '<datalist id="birth-place-options"></datalist>' in text
-    assert 'id="birth-place-status" aria-live="polite"' in text
+    assert 'id="birth-place-status"' not in text
+    assert 'aria-describedby="birth-place-status"' not in text
+    assert "setLocationStatus" not in text
+    assert "正在查找地区" not in text
+    assert "找到 ${items.length} 个候选" not in text
+    assert "未找到地区" not in text
+    assert "已选择：" not in text
     assert "searchLocations" in text
     assert "/api/v1/locations?q=" in text
     assert "mode=domestic&limit=8" in text
@@ -173,7 +179,9 @@ def test_web_page_uses_one_native_fuzzy_location_input():
     assert "query.length < 2" not in text
     assert "输入至少两个字" not in text
     assert "locationIdInput.value = '';" in text
-    assert "请先从候选列表选择完整地区" in text
+    assert "locationInput.setCustomValidity('');" in text
+    assert "locationInput.reportValidity();" in text
+    assert "请从候选列表选择完整地区" in text
     for removed in [
         'id="birthProvince"',
         'id="birthCity"',
