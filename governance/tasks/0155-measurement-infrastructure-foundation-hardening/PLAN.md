@@ -37,7 +37,7 @@
 - integrator / closeout 必须报告 verified、rejected、unresolved、failed、not-covered。
 
 # Next Executable Leaves
-- 无新的 Not Started 叶子；当前活动节点为 TP-04 与 TP-07。
+- 无；全部叶子已完成。
 
 # Dependency Graph
 TP-01 -> TP-02

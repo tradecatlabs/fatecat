@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "overall_status": "In Progress",
+  "overall_status": "Done",
   "nodes": [
     {
       "id": "TP-01",
@@ -99,10 +99,10 @@
         "当前提交证据"
       ],
       "acceptance": [],
-      "status": "In Progress",
-      "evidence": "quick workflow 合同与本地 quick CI 通过；等待最终提交对应的远端 run",
-      "blocker": "最终提交尚未生成",
-      "unblock": "提交并推送后核对 GitHub Actions"
+      "status": "Done",
+      "evidence": "GitHub Quick CI run 29205516109 对应 8e0874b1，通过并上传 evidence artifact",
+      "blocker": "-",
+      "unblock": "-"
     },
     {
       "id": "TP-05",
@@ -174,10 +174,10 @@
         "提交推送与远端证据"
       ],
       "acceptance": [],
-      "status": "In Progress",
-      "evidence": "全量 pytest 638 passed/1 skipped，修复唯一文档失败后定向通过；local-ci quick 446 passed；等待提交、远端 CI 与 closeout",
-      "blocker": "远端 CI/closeout 未完成",
-      "unblock": "完成 Git 交付后收口"
+      "status": "Done",
+      "evidence": "全量 pytest 639 passed/1 skipped；local-ci quick 446 passed；远端 quick run 29205516109 通过",
+      "blocker": "-",
+      "unblock": "-"
     }
   ],
   "document_blocks": {
@@ -193,7 +193,7 @@
     "debug_evidence_contract": "- 调试模式: Required\n- 若任务属于 bugfix / regression / flaky / crash / CI-only failure，必须切到 `Required`\n- `Required` 时必须在当前任务目录创建并维护 `DEBUG.md`\n- `DEBUG.md` 必须覆盖复现、观察、假设、实验、根因、修复、回归证据\n- 调试关注点: wheel repo-root discovery failure\n- 调试关注点: Telegram fixed retry and global readiness coupling\n- 调试关注点: legacy/capability semantic divergence\n- 调试关注点: export recursion and vendor pycache pollution",
     "runtime_workflow_contract": "- workflow artifact 必须存入任务目录，而不是只留在聊天上下文。\n- worker 只能消费当前 packet 的最小上下文、允许工具、禁止动作、证据要求和停止条件。\n- verifier / 自审必须独立挑战关键发现，不能把 worker 自评当作验收。\n- integrator / closeout 必须报告 verified、rejected、unresolved、failed、not-covered。",
     "runtime_verification_gate": "- [ ] 每个 tool/action 结果都有可回指证据或明确未执行原因。\n- [ ] 高风险动作没有由 worker/agent 自我批准；审批状态可追踪。\n- [ ] compaction / resume 后目标、计划、修改文件、审批状态和验证项未丢失。\n- [ ] verifier / 自审已检查关键发现是否有证据支持。\n- [ ] closeout 明确 coverage gaps、failed packets 和 unresolved questions。\n- [ ] TP-01: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-02: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-03: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-04: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-05: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-06: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-07: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据",
-    "runtime_state": "- Active workflow state: 以 `TASK_PACKAGE_SET.json` / `TASK_EXECUTION_WAVE_PACKET.json` 为准。\n- Approval state: 未记录即视为未授权。\n- Resume rule: 继续任务前重新读取当前 packet、Recent Evidence、Blockers、Runtime State。\n- TP-01: status=Done; verifier_context=自审\n- TP-02: status=Done; verifier_context=自审\n- TP-03: status=Done; verifier_context=自审\n- TP-04: status=In Progress; verifier_context=自审\n- TP-05: status=Done; verifier_context=自审\n- TP-06: status=Done; verifier_context=自审\n- TP-07: status=In Progress; verifier_context=自审",
+    "runtime_state": "- Active workflow state: 以 `TASK_PACKAGE_SET.json` / `TASK_EXECUTION_WAVE_PACKET.json` 为准。\n- Approval state: 未记录即视为未授权。\n- Resume rule: 继续任务前重新读取当前 packet、Recent Evidence、Blockers、Runtime State。\n- TP-01: status=Done; verifier_context=自审\n- TP-02: status=Done; verifier_context=自审\n- TP-03: status=Done; verifier_context=自审\n- TP-04: status=Done; verifier_context=自审\n- TP-05: status=Done; verifier_context=自审\n- TP-06: status=Done; verifier_context=自审\n- TP-07: status=Done; verifier_context=自审",
     "task_level_acceptance": "- wheel 在仓库外干净虚拟环境中安装并执行 CLI smoke\n- lite skill 导出不包含运行态导出、无关媒体或禁止分发 reference assets，并满足体积/文件数预算\n- Web/API/Bot 的综合八字生产路径均通过 capability executor\n- Telegram 未就绪不再误判核心 Web/API 不可用，重试有界退避且错误类型可观测\n- quick CI 自动覆盖 pull_request 与 main push，重型发布流程保持明确触发边界\n- vendor 测试后无 pycache 污染，供应链分发策略可机械检查\n- 治理 strict、任务 closeout、quick CI 和任务级 review 通过\n- approved plan 已成功编译为递归任务树\n- 叶子节点数量: 7\n- 当前可立即执行叶子节点: 无",
     "validation_plan": "- 仓库外 wheel install smoke\n- lite export hygiene/smoke/size gate\n- 八字入口语义一致性回归\n- Telegram readiness/retry 单元与集成回归\n- workflow schema/trigger 回归\n- vendor before/after pollution gate\n- bash scripts/local-ci.sh --profile quick\n- governance strict 与任务 closeout 校验\n- TP-01 | Verify: wheel clean-room smoke + export runtime smoke + size/file-count gate | Gate: 独立安装和精简导出全部通过\n- TP-02 | Verify: Web/API/Bot normalized semantic parity tests | Gate: 不存在默认 legacy 生产路径\n- TP-03 | Verify: Telegram lifecycle/readiness/metrics tests | Gate: 核心 API 可用且渠道故障明确可见\n- TP-04 | Verify: workflow regression + action syntax + current release proof | Gate: 最终提交拥有真实远端 quick CI 证据\n- TP-05 | Verify: vendor health before/after tests + distribution policy gate | Gate: reference repo 只读且禁止资产不进入发行物\n- TP-06 | Verify: governance context bundle + strict validation + document drift review | Gate: 治理路由不再 BLOCK 且事实与实现一致\n- TP-07 | Verify: quick CI + performance baseline + task review + closeout + remote CI | Gate: 本地实现无 BLOCK；外部人工/live 门禁真实保留",
     "review_gate": "- 分发闭包不依赖源码仓库路径\n- 核心计算不存在双生产引擎\n- 渠道降级不掩盖故障也不拖垮核心 readiness\n- 发布声明只引用当前 commit 的真实证据",

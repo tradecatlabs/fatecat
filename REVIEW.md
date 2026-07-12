@@ -30,9 +30,9 @@
 | 门禁 | 状态 | 说明 |
 |---|---|---|
 | 本地定向回归 | PASS | 分发、入口一致性、Telegram、workflow、供应链测试已执行 |
-| 本地全量 pytest | PENDING | 修复 CLI lazy-import 回归后必须重新完整执行 |
-| ruff / format / mypy | PENDING | 最终工作树上待执行 |
-| quick CI | PENDING | 最终工作树上待执行；推送后还需远端 run 对应最终提交 |
+| 本地全量 pytest | PASS | `639 passed, 1 skipped in 456.16s` |
+| ruff / format / mypy | PASS | ruff、全仓 format check、fate_core mypy 均通过 |
+| quick CI | PASS | 本地 `446 passed`；GitHub run `29205516109` 对应 `8e0874b1...` 通过 |
 | 内部 lite 运行包 | PASS | 可导出、可做卫生检查和纯分析 smoke |
 | 公开 Skill 分发 | BLOCK | `bazi-1`、`sxwnl` 缺少可确认分发许可证 |
 | HF Space 线上版本 | PENDING | 线上仍需在最终提交部署后复验 `/health`、`/ready`、`/metrics`、`/web` |

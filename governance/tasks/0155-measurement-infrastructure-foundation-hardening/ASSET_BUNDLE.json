@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "task_meta": {
     "objective": "修复当前测算基础设施审查发现的本地可处理阻断项，使核心计算、分发包、交付面、CI、供应链和治理证据形成同一可验证闭环。",
-    "overall_status": "In Progress",
+    "overall_status": "Done",
     "task_dir": "governance/tasks/0155-measurement-infrastructure-foundation-hardening"
   },
   "source_plan": {

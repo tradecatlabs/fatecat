@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "task": {
     "objective": "修复当前测算基础设施审查发现的本地可处理阻断项，使核心计算、分发包、交付面、CI、供应链和治理证据形成同一可验证闭环。",
-    "overall_status": "In Progress",
+    "overall_status": "Done",
     "in_scope": [
       "可独立安装运行的 fatecat core wheel 与精简 skill 导出闭包",
       "综合八字统一使用 capability 生产引擎并治理旧接口",
@@ -164,7 +164,7 @@
         "priority": "P0",
         "type": "CI",
         "parallelizable": false,
-        "status": "In Progress",
+        "status": "Done",
         "depends_on": ["telegram-readiness"],
         "verify": "workflow regression + action syntax + current release proof",
         "gate": "最终提交拥有真实远端 quick CI 证据",
@@ -203,7 +203,7 @@
         "priority": "P0",
         "type": "Verification",
         "parallelizable": false,
-        "status": "In Progress",
+        "status": "Done",
         "depends_on": ["governance-truth"],
         "verify": "quick CI + performance baseline + task review + closeout + remote CI",
         "gate": "本地实现无 BLOCK；外部人工/live 门禁真实保留",

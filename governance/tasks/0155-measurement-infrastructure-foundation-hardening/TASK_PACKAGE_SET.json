@@ -4,7 +4,7 @@
     "task_id": "0155",
     "slug": "measurement-infrastructure-foundation-hardening",
     "phase": "DECOMPOSE_AND_FILL",
-    "overall_status": "In Progress",
+    "overall_status": "Done",
     "source_context_packet": "governance/tasks/0155-measurement-infrastructure-foundation-hardening/APPROVED_PLAN.json#context_packet",
     "asset_bundle_manifest": "governance/tasks/0155-measurement-infrastructure-foundation-hardening/ASSET_BUNDLE.json"
   },
@@ -456,10 +456,10 @@
       "ready": false,
       "parallelizable": false,
       "debug_required": false,
-      "status": "In Progress",
-      "recent_evidence": "quick workflow 合同与本地 quick CI 通过；等待最终提交对应的远端 run",
-      "blocker": "最终提交尚未生成",
-      "unblock_needed": "提交并推送后核对 GitHub Actions",
+      "status": "Done",
+      "recent_evidence": "GitHub Quick CI run 29205516109 对应 8e0874b1，通过并上传 evidence artifact",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "quick gate 自动覆盖 PR/main push，重型容器发布保持受控并可生成当前提交证明。"
       ],
@@ -840,10 +840,10 @@
       "ready": false,
       "parallelizable": false,
       "debug_required": false,
-      "status": "In Progress",
-      "recent_evidence": "全量 pytest 638 passed/1 skipped，修复唯一文档失败后定向通过；local-ci quick 446 passed；等待提交、远端 CI 与 closeout",
-      "blocker": "远端 CI/closeout 未完成",
-      "unblock_needed": "完成 Git 交付后收口",
+      "status": "Done",
+      "recent_evidence": "全量 pytest 639 passed/1 skipped；local-ci quick 446 passed；远端 quick run 29205516109 通过",
+      "blocker": "-",
+      "unblock_needed": "-",
       "in_scope": [
         "建立八字性能预算、执行完整门禁与审查，提交并推送所有已验证本地改动。"
       ],

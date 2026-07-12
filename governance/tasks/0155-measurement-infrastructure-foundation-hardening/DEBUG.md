@@ -71,7 +71,7 @@
 ## Regression Evidence
 
 - 测试：clean-room、parity、readiness、vendor、全量 pytest 和 quick CI。
-- 结果：全量 pytest 首轮 `638 passed, 1 skipped, 1 failed`，唯一失败为 `REVIEW.md` 缺少既有运维手册引用；补回 `references/ops-pack.md` 后定向回归通过。最终 quick CI 待执行。
+- 结果：首轮全量 pytest 为 `638 passed, 1 skipped, 1 failed`，唯一失败为 `REVIEW.md` 缺少既有运维手册引用；修复并定向通过后，最终全量重跑为 `639 passed, 1 skipped`。本地 quick 为 `446 passed`，GitHub run `29205516109` 通过。
 - 备注：外部专家/live 证据不由本地实验替代。
 
 ### Vendor 字节码污染补充实验

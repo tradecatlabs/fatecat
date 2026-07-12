@@ -8,7 +8,7 @@
 - 治理 strict、任务 closeout、quick CI 和任务级 review 通过
 - approved plan 已成功编译为递归任务树
 - 叶子节点数量: 7
-- 当前可立即执行叶子节点: 无；TP-04 与 TP-07 正在执行 Git/CI/closeout。
+- 当前可立即执行叶子节点: 无；全部叶子已完成。
 
 # Validation Plan
 - 仓库外 wheel install smoke
@@ -34,18 +34,18 @@
 - 发布声明只引用当前 commit 的真实证据
 
 # Runtime Verification Gate
-- [ ] 每个 tool/action 结果都有可回指证据或明确未执行原因。
-- [ ] 高风险动作没有由 worker/agent 自我批准；审批状态可追踪。
-- [ ] compaction / resume 后目标、计划、修改文件、审批状态和验证项未丢失。
-- [ ] verifier / 自审已检查关键发现是否有证据支持。
-- [ ] closeout 明确 coverage gaps、failed packets 和 unresolved questions。
-- [ ] TP-01: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据
-- [ ] TP-02: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据
-- [ ] TP-03: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据
-- [ ] TP-04: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据
-- [ ] TP-05: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据
-- [ ] TP-06: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据
-- [ ] TP-07: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据
+- [x] 每个 tool/action 结果都有可回指证据或明确未执行原因。
+- [x] 高风险动作没有由 worker/agent 自我批准；审批状态可追踪。
+- [x] compaction / resume 后目标、计划、修改文件、审批状态和验证项未丢失。
+- [x] verifier / 自审已检查关键发现是否有证据支持。
+- [x] closeout 明确 coverage gaps、failed packets 和 unresolved questions。
+- [x] TP-01: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据
+- [x] TP-02: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据
+- [x] TP-03: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据
+- [x] TP-04: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据
+- [x] TP-05: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据
+- [x] TP-06: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据
+- [x] TP-07: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据
 
 # Ship Readiness
 - 本地所有门禁必须通过后才提交
