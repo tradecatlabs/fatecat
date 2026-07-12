@@ -919,7 +919,7 @@ bash scripts/webhook-outbox-lease-smoke.sh \
 
 ## 安全与隐私
 
-- 公开 Web 示例和用户界面不得展示北京以外的真实地区名称。
+- 默认 Web 示例使用北京/测试用户；公共行政区候选和用户主动提交的地区可以在当前响应中显示，但不得写入日志或默认持久化。
 - 记录接口需要 `FATE_API_TOKEN`、`FATE_API_ADMIN_TOKEN` 或 `FATE_API_USER_TOKENS`；`FATE_API_USER_TOKENS` 支持 `用户ID:占位令牌` 和 `用户ID:占位令牌:record.read|record.list` 两类值形态；禁用时返回 403。
 - 文档、响应样例和日志不得输出真实 token、secret、DSN、私钥或服务账号内容。
 - 外部 API 域名、真实 token、Bot webhook、远程服务器和生产数据库均属于：外部连通验证待执行。

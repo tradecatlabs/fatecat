@@ -95,6 +95,17 @@ from fate_core.observability import (  # noqa: E402
 )
 from fate_core.usecases import PureAnalysisInput, calculate_pure_analysis  # noqa: E402
 from liuyao_factors import generate_factor  # noqa: E402
+from location import (  # noqa: E402
+    NormalizedBirthTime,
+    ResolvedLocation,
+    catalog_status,
+    normalize_birth_time,
+    resolve_coordinates,
+    search_records,
+)
+from location import (  # noqa: E402
+    resolve as resolve_location,
+)
 from models import (  # noqa: E402
     BaziData,
     BaziRequest,
@@ -656,6 +667,10 @@ def _web_form_from_payload(payload: dict[str, Any]) -> WebReportForm:
         birth_date=str(payload.get("birthDate") or ""),
         birth_time=str(payload.get("birthTime") or ""),
         birth_place=str(payload.get("birthPlace") or ""),
+        location_mode=str(payload.get("locationMode") or "domestic"),
+        location_id=str(payload.get("locationId") or ""),
+        time_basis=str(payload.get("timeBasis") or ""),
+        fold_choice=str(payload.get("foldChoice") or ""),
         gender=str(payload.get("gender") or ""),
         name=str(payload.get("name") or ""),
         report_system=str(payload.get("reportSystem") or "bazi"),
@@ -1405,6 +1420,7 @@ def ready():
     checks = {
         "database": "disabled" if not _records_enabled() else "ok",
         "capabilities": "ok",
+        "locationCatalog": "checking",
         "telegramWebhook": "ok"
         if telegram_status["ready"]
         else ("disabled" if not telegram_status["enabled"] else "not_ready"),
@@ -1413,6 +1429,8 @@ def ready():
         if _records_enabled():
             db.ensure_db()
         list_capabilities()
+        location_status = catalog_status()
+        checks["locationCatalog"] = f"ok:{location_status['recordCount']}"
     except Exception as exc:
         _log_business_exception("readiness 检查失败", error_type=type(exc).__name__)
         return JSONResponse(
@@ -1569,6 +1587,10 @@ def web_report(
     birthDate: str | None = None,
     birthTime: str | None = None,
     birthPlace: str | None = None,
+    locationMode: str | None = None,
+    locationId: str | None = None,
+    timeBasis: str | None = None,
+    foldChoice: str | None = None,
     gender: str | None = None,
     name: str | None = None,
     reportSystem: str | None = None,
@@ -1593,12 +1615,43 @@ def web_report(
         birth_date=birthDate,
         birth_time=birthTime,
         birth_place=birthPlace,
+        location_mode=locationMode,
+        location_id=locationId,
+        time_basis=timeBasis,
+        fold_choice=foldChoice,
         gender=gender,
         name=name,
         report_system=reportSystem,
         submitted=submitted,
         job=job,
     )
+
+
+@app.get("/api/v1/locations")
+def search_locations(
+    q: str = Query(..., min_length=1, max_length=160),
+    mode: str | None = Query(default=None, pattern="^(domestic|overseas)$"),
+    limit: int = Query(default=20, ge=1, le=100),
+):
+    """搜索稳定出生地点 ID；返回 WGS84 坐标、IANA 时区与来源精度。"""
+    results = [item.as_dict() for item in search_records(q, mode=mode, limit=limit)]
+    return attach_branding(
+        {
+            "success": True,
+            "data": {"query": q, "mode": mode, "count": len(results), "locations": results},
+            "meta": {"catalog": catalog_status()},
+        }
+    )
+
+
+@app.get("/api/v1/locations/{location_id:path}")
+def get_location(location_id: str):
+    """按稳定地点 ID 获取出生地点事实。"""
+    try:
+        item = resolve_location(location_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return attach_branding({"success": True, "data": item.as_dict(), "meta": {"catalog": catalog_status()}})
 
 
 @app.post("/api/v1/report/jobs/web")
@@ -1992,7 +2045,7 @@ def service_metadata():
                     "reportJobStore": report_job_manager.backend_name,
                 },
                 "privacy": {
-                    "birthPlaceDisplayPolicy": "公开 Web 示例和用户界面不得展示北京以外的真实地区名称。",
+                    "birthPlaceDisplayPolicy": "默认示例使用北京/测试用户；公共行政区候选和用户主动提交的地区可在当前响应显示，不进入日志或默认持久化。",
                     "recordsEnabled": _records_enabled(),
                     "recordAccess": "记录接口需要 FATE_API_TOKEN、FATE_API_ADMIN_TOKEN 或 FATE_API_USER_TOKENS；用户 token 支持 user_id:token 与 user_id:token:record.read|record.list scoped 格式。",
                     "sensitiveValuePolicy": "响应、文档和日志不得输出真实 token、secret、DSN 或私钥内容。",
@@ -2026,27 +2079,98 @@ def _normalized_bazi_options(req: BaziRequest, *, report_system: str) -> dict[st
         "midnightMode": "early",
         "useTrueSolarTime": req.options.useTrueSolarTime,
         "reportSystem": report_system,
+        "timeBasis": req.options.timeBasis,
+        "foldChoice": req.options.foldChoice,
     }
 
 
-def _parse_bazi_request(req: BaziRequest) -> tuple[datetime, float, float]:
+@dataclass(frozen=True, slots=True)
+class ParsedBaziRequest:
+    wall_time: datetime
+    engine_time: datetime
+    location: ResolvedLocation
+    normalized_time: NormalizedBirthTime
+
+
+def _request_location(req: BaziRequest) -> ResolvedLocation:
+    if not req.birthPlace:
+        raise HTTPException(status_code=400, detail="birthPlace 必填（地点用于时区、真太阳时与经纬度计算）")
+    try:
+        if req.birthPlace.locationId:
+            location = resolve_location(req.birthPlace.locationId)
+            if location.timezone != req.birthPlace.timezone:
+                raise ValueError("birthPlace.timezone 与 locationId 对应的 IANA 时区不一致")
+            if (
+                abs(location.longitude - req.birthPlace.longitude) > 0.000001
+                or abs(location.latitude - req.birthPlace.latitude) > 0.000001
+            ):
+                raise ValueError("birthPlace 经纬度与 locationId 对应的 WGS84 坐标不一致")
+            if (
+                req.birthPlace.coordinatePrecision
+                and req.birthPlace.coordinatePrecision != location.coordinate_precision
+            ):
+                raise ValueError("birthPlace.coordinatePrecision 与 locationId 对应的坐标精度不一致")
+            return location
+        location = resolve_coordinates(req.birthPlace.longitude, req.birthPlace.latitude)
+        if location.timezone != req.birthPlace.timezone:
+            raise ValueError(f"birthPlace.timezone 与 WGS84 坐标解析结果不一致；坐标对应 {location.timezone}")
+        return ResolvedLocation(
+            location_id=location.location_id,
+            mode=location.mode,
+            name=req.birthPlace.name,
+            display_name=req.birthPlace.name,
+            country_code=location.country_code,
+            admin1_code=location.admin1_code,
+            admin2_code=location.admin2_code,
+            admin3_code=location.admin3_code,
+            longitude=location.longitude,
+            latitude=location.latitude,
+            coordinate_system=req.birthPlace.coordinateSystem,
+            timezone=location.timezone,
+            coordinate_precision=req.birthPlace.coordinatePrecision or location.coordinate_precision,
+            source=location.source,
+            source_version=location.source_version,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+def _parse_bazi_request(req: BaziRequest) -> ParsedBaziRequest:
     _validate_supported_bazi_options(req)
     birth_time = req.birthTime.strip()
     if len(birth_time) == 5:
         birth_time = f"{birth_time}:00"
     try:
-        birth_dt = datetime.strptime(f"{req.birthDate.strip()} {birth_time}", "%Y-%m-%d %H:%M:%S")
+        wall_time = datetime.strptime(f"{req.birthDate.strip()} {birth_time}", "%Y-%m-%d %H:%M:%S")
     except ValueError as exc:
         raise HTTPException(
             status_code=422,
             detail="出生日期或出生时间格式无效；日期使用 YYYY-MM-DD，时间使用 HH:MM 或 HH:MM:SS。",
         ) from exc
-    if not req.birthPlace:
-        raise HTTPException(status_code=400, detail="birthPlace 必填（经纬度用于真太阳时/风水/占星）")
-    return birth_dt, req.birthPlace.longitude, req.birthPlace.latitude
+    location = _request_location(req)
+    try:
+        normalized_time = normalize_birth_time(
+            wall_time,
+            location,
+            time_basis=req.options.timeBasis,
+            fold_choice=req.options.foldChoice,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return ParsedBaziRequest(
+        wall_time=wall_time,
+        engine_time=normalized_time.engine_beijing_time,
+        location=location,
+        normalized_time=normalized_time,
+    )
 
 
-def _build_bazi_data(result: dict, *, birth_dt: datetime, true_solar_time: datetime | None, timezone: str) -> BaziData:
+def _build_bazi_data(
+    result: dict,
+    *,
+    parsed: ParsedBaziRequest,
+    true_solar_time: datetime | None,
+) -> BaziData:
     major_fortune = dict(result.get("majorFortune", {}))
     major_fortune["pillars"] = [
         {
@@ -2057,11 +2181,13 @@ def _build_bazi_data(result: dict, *, birth_dt: datetime, true_solar_time: datet
         if isinstance(pillar, dict)
     ]
 
-    tz = ZoneInfo(timezone)
+    input_tz = ZoneInfo(parsed.normalized_time.input_timezone)
+    input_time = parsed.wall_time.replace(tzinfo=input_tz, fold=parsed.normalized_time.fold)
+    engine_tz = ZoneInfo("Asia/Shanghai")
     return BaziData(
         timeInfo=TimeInfo(
-            inputTime=birth_dt.replace(tzinfo=tz).isoformat(),
-            trueSolarTime=true_solar_time.replace(tzinfo=tz).isoformat() if true_solar_time else None,
+            inputTime=input_time.isoformat(),
+            trueSolarTime=true_solar_time.replace(tzinfo=engine_tz).isoformat() if true_solar_time else None,
             lunarDate=f"{result['fourPillars']['year']['fullName']}年",
             solarTerm="",
         ),
@@ -2076,21 +2202,21 @@ def _build_bazi_data(result: dict, *, birth_dt: datetime, true_solar_time: datet
     )
 
 
-def _calculate_bazi_raw(req: BaziRequest, *, report_system: str = "bazi") -> tuple[dict, Any, datetime]:
-    birth_dt, longitude, latitude = _parse_bazi_request(req)
+def _calculate_bazi_raw(req: BaziRequest, *, report_system: str = "bazi") -> tuple[dict, Any, ParsedBaziRequest]:
+    parsed = _parse_bazi_request(req)
     calculation = calculate_delivery_result(
-        birth_dt=birth_dt,
+        birth_dt=parsed.engine_time,
         gender=req.gender,
-        longitude=longitude,
-        latitude=latitude,
-        birth_place=req.birthPlace.name,
+        longitude=parsed.location.longitude,
+        latitude=parsed.location.latitude,
+        birth_place=parsed.location.display_name,
         name=req.name,
         report_system=report_system,
         use_true_solar_time=req.options.useTrueSolarTime,
     )
     if calculation.calculator is None:
         raise RuntimeError("_calculate_bazi_raw 只用于 bazi 体系")
-    return calculation.data, calculation.calculator, birth_dt
+    return calculation.data, calculation.calculator, parsed
 
 
 @app.post("/api/v1/bazi/simple")
@@ -2113,14 +2239,14 @@ def calculate_bazi_simple(req: BaziRequest):
 def calculate_bazi_pure_analysis(req: BaziRequest):
     """纯命理分析 - 仅返回配置约束下的核心字段。"""
     try:
-        birth_dt, longitude, latitude = _parse_bazi_request(req)
+        parsed = _parse_bazi_request(req)
         payload = PureAnalysisInput(
-            birth_dt=birth_dt,
+            birth_dt=parsed.engine_time,
             gender=req.gender,
-            longitude=longitude,
-            latitude=latitude,
+            longitude=parsed.location.longitude,
+            latitude=parsed.location.latitude,
             name=req.name,
-            birth_place=req.birthPlace.name,
+            birth_place=parsed.location.display_name,
             use_true_solar_time=req.options.useTrueSolarTime,
         )
         result = _run_with_calculation_slot(lambda: calculate_pure_analysis(payload))
@@ -2155,16 +2281,13 @@ def calculate_bazi(
             principal = _require_record_access(x_fatecat_api_key, authorization)
             _require_scope(principal, RECORD_SCOPE_WRITE)
             _require_owner_or_admin(principal, user_id)
-        result, calculator, birth_dt = _run_with_calculation_slot(
-            lambda: _calculate_bazi_raw(req, report_system="bazi")
-        )
+        result, calculator, parsed = _run_with_calculation_slot(lambda: _calculate_bazi_raw(req, report_system="bazi"))
 
-        ts_dt = calculator.true_solar_time if req.options.useTrueSolarTime else birth_dt
+        ts_dt = calculator.true_solar_time if req.options.useTrueSolarTime else parsed.engine_time
         data = _build_bazi_data(
             result,
-            birth_dt=birth_dt,
+            parsed=parsed,
             true_solar_time=ts_dt if req.options.useTrueSolarTime else None,
-            timezone=req.birthPlace.timezone,
         )
 
         # 保存到数据库
@@ -2178,9 +2301,9 @@ def calculate_bazi(
                 calendar_type=req.options.calendarType,
                 birth_date=req.birthDate,
                 birth_time=req.birthTime,
-                birth_place=req.birthPlace.name,
-                longitude=req.birthPlace.longitude,
-                latitude=req.birthPlace.latitude,
+                birth_place=parsed.location.display_name,
+                longitude=parsed.location.longitude,
+                latitude=parsed.location.latitude,
                 dst=0,
                 true_solar=1 if req.options.useTrueSolarTime else 0,
                 early_zi=1 if req.options.midnightMode == "early" else 0,
@@ -2217,16 +2340,16 @@ def calculate_bazi(
 
 
 def _build_markdown_report_payload(req: BaziRequest) -> dict[str, Any]:
-    birth_dt, longitude, latitude = _parse_bazi_request(req)
+    parsed = _parse_bazi_request(req)
     attributes = {"reportSystem": normalize_report_system(req.options.reportSystem), "reportFormat": "markdown"}
     with trace_span("report.calculate", attributes=attributes):
         calculation = _run_with_calculation_slot(
             lambda: calculate_delivery_result(
-                birth_dt=birth_dt,
+                birth_dt=parsed.engine_time,
                 gender=req.gender,
-                longitude=longitude,
-                latitude=latitude,
-                birth_place=req.birthPlace.name,
+                longitude=parsed.location.longitude,
+                latitude=parsed.location.latitude,
+                birth_place=parsed.location.display_name,
                 name=req.name,
                 report_system=req.options.reportSystem,
                 use_true_solar_time=req.options.useTrueSolarTime,
@@ -2251,6 +2374,10 @@ def _web_report_task_payload(form: WebReportForm) -> dict[str, Any]:
         "birthDate": form.birth_date,
         "birthTime": form.birth_time,
         "birthPlace": form.birth_place,
+        "locationMode": form.location_mode,
+        "locationId": form.location_id,
+        "timeBasis": form.time_basis,
+        "foldChoice": form.fold_choice,
         "gender": form.gender,
         "name": form.name,
         "reportSystem": form.report_system,

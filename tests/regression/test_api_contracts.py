@@ -57,6 +57,7 @@ def _payload() -> dict:
             "daylightSaving": "auto",
             "midnightMode": "early",
             "calendarType": "solar",
+            "timeBasis": "local_civil",
         },
     }
 
@@ -488,6 +489,8 @@ def test_calculate_record_keeps_raw_and_normalized_options(monkeypatch):
         "midnightMode": "early",
         "useTrueSolarTime": False,
         "reportSystem": "bazi",
+        "timeBasis": "local_civil",
+        "foldChoice": None,
     }
 
 
@@ -513,6 +516,55 @@ def test_calculate_api_rejects_unsupported_business_options():
 
     assert midnight_response.status_code == 422
     assert "midnightMode=late" in midnight_response.text
+
+
+def test_location_api_exposes_stable_ids_timezone_precision_and_catalog_status():
+    client = TestClient(app)
+
+    search_response = client.get("/api/v1/locations", params={"q": "纽约", "mode": "overseas"})
+    assert search_response.status_code == 200
+    body = search_response.json()
+    assert body["data"]["locations"][0]["locationId"] == "geonames:5128581"
+    assert body["data"]["locations"][0]["timezone"] == "America/New_York"
+    assert body["data"]["locations"][0]["coordinatePrecision"] == "locality_centroid"
+    assert body["meta"]["catalog"]["recordCount"] > 160000
+
+    detail_response = client.get("/api/v1/locations/geonames:5128581")
+    assert detail_response.status_code == 200
+    assert detail_response.json()["data"]["coordinateSystem"] == "WGS84"
+
+    fuzzy_response = client.get("/api/v1/locations", params={"q": "西安长安", "mode": "domestic", "limit": 8})
+    assert fuzzy_response.status_code == 200
+    assert fuzzy_response.json()["data"]["locations"][0]["locationId"] == "cn:610116"
+
+
+def test_bazi_api_normalizes_overseas_local_civil_time_and_rejects_timezone_mismatch():
+    payload = _payload()
+    payload["birthPlace"] = {
+        "name": "纽约",
+        "longitude": -74.00597,
+        "latitude": 40.71427,
+        "timezone": "America/New_York",
+        "locationId": "geonames:5128581",
+        "coordinateSystem": "WGS84",
+        "coordinatePrecision": "locality_centroid",
+    }
+    payload["options"]["timeBasis"] = "local_civil"
+
+    response = TestClient(app).post("/api/v1/bazi/calculate", json=payload)
+    assert response.status_code == 200
+    assert response.json()["data"]["timeInfo"]["inputTime"] == "1990-01-01T08:00:00-05:00"
+
+    payload["birthPlace"]["timezone"] = "Asia/Shanghai"
+    mismatch = TestClient(app).post("/api/v1/bazi/calculate", json=payload)
+    assert mismatch.status_code == 422
+    assert "timezone" in mismatch.text
+
+    payload["birthPlace"]["timezone"] = "America/New_York"
+    payload["birthPlace"]["longitude"] = -73.0
+    coordinate_mismatch = TestClient(app).post("/api/v1/bazi/calculate", json=payload)
+    assert coordinate_mismatch.status_code == 422
+    assert "WGS84 坐标不一致" in coordinate_mismatch.text
 
 
 def test_simple_api_echoes_false_true_solar_option_consistently():
@@ -1982,7 +2034,8 @@ def test_markdown_and_web_report_jobs_return_gates_and_do_not_write_records(monk
         json={
             "birthDate": "1990-01-01",
             "birthTime": "08:00",
-            "birthPlace": "北京",
+            "birthPlace": "北京市朝阳区",
+            "locationId": "cn:110105",
             "gender": "male",
             "name": "测试样本",
             "reportSystem": "bazi",
@@ -2008,7 +2061,8 @@ def test_web_report_job_api_renders_completed_job_in_web_page():
         json={
             "birthDate": "1990-01-01",
             "birthTime": "08:00",
-            "birthPlace": "北京",
+            "birthPlace": "北京市朝阳区",
+            "locationId": "cn:110105",
             "gender": "male",
             "reportSystem": "bazi",
             "name": "异步样本",
@@ -2259,7 +2313,10 @@ def test_measurement_infrastructure_metadata_and_reports_are_available():
     assert metadata["quality"]["health"] == "/health"
     assert metadata["quality"]["metrics"] == "/metrics"
     assert metadata["quality"]["reportJobStore"] == "memory"
-    assert metadata["privacy"]["birthPlaceDisplayPolicy"] == "公开 Web 示例和用户界面不得展示北京以外的真实地区名称。"
+    assert (
+        metadata["privacy"]["birthPlaceDisplayPolicy"]
+        == "默认示例使用北京/测试用户；公共行政区候选和用户主动提交的地区可在当前响应显示，不进入日志或默认持久化。"
+    )
     assert metadata["productionGate"]["externalConnectivity"] == "外部连通验证待执行"
 
     assert reports_response.status_code == 200
@@ -2582,7 +2639,8 @@ def test_security_controls_are_discoverable_and_linked():
 
     privacy = controls["control.privacy_fixture_policy"]
     assert privacy["controlType"] == "privacy"
-    assert "北京以外" in privacy["privacyBoundary"]
+    assert "默认示例只使用北京/测试用户" in privacy["privacyBoundary"]
+    assert "公共行政区候选" in privacy["privacyBoundary"]
     assert privacy["localVerification"] == ["bash scripts/check-privacy-fixtures.sh"]
 
     secret_scan = controls["control.secret_scan_gate"]

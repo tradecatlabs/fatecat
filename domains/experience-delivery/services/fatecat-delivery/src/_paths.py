@@ -55,7 +55,11 @@ BAZI_SCHEMA_DIR = ASSET_DATABASE_DIR / "bazi"
 BAZI_SCHEMA_PATH = BAZI_SCHEMA_DIR / "schema_v2.sql"
 BAZI_DB_DIR = RUNTIME_DATABASE_DIR / "bazi"
 BAZI_DB_PATH = BAZI_DB_DIR / "bazi.db"
-CHINA_COORDS_CSV = DATA_DIR / "china_coordinates.csv"
+LOCATION_DATA_DIR = DATA_DIR / "locations"
+LOCATION_CATALOG_PATH = LOCATION_DATA_DIR / "location_catalog.ndjson.gz"
+LOCATION_CATALOG_MANIFEST = LOCATION_DATA_DIR / "manifest.json"
+LOCATION_INDEX_DIR = RUNTIME_DATABASE_DIR / "locations"
+LOCATION_INDEX_PATH = LOCATION_INDEX_DIR / "location_catalog.sqlite3"
 
 # ==================== 外部库路径 ====================
 LUNAR_PYTHON_DIR = EXTERNAL_LIBS_DIR / "lunar-python-master"
@@ -80,7 +84,7 @@ DANTALION_BRIDGE_JS = SCRIPTS_DIR / "dantalion_bridge.js"
 
 def ensure_dirs():
     """确保必要目录存在。"""
-    for path in [LOGS_DIR, TXT_DIR, QUEUE_DIR, BAZI_DB_DIR]:
+    for path in [LOGS_DIR, TXT_DIR, QUEUE_DIR, BAZI_DB_DIR, LOCATION_INDEX_DIR]:
         path.mkdir(parents=True, exist_ok=True)
 
 
@@ -102,7 +106,8 @@ def check_dependencies() -> dict[str, Any]:
         (LUNAR_PYTHON_DIR, "lunar-python 库"),
         (BAZI_1_DIR, "bazi-1 库"),
         (SXWNL_DIR, "sxwnl 库"),
-        (CHINA_COORDS_CSV, "城市坐标数据"),
+        (LOCATION_CATALOG_PATH, "出生地点目录数据产品"),
+        (LOCATION_CATALOG_MANIFEST, "出生地点目录 manifest"),
     ]
     optional = [
         (FORTEL_ZIWEI_DIR, "fortel-ziweidoushu 库（紫微斗数）"),

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "id": "administrative-divisions-of-china",
+      "fileName": "pcas-code.json",
+      "url": "https://raw.githubusercontent.com/modood/Administrative-divisions-of-China/c49d495b40ac73eb1a66f6eeae5f8fd10696f035/dist/pcas-code.json",
+      "version": "c49d495b40ac73eb1a66f6eeae5f8fd10696f035",
+      "sha256": "eaec154ce55f9683fbae09a21cea7d8523e4074f323602cf92b6840611139c5b",
+      "license": "WTFPL",
+      "usage": "中国大陆现行省市区代码与层级；排除已撤销代码"
+    },
+    {
+      "id": "geonames-cities1000",
+      "fileName": "cities1000.zip",
+      "url": "https://download.geonames.org/export/dump/cities1000.zip",
+      "version": "snapshot-2026-07-12",
+      "sha256": "e00eaa9be038e2785a1137b3b8db77371d31c60cbeeb33686883874fd5a7fafb",
+      "license": "CC-BY-4.0",
+      "usage": "全球城市、经纬度、人口和 IANA 时区"
+    },
+    {
+      "id": "geonames-cn",
+      "fileName": "CN.zip",
+      "url": "https://download.geonames.org/export/dump/CN.zip",
+      "version": "snapshot-2026-07-12",
+      "sha256": "c41c4788fe2d95cce62ec3ee2104b31d1d7072996a181ff10bd02ee44cb60933",
+      "license": "CC-BY-4.0",
+      "usage": "中国行政区 WGS84 中心点"
+    }
+  ]
+}

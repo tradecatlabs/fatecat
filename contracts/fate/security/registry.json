@@ -539,7 +539,7 @@
       "envVars": [],
       "implementationRefs": ["scripts/check-privacy-fixtures.sh"],
       "localVerification": ["bash scripts/check-privacy-fixtures.sh"],
-      "privacyBoundary": "公开 Web 示例和用户界面不得展示北京以外的真实地区名称或真实感个人姓名。",
+      "privacyBoundary": "默认示例只使用北京/测试用户且不得使用真实感个人姓名；公共行政区候选和用户主动提交的地区可在当前响应显示，不得写入日志或默认持久化。",
       "externalConnectivity": "not_required",
       "links": {
         "self": "/security/control.privacy_fixture_policy",
@@ -548,8 +548,8 @@
       },
       "metadata": {
         "owner": "scripts/check-privacy-fixtures.sh",
-        "threatModel": "示例数据泄露真实用户或真实感地点",
-        "failureMode": "一线代码、文档或测试出现非白名单姓名/地区时门禁失败",
+        "threatModel": "示例数据泄露真实用户、真实感姓名或把用户提交地区误作固定示例",
+        "failureMode": "一线代码、文档或测试出现非白名单姓名/真实用户地区示例时门禁失败",
         "releaseImpact": "quick CI 阻断",
         "risk": "第三方 vendor 历史示例只做隔离登记，不作为生产入口使用。"
       }

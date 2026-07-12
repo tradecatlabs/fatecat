@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": "fatecat.tradecatlabs/v1",
+  "resourceType": "LocationProtocol",
+  "id": "fatecat.location.v1",
+  "description": "出生地点事实与出生钟表时间规范化协议。",
+  "stableId": {
+    "domestic": "cn:<current-administrative-code>",
+    "overseas": "geonames:<geoname-id>",
+    "coordinates": "coordinates:<longitude>,<latitude>"
+  },
+  "modes": ["domestic", "overseas", "coordinates"],
+  "coordinateSystem": "WGS84",
+  "timeBasis": ["local_civil", "beijing_time", "utc"],
+  "foldChoice": ["earlier", "later"],
+  "rules": {
+    "textLookup": "文本地点只允许唯一精确命中；模糊或重名必须返回候选并由调用方提交稳定地点 ID。",
+    "timezone": "地点使用 IANA 时区；历史 UTC offset 和 DST 由当前锁定 tzdata 解释。",
+    "dstGap": "当地民用时间落入 DST 跳跃缺口时拒绝计算。",
+    "dstFold": "当地民用时间在 DST 回拨时重复出现时要求 earlier/later。",
+    "coordinatePrecision": "所有地点响应必须返回 coordinatePrecision；parent_centroid 不得描述为精确出生坐标。",
+    "noGuessing": "不得默认猜测地区、时间口径、重名候选或 DST fold。"
+  },
+  "endpoints": {
+    "search": "GET /api/v1/locations?q={query}&mode={domestic|overseas}",
+    "detail": "GET /api/v1/locations/{location_id}",
+    "web": "GET /web"
+  },
+  "schemas": {
+    "location": "contracts/fate/locations/schemas/location.schema.json",
+    "capabilityInput": "contracts/fate/capabilities/schemas/input.schema.json"
+  },
+  "dataProduct": {
+    "catalog": "domains/fate-analysis/data-products/locations/location_catalog.ndjson.gz",
+    "manifest": "domains/fate-analysis/data-products/locations/manifest.json",
+    "sourceLock": "domains/fate-analysis/data-products/locations/sources.lock.json",
+    "supplyChainAsset": "asset.locations.global"
+  },
+  "runtime": {
+    "index": "infra/runtime/local-state/database/locations/location_catalog.sqlite3",
+    "policy": "SQLite 索引由只读 canonical 目录确定性构建，可删除重建，不是数据真相源。"
+  },
+  "verification": [
+    ".venv/bin/python -m pytest -q tests/regression/test_location.py tests/regression/test_location_catalog.py tests/regression/test_web_html.py",
+    "bash scripts/data-supply-chain-gate.sh"
+  ]
+}

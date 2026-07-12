@@ -14,6 +14,10 @@ class WebReportForm:
     birth_date: str = ""
     birth_time: str = ""
     birth_place: str = ""
+    location_mode: str = "domestic"
+    location_id: str = ""
+    time_basis: str = "beijing_time"
+    fold_choice: str = ""
     gender: str = ""
     name: str = ""
     report_system: str = "bazi"
@@ -26,6 +30,10 @@ class WebReportForm:
         birth_date: str | None = None,
         birth_time: str | None = None,
         birth_place: str | None = None,
+        location_mode: str | None = None,
+        location_id: str | None = None,
+        time_basis: str | None = None,
+        fold_choice: str | None = None,
         gender: str | None = None,
         name: str | None = None,
         report_system: str | None = None,
@@ -35,6 +43,10 @@ class WebReportForm:
             birth_date=(birth_date or "").strip(),
             birth_time=(birth_time or "").strip(),
             birth_place=(birth_place or "").strip(),
+            location_mode=(location_mode or "domestic").strip() or "domestic",
+            location_id=(location_id or "").strip(),
+            time_basis=(time_basis or "beijing_time").strip() or "beijing_time",
+            fold_choice=(fold_choice or "").strip(),
             gender=(gender or "").strip(),
             name=(name or "").strip(),
             report_system=(report_system or "bazi").strip() or "bazi",
@@ -42,7 +54,16 @@ class WebReportForm:
         )
 
     def has_input(self) -> bool:
-        return any([self.birth_date, self.birth_time, self.birth_place, self.gender, self.name])
+        return any(
+            [
+                self.birth_date,
+                self.birth_time,
+                self.birth_place,
+                self.location_id,
+                self.gender,
+                self.name,
+            ]
+        )
 
 
 @dataclass
@@ -52,6 +73,11 @@ class WebReportResult:
     snapshot_gate: dict[str, Any]
     resolved_longitude: float
     resolved_latitude: float
+    resolved_location_id: str
+    resolved_location_name: str
+    resolved_timezone: str
+    coordinate_precision: str
+    time_basis: str
     normalized_time: str
     input_payload: dict[str, Any]
     report_system: str

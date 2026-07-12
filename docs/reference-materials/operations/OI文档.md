@@ -22,7 +22,7 @@ FateCat 八字排盘系统 API / Bot 接口规范，基于当前 skill 化后的
 ```
 文本输入: 日期 时间（公历） 地点 姓名
 按钮选择: 性别 (乾造/坤造)
-地点必须命中 china_coordinates.csv，否则退回主菜单
+地点必须唯一命中 canonical 地点目录或提交稳定地点 ID；重名、模糊或时区歧义必须要求用户确认
 ```
 
 ### API 输入格式
@@ -263,7 +263,7 @@ FateCat 八字排盘系统 API / Bot 接口规范，基于当前 skill 化后的
 
 ### 核心依赖
 - `lunar-python`: 历法计算
-- `china_coordinates.csv`: 3199条经纬度数据
+- `locations/location_catalog.ndjson.gz`: 全球地点、稳定 ID、WGS84 坐标与 IANA 时区 canonical 数据产品
 - 真太阳时: 经度时差修正
 
 ### 输入解析支持
@@ -276,9 +276,10 @@ FateCat 八字排盘系统 API / Bot 接口规范，基于当前 skill 化后的
 ```
 
 ### 地点支持
-- 省市区县级精确匹配
-- 模糊搜索: "北京"、"北京市"
-- 自动经纬度获取
+- 国内行政区与海外城市候选检索
+- 稳定地点 ID 消歧：`cn:<code>` / `geonames:<id>`
+- WGS84 经纬度、IANA 时区和坐标精度随结果返回
+- 模糊或重名地点只返回候选，不静默选择
 
 ---
 

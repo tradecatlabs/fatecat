@@ -125,7 +125,8 @@ enterprise_runtime_ready() {
     && [[ -f "${root}/infra/environments/local/branding.json" ]] \
     && [[ -f "${root}/contracts/fate/capabilities/registry.json" ]] \
     && [[ -f "${root}/contracts/fate/profiles/pure_analysis.json" ]] \
-    && [[ -f "${root}/domains/fate-analysis/data-products/china_coordinates.csv" ]] \
+    && [[ -f "${root}/domains/fate-analysis/data-products/locations/location_catalog.ndjson.gz" ]] \
+    && [[ -f "${root}/domains/fate-analysis/data-products/locations/manifest.json" ]] \
     && [[ -f "${root}/infra/databases/bazi/schema_v2.sql" ]] \
     && [[ -d "${root}/tools/reference-repos/github/lunar-python-master" ]]
 }

@@ -1,0 +1,99 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-12T10:39:40+08:00",
+  "task": {
+    "task_id": "0154",
+    "slug": "location-timezone-infrastructure",
+    "task_dir": "governance/tasks/0154-location-timezone-infrastructure",
+    "detected_phase": "closeout",
+    "overall_status": "Done"
+  },
+  "source_refs": {
+    "task_context_packet": null,
+    "task_package_set": null,
+    "git_delivery_evidence": null,
+    "audit_case_sampling_decision": "governance/tasks/0154-location-timezone-infrastructure/AUDIT_CASE_SAMPLING.md"
+  },
+  "closeout_gate": {
+    "ready": true,
+    "failures": []
+  },
+  "summary": {
+    "leaf_total": 4,
+    "leaf_done": 4,
+    "todo_total": 4,
+    "todo_checked": 4,
+    "blocker_count": 0
+  },
+  "leaves": [
+    {
+      "id": "TP-01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "data supply chain gate `172 checks passed`。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "catalog/location 全量质量与 DST 边界回归通过。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "单输入框模糊候选与地点/API 联合定向回归 `118 passed`；移动端 Chrome 搜索、失效与提交实测通过。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-04",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "quick CI `443 passed`；Ruff、format、mypy、结构门禁和 diff check 通过。",
+      "blocker": "-",
+      "unblock_needed": "-"
+    }
+  ],
+  "git_delivery": null,
+  "audit_case_sampling": {
+    "ok": true,
+    "file": "governance/tasks/0154-location-timezone-infrastructure/AUDIT_CASE_SAMPLING.md",
+    "summary": {
+      "decision": "no-case",
+      "source": "governance/tasks/0154-location-timezone-infrastructure",
+      "case_id": "-",
+      "case_path": "-",
+      "root_cause_class": "location-data-semantics-and-backend-capability-ui-leakage",
+      "has_no_case_reason": true,
+      "has_trigger_signals": true,
+      "has_evidence": true
+    },
+    "issues": [],
+    "required": true,
+    "loaded": true
+  },
+  "recommended_asset_handoff": {
+    "source_refs": [
+      "governance/tasks/0154-location-timezone-infrastructure/AUDIT_CASE_SAMPLING.md"
+    ],
+    "artifacts": [
+      "audit-case-sampling-decision",
+      "task-closeout-packet.json"
+    ]
+  },
+  "upstream_packets": {
+    "task_context_packet_loaded": false,
+    "task_package_set_loaded": false,
+    "git_delivery_evidence_loaded": false,
+    "audit_case_sampling_loaded": true
+  }
+}

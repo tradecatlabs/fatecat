@@ -17,7 +17,7 @@ code_path: domains/experience-delivery/services/fatecat-delivery/src/web_ui.py
 ## 模块职责
 
 - 服务端直出 `GET /web` 的 HTML 页面。
-- 暴露原生 HTML 表单，用 GET 参数生成命理排盘 Markdown 报告。
+- 暴露原生 HTML 表单，用 GET 参数生成命理排盘 Markdown 报告；出生地区只显示一个原生 `input+datalist`，通过现有地点 API 模糊搜索完整路径候选并绑定稳定地点 ID，无 JavaScript 时由服务端解析唯一完整地区名称。
 - 展示字段契约、当前输入、工作台 psql ASCII 表格、Markdown 输出、机器可读输入和页面元信息。
 - 展示 TradeCat Labs 项目归属和真实外部链接。
 - 使用浏览器默认渲染和顺序语义结构组织 `/web`；当前不存在布局或样式授权例外。
@@ -34,6 +34,8 @@ code_path: domains/experience-delivery/services/fatecat-delivery/src/web_ui.py
 - 禁止自定义颜色、背景、字体、字号、间距、圆角、阴影、卡片、响应式布局。
 - 禁止仅用于视觉的 `class`、`main`、`section`、`div` 包装。
 - 禁止依赖 JavaScript 才能看到核心报告或核心字段。
+- 禁止在 Web 层复制地点目录、时区换算或 DST 判断；只允许调用 `location.py` / `web_report_service.py` 的共享服务端链路。
+- 禁止把 API/后端支持的地区模式、经纬度、时区口径或 DST fold 直接扩成 Web 默认控件；默认界面只保留一个地区搜索输入框，候选列表不是第二套地点数据源。
 - 禁止在未获得用户明确许可时偏离 `/home/lenovo/.codex/Design.md`。
 
 ## 单一真相源

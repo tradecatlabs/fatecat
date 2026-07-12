@@ -52,6 +52,7 @@
     "reason"
   ],
   "allowedAssetType": [
+    "location_catalog",
     "coordinate_table",
     "classics_corpus",
     "golden_fixture",

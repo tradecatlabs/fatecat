@@ -16,7 +16,6 @@ from tabulate import tabulate
 
 from branding import get_branding_payload
 from prediction_systems import PREDICTION_SYSTEMS, report_system_allowed_text
-from report_generator import public_birth_place
 from utils.timezone import now_cn
 from web_forms import WebReportForm, WebReportJobView, WebReportResult
 from web_report_service import build_web_report_result
@@ -29,6 +28,10 @@ def render_web_report_page(
     birth_date: str | None = None,
     birth_time: str | None = None,
     birth_place: str | None = None,
+    location_mode: str | None = None,
+    location_id: str | None = None,
+    time_basis: str | None = None,
+    fold_choice: str | None = None,
     gender: str | None = None,
     name: str | None = None,
     report_system: str | None = None,
@@ -40,6 +43,10 @@ def render_web_report_page(
         birth_date=birth_date,
         birth_time=birth_time,
         birth_place=birth_place,
+        location_mode=location_mode,
+        location_id=location_id,
+        time_basis=time_basis,
+        fold_choice=fold_choice,
         gender=gender,
         name=name,
         report_system=report_system,
@@ -59,12 +66,21 @@ def render_web_report_page(
             logger.exception("Web 报告生成失败")
             errors.append("生成报告失败")
 
-    html = _render_document(form=form, result=result, errors=errors, job=job)
+    html = _render_document(
+        form=form,
+        result=result,
+        errors=errors,
+        job=job,
+    )
     return HTMLResponse(content=html)
 
 
 def _render_document(
-    *, form: WebReportForm, result: WebReportResult | None, errors: list[str], job: WebReportJobView | None
+    *,
+    form: WebReportForm,
+    result: WebReportResult | None,
+    errors: list[str],
+    job: WebReportJobView | None,
 ) -> str:
     generated_at = now_cn().isoformat()
     body_parts = [
@@ -77,7 +93,13 @@ def _render_document(
         "</head>",
         "<body>",
         "<h1>faetcat</h1>",
-        _render_semantic_page(form=form, result=result, errors=errors, job=job, generated_at=generated_at),
+        _render_semantic_page(
+            form=form,
+            result=result,
+            errors=errors,
+            job=job,
+            generated_at=generated_at,
+        ),
     ]
 
     body_parts.extend(
@@ -105,7 +127,11 @@ def _render_semantic_page(
                 has_result=result is not None,
                 has_errors=bool(errors),
             ),
-            _render_input_panel(form=form, result=result, errors=errors),
+            _render_input_panel(
+                form=form,
+                result=result,
+                errors=errors,
+            ),
             _render_report_panel(result=result, errors=errors, job=job),
         ]
     )
@@ -207,7 +233,7 @@ def _render_header_panel(*, generated_at: str, has_result: bool, has_errors: boo
         ["字段契约", "以下为 Web 报告输入参数"],
         ["birthDate", "出生日期｜必填：是｜格式：YYYY-MM-DD｜HTML date；例 1990-01-01"],
         ["birthTime", "出生时间｜必填：是｜格式：HH:MM 或 HH:MM:SS｜HTML time；例 08:00"],
-        ["birthPlace", "出生地区｜必填：是｜格式：中文地点或 lng,lat｜例 北京 / 116.4074,39.9042"],
+        ["birthPlace", "出生地区｜必填：是｜输入至少两个字并从完整路径候选中选择"],
         ["gender", "性别｜必填：是｜格式：male/female｜计算必需；不能默认猜测"],
         [
             "reportSystem",
@@ -229,14 +255,16 @@ def _render_header_panel(*, generated_at: str, has_result: bool, has_errors: boo
     )
 
 
-def _render_input_panel(form: WebReportForm, result: WebReportResult | None, errors: list[str]) -> str:
-    birth_place_value = form.birth_place if errors else public_birth_place(form.birth_place)
+def _render_input_panel(
+    form: WebReportForm,
+    result: WebReportResult | None,
+    errors: list[str],
+) -> str:
     parts = [
         '<h2 id="input-form">参数控件</h2>',
         '<form id="web-report-form" method="get" action="/web">',
         "<fieldset>",
         "<legend>排盘参数</legend>",
-        '<input type="hidden" name="submitted" value="1">',
         "<p>",
         '<label for="birthDate">出生日期（必填）</label><br>',
         f'<input id="birthDate" name="birthDate" type="date" value="{_attr(form.birth_date)}">',
@@ -245,14 +273,7 @@ def _render_input_panel(form: WebReportForm, result: WebReportResult | None, err
         '<label for="birthTime">出生时间（必填）</label><br>',
         f'<input id="birthTime" name="birthTime" type="time" value="{_attr(_time_value(form.birth_time))}">',
         "</p>",
-        "<p>",
-        '<label for="birthPlace">出生地区（必填）</label><br>',
-        (
-            '<input id="birthPlace" name="birthPlace" type="text" '
-            f'value="{_attr(birth_place_value)}" '
-            'placeholder="北京 或 116.4074,39.9042">'
-        ),
-        "</p>",
+        _render_birth_place_search(form),
         "<p>",
         '<label for="gender">性别（必填）</label><br>',
         '<select id="gender" name="gender">',
@@ -271,7 +292,7 @@ def _render_input_panel(form: WebReportForm, result: WebReportResult | None, err
         '<label for="name">姓名（非必填）</label><br>',
         f'<input id="name" name="name" type="text" value="{_attr(form.name)}" placeholder="可为空">',
         "</p>",
-        '<p><button type="submit">生成 Markdown 报告</button></p>',
+        '<p><button id="generate-report" type="submit" name="submitted" value="1">生成 Markdown 报告</button></p>',
         "</fieldset>",
         "</form>",
     ]
@@ -280,11 +301,30 @@ def _render_input_panel(form: WebReportForm, result: WebReportResult | None, err
     return "\n".join(parts)
 
 
+def _render_birth_place_search(form: WebReportForm) -> str:
+    return "\n".join(
+        [
+            "<p>",
+            '<label for="birthPlace">出生地区（必填）</label><br>',
+            (
+                '<input id="birthPlace" name="birthPlace" type="text" list="birth-place-options" '
+                'aria-describedby="birth-place-status" autocomplete="off" maxlength="160" '
+                f'value="{_attr(form.birth_place)}" placeholder="输入省、市或区/县名称">'
+            ),
+            f'<input id="locationId" name="locationId" type="hidden" value="{_attr(form.location_id)}">',
+            '<datalist id="birth-place-options"></datalist>',
+            '<span id="birth-place-status" aria-live="polite">输入至少两个字后选择完整地区候选</span>',
+            "</p>",
+        ]
+    )
+
+
 def _render_submitted_input(form: WebReportForm, result: WebReportResult | None) -> str:
     rows = [
         ["birthDate", form.birth_date, "query"],
         ["birthTime", form.birth_time, "query"],
-        ["birthPlace", public_birth_place(form.birth_place), "query"],
+        ["birthPlace", form.birth_place, "query"],
+        ["locationId", form.location_id, "query"],
         ["gender", form.gender, "query"],
         ["reportSystem", form.report_system or "bazi", "query"],
         ["name", form.name, "query"],
@@ -294,8 +334,12 @@ def _render_submitted_input(form: WebReportForm, result: WebReportResult | None)
             [
                 ["selectedReportSystem", result.report_system_label, "server"],
                 ["normalizedBirthTime", result.normalized_time, "server"],
-                ["longitude", result.resolved_longitude, "location.get"],
-                ["latitude", result.resolved_latitude, "location.get"],
+                ["resolvedLocationId", result.resolved_location_id, "location.resolve"],
+                ["resolvedLocationName", result.resolved_location_name, "location.resolve"],
+                ["resolvedTimezone", result.resolved_timezone, "IANA"],
+                ["coordinatePrecision", result.coordinate_precision, "catalog"],
+                ["longitude", result.resolved_longitude, "location.resolve"],
+                ["latitude", result.resolved_latitude, "location.resolve"],
             ]
         )
     table = tabulate(rows, headers=["字段", "值", "来源"], tablefmt="psql", missingval="")
@@ -516,20 +560,81 @@ def _render_copy_script() -> str:
             '  const form = document.getElementById("web-report-form");',
             '  const reportState = document.getElementById("production-report-state");',
             "  if (!form) { return; }",
+            '  const locationInput = document.getElementById("birthPlace");',
+            '  const locationIdInput = document.getElementById("locationId");',
+            '  const locationOptions = document.getElementById("birth-place-options");',
+            '  const locationStatus = document.getElementById("birth-place-status");',
+            "  let locationTimer = 0;",
+            "  let locationRequest = null;",
+            "  let locationCandidates = new Map();",
+            "  const setLocationStatus = (message) => { if (locationStatus) { locationStatus.textContent = message; } };",
+            "  const bindLocationCandidate = () => {",
+            "    if (!locationInput || !locationIdInput) { return false; }",
+            "    const candidate = locationCandidates.get(locationInput.value.trim());",
+            "    locationIdInput.value = candidate ? candidate.locationId : '';",
+            "    if (candidate) { setLocationStatus(`已选择：${candidate.displayName}`); }",
+            "    return Boolean(candidate);",
+            "  };",
+            "  const renderLocationCandidates = (items) => {",
+            "    if (!locationOptions) { return; }",
+            "    locationCandidates = new Map();",
+            "    locationOptions.replaceChildren();",
+            "    items.forEach((item) => {",
+            "      const label = String(item.displayName || item.name || '');",
+            "      if (!label || !item.locationId) { return; }",
+            "      locationCandidates.set(label, item);",
+            "      const option = document.createElement('option');",
+            "      option.value = label;",
+            "      locationOptions.appendChild(option);",
+            "    });",
+            "  };",
+            "  const searchLocations = async (query) => {",
+            "    if (locationRequest) { locationRequest.abort(); }",
+            "    locationRequest = new AbortController();",
+            "    setLocationStatus('正在查找地区...');",
+            "    try {",
+            '      const response = await fetch(`/api/v1/locations?q=${encodeURIComponent(query)}&mode=domestic&limit=8`, { signal: locationRequest.signal, headers: { accept: "application/json" } });',
+            "      const body = await response.json();",
+            '      if (!response.ok || !body.success) { throw new Error(body.error || "地区查找失败"); }',
+            "      const items = body.data && Array.isArray(body.data.locations) ? body.data.locations : [];",
+            "      renderLocationCandidates(items);",
+            "      setLocationStatus(items.length ? `找到 ${items.length} 个候选，请选择完整地区` : '未找到地区，请修改关键词');",
+            "      bindLocationCandidate();",
+            "    } catch (error) {",
+            "      if (error && error.name === 'AbortError') { return; }",
+            '      setLocationStatus(error instanceof Error ? error.message : "地区查找失败");',
+            "    }",
+            "  };",
+            "  if (locationInput && locationIdInput && locationOptions) {",
+            "    locationInput.addEventListener('input', () => {",
+            "      locationIdInput.value = '';",
+            "      window.clearTimeout(locationTimer);",
+            "      const query = locationInput.value.trim();",
+            "      if (bindLocationCandidate()) { return; }",
+            "      if (locationRequest) { locationRequest.abort(); }",
+            "      renderLocationCandidates([]);",
+            "      if (query.length < 2) {",
+            "        setLocationStatus('输入至少两个字后选择完整地区候选');",
+            "        return;",
+            "      }",
+            "      locationTimer = window.setTimeout(() => searchLocations(query), 250);",
+            "    });",
+            "    locationInput.addEventListener('change', bindLocationCandidate);",
+            "  }",
             "  const setSubmitting = () => {",
-            "    const buttons = document.querySelectorAll('#web-report-form button[type=\"submit\"]');",
-            "    buttons.forEach((submitButton) => {",
+            '    const submitButton = document.getElementById("generate-report");',
+            "    if (submitButton) {",
             '      submitButton.setAttribute("aria-busy", "true");',
             '      submitButton.textContent = "生成中...";',
-            "    });",
+            "    }",
             '    if (reportState) { reportState.textContent = "正在生成 Markdown 报告..."; }',
             "  };",
             "  const setIdle = () => {",
-            "    const buttons = document.querySelectorAll('#web-report-form button[type=\"submit\"]');",
-            "    buttons.forEach((submitButton) => {",
+            '    const submitButton = document.getElementById("generate-report");',
+            "    if (submitButton) {",
             '      submitButton.removeAttribute("aria-busy");',
             '      submitButton.textContent = "生成 Markdown 报告";',
-            "    });",
+            "    }",
             "  };",
             "  const setStatus = (message) => { if (reportState) { reportState.textContent = message; } };",
             "  const pollJob = async (jobId) => {",
@@ -562,6 +667,11 @@ def _render_copy_script() -> str:
             '  form.addEventListener("submit", async (event) => {',
             "    if (!window.fetch || !window.FormData) { setSubmitting(); return; }",
             "    event.preventDefault();",
+            "    if (locationInput && locationIdInput && !locationIdInput.value) {",
+            "      setLocationStatus('请先从候选列表选择完整地区');",
+            "      locationInput.focus();",
+            "      return;",
+            "    }",
             "    setSubmitting();",
             "    try {",
             "      const payload = Object.fromEntries(new FormData(form).entries());",

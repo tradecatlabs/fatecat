@@ -144,7 +144,8 @@ def _collect_health_report(mode: str) -> dict[str, Any]:
 
     add_path_check("profile", FATE_PROFILE_DIR / "pure_analysis.json")
     add_path_check("schema", FATE_DATABASE_ROOT / "bazi" / "schema_v2.sql")
-    add_path_check("coordinates", FATE_DATA_ROOT / "china_coordinates.csv")
+    add_path_check("location_catalog", FATE_DATA_ROOT / "locations" / "location_catalog.ndjson.gz")
+    add_path_check("location_manifest", FATE_DATA_ROOT / "locations" / "manifest.json")
     add_path_check("lunar_python", FATE_VENDOR_ROOT / "github" / "lunar-python-master")
     add_path_check("bazi_1", FATE_VENDOR_ROOT / "github" / "bazi-1-master")
     add_path_check("sxwnl", FATE_VENDOR_ROOT / "github" / "sxwnl-master")

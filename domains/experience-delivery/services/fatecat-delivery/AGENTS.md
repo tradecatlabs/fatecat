@@ -16,6 +16,8 @@ fatecat-delivery/
 ├── src/
 │   ├── bot_progress.py
 │   ├── calculation_service.py
+│   ├── location.py
+│   ├── location_catalog.py
 │   ├── report_jobs.py
 │   ├── retention_cleanup.py
 │   ├── webhook_callbacks.py
@@ -34,6 +36,8 @@ fatecat-delivery/
 - 不定义 capability registry、字段 profile 或底层命理算法。
 - `src/bazi_calculator.py` 只保留兼容导出入口，真实八字 legacy 核心归属 `fate_core.kernel.bazi_calculator`；新增命理规则必须进入 `fate-core`，不能扩散到 API/Web/Bot/报告层。
 - `src/calculation_service.py` 只收敛 Web/API/Bot 到 fate-core/capability 的共享计算编排，不承载命理规则、HTML 渲染、Bot 文案或数据库写入。
+- `src/location_catalog.py` 只把 canonical 压缩地点目录确定性构建为运行时只读 SQLite 索引并执行检索；运行时索引可删除重建，不得成为第二数据真相源。
+- `src/location.py` 只承载稳定地点 ID、行政区消歧、WGS84 坐标、IANA 时区和出生钟表口径标准化；唯一精确文本可以解析，重名、模糊、时区冲突、DST 缺口或重复时刻必须显式失败，禁止静默选择第一条。
 - 不读取真实 secret 入仓；delivery smoke 可临时生成本地 `.env` 并清理。
 - `src/web_ui.py` 只负责零美化语义 HTML：服务端直出、原生表单、真实链接、psql ASCII 表格、Markdown 原文和机器可读片段。
 - `src/web_forms.py` 只定义 Web 原生表单输入和服务端报告结果模型，不渲染 HTML、不调用命理计算。

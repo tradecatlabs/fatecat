@@ -10,7 +10,10 @@
 domains/fate-analysis/data-products/
 ├── AGENTS.md
 ├── README.md
-├── china_coordinates.csv
+├── locations/
+│   ├── location_catalog.ndjson.gz # 全球地点、WGS84 坐标与 IANA 时区 canonical 数据
+│   ├── manifest.json              # 输出统计、内容 hash、许可和精度边界
+│   └── sources.lock.json          # 上游 URL、版本、hash 与许可锁
 ├── bazi/
 │   └── golden/                  # 综合八字陈述服务、历法边界、mismatch report 与覆盖矩阵轻量 golden fixture
 ├── ziwei/
@@ -29,7 +32,7 @@ domains/fate-analysis/data-products/
 
 ## 职责边界
 
-- `china_coordinates.csv`：地点解析与经纬度静态数据源。
+- `locations/`：生产地点目录数据产品；稳定 ID、WGS84 坐标、IANA 时区、别名和精度标记必须由同一生成流程产出。
 - `bazi/golden/statement_cases.json`：综合八字陈述服务命例回归 fixture，只锁定结构化盘面、边界、格局、调候、强弱、干支关系和起运字段。
 - `bazi/golden/calendar_boundary_cases.json`：历法边界回归 fixture，只锁定真太阳时、早晚子时、时区转换、经纬度偏移、节气边界和起运锚点。
 - `bazi/golden/calendar_oracle_mismatch_report.json`：历法 provider/oracle 差异报告，只覆盖 `runtime_full` 边界样本，未解释差异不得标绿。
@@ -52,3 +55,4 @@ domains/fate-analysis/data-products/
 - golden fixture 只允许测试读取，不能替换生产期 `lunar-python` 历法计算。
 - 八字/紫微核心质量语料统一登记在 `contracts/fate/evaluations/core-quality-corpus.json`，并由 `bash scripts/core-quality-corpus-gate.sh` 校验。
 - 新增、删除或重命名 `classics/*.txt` 时，必须同步 `source_manifest.tsv`、`copyright_review.tsv` 并运行 `bash scripts/data-supply-chain-gate.sh`。
+- 刷新 `locations/` 前必须先更新并核对 `sources.lock.json` 的版本、下载 hash 和许可；禁止把上游临时下载文件或运行时 SQLite 索引提交入库。

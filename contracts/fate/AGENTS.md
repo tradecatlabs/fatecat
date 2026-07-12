@@ -41,6 +41,9 @@ contracts/fate/
 ├── evaluations/
 │   ├── registry.json
 │   └── schemas/
+├── locations/
+│   ├── registry.json
+│   └── schemas/
 ├── observability/
 │   ├── registry.json
 │   └── schemas/
@@ -85,6 +88,7 @@ contracts/fate/
 - `developer/sandbox.json`：开发者文档 smoke 与 SDK 示例的固定输入源；它不是公网 sandbox token 服务。
 - `evaluations/`：评测资源注册表，登记 Dataset 与 EvaluationRun，只做发现、审计和发布门禁说明，不保存运行时评测结果库。
 - `evaluations/registry.json`：登记 golden fixture、benchmark 和本地评测运行入口；evaluation-only 数据不得被 production provider 当成业务输入。
+- `locations/`：出生地点、稳定 ID、WGS84、IANA 时区、时间口径与 DST 歧义处理契约；数据实体仍归 `domains/fate-analysis/data-products/locations/`。
 - `observability/`：观测资源注册表，登记 ObservabilitySignal，只做 health、ready、metrics、logs、trace/SLO/alert 的发现和边界说明，不保存运行时观测数据。
 - `observability/registry.json`：登记 available/planned signals；planned 信号不得被文档写成生产已验证能力。
 - `security/`：安全、隐私与发布门禁资源注册表，登记 SecurityControl，只做 token/CORS/限流/请求体/响应头/隐私扫描/source hygiene/release gate/production readiness 的发现和边界说明，不保存真实凭证。

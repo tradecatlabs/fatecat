@@ -13,7 +13,8 @@ from typing import Any
 from calculation_service import calculate_delivery_result
 from fate_core.capabilities import build_markdown_report_policy_gate, build_markdown_snapshot_gate, get_capability
 from fate_core.observability import trace_span
-from location import get as get_location
+from location import NormalizedBirthTime, ResolvedLocation, normalize_birth_time
+from location import resolve as resolve_location
 from prediction_systems import report_system_allowed_text
 from report_generator import REPORT_SYSTEM_LABELS, generate_full_report, public_birth_place
 from web_forms import WebReportForm, WebReportResult
@@ -25,8 +26,8 @@ class ValidatedWebReportInput:
     normalized_time: str
     gender: str
     report_system: str
-    longitude: float
-    latitude: float
+    location: ResolvedLocation
+    time: NormalizedBirthTime
     display_birth_place: str
 
 
@@ -37,30 +38,37 @@ def validate_web_report_form(form: WebReportForm) -> ValidatedWebReportInput:
         missing.append("出生日期")
     if not form.birth_time:
         missing.append("出生时间")
-    if not form.birth_place:
+    if not form.birth_place and not form.location_id:
         missing.append("出生地区")
     if not form.gender:
         missing.append("性别")
     if missing:
         raise ValueError(f"缺少必填字段: {'、'.join(missing)}")
 
-    birth_dt, normalized_time = _parse_birth_datetime(form.birth_date, form.birth_time)
+    wall_time, normalized_time = _parse_birth_datetime(form.birth_date, form.birth_time)
     gender = _normalize_gender(form.gender)
     report_system = _normalize_report_system(form.report_system)
-    try:
-        longitude, latitude = get_location(form.birth_place)
-    except ValueError as exc:
-        if str(exc).startswith("地点无法识别"):
-            raise ValueError("地点无法识别") from exc
-        raise
+    location_mode = _normalize_location_mode(form.location_mode)
+    location = resolve_location(form.location_id or form.birth_place, mode=location_mode)
+    if form.location_id and form.birth_place:
+        entered_location = resolve_location(form.birth_place, mode=location_mode)
+        if entered_location.location_id != location.location_id:
+            raise ValueError("出生地区名称与所选候选不一致，请重新选择")
+    fold_choice = form.fold_choice or None
+    time = normalize_birth_time(
+        wall_time,
+        location,
+        time_basis=form.time_basis,
+        fold_choice=fold_choice,
+    )
     return ValidatedWebReportInput(
-        birth_dt=birth_dt,
+        birth_dt=time.engine_beijing_time,
         normalized_time=normalized_time,
         gender=gender,
         report_system=report_system,
-        longitude=longitude,
-        latitude=latitude,
-        display_birth_place=public_birth_place(form.birth_place),
+        location=location,
+        time=time,
+        display_birth_place=public_birth_place(location.display_name),
     )
 
 
@@ -72,8 +80,8 @@ def build_web_report_result(form: WebReportForm) -> WebReportResult:
         calculation = calculate_delivery_result(
             birth_dt=validated.birth_dt,
             gender=validated.gender,
-            longitude=validated.longitude,
-            latitude=validated.latitude,
+            longitude=validated.location.longitude,
+            latitude=validated.location.latitude,
             birth_place=validated.display_birth_place,
             name=form.name,
             report_system=validated.report_system,
@@ -97,20 +105,34 @@ def build_web_report_result(form: WebReportForm) -> WebReportResult:
         "birthDate": form.birth_date,
         "birthTime": validated.normalized_time,
         "birthPlace": calculation.display_birth_place,
+        "locationId": validated.location.location_id,
+        "locationMode": validated.location.mode,
+        "coordinateSystem": validated.location.coordinate_system,
+        "coordinatePrecision": validated.location.coordinate_precision,
+        "inputTimezone": validated.time.input_timezone,
+        "timeBasis": validated.time.time_basis,
+        "utcOffsetSeconds": validated.time.utc_offset_seconds,
+        "fold": validated.time.fold,
+        "engineBeijingDateTime": validated.time.engine_beijing_time.isoformat(sep=" "),
         "gender": validated.gender,
         "name": form.name,
         "reportSystem": calculation.report_system,
         "reportSystemLabel": REPORT_SYSTEM_LABELS[calculation.report_system],
-        "longitude": validated.longitude,
-        "latitude": validated.latitude,
+        "longitude": validated.location.longitude,
+        "latitude": validated.location.latitude,
         "useTrueSolarTime": True,
     }
     return WebReportResult(
         markdown=markdown,
         policy_gate=policy_gate,
         snapshot_gate=snapshot_gate,
-        resolved_longitude=validated.longitude,
-        resolved_latitude=validated.latitude,
+        resolved_longitude=validated.location.longitude,
+        resolved_latitude=validated.location.latitude,
+        resolved_location_id=validated.location.location_id,
+        resolved_location_name=validated.location.display_name,
+        resolved_timezone=validated.location.timezone,
+        coordinate_precision=validated.location.coordinate_precision,
+        time_basis=validated.time.time_basis,
         normalized_time=validated.normalized_time,
         input_payload=payload,
         report_system=calculation.report_system,
@@ -144,6 +166,13 @@ def _normalize_report_system(value: str) -> str:
     if normalized in REPORT_SYSTEM_LABELS:
         return normalized
     raise ValueError(f"报告体系必须为: {report_system_allowed_text()}。未来体系需等独立功能实现后启用。")
+
+
+def _normalize_location_mode(value: str) -> str:
+    normalized = value.strip().lower()
+    if normalized in {"domestic", "overseas", "coordinates"}:
+        return normalized
+    raise ValueError("地区模式必须为 domestic、overseas 或 coordinates。")
 
 
 def _build_workbench_payload(calc_result: dict[str, Any], report_system: str) -> dict[str, Any]:

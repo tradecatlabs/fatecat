@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "description": "Location 与 NormalizedBirthTime 轻量字段契约。",
+  "location": {
+    "required": [
+      "locationId",
+      "mode",
+      "name",
+      "displayName",
+      "longitude",
+      "latitude",
+      "coordinateSystem",
+      "timezone",
+      "coordinatePrecision",
+      "source",
+      "sourceVersion"
+    ],
+    "allowedMode": ["domestic", "overseas", "coordinates"],
+    "coordinateSystem": "WGS84",
+    "timezoneFormat": "IANA TZ identifier"
+  },
+  "normalizedBirthTime": {
+    "required": [
+      "originalWallTime",
+      "engineBeijingTime",
+      "inputTimezone",
+      "timeBasis",
+      "utcOffsetSeconds",
+      "fold"
+    ],
+    "allowedTimeBasis": ["local_civil", "beijing_time", "utc"],
+    "allowedFold": [0, 1]
+  },
+  "privacy": "地点可作为报告计算输入；日志、指标和审计事件不得保存用户提交的完整地点或坐标。"
+}

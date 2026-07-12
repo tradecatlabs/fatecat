@@ -3,7 +3,7 @@ id: GOV-INDEX
 type: index
 status: current
 owner: engineering
-last_reviewed: 2026-06-17
+last_reviewed: 2026-07-12
 ---
 
 # 治理包索引
@@ -33,7 +33,7 @@ last_reviewed: 2026-06-17
 - [OK] `processes/QA计划标准.md`
 - [OK] `processes/本地工具与验证入口.md`
 - [optional] `processes/代码评审标准.md`
-- [optional] `processes/文档治理规则.md`
+- [OK] `processes/文档治理规则.md`
 
 ## 门禁
 

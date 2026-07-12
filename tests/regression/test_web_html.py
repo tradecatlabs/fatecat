@@ -46,6 +46,19 @@ def assert_zero_beauty_semantic_html(text: str) -> None:
         assert forbidden not in text
 
 
+def domestic_form_params(**overrides: str) -> dict[str, str]:
+    params = {
+        "birthDate": "1990-01-01",
+        "birthTime": "08:00",
+        "birthPlace": "北京市朝阳区",
+        "locationId": "cn:110105",
+        "gender": "male",
+        "name": "测试样本",
+    }
+    params.update(overrides)
+    return params
+
+
 def test_web_page_renders_semantic_form():
     response = TestClient(app).get("/web")
 
@@ -81,7 +94,9 @@ def test_web_page_renders_semantic_form():
     assert text.index('<h2 id="input-form">') < text.index('<h2 id="production-report">')
     assert '<h2 id="production-report">生成报告</h2>' in text
     assert "<fieldset>\n<legend>排盘参数</legend>" in text
-    assert '<p><button type="submit">生成 Markdown 报告</button></p>' in text
+    assert (
+        '<p><button id="generate-report" type="submit" name="submitted" value="1">生成 Markdown 报告</button></p>'
+    ) in text
     assert "尚未生成报告。提交底部参数后，服务端会在这里写入 Markdown 输出。" in text
     assert 'id="production-report-state"' in text
     assert 'form.addEventListener("submit"' in text
@@ -90,7 +105,7 @@ def test_web_page_renders_semantic_form():
     assert "正在生成 Markdown 报告..." in text
     assert "const setIdle = () =>" in text
     assert 'submitButton.textContent = "生成 Markdown 报告";' in text
-    assert '<input type="hidden" name="submitted" value="1">' in text
+    assert '<input type="hidden" name="submitted" value="1">' not in text
     assert " required>" not in text
     assert '<details id="page-info">' not in text
     assert "<summary>页面说明与元信息</summary>" not in text
@@ -110,11 +125,7 @@ def test_web_page_renders_semantic_form():
     assert_psql_row(text, "字段契约", "以下为 Web 报告输入参数")
     assert_psql_row(text, "birthDate", "出生日期｜必填：是｜格式：YYYY-MM-DD｜HTML date；例 1990-01-01")
     assert_psql_row(text, "birthTime", "出生时间｜必填：是｜格式：HH:MM 或 HH:MM:SS｜HTML time；例 08:00")
-    assert_psql_row(
-        text,
-        "birthPlace",
-        "出生地区｜必填：是｜格式：中文地点或 lng,lat｜例 北京 / 116.4074,39.9042",
-    )
+    assert_psql_row(text, "birthPlace", "出生地区｜必填：是｜输入至少两个字并从完整路径候选中选择")
     assert_psql_row(text, "gender", "性别｜必填：是｜格式：male/female｜计算必需；不能默认猜测")
     assert_psql_row(
         text,
@@ -142,15 +153,52 @@ def test_web_page_renders_semantic_form():
     assert "<pre><code>+" in text
 
 
-def test_web_page_static_examples_do_not_show_non_beijing_regions():
+def test_web_page_uses_one_native_fuzzy_location_input():
     response = TestClient(app).get("/web")
 
     assert response.status_code == 200
     text = response.text
-    assert "例 北京 / 116.4074,39.9042" in text
-    blocked_terms = ("".join(["济", "南"]), "".join(["历", "下区"]))
-    for term in blocked_terms:
-        assert term not in text
+    assert (
+        '<input id="birthPlace" name="birthPlace" type="text" list="birth-place-options" '
+        'aria-describedby="birth-place-status" autocomplete="off" maxlength="160"' in text
+    )
+    assert '<input id="locationId" name="locationId" type="hidden" value="">' in text
+    assert '<datalist id="birth-place-options"></datalist>' in text
+    assert 'id="birth-place-status" aria-live="polite"' in text
+    assert "searchLocations" in text
+    assert "/api/v1/locations?q=" in text
+    assert "mode=domestic&limit=8" in text
+    assert "window.setTimeout(() => searchLocations(query), 250)" in text
+    assert "locationIdInput.value = '';" in text
+    assert "请先从候选列表选择完整地区" in text
+    for removed in [
+        'id="birthProvince"',
+        'id="birthCity"',
+        'id="locationMode"',
+        'id="timeBasis"',
+        'id="foldChoice"',
+        'id="domestic-location-hierarchy"',
+        'name="locationMode"',
+        'name="timeBasis"',
+        "地区模式（必填）",
+        "出生时间口径（必填）",
+        "WGS84 经纬度",
+    ]:
+        assert removed not in text
+    assert "<style" not in text
+    assert "class=" not in text
+
+
+def test_web_page_no_javascript_fallback_accepts_full_location_name():
+    response = TestClient(app).get(
+        "/web",
+        params=domestic_form_params(locationId="", birthPlace="陕西省西安市长安区"),
+    )
+
+    assert response.status_code == 200
+    assert '<h2 id="errors">错误</h2>' not in response.text
+    assert '"locationId": "cn:610116"' in response.text
+    assert '"birthPlace": "陕西省西安市长安区"' in response.text
 
 
 def test_web_page_reports_missing_required_fields():
@@ -179,33 +227,49 @@ def test_web_page_empty_submit_reports_server_side_errors():
     assert "性别" in text
 
 
-def test_web_page_reports_unknown_birth_place():
-    submitted_place = "不存在的地区"
+def test_web_page_reports_ambiguous_unselected_location():
     response = TestClient(app).get(
         "/web",
-        params={
-            "birthDate": "1990-01-01",
-            "birthTime": "08:00",
-            "birthPlace": submitted_place,
-            "gender": "male",
-        },
+        params=domestic_form_params(locationId="", birthPlace="长安区"),
     )
 
     assert response.status_code == 200
-    assert "地点无法识别" in response.text
-    assert submitted_place in response.text
+    assert "地点存在多个匹配" in response.text
+    assert "河北省石家庄市长安区" in response.text
+    assert "陕西省西安市长安区" in response.text
+
+
+def test_web_page_rejects_mismatched_location_name_and_id():
+    response = TestClient(app).get(
+        "/web",
+        params=domestic_form_params(birthPlace="上海市黄浦区", locationId="cn:110105"),
+    )
+
+    assert response.status_code == 200
+    assert "出生地区名称与所选候选不一致" in response.text
+
+
+def test_web_page_uses_qualified_location_candidate_for_report_coordinates():
+    response = TestClient(app).get(
+        "/web",
+        params=domestic_form_params(
+            birthPlace="陕西省西安市长安区",
+            locationId="cn:610116",
+        ),
+    )
+
+    assert response.status_code == 200
+    assert '<h2 id="errors">错误</h2>' not in response.text
+    assert '"birthPlace": "陕西省西安市长安区"' in response.text
+    assert '"locationId": "cn:610116"' in response.text
+    assert '"longitude": 108.93366' in response.text
+    assert '"latitude": 34.03702' in response.text
 
 
 def test_web_page_generates_copyable_markdown_report():
     response = TestClient(app).get(
         "/web",
-        params={
-            "birthDate": "1990-01-01",
-            "birthTime": "08:00",
-            "birthPlace": "北京",
-            "gender": "male",
-            "name": "测试样本",
-        },
+        params=domestic_form_params(),
     )
 
     assert response.status_code == 200
@@ -233,7 +297,8 @@ def test_web_page_generates_copyable_markdown_report():
     assert "## 第三卷：民俗与建议（生活应用）" in text
     assert "## 袁天罡称骨" in text
     assert "机器可读输入" in text
-    assert '"birthPlace": "北京"' in text
+    assert '"birthPlace": "北京市朝阳区"' in text
+    assert '"locationId": "cn:110105"' in text
     assert '"reportSystem": "bazi"' in text
 
 
@@ -257,14 +322,7 @@ def test_web_page_workbench_does_not_recalculate_domain_rules():
 def test_web_page_can_select_ziwei_report_without_bazi_blocks():
     response = TestClient(app).get(
         "/web",
-        params={
-            "birthDate": "1990-01-01",
-            "birthTime": "08:00",
-            "birthPlace": "北京",
-            "gender": "male",
-            "name": "测试样本",
-            "reportSystem": "ziwei",
-        },
+        params=domestic_form_params(reportSystem="ziwei"),
     )
 
     assert response.status_code == 200
@@ -291,14 +349,7 @@ def test_web_page_can_select_ziwei_report_without_bazi_blocks():
 def test_web_page_rejects_retired_report_systems():
     response = TestClient(app).get(
         "/web",
-        params={
-            "birthDate": "1990-01-01",
-            "birthTime": "08:00",
-            "birthPlace": "北京",
-            "gender": "male",
-            "name": "测试样本",
-            "reportSystem": "jianchu",
-        },
+        params=domestic_form_params(reportSystem="jianchu"),
     )
 
     assert response.status_code == 200
@@ -309,14 +360,7 @@ def test_web_page_rejects_retired_report_systems():
 
     bone_response = TestClient(app).get(
         "/web",
-        params={
-            "birthDate": "1990-01-01",
-            "birthTime": "08:00",
-            "birthPlace": "北京",
-            "gender": "male",
-            "name": "测试样本",
-            "reportSystem": "bone",
-        },
+        params=domestic_form_params(reportSystem="bone"),
     )
     assert bone_response.status_code == 200
     assert_zero_beauty_semantic_html(bone_response.text)
@@ -324,34 +368,13 @@ def test_web_page_rejects_retired_report_systems():
     assert "# 袁天罡称骨报告" not in bone_response.text
 
 
-def test_web_page_rejects_out_of_range_direct_coordinates():
-    response = TestClient(app).get(
-        "/web",
-        params={
-            "birthDate": "1990-01-01",
-            "birthTime": "08:00",
-            "birthPlace": "999,999",
-            "gender": "male",
-            "name": "测试样本",
-        },
-    )
-
-    assert response.status_code == 200
-    assert_zero_beauty_semantic_html(response.text)
-    assert '<h2 id="errors">错误</h2>' in response.text
-    assert "经度必须在 -180 到 180 之间" in response.text
-
-
 def test_web_page_displays_submitted_birth_place_in_frontend():
     response = TestClient(app).get(
         "/web",
-        params={
-            "birthDate": "1990-01-01",
-            "birthTime": "08:00",
-            "birthPlace": "上海",
-            "gender": "male",
-            "name": "测试样本",
-        },
+        params=domestic_form_params(
+            birthPlace="上海市黄浦区",
+            locationId="cn:310101",
+        ),
     )
 
     assert response.status_code == 200

@@ -41,7 +41,7 @@
         ".venv/bin/python -m pytest -q tests/regression/test_entrypoint_consistency.py",
         "bash scripts/multi-surface-semantic-diff.sh --output-json <path>"
       ],
-      "privacyBoundary": "API 响应不得输出真实 token、secret、DSN 或私钥；非北京真实地区在公开 Markdown 展示中必须脱敏。",
+      "privacyBoundary": "API 响应不得输出真实 token、secret、DSN 或私钥；用户主动提交的地区可在当前 Markdown 展示，但不得写入日志或无授权持久化。",
       "externalConnectivity": "not_required",
       "links": {
         "self": "/surfaces/surface.fastapi",
@@ -80,7 +80,7 @@
         ".venv/bin/python -m pytest -q tests/regression/test_entrypoint_consistency.py",
         "bash scripts/multi-surface-semantic-diff.sh --output-json <path>"
       ],
-      "privacyBoundary": "公开 Web 示例和用户界面不得展示北京以外的真实地区名称；复制 Markdown 不得由前端自行拼装核心报告。",
+      "privacyBoundary": "默认 Web 示例使用北京/测试用户；公共行政区候选和用户主动提交的地区可正常显示；复制 Markdown 不得由前端自行拼装核心报告。",
       "externalConnectivity": "not_required",
       "links": {
         "self": "/surfaces/surface.web",

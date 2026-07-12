@@ -15,12 +15,17 @@ class BirthPlace(BaseModel):
     name: str = Field(..., description="地点名称")
     longitude: float = Field(..., ge=-180, le=180, description="经度")
     latitude: float = Field(..., ge=-90, le=90, description="纬度")
-    timezone: str = Field(default="Asia/Shanghai", description="时区")
+    timezone: str = Field(..., description="IANA 时区")
+    locationId: str | None = Field(default=None, description="稳定地点 ID")
+    coordinateSystem: Literal["WGS84"] = Field(default="WGS84", description="坐标系")
+    coordinatePrecision: str | None = Field(default=None, description="坐标精度来源")
 
     @field_validator("timezone")
     @classmethod
     def validate_timezone(cls, value: str) -> str:
-        normalized = value.strip() or "Asia/Shanghai"
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("timezone 必填，且必须使用 IANA 时区")
         try:
             ZoneInfo(normalized)
         except ZoneInfoNotFoundError as exc:
@@ -34,6 +39,14 @@ class BaziOptions(BaseModel):
     midnightMode: Literal["early", "late"] = Field(default="early", description="早晚子时")
     calendarType: Literal["solar", "lunar"] = Field(default="solar", description="输入历法类型")
     reportSystem: ReportSystem = Field(default="bazi", description="Markdown 报告输出体系")
+    timeBasis: Literal["local_civil", "beijing_time", "utc"] = Field(
+        default="local_civil",
+        description="出生钟表口径",
+    )
+    foldChoice: Literal["earlier", "later"] | None = Field(
+        default=None,
+        description="夏令时回拨重复时刻选择",
+    )
 
 
 class BaziRequest(BaseModel):

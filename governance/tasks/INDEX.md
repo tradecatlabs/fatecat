@@ -268,3 +268,5 @@
 | 0152 | measurement-infrastructure-core-quality-evidence-bundle-rehearsal | In Progress | P0 | 基于当前 0151 readiness audit 和基础设施同构调研，落地 core_quality_human_review_bundle 提交前演练模板、hash 计算说明、no-leak checklist 和 100% 基础设施后续计划刷新；不填真实专家或 benchmark 内容，不改变 core quality gate 结论。 | 0152-measurement-infrastructure-core-quality-evidence-bundle-rehearsal/ |
 
 | 0153 | revoke-web-workbench-layout-exception | Done | P0 | 撤销 /web 黄金三块工作台布局授权，恢复严格零美化语义 HTML，并同步实现、测试与治理真相源 | 0153-revoke-web-workbench-layout-exception/ |
+
+| 0154 | location-timezone-infrastructure | Done | P0 | 建立可审计、可复现的出生地点与历史时区基础设施：稳定地点契约、国内与全球地点解析、WGS84 坐标、IANA 时区、出生时间口径、原生 Web 交互和完整回归门禁。 | 0154-location-timezone-infrastructure/ |

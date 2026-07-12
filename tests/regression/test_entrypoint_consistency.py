@@ -70,6 +70,8 @@ def test_api_bot_shared_service_and_web_bazi_canonical_fields_are_consistent():
             birth_date="1990-01-01",
             birth_time="08:00",
             birth_place="北京市",
+            location_mode="domestic",
+            time_basis="beijing_time",
             gender="male",
             name="一致性样本",
             report_system="bazi",

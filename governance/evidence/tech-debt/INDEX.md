@@ -3,7 +3,7 @@ id: IDX-DEBT-INDEX
 type: index
 status: current
 owner: engineering
-last_reviewed: 2026-06-17
+last_reviewed: 2026-07-12
 ---
 
 # DEBT Index

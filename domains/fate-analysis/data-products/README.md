@@ -6,7 +6,7 @@
 
 | 路径 | 用途 | 是否默认运行依赖 |
 | --- | --- | --- |
-| `china_coordinates.csv` | 中国行政区经纬度数据 | 是 |
+| `locations/location_catalog.ndjson.gz` | 全球地点、稳定 ID、WGS84 坐标、IANA 时区与别名目录 | 是 |
 | `classics/*.txt` | 已整理命理古籍与基础语料 | 可选 |
 | `bazi/golden/coverage_matrix_cases.json` | 100+ 匿名八字结构覆盖矩阵，用于锁定四柱、起运、覆盖标签和失败解释 | 测试依赖 |
 | `ziwei/golden/cases.json` | 匿名紫微基础盘面样本，用于锁定十二宫、命身宫、四化数量和核心规则 id | 测试依赖 |
@@ -32,6 +32,7 @@ bash scripts/core-quality-corpus-gate.sh \
 该门禁校验：
 
 - `contracts/fate/data-supply-chain/registry.json` 的资产字段、usageRole、productionEligibility、exportPolicy。
+- `locations/` 数据产品、manifest 与 source lock 的内容 hash、来源许可和生产边界。
 - `classics/*.txt` 是否全部进入 `source_manifest.tsv` 和 `copyright_review.tsv`，并且 bytes / sha256 与文件一致。
 - 节气 raw 来源 manifest 是否具备完整 hash 字段。
 - `vendor_sources.json` 中 production dependency 是否满足 SPDX license 与 `productionUseAllowed=true`。
