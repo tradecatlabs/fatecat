@@ -2,7 +2,7 @@
 
 # Global Standards
 - [x] 需求、方法来源、约束、外部证据边界和存在性判断已记录。
-- [ ] quick CI、governance strict、远端 CI 和线上 GEO audit 通过。
+- [x] quick CI、governance strict、远端 CI 和线上 GEO audit 通过。
 
 # Task Package Checklists
 
@@ -22,6 +22,6 @@
 - Gate: 失败返回非零，外部指标不伪造。
 
 ## TP-04
-- [ ] 完整门禁、review、部署与线上 audit 待完成。
+- [x] 完整门禁、review、部署与线上 audit 已完成。
 - Verify: quick CI、governance strict、GitHub Actions、HF live audit。
 - Gate: 所有本地可验证项通过，外部平台指标保持 pending。
