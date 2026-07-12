@@ -13,6 +13,7 @@ fatecat/
 ├── AGENTS.md
 ├── compose.yaml
 ├── DEBUG.md
+├── llms.txt
 ├── README.md
 ├── REVIEW.md
 ├── SKILL.md
@@ -75,6 +76,7 @@ fatecat/
 - `SKILL.md`：标准 skill 入口说明。
 - `compose.yaml`：本地和单机容器编排入口，只编排 delivery 容器与运行态 volume。
 - `DEBUG.md`：当前调试证据、根因和回归验证记录；只承载已复现问题的诊断闭环。
+- `llms.txt`：公开站点根级 AI/Agent 发现文档；集中说明 Web/API 输入、端点、证据、存储和风险边界，避免把机器契约全部堆在 Web 顶部表格。
 - `REVIEW.md`：当前仓库审计结果与 release gate 结论；只记录证据、风险与交接，不承载业务源码。
 - `apps/`：用户体验入口和渠道壳层。
 - `ai/`：Agent、skill、Prompt、评估和 AI 监管相关入口。

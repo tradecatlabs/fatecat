@@ -219,6 +219,8 @@ bash scripts/local-ci.sh --profile full
 
 Web 版遵循零美化语义界面：原生 HTML 表单、服务端直出、psql ASCII 字段表、Markdown 原文 `<pre><code>` 展示、复制按钮只做渐进增强。公开入口默认使用异步报告任务：浏览器提交后先拿到 `jobId`，后端有界队列生成报告，页面轮询完成后回到 `/web?jobId=...` 展示 Markdown。
 
+面向 AI、Agent 和抓取器的公开端点、Web 字段契约、地点解析、任务协议与风险边界集中在 [`llms.txt`](llms.txt)，线上入口为 `GET /llms.txt`；Web 顶部表格只保留人类需要的项目和使用摘要。
+
 项目归属块提供 `免费 AI 分析入口（Gemini Gem）` 外链。该入口用于用户复制 Markdown 报告后自行打开 Gemini Gem 分析；FateCat 不会自动把排盘输入或报告发送给 Gemini。
 
 启动 API：

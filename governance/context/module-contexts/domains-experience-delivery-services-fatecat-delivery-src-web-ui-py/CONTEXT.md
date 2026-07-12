@@ -18,7 +18,7 @@ code_path: domains/experience-delivery/services/fatecat-delivery/src/web_ui.py
 
 - 服务端直出 `GET /web` 的 HTML 页面。
 - 暴露原生 HTML 表单，用 GET 参数生成命理排盘 Markdown 报告；出生地区只显示一个原生 `input+datalist`，通过现有地点 API 模糊搜索完整路径候选并绑定稳定地点 ID，无 JavaScript 时由服务端解析唯一完整地区名称。
-- 展示字段契约、当前输入、工作台 psql ASCII 表格、Markdown 输出、机器可读输入和页面元信息。
+- 展示精简项目摘要、当前输入、工作台 psql ASCII 表格、Markdown 输出、机器可读输入和页面元信息；详细字段与接口契约通过根级 `/llms.txt` 暴露。
 - 展示 TradeCat Labs 项目归属和真实外部链接。
 - 使用浏览器默认渲染和顺序语义结构组织 `/web`；当前不存在布局或样式授权例外。
 

@@ -28,6 +28,7 @@ bash scripts/delivery-smoke.sh --target bot
 - Web HTML 必须遵守 `/home/lenovo/.codex/Design.md` 的零美化语义界面规范：禁止 CSS、视觉 class、颜色、圆角、卡片、响应式布局和装饰性容器。
 - `/web` 当前不存在布局授权例外；浏览器默认渲染即为预期呈现。
 - Web 出生地区只显示一个原生 `input+datalist`：输入任意一个或多个地区字符后查询本地点目录，候选展示完整行政区路径，选择后提交稳定 `cn:{code}`；输入过程不显示查找、候选数量或选择状态等动态提醒，未选候选时仅在提交时使用浏览器原生校验。无 JavaScript 时可提交唯一完整地区名称由服务端解析。海外、直接坐标、IANA 时区与 DST 能力保留在 API/后端，不作为 Web 默认控件。
+- Web 顶部表格只保留人类需要的项目与使用摘要；公开端点、字段契约、地点解析、任务协议和 AI 风险边界集中由根级 `llms.txt` 与 `GET /llms.txt` 提供。
 - `src/location_catalog.py` 从 canonical gzip NDJSON 确定性构建只读 SQLite 查询索引；索引仅写入 `infra/runtime/local-state/`，可删除重建，不是数据真相源。
 - `src/location.py` 统一承担稳定地点 ID、WGS84、IANA 时区和 `local_civil/beijing_time/utc` 出生钟表口径标准化；Web 与 Bazi API 必须复用该链路。
 - 修改 `src/web_ui.py` 后必须跑 `python -m pytest -q tests/regression/test_web_html.py` 或 `bash scripts/local-ci.sh --profile quick`。

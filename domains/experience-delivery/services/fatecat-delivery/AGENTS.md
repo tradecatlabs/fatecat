@@ -48,6 +48,7 @@ fatecat-delivery/
 - `src/webhook_config_store.py` 只承载本地 Fernet key ring、callback URL/secret 加密存储、解密和 key rotation baseline；不得承载外部 Vault/KMS、分布式租约、生产密钥生命周期或 webhook dispatcher。
 - `src/report_markdown.py` 只承载 Markdown 表格、转义和行内文本压缩工具；报告层可复用，但不得写入命理规则。
 - `src/main.py` 负责 HTTP requestId、W3C `traceparent` 传播、OpenTelemetry 语义兼容本地 span 日志接入、metrics、结构化日志和本地 sandbox access gateway；sandbox gateway 只做 `FATE_SANDBOX_TOKENS` 环境变量 smoke、scope enforcement、rate limit 与 audit 脱敏，不发行公网 token。trace context 真相源在 `fate_core.observability`，delivery 不自建第二套 trace 协议。
+- `GET /llms.txt` 只读取仓库根 `llms.txt` 并以 `text/plain` 暴露公开机器说明；Web 顶部只保留人类需要的项目、输出、存储和风险摘要，详细端点与字段契约归 `llms.txt`。
 - `src/bot_progress.py` 只承载 Telegram Bot 进度项和提示文案；Bot 主流程仍在 `src/bot.py`。
 - `src/service_config.py` 只读取交付服务环境配置；运行期常量仍由 `src/main.py` 初始化，便于测试 monkeypatch 和 FastAPI 启动时固定配置。
 - `src/telegram_webhook.py` 只承载 FastAPI 生命周期内的 Telegram Webhook 注册、Secret Header 校验、有界 Update 队列、进程内去重和运行指标；它复用 `bot.py` 的 Application builder，不实现命理规则或第二套 Bot handler。

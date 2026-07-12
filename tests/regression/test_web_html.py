@@ -67,8 +67,10 @@ def test_web_page_renders_semantic_form():
     text = response.text
     assert "<title>faetcat</title>" in text
     assert "<h1>faetcat</h1>" in text
+    assert '<link rel="alternate" type="text/plain" href="/llms.txt" title="FateCat llms.txt">' in text
     assert '<h2 id="project-brand">项目与页面信息</h2>' in text
     assert_psql_row(text, "项目归属", "TradeCat Labs｜FateCat 测算基础设施")
+    assert_psql_row(text, "项目归属", "交易猫实验室｜FateCat 测算基础设施")
     assert_psql_row(text, "项目定位", "FateCat 是面向 Agent 与应用开发者的测算基础设施。")
     assert_psql_row(text, "核心能力", "提供统一的能力协议、可复现计算核心、证据化解释层和多端交付接口。")
     assert_psql_row(text, "CA", "0x8a99b8d53eff6bc331af529af74ad267f3167777")
@@ -83,6 +85,7 @@ def test_web_page_renders_semantic_form():
     assert "https://huggingface.co/tradecatlabs" in text
     assert "免费 AI 分析入口（Gemini Gem）" in text
     assert "https://gemini.google.com/gem/1d9XompAC8xk0xV6655X9IxZYQUNkDJoG?usp=sharing" in text
+    assert '<a href="/llms.txt">AI / Agent 文档（llms.txt）</a>' in text
     assert '<nav aria-label="项目、页面与服务链接">' in text
     assert '<a href="#project-brand">页面：项目与页面信息</a>' in text
     assert '<a href="#production-report">页面：生成报告</a>' in text
@@ -109,30 +112,14 @@ def test_web_page_renders_semantic_form():
     assert " required>" not in text
     assert '<details id="page-info">' not in text
     assert "<summary>页面说明与元信息</summary>" not in text
-    assert_psql_row(text, "入口", "GET /web")
-    assert_psql_row(text, "异步任务", "POST /api/v1/report/jobs/web；GET /api/v1/report/jobs/{job_id}")
+    assert_psql_row(text, "可用体系", "综合八字 bazi；紫微斗数 ziwei")
     assert_psql_row(text, "输出", "Markdown 文本")
     assert_psql_row(text, "时区", "Asia/Hong_Kong")
-    assert "POST /api/v1/report/jobs/web；GET /api/v1/report/jobs/{job_id}" in text
     assert "免费公开入口默认不写数据库" in text
     assert "FateCat 不会自动发送报告到 Gemini" in text
-    assert_psql_row(text, "服务入口", "GET /health")
-    assert_psql_row(text, "服务入口", "FastAPI /docs")
-    assert_psql_row(text, "服务入口", "GET /web 空表单")
-    assert_psql_row(text, "服务入口", "GET /api/v1/report/systems")
-    assert '<a href="/health">服务：GET /health</a>' in text
-    assert '<a href="/docs">服务：FastAPI /docs</a>' in text
-    assert_psql_row(text, "字段契约", "以下为 Web 报告输入参数")
-    assert_psql_row(text, "birthDate", "出生日期｜必填：是｜格式：YYYY-MM-DD｜HTML date；例 1990-01-01")
-    assert_psql_row(text, "birthTime", "出生时间｜必填：是｜格式：HH:MM 或 HH:MM:SS｜HTML time；例 08:00")
-    assert_psql_row(text, "birthPlace", "出生地区｜必填：是｜输入地区名称并从完整路径候选中选择")
-    assert_psql_row(text, "gender", "性别｜必填：是｜格式：male/female｜计算必需；不能默认猜测")
-    assert_psql_row(
-        text,
-        "reportSystem",
-        "输出体系｜必填：否｜格式：bazi、ziwei｜默认 bazi；每次只输出一个已实现体系",
-    )
-    assert_psql_row(text, "name", "姓名｜必填：否｜格式：文本｜为空时报告标题使用命主")
+    assert_psql_row(text, "AI / Agent 文档", "GET /llms.txt")
+    for moved_field in ("报告模板", "地区解析", "服务入口", "字段契约", "birthDate", "birthTime", "birthPlace"):
+        assert not re.search(rf"\|\s*{re.escape(moved_field)}\s*\|", text)
     assert "字段契约 ·" not in text
     assert '<h2 id="field-contract">字段契约</h2>' not in text
     assert "参数控件" in text
@@ -151,6 +138,29 @@ def test_web_page_renders_semantic_form():
     assert "袁天罡称骨 bone" not in text
     assert "姓名（非必填）" in text
     assert "<pre><code>+" in text
+
+
+def test_llms_txt_exposes_machine_contract_and_is_shipped_to_hf():
+    response = TestClient(app).get("/llms.txt")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/plain")
+    text = response.text
+    assert text.startswith("# FateCat\n")
+    assert "TradeCat Labs（交易猫实验室）" in text
+    assert "POST /api/v1/report/jobs/web" in text
+    assert "GET /api/v1/report/jobs/{job_id}" in text
+    assert "GET /api/v1/locations?q={query}&mode=domestic&limit=8" in text
+    assert "`birthDate`" in text
+    assert "`locationId`" in text
+    assert "Public API warm round trip" in text
+    assert "344 ms median" in text
+    assert "waits 100 ms" in text
+    assert "remeasured after deployment" in text
+    assert "not a latency SLA" in text
+
+    deploy_script = (ROOT / "scripts" / "hf-space-deploy.sh").read_text(encoding="utf-8")
+    assert re.search(r"\n\s+llms\.txt\s+\\", deploy_script)
 
 
 def test_web_page_uses_one_native_fuzzy_location_input():
@@ -174,7 +184,7 @@ def test_web_page_uses_one_native_fuzzy_location_input():
     assert "searchLocations" in text
     assert "/api/v1/locations?q=" in text
     assert "mode=domestic&limit=8" in text
-    assert "window.setTimeout(() => searchLocations(query), 250)" in text
+    assert "window.setTimeout(() => searchLocations(query), 100)" in text
     assert "if (!query)" in text
     assert "query.length < 2" not in text
     assert "输入至少两个字" not in text

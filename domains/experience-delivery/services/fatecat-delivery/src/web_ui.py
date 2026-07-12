@@ -15,7 +15,7 @@ from fastapi.responses import HTMLResponse
 from tabulate import tabulate
 
 from branding import get_branding_payload
-from prediction_systems import PREDICTION_SYSTEMS, report_system_allowed_text
+from prediction_systems import PREDICTION_SYSTEMS
 from utils.timezone import now_cn
 from web_forms import WebReportForm, WebReportJobView, WebReportResult
 from web_report_service import build_web_report_result
@@ -89,6 +89,7 @@ def _render_document(
         "<head>",
         '<meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
+        '<link rel="alternate" type="text/plain" href="/llms.txt" title="FateCat llms.txt">',
         "<title>faetcat</title>",
         "</head>",
         "<body>",
@@ -194,13 +195,10 @@ def _render_header_panel(*, generated_at: str, has_result: bool, has_errors: boo
         ("GitHub", branding["githubUrl"]),
         ("Hugging Face", branding["huggingFaceUrl"]),
         ("免费 AI 分析入口（Gemini Gem）", branding["geminiGemUrl"]),
+        ("AI / Agent 文档（llms.txt）", "/llms.txt"),
         ("页面：项目与页面信息", "#project-brand"),
         ("页面：参数控件", "#input-form"),
         ("页面：生成报告", "#production-report"),
-        ("服务：GET /health", "/health"),
-        ("服务：FastAPI /docs", "/docs"),
-        ("服务：GET /web 空表单", "/web"),
-        ("服务：GET /api/v1/report/systems", "/api/v1/report/systems"),
     ]
     if has_errors:
         links.append(("页面：错误", "#errors"))
@@ -214,32 +212,17 @@ def _render_header_panel(*, generated_at: str, has_result: bool, has_errors: boo
     rows = [
         ["CA", branding["ca"]],
         ["项目归属", branding["heroTitle"]],
+        ["项目归属", "交易猫实验室｜FateCat 测算基础设施"],
         ["项目定位", branding["sponsorText"]],
         ["核心能力", branding["tagline"]],
         ["页面说明", "使用原生 HTML 表单生成标准命理排盘 Markdown 报告；公开入口优先走异步任务。"],
-        ["入口", "GET /web"],
-        ["异步任务", "POST /api/v1/report/jobs/web；GET /api/v1/report/jobs/{job_id}"],
+        ["可用体系", "综合八字 bazi；紫微斗数 ziwei"],
         ["输出", "Markdown 文本"],
-        ["报告模板", "report_generator.generate_full_report(report_system)"],
         ["存储策略", "免费公开入口默认不写数据库；任务只在进程内短暂保留，TTL 到期或 Space 重启后消失"],
         ["AI 分析", "FateCat 不会自动发送报告到 Gemini；用户复制 Markdown 后自行打开 Gemini Gem"],
-        ["地区解析", "location.get"],
-        ["服务入口", "GET /health"],
-        ["服务入口", "FastAPI /docs"],
-        ["服务入口", "GET /web 空表单"],
-        ["服务入口", "GET /api/v1/report/systems"],
+        ["AI / Agent 文档", "GET /llms.txt"],
         ["生成时间", generated_at],
         ["时区", "Asia/Hong_Kong"],
-        ["字段契约", "以下为 Web 报告输入参数"],
-        ["birthDate", "出生日期｜必填：是｜格式：YYYY-MM-DD｜HTML date；例 1990-01-01"],
-        ["birthTime", "出生时间｜必填：是｜格式：HH:MM 或 HH:MM:SS｜HTML time；例 08:00"],
-        ["birthPlace", "出生地区｜必填：是｜输入地区名称并从完整路径候选中选择"],
-        ["gender", "性别｜必填：是｜格式：male/female｜计算必需；不能默认猜测"],
-        [
-            "reportSystem",
-            f"输出体系｜必填：否｜格式：{report_system_allowed_text()}｜默认 bazi；每次只输出一个已实现体系",
-        ],
-        ["name", "姓名｜必填：否｜格式：文本｜为空时报告标题使用命主"],
     ]
     table = tabulate(rows, headers=["字段", "内容"], tablefmt="psql", missingval="")
     link_items = "\n".join(f'<li><a href="{_attr(url)}">{_h(label)}</a></li>' for label, url in links)
@@ -611,7 +594,7 @@ def _render_copy_script() -> str:
             "      if (!query) {",
             "        return;",
             "      }",
-            "      locationTimer = window.setTimeout(() => searchLocations(query), 250);",
+            "      locationTimer = window.setTimeout(() => searchLocations(query), 100);",
             "    });",
             "    locationInput.addEventListener('change', bindLocationCandidate);",
             "  }",

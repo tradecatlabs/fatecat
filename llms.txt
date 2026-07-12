@@ -1,0 +1,99 @@
+# FateCat
+
+> FateCat 是 TradeCat Labs（交易猫实验室）面向 Agent 与应用开发者的测算基础设施，提供统一能力协议、可复现计算核心、证据化解释层和多端交付接口。
+
+## Public URLs
+
+- Web: https://tradecatlabs-fatecat.hf.space/web
+- API documentation: https://tradecatlabs-fatecat.hf.space/docs
+- Health: https://tradecatlabs-fatecat.hf.space/health
+- Report systems: https://tradecatlabs-fatecat.hf.space/api/v1/report/systems
+- Location search: https://tradecatlabs-fatecat.hf.space/api/v1/locations?q=北京&mode=domestic&limit=8
+- Source: https://github.com/tradecatlabs/fatecat
+- Hugging Face: https://huggingface.co/spaces/tradecatlabs/fatecat
+
+## Web Report Contract
+
+The public Web form generates one Markdown report per request. Supported Web report systems are:
+
+- `bazi`: 综合八字
+- `ziwei`: 紫微斗数
+
+Required Web fields:
+
+- `birthDate`: `YYYY-MM-DD`
+- `birthTime`: `HH:MM` or `HH:MM:SS`
+- `birthPlace`: complete human-readable place name selected from location candidates
+- `locationId`: stable location identifier returned by the location API
+- `gender`: `male` or `female`
+
+Optional Web fields:
+
+- `reportSystem`: defaults to `bazi`
+- `name`: defaults to 命主 in the report title
+
+The Web form currently uses `locationMode=domestic` and `timeBasis=beijing_time`. API consumers may use the broader location and time contracts exposed by OpenAPI.
+
+## Location Resolution
+
+Use `GET /api/v1/locations?q={query}&mode=domestic&limit=8` for fuzzy candidate retrieval. One Chinese character is accepted. Submit the selected candidate's complete `displayName` and stable `locationId`; do not guess among duplicate place names.
+
+Location facts include WGS84 coordinates, IANA timezone, coordinate precision and source metadata. They are used by the server for time normalization and true solar time calculation.
+
+Observed public Hugging Face Space latency on 2026-07-13 from the project development host:
+
+- The Web client waits 100 ms after the latest input before sending a request.
+- Public API warm round trip, 25 successful one-character queries: 344 ms median, 348 ms mean, 381 ms p95 and 382 ms maximum.
+- A fresh connection sample took 1.144 s total, including approximately 785 ms for TLS establishment.
+
+The public endpoint is rate limited. Clients should debounce input, cancel stale requests and honor HTTP 429 responses. The API measurements describe the public HF Space from one network vantage point. Browser input-to-candidate latency must be remeasured after deployment of the 100 ms debounce; these figures are not a latency SLA.
+
+## Asynchronous Web Report Jobs
+
+1. Submit: `POST /api/v1/report/jobs/web`
+2. Poll: `GET /api/v1/report/jobs/{job_id}`
+3. Cancel: `POST /api/v1/report/jobs/{job_id}/cancel`
+
+Successful Web jobs return Markdown, policy gate, snapshot gate, normalized input and structured workbench data. The canonical report renderer is `report_generator.generate_full_report(result, report_system)`.
+
+## Direct API Resources
+
+- `GET /api/v1/capabilities`
+- `GET /api/v1/providers`
+- `GET /api/v1/report/systems`
+- `POST /api/v1/report/markdown`
+- `POST /api/v1/report/jobs`
+- `GET /api/v1/report/jobs/{job_id}`
+- `GET /health`
+- `GET /live`
+- `GET /ready`
+- `GET /metrics`
+- `GET /docs`
+
+Consult OpenAPI at `/docs` for request and response schemas. Planned capabilities must not be represented as executable production capabilities.
+
+## Output and Evidence
+
+- Web output is copyable Markdown text.
+- Bazi and Ziwei are independent report systems and are not mixed in one default report.
+- Structured conclusions include evidence and risk boundaries where available.
+- The server, not the browser, owns calculation and report assembly.
+- Web, API and Telegram reuse the same capability and report paths.
+
+## Storage and Privacy
+
+- The free public Web entry does not write reports to the user-record database by default.
+- In-memory report jobs are temporary and may disappear after TTL expiry or Space restart.
+- FateCat does not automatically send birth input or generated reports to Gemini.
+- Users may manually copy Markdown and open the external Gemini Gem.
+- Do not submit secrets, tokens, private keys or unrelated personal data.
+
+## Risk Boundary
+
+FateCat output is for traditional-culture research, algorithm testing and entertainment reference. It does not provide deterministic future claims and does not replace medical, legal, financial or psychological professional advice.
+
+## Project Identity
+
+- English owner: TradeCat Labs｜FateCat 测算基础设施
+- Chinese owner: 交易猫实验室｜FateCat 测算基础设施
+- CA: 0x8a99b8d53eff6bc331af529af74ad267f3167777

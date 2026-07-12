@@ -162,6 +162,7 @@ rsync_common=(
     requirements.txt \
     requirements.lock.txt \
     LICENSE \
+    llms.txt \
     contracts \
     domains \
     infra/databases \

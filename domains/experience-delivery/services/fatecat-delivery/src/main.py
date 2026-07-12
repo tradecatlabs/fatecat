@@ -23,7 +23,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response
 
-from _paths import ASSETS_DIR, FATE_CORE_SRC_DIR, RUNTIME_DATABASE_DIR, get_env_file
+from _paths import ASSETS_DIR, FATE_CORE_SRC_DIR, REPO_ROOT, RUNTIME_DATABASE_DIR, get_env_file
 from branding import attach_branding, get_branding_payload, get_disclaimer_payload
 from service_config import cors_allow_origins, env_flag, env_int
 from utils.timezone import now_cn
@@ -1407,6 +1407,12 @@ async def receive_telegram_webhook(
 @app.get("/health")
 def health():
     return attach_branding({"status": "ok"})
+
+
+@app.get("/llms.txt", response_class=PlainTextResponse, include_in_schema=False)
+def llms_txt():
+    """返回面向 Agent 和抓取器的公开服务说明。"""
+    return PlainTextResponse((REPO_ROOT / "llms.txt").read_text(encoding="utf-8"), media_type="text/plain")
 
 
 @app.get("/live")
