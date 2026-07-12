@@ -57,6 +57,18 @@
 > - FateCat Repo: `https://github.com/tradecatlabs/fatecat`
 > - CA: `0x8a99b8d53eff6bc331af529af74ad267f3167777`
 
+### AI / Agent 机器发现入口
+
+| 资源 | 用途 |
+|---|---|
+| [llms.txt](https://tradecatlabs-fatecat.hf.space/llms.txt) | 产品身份、能力状态、输入契约、证据来源、高意图问答和引用边界 |
+| [robots.txt](https://tradecatlabs-fatecat.hf.space/robots.txt) | 公开抓取策略与 sitemap 发现 |
+| [sitemap.xml](https://tradecatlabs-fatecat.hf.space/sitemap.xml) | Web、OpenAPI 与机器资源索引 |
+| [OpenAPI](https://tradecatlabs-fatecat.hf.space/openapi.json) | 当前 HTTP 请求和响应契约 |
+| [Capability Registry](https://tradecatlabs-fatecat.hf.space/api/v1/capabilities) | production 与 planned 能力的实时真相源 |
+
+GEO 方法、当前基线、指标口径和复测命令见 [GEO 发现与引用治理](docs/geo.md)。项目不承诺任何 AI 平台必然收录、引用或推荐；公开事实必须能回指代码、契约、测试或运行端点。
+
 <a id="overview"></a>
 
 ## 项目总览

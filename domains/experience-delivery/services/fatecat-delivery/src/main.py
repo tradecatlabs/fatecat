@@ -21,10 +21,11 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Header, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
 
 from _paths import ASSETS_DIR, FATE_CORE_SRC_DIR, REPO_ROOT, RUNTIME_DATABASE_DIR, get_env_file
 from branding import attach_branding, get_branding_payload, get_disclaimer_payload
+from public_discovery import render_robots_txt, render_sitemap_xml
 from service_config import cors_allow_origins, env_flag, env_int
 from utils.timezone import now_cn
 from webhook_config_store import FernetWebhookConfigCodec, WebhookConfigStoreError
@@ -1409,10 +1410,40 @@ def health():
     return attach_branding({"status": "ok"})
 
 
+@app.get("/", include_in_schema=False)
+def public_root():
+    """把公共根入口永久引导到 Web 工作台。"""
+    return RedirectResponse(url="/web", status_code=308)
+
+
 @app.get("/llms.txt", response_class=PlainTextResponse, include_in_schema=False)
 def llms_txt():
     """返回面向 Agent 和抓取器的公开服务说明。"""
-    return PlainTextResponse((REPO_ROOT / "llms.txt").read_text(encoding="utf-8"), media_type="text/plain")
+    return PlainTextResponse(
+        (REPO_ROOT / "llms.txt").read_text(encoding="utf-8"),
+        media_type="text/plain",
+        headers={"Cache-Control": "public, max-age=300"},
+    )
+
+
+@app.get("/robots.txt", response_class=PlainTextResponse, include_in_schema=False)
+def robots_txt():
+    """返回搜索与智能体抓取策略。"""
+    return PlainTextResponse(
+        render_robots_txt(),
+        media_type="text/plain",
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+def sitemap_xml():
+    """返回公开稳定资源的站点地图。"""
+    return Response(
+        content=render_sitemap_xml(),
+        media_type="application/xml",
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
 
 
 @app.get("/live")

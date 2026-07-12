@@ -272,3 +272,5 @@
 | 0154 | location-timezone-infrastructure | Done | P0 | 建立可审计、可复现的出生地点与历史时区基础设施：稳定地点契约、国内与全球地点解析、WGS84 坐标、IANA 时区、出生时间口径、原生 Web 交互和完整回归门禁。 | 0154-location-timezone-infrastructure/ |
 
 | 0155 | measurement-infrastructure-foundation-hardening | In Progress | P0 | 全面修复当前测算基础设施审查发现的本地可处理阻断项：线上渠道就绪隔离、可独立分发包、综合八字单一生产引擎、自动 CI 与发布证明、供应链/导出卫生、治理文档和性能基线；真实专家评审与外部生产凭证保持为不可伪造外部门禁。 | 0155-measurement-infrastructure-foundation-hardening/ |
+
+| 0156 | fatecat-geo-discovery-optimization | In Progress | P0 | 基于固定 GEO 方法与公开证据，审计并提升 FateCat 在 AI 搜索、问答引擎和智能体生态中的可发现性、可解析性、可引用性与可信度，落地机器发现入口、实体结构、事实底座和可重复验证门禁。 | 0156-fatecat-geo-discovery-optimization/ |

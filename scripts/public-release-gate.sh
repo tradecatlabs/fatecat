@@ -100,6 +100,9 @@ fi
 readiness_args=(--skip-bootstrap)
 if [[ -n "${api_url}" ]]; then
   readiness_args+=(--api-url "${api_url}")
+  run_step "GEO discovery audit" "${python_bin}" "${script_dir}/geo-audit.py" \
+    --base-url "${api_url}" \
+    --output-json "${output_dir}/geo-discovery-audit.json"
 fi
 
 run_step "production readiness" env \

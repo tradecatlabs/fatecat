@@ -423,6 +423,7 @@ run_quick() {
       tests/regression/test_evaluation_history_diff.py \
       tests/regression/test_evaluation_runner.py \
       tests/regression/test_evaluation_trend_gate.py \
+      tests/regression/test_geo_discovery.py \
       tests/regression/test_external_secret_provider_gate.py \
       tests/regression/test_mingli_bench_aggregate_gate.py \
       tests/regression/test_mingli_bench_gate.py \

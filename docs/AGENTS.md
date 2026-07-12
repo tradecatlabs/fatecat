@@ -9,6 +9,7 @@
 ```text
 docs/
 ├── AGENTS.md
+├── geo.md
 ├── deployment/
 │   └── huggingface-space.md
 └── reference-materials/
@@ -27,6 +28,7 @@ docs/
 
 - `reference-materials/`：原项目文档资产的企业根归位入口，按 architecture、operations、reference、roadmap、vendor、incident 和 lessons 分类。
 - `deployment/`：面向用户和维护者的云端部署说明；当前承载 Hugging Face Space 自助部署路径。
+- `geo.md`：公开机器发现、实体引用、GEO 基线、指标口径与复测命令；不保存无法验证的平台排名或引用承诺。
 - 事故、任务、门禁和 baseline 证据迁入 `governance/`。
 
 ## 依赖方向

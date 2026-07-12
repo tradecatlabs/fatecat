@@ -16,6 +16,7 @@ from tabulate import tabulate
 
 from branding import get_branding_payload
 from prediction_systems import PREDICTION_SYSTEMS
+from public_discovery import DISCOVERY_UPDATED_ON, public_base_url, schema_org_json
 from utils.timezone import now_cn
 from web_forms import WebReportForm, WebReportJobView, WebReportResult
 from web_report_service import build_web_report_result
@@ -83,13 +84,22 @@ def _render_document(
     job: WebReportJobView | None,
 ) -> str:
     generated_at = now_cn().isoformat()
+    canonical_url = f"{public_base_url()}/web"
     body_parts = [
         "<!doctype html>",
         '<html lang="zh-CN">',
         "<head>",
         '<meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
+        '<meta name="description" content="FateCat 是 TradeCat Labs 面向 Agent 与应用开发者的测算基础设施，提供综合八字、紫微斗数、统一能力协议、证据化解释和多端交付接口。">',
+        '<meta name="author" content="TradeCat Labs">',
+        f'<meta name="date" content="{DISCOVERY_UPDATED_ON}">',
+        '<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">',
+        f'<link rel="canonical" href="{_attr(canonical_url)}">',
         '<link rel="alternate" type="text/plain" href="/llms.txt" title="FateCat llms.txt">',
+        '<link rel="sitemap" type="application/xml" href="/sitemap.xml" title="FateCat sitemap">',
+        '<link rel="alternate" type="application/json" href="/api/v1/capabilities" title="FateCat capabilities">',
+        '<script type="application/ld+json">' + schema_org_json() + "</script>",
         "<title>faetcat</title>",
         "</head>",
         "<body>",

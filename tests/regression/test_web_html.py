@@ -68,6 +68,10 @@ def test_web_page_renders_semantic_form():
     assert "<title>faetcat</title>" in text
     assert "<h1>faetcat</h1>" in text
     assert '<link rel="alternate" type="text/plain" href="/llms.txt" title="FateCat llms.txt">' in text
+    assert '<link rel="canonical" href="https://tradecatlabs-fatecat.hf.space/web">' in text
+    assert '<meta name="description"' in text
+    assert '<meta name="author" content="TradeCat Labs">' in text
+    assert '<script type="application/ld+json">' in text
     assert '<h2 id="project-brand">项目与页面信息</h2>' in text
     assert_psql_row(text, "项目归属", "TradeCat Labs｜FateCat 测算基础设施")
     assert_psql_row(text, "项目归属", "交易猫实验室｜FateCat 测算基础设施")
@@ -155,11 +159,15 @@ def test_llms_txt_exposes_machine_contract_and_is_shipped_to_hf():
     assert "`locationId`" in text
     assert "Public API warm round trip" in text
     assert "344 ms median" in text
-    assert "waits 100 ms" in text
-    assert "Browser input-to-candidate rendering after deployment" in text
+    assert "Web input debounce: 100 ms" in text
+    assert "Browser input-to-candidate rendering" in text
     assert "459 ms median" in text
-    assert "first browser query after the Space rebuild took 4.51 s" in text
+    assert "First browser query after a Space rebuild: 4.51 s" in text
     assert "not a latency SLA" in text
+    assert "## Canonical Identity" in text
+    assert "## Availability Matrix" in text
+    assert "## High-Intent Questions and Answers" in text
+    assert "## Citation Guidance" in text
 
     deploy_script = (ROOT / "scripts" / "hf-space-deploy.sh").read_text(encoding="utf-8")
     assert re.search(r"\n\s+llms\.txt\s+\\", deploy_script)
