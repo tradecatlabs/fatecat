@@ -2,7 +2,7 @@
 
 # Global Standards
 - [x] 方法、事实来源、外部指标边界和最小实现已记录。
-- [ ] quick CI、governance strict、GitHub Actions 与 HF 线上 audit 通过。
+- [x] quick CI、governance strict、GitHub Actions 与 HF 线上 audit 通过。
 
 # Task Package Checklists
 ## TP-01
@@ -21,6 +21,6 @@
 - Gate: 无关键词堆砌、未实现能力或文档漂移。
 
 ## TP-04
-- [ ] 完整审查、提交、部署与线上复测待完成。
+- [x] 完整审查、提交、部署与线上复测已完成。
 - Verify: quick CI、GitHub Actions、HF runtime SHA 与 live audit。
 - Gate: 所有本地可验证项通过，外部指标保持 pending。
