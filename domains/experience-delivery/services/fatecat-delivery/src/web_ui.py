@@ -221,7 +221,6 @@ def _render_header_panel(*, generated_at: str, has_result: bool, has_errors: boo
         )
     rows = [
         ["CA", branding["ca"]],
-        ["项目归属", branding["heroTitle"]],
         ["项目归属", "交易猫实验室｜FateCat 测算基础设施"],
         ["项目定位", branding["sponsorText"]],
         ["核心能力", branding["tagline"]],

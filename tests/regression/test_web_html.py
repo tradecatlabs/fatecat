@@ -73,7 +73,6 @@ def test_web_page_renders_semantic_form():
     assert '<meta name="author" content="TradeCat Labs">' in text
     assert '<script type="application/ld+json">' in text
     assert '<h2 id="project-brand">项目与页面信息</h2>' in text
-    assert_psql_row(text, "项目归属", "TradeCat Labs｜FateCat 测算基础设施")
     assert_psql_row(text, "项目归属", "交易猫实验室｜FateCat 测算基础设施")
     assert_psql_row(text, "项目定位", "FateCat 是面向 Agent 与应用开发者的测算基础设施。")
     assert_psql_row(text, "核心能力", "提供统一的能力协议、可复现计算核心、证据化解释层和多端交付接口。")
@@ -81,7 +80,7 @@ def test_web_page_renders_semantic_form():
     assert text.index("| CA") < text.index("| 项目归属")
     assert_psql_row(text, "页面说明", "使用原生 HTML 表单生成标准命理排盘 Markdown 报告；公开入口优先走异步任务。")
     assert "<h3>全部链接</h3>" in text
-    assert "TradeCat Labs｜FateCat 测算基础设施" in text
+    assert "TradeCat Labs｜FateCat 测算基础设施" not in text
     assert "FateCat 是面向 Agent 与应用开发者的测算基础设施。" in text
     assert "https://dexscreener.com/bsc/0x8a99b8d53eff6bc331af529af74ad267f3167777" in text
     assert "https://x.com/tradecatlabs" in text
