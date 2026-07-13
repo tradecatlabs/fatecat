@@ -2,7 +2,7 @@
 
 # Global Standards
 - [x] 第三阶段方法、事实来源、边界和最小实现已记录。
-- [ ] quick CI、governance strict、GitHub Actions 与 HF 线上 audit 通过。
+- [x] quick CI、governance strict、GitHub Actions 与 HF 线上 audit 通过。
 
 # Task Package Checklists
 ## TP-01
@@ -26,6 +26,6 @@
 - Gate: 无文档漂移或低质量内容扩散。
 
 ## TP-05
-- [ ] 完整审查、提交、部署与线上复测待完成。
+- [x] 完整审查、提交、部署与线上复测已完成。
 - Verify: quick CI、GitHub Actions、HF runtime SHA 与 live audit。
 - Gate: 本地可验证项全通过，外部指标保持 pending。

@@ -23,6 +23,13 @@
 # Ship Readiness
 - 本地门禁、GitHub Actions、HF runtime 和线上 audit 有真实证据后完成。
 
+# Verified Evidence
+- 本地独占 Quick CI：463 passed；测试后 vendor health 通过。
+- GitHub Actions：`https://github.com/tradecatlabs/fatecat/actions/runs/29267472907`，精确验证实现提交 `9531d142d86589528c5779b9e0f067a8b3d00c4f`。
+- HF Space：提交 `64db1a27b151c35991c6b102d22570f4a5ef1c8e`，运行状态 `RUNNING`。
+- 线上 GEO audit：70/70，100%；`llms.txt` 与 query set 分别和仓库源文件哈希一致。
+- 非准入能力 `almanac`、`meihua`、`liuyao` 和未知 guide 均返回 404。
+
 # Task Package Acceptance
 - TP-01：差距和最小充分方案可追溯。
 - TP-02：两个旗舰能力页通过回归。

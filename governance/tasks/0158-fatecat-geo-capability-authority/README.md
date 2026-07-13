@@ -2,7 +2,7 @@
 - Task ID: `0158`
 - Slug: `fatecat-geo-capability-authority`
 - Objective: 为综合八字与紫微斗数建立独立可引用权威页，并建立可重复的 AI 问答采样基线。
-- Status: `In Progress`
+- Status: `Done`
 
 ## In Scope
 - 新增 `/guides/bazi` 与 `/guides/ziwei` 服务端语义 HTML 页面。
