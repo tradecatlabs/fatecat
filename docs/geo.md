@@ -22,6 +22,12 @@ FateCat 的 GEO 目标是提高公开项目被搜索引擎、AI 问答系统和 
 | 作者与新鲜度 | Web 缺作者与更新时间 | author 与 date 元数据 | HTML 断言 |
 | 可重复验证 | 无 GEO 专项命令 | 本地/线上统一 JSON 审计 | `scripts/geo-audit.py` |
 
+## 第二阶段：可引用权威页
+
+第一阶段解决“能否被发现”，第二阶段解决“发现后是否有可独立引用的正文”。`/about` 是无 CSS、服务端直出的公开权威说明页，包含答案前置摘要、项目事实、实时 capability 生命周期表、计算与解释边界、Agent 接入步骤、来源复核入口、可见 FAQ、风险与隐私边界。页面正文与 `TechArticle`、`FAQPage` JSON-LD 共用同一问答事实源，避免结构化数据与用户可见内容不一致。
+
+GitHub 仓库元数据必须同步维护项目描述、公开主页和主题标签；它们用于仓库发现，不替代 README、`llms.txt`、实时注册表或源码证据。任何标签都必须描述项目真实能力，禁止添加未实现体系或泛化流量词。
+
 ## 事实与实体模型
 
 规范实体包括 TradeCat Labs、FateCat、FateCat Web 和公开站点。关系只使用公开证据：TradeCat Labs 发布 FateCat；FateCat 提供 capability、evidence 与多端交付；Web 暴露独立的综合八字和紫微报告。`contracts/fate/capabilities/registry.json` 是能力生命周期真相源，`llms.txt` 不得把 `planned` 写成已实现。
@@ -69,7 +75,7 @@ bash scripts/public-release-gate.sh \
 
 ## 复测与迭代
 
-1. capability 生命周期、公开 URL、品牌身份、隐私策略或输出边界变化时，同步更新 `llms.txt`、JSON-LD、README 和 sitemap。
+1. capability 生命周期、公开 URL、品牌身份、隐私策略或输出边界变化时，同步更新 `/about`、`llms.txt`、JSON-LD、README 和 sitemap。
 2. 每次部署后运行线上 GEO 审计，保存 JSON 证据并比较失败项。
 3. 每月审查高意图问题覆盖；只有存在真实用户需求和可靠来源时才新增内容。
 4. 有访问日志和平台所有权后接入 crawler、索引与流量指标；没有数据时保持“外部连通验证待执行”。

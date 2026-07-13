@@ -17,7 +17,7 @@ for source_root in (DELIVERY_SRC, FATE_CORE_SRC):
         sys.path.insert(0, str(source_root))
 
 from main import app  # noqa: E402
-from public_discovery import public_base_url, schema_org_graph  # noqa: E402
+from public_discovery import PUBLIC_FAQS, about_schema_org_graph, public_base_url, schema_org_graph  # noqa: E402
 
 
 def test_public_root_redirects_permanently_to_web():
@@ -48,10 +48,11 @@ def test_sitemap_is_parseable_and_contains_canonical_resources():
     namespace = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9"}
     urls = {node.text for node in root.findall("s:url/s:loc", namespace)}
     assert "https://tradecatlabs-fatecat.hf.space/web" in urls
+    assert "https://tradecatlabs-fatecat.hf.space/about" in urls
     assert "https://tradecatlabs-fatecat.hf.space/llms.txt" in urls
     assert "https://tradecatlabs-fatecat.hf.space/openapi.json" in urls
     assert "https://tradecatlabs-fatecat.hf.space/api/v1/capabilities" in urls
-    assert len(urls) == 7
+    assert len(urls) == 8
 
 
 def test_web_exposes_canonical_metadata_and_schema_org_graph():
@@ -68,6 +69,57 @@ def test_web_exposes_canonical_metadata_and_schema_org_graph():
     payload = json.loads(match.group(1))
     graph_types = {item["@type"] for item in payload["@graph"]}
     assert graph_types == {"Organization", "SoftwareApplication", "WebSite", "WebApplication"}
+
+
+def test_about_page_is_answer_first_traceable_and_schema_aligned():
+    response = TestClient(app).get("/about")
+
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "public, max-age=300"
+    assert '</llms.txt>; rel="alternate"; type="text/plain"' in response.headers["link"]
+    text = response.text
+    assert '<link rel="canonical" href="https://tradecatlabs-fatecat.hf.space/about">' in text
+    assert "<main><article>" in text
+    assert "<strong>结论：</strong>" in text
+    assert "FateCat capability 生命周期与交付面" in text
+    assert "来源与复核入口" in text
+    assert "风险与隐私边界" in text
+    for forbidden in ("<style", " style=", " class="):
+        assert forbidden not in text
+    assert text.count("<h3>") == len(PUBLIC_FAQS)
+    for capability_id in ("bazi", "ziwei", "almanac", "meihua", "liuyao", "qimen"):
+        assert f"<code>{capability_id}</code>" in text
+
+    match = re.search(r'<script type="application/ld\+json">(.*?)</script>', text)
+    assert match
+    payload = json.loads(match.group(1))
+    by_type = {item["@type"]: item for item in payload["@graph"]}
+    assert "TechArticle" in by_type
+    assert "FAQPage" in by_type
+    assert len(by_type["FAQPage"]["mainEntity"]) == len(PUBLIC_FAQS)
+    visible_answers = {answer for _, answer in PUBLIC_FAQS}
+    schema_answers = {item["acceptedAnswer"]["text"] for item in by_type["FAQPage"]["mainEntity"]}
+    assert schema_answers == visible_answers
+
+
+def test_about_schema_contains_current_article_and_faq_entities():
+    payload = about_schema_org_graph()
+    graph_types = {item["@type"] for item in payload["@graph"]}
+
+    assert {"TechArticle", "FAQPage"} <= graph_types
+
+
+def test_about_page_does_not_depend_on_provider_health_payload(monkeypatch):
+    main_module = sys.modules["main"]
+
+    def fail_if_called():
+        raise AssertionError("公开说明页不得调用完整 provider health payload")
+
+    monkeypatch.setattr(main_module, "_capabilities_payload", fail_if_called)
+    response = TestClient(app).get("/about")
+
+    assert response.status_code == 200
+    assert "<code>bazi</code>" in response.text
 
 
 def test_public_base_url_accepts_self_hosting_and_rejects_paths(monkeypatch):
@@ -124,6 +176,7 @@ def test_llms_is_fact_first_and_distinguishes_production_from_planned():
     assert "Production in this registry" in text
     assert "planned and must not be described as implemented" in text
     assert "not a claim of scientific validity" in text
+    assert "https://tradecatlabs-fatecat.hf.space/about" in text
 
 
 def test_geo_audit_is_part_of_public_release_gate():

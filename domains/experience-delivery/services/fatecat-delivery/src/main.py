@@ -25,7 +25,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Red
 
 from _paths import ASSETS_DIR, FATE_CORE_SRC_DIR, REPO_ROOT, RUNTIME_DATABASE_DIR, get_env_file
 from branding import attach_branding, get_branding_payload, get_disclaimer_payload
-from public_discovery import render_robots_txt, render_sitemap_xml
+from public_discovery import render_about_html, render_robots_txt, render_sitemap_xml
 from service_config import cors_allow_origins, env_flag, env_int
 from utils.timezone import now_cn
 from webhook_config_store import FernetWebhookConfigCodec, WebhookConfigStoreError
@@ -902,6 +902,25 @@ def _capabilities_payload() -> dict[str, Any]:
     return {"capabilities": [_capability_item_payload(item, markdown_enabled_ids) for item in list_capabilities()]}
 
 
+def _public_about_capabilities_payload() -> list[dict[str, Any]]:
+    """返回说明页所需的静态生命周期字段，不执行 provider health。"""
+    markdown_enabled_ids = set(enabled_report_system_ids())
+    return [
+        {
+            "capabilityId": item.capability_id,
+            "name": item.name,
+            "status": item.status,
+            "maturity": {"level": item.maturity_level},
+            "surfaces": {
+                "capabilityApi": item.status == "production",
+                "markdownReport": item.capability_id in markdown_enabled_ids,
+                "webForm": item.capability_id in markdown_enabled_ids,
+            },
+        }
+        for item in list_capabilities()
+    ]
+
+
 def _provider_resource_payload(provider: Any) -> dict[str, Any]:
     metadata = provider.metadata().as_dict()
     provider_id = metadata["providerId"]
@@ -1423,6 +1442,18 @@ def llms_txt():
         (REPO_ROOT / "llms.txt").read_text(encoding="utf-8"),
         media_type="text/plain",
         headers={"Cache-Control": "public, max-age=300"},
+    )
+
+
+@app.get("/about", response_class=HTMLResponse, include_in_schema=False)
+def public_about():
+    """返回可抓取、可引用的项目能力与证据说明。"""
+    return HTMLResponse(
+        render_about_html(_public_about_capabilities_payload()),
+        headers={
+            "Cache-Control": "public, max-age=300",
+            "Link": '</llms.txt>; rel="alternate"; type="text/plain", </sitemap.xml>; rel="sitemap"',
+        },
     )
 
 

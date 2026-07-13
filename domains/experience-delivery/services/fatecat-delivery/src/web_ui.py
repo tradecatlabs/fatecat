@@ -205,6 +205,7 @@ def _render_header_panel(*, generated_at: str, has_result: bool, has_errors: boo
         ("GitHub", branding["githubUrl"]),
         ("Hugging Face", branding["huggingFaceUrl"]),
         ("免费 AI 分析入口（Gemini Gem）", branding["geminiGemUrl"]),
+        ("项目说明与常见问题", "/about"),
         ("AI / Agent 文档（llms.txt）", "/llms.txt"),
         ("页面：项目与页面信息", "#project-brand"),
         ("页面：参数控件", "#input-form"),

@@ -18,6 +18,7 @@ FateCat 是面向 Agent 与应用开发者的测算基础设施，提供统一�
 
 - 站点根入口：`/`（永久跳转到 `/web`）
 - Web 工作台：`/web`
+- 项目说明与常见问题：`/about`
 - AI / Agent 事实文档：`/llms.txt`
 - 抓取策略：`/robots.txt`
 - 站点地图：`/sitemap.xml`
@@ -48,6 +49,7 @@ FateCat 不会自动把用户输入或报告发送给 Gemini。
 ## 机器发现与引用边界
 
 - `/web` 服务端首屏包含 canonical、描述、作者、更新时间和 Schema.org JSON-LD，不依赖 JavaScript 才能读取核心身份。
+- `/about` 提供答案前置的项目事实、实时能力表、证据入口、接入步骤和可见 FAQ，并暴露与正文一致的 `TechArticle` 与 `FAQPage`。
 - `/llms.txt` 区分 Web 报告体系、production API capability 与 planned capability，并提供来源和引用建议。
 - `production` 表示存在可执行 provider 与仓库门禁，不表示传统命理具备科学预测效力。
 - 项目只能提高公开内容被发现、理解和引用的概率，不能保证任何 AI 搜索或问答平台收录、引用或推荐。

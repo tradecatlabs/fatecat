@@ -85,6 +85,7 @@ def run_audit(base_url: str, *, timeout: float) -> dict[str, Any]:
     resources = {
         "root": fetch(base + "/", timeout=timeout, follow_redirects=False),
         "web": fetch(base + "/web", timeout=timeout),
+        "about": fetch(base + "/about", timeout=timeout),
         "llms": fetch(base + "/llms.txt", timeout=timeout),
         "robots": fetch(base + "/robots.txt", timeout=timeout),
         "sitemap": fetch(base + "/sitemap.xml", timeout=timeout),
@@ -94,6 +95,7 @@ def run_audit(base_url: str, *, timeout: float) -> dict[str, Any]:
         "providers": fetch(base + "/api/v1/providers", timeout=timeout),
     }
     web = resources["web"]
+    about = resources["about"]
     llms = resources["llms"]
     robots = resources["robots"]
     sitemap = resources["sitemap"]
@@ -112,12 +114,27 @@ def run_audit(base_url: str, *, timeout: float) -> dict[str, Any]:
         Check("web.llms_link", contains(web, 'href="/llms.txt"'), "/llms.txt"),
         Check("web.sitemap_link", contains(web, 'href="/sitemap.xml"'), "/sitemap.xml"),
         Check("web.json_ld", contains(web, 'type="application/ld+json"'), "Schema.org JSON-LD"),
+        Check("web.about_link", contains(web, 'href="/about"'), "/about"),
+        Check("about.http_200", about.status == 200, f"status={about.status}"),
+        Check("about.html", "text/html" in about.content_type, about.content_type),
+        Check(
+            "about.canonical",
+            contains(about, f'<link rel="canonical" href="{base}/about">'),
+            f"canonical={base}/about",
+        ),
+        Check("about.article", contains(about, "<main><article>"), "semantic main/article"),
+        Check("about.summary", contains(about, "<strong>结论：</strong>"), "answer-first summary"),
+        Check("about.capability_table", contains(about, "FateCat capability 生命周期与交付面"), "capability table"),
+        Check("about.sources", contains(about, "来源与复核入口"), "source ledger"),
+        Check("about.faq", contains(about, "<h2>常见问题</h2>"), "visible FAQ"),
+        Check("about.risk", contains(about, "风险与隐私边界"), "risk boundary"),
         Check("robots.http_200", robots.status == 200, f"status={robots.status}"),
         Check("robots.default_agent", contains(robots, "User-agent: *"), "User-agent: *"),
         Check("robots.sitemap", contains(robots, f"Sitemap: {base}/sitemap.xml"), f"{base}/sitemap.xml"),
         Check("sitemap.http_200", sitemap.status == 200, f"status={sitemap.status}"),
         Check("sitemap.xml", "application/xml" in sitemap.content_type, sitemap.content_type),
         Check("sitemap.web", contains(sitemap, f"<loc>{base}/web</loc>"), f"{base}/web"),
+        Check("sitemap.about", contains(sitemap, f"<loc>{base}/about</loc>"), f"{base}/about"),
         Check("sitemap.llms", contains(sitemap, f"<loc>{base}/llms.txt</loc>"), f"{base}/llms.txt"),
         Check("llms.http_200", llms.status == 200, f"status={llms.status}"),
         Check("llms.plain_text", "text/plain" in llms.content_type, llms.content_type),
@@ -177,6 +194,39 @@ def run_audit(base_url: str, *, timeout: float) -> dict[str, Any]:
         graph_types = {item.get("@type") for item in (json_ld or {}).get("@graph", []) if isinstance(item, dict)}
         required_types = {"Organization", "SoftwareApplication", "WebSite", "WebApplication"}
         checks.append(Check("web.json_ld_parseable", required_types <= graph_types, ",".join(sorted(graph_types))))
+
+    about_json_ld_match = re.search(r'<script type="application/ld\+json">(.*?)</script>', about.body, flags=re.DOTALL)
+    try:
+        about_json_ld = json.loads(about_json_ld_match.group(1)) if about_json_ld_match else None
+    except json.JSONDecodeError as exc:
+        checks.append(Check("about.json_ld_parseable", False, str(exc)))
+    else:
+        about_graph = (about_json_ld or {}).get("@graph", [])
+        about_types = {item.get("@type") for item in about_graph if isinstance(item, dict)}
+        faq_value = next(
+            (
+                item.get("mainEntity", [])
+                for item in about_graph
+                if isinstance(item, dict) and item.get("@type") == "FAQPage"
+            ),
+            [],
+        )
+        faq_items = faq_value if isinstance(faq_value, list) else []
+        checks.append(
+            Check(
+                "about.json_ld_parseable",
+                {"TechArticle", "FAQPage"} <= about_types,
+                ",".join(sorted(about_types)),
+            )
+        )
+        visible_faq_count = about.body.count("<section><h3>")
+        checks.append(
+            Check(
+                "about.faq_schema_alignment",
+                visible_faq_count >= 5 and len(faq_items) == visible_faq_count,
+                f"visible={visible_faq_count},schema={len(faq_items)}",
+            )
+        )
 
     passed = sum(check.ok for check in checks)
     failed = len(checks) - passed

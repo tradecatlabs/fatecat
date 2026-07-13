@@ -61,6 +61,7 @@
 
 | 资源 | 用途 |
 |---|---|
+| [项目说明与常见问题](https://tradecatlabs-fatecat.hf.space/about) | 项目定位、实时能力、证据边界、Agent 接入步骤与可引用 FAQ |
 | [llms.txt](https://tradecatlabs-fatecat.hf.space/llms.txt) | 产品身份、能力状态、输入契约、证据来源、高意图问答和引用边界 |
 | [robots.txt](https://tradecatlabs-fatecat.hf.space/robots.txt) | 公开抓取策略与 sitemap 发现 |
 | [sitemap.xml](https://tradecatlabs-fatecat.hf.space/sitemap.xml) | Web、OpenAPI 与机器资源索引 |
