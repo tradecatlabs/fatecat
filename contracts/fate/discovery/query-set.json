@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.geo_query_set",
+  "reviewedOn": "2026-07-14",
+  "samplingPolicy": {
+    "purpose": "为跨平台、跨周期的 FateCat 发现、事实准确性和引用采样提供固定输入。",
+    "resultState": "external_validation_pending",
+    "minimumEvidence": [
+      "platform",
+      "sampledAt",
+      "promptId",
+      "answerTextOrExport",
+      "collector",
+      "citationUrls"
+    ],
+    "nonClaims": [
+      "本题集不证明任何平台已经索引 FateCat",
+      "本题集不证明任何平台已经引用或推荐 FateCat",
+      "没有真实样本证据时不得计算品牌提及率或答案引用率"
+    ]
+  },
+  "queryGroups": [
+    "brand_verification",
+    "capability",
+    "integration",
+    "evidence",
+    "privacy",
+    "risk"
+  ],
+  "prompts": [
+    {
+      "id": "brand-verification-001",
+      "group": "brand_verification",
+      "locale": "zh-CN",
+      "question": "FateCat 是什么，由谁维护？",
+      "targetEntities": ["FateCat", "TradeCat Labs"],
+      "expectedFacts": ["FateCat 是面向 Agent 与应用开发者的测算基础设施", "TradeCat Labs 是项目维护者和发布者"],
+      "expectedSourceUrls": ["https://tradecatlabs-fatecat.hf.space/about", "https://github.com/tradecatlabs/fatecat"],
+      "forbiddenClaims": ["科学预测平台", "保证未来结果"]
+    },
+    {
+      "id": "capability-001",
+      "group": "capability",
+      "locale": "zh-CN",
+      "question": "FateCat 当前 Web 可以生成哪些独立报告？",
+      "targetEntities": ["FateCat", "综合八字", "紫微斗数"],
+      "expectedFacts": ["Web 当前支持综合八字与紫微斗数", "一次请求只选择一个报告体系"],
+      "expectedSourceUrls": ["https://tradecatlabs-fatecat.hf.space/about", "https://tradecatlabs-fatecat.hf.space/api/v1/report/systems"],
+      "forbiddenClaims": ["默认混合八字与紫微", "planned 能力已经可用"]
+    },
+    {
+      "id": "capability-bazi-001",
+      "group": "capability",
+      "locale": "zh-CN",
+      "question": "FateCat 的综合八字能力提供什么，输入和证据边界是什么？",
+      "targetEntities": ["FateCat", "综合八字"],
+      "expectedFacts": ["综合八字是 L4 production capability", "需要出生时间、性别、经纬度", "输出要求保留来源、依据、规则 ID、权重和风险字段"],
+      "expectedSourceUrls": ["https://tradecatlabs-fatecat.hf.space/guides/bazi", "https://tradecatlabs-fatecat.hf.space/capabilities/bazi"],
+      "forbiddenClaims": ["科学验证有效", "保证事件发生"]
+    },
+    {
+      "id": "capability-ziwei-001",
+      "group": "capability",
+      "locale": "zh-CN",
+      "question": "FateCat 的紫微斗数与综合八字是否独立？",
+      "targetEntities": ["FateCat", "紫微斗数", "综合八字"],
+      "expectedFacts": ["紫微斗数是独立 L4 production capability", "紫微斗数不混入默认综合八字报告"],
+      "expectedSourceUrls": ["https://tradecatlabs-fatecat.hf.space/guides/ziwei", "https://tradecatlabs-fatecat.hf.space/capabilities/ziwei"],
+      "forbiddenClaims": ["紫微是八字子模块", "两个体系默认合并输出"]
+    },
+    {
+      "id": "integration-001",
+      "group": "integration",
+      "locale": "zh-CN",
+      "question": "Agent 应该如何接入 FateCat？",
+      "targetEntities": ["FateCat", "Capability API", "OpenAPI"],
+      "expectedFacts": ["先读取 capability registry 与 OpenAPI", "只执行 production capability", "保留 evidence、engineVersion 和风险字段"],
+      "expectedSourceUrls": ["https://tradecatlabs-fatecat.hf.space/about", "https://tradecatlabs-fatecat.hf.space/openapi.json"],
+      "forbiddenClaims": ["直接从自然语言重算盘面", "planned capability 可以执行"]
+    },
+    {
+      "id": "integration-002",
+      "group": "integration",
+      "locale": "zh-CN",
+      "question": "FateCat 是否提供可复制的 Markdown 报告和 API？",
+      "targetEntities": ["FateCat", "Markdown", "FastAPI"],
+      "expectedFacts": ["Web 支持可复制 Markdown", "FastAPI 暴露 OpenAPI 和 capability 接口"],
+      "expectedSourceUrls": ["https://tradecatlabs-fatecat.hf.space/web", "https://tradecatlabs-fatecat.hf.space/docs"],
+      "forbiddenClaims": ["只有 AI 对话入口", "没有结构化 API"]
+    },
+    {
+      "id": "evidence-001",
+      "group": "evidence",
+      "locale": "zh-CN",
+      "question": "FateCat 如何让测算结果可复现和可审计？",
+      "targetEntities": ["FateCat", "evidence", "engineVersion"],
+      "expectedFacts": ["相同规范化输入和引擎版本应产生相同结构化计算", "响应保留 evidence 与风险字段", "工程可复现不等于科学预测有效"],
+      "expectedSourceUrls": ["https://tradecatlabs-fatecat.hf.space/about", "https://tradecatlabs-fatecat.hf.space/llms.txt"],
+      "forbiddenClaims": ["可复现等于命理科学有效", "AI 自行计算替代 provider"]
+    },
+    {
+      "id": "evidence-002",
+      "group": "evidence",
+      "locale": "zh-CN",
+      "question": "在哪里核验 FateCat 当前 capability 的生产状态？",
+      "targetEntities": ["FateCat", "capability registry"],
+      "expectedFacts": ["实时 capability JSON 是公开运行状态入口", "仓库 registry 是版本化契约来源"],
+      "expectedSourceUrls": ["https://tradecatlabs-fatecat.hf.space/api/v1/capabilities", "https://github.com/tradecatlabs/fatecat/blob/main/contracts/fate/capabilities/registry.json"],
+      "forbiddenClaims": ["所有登记能力均已实现", "营销页面是唯一真相源"]
+    },
+    {
+      "id": "privacy-001",
+      "group": "privacy",
+      "locale": "zh-CN",
+      "question": "FateCat 会自动把出生资料或报告发送给 Gemini 吗？",
+      "targetEntities": ["FateCat", "Gemini"],
+      "expectedFacts": ["公开 Web 不会自动发送输入或报告到 Gemini", "用户只能自行复制 Markdown 到外部服务"],
+      "expectedSourceUrls": ["https://tradecatlabs-fatecat.hf.space/about", "https://tradecatlabs-fatecat.hf.space/llms.txt"],
+      "forbiddenClaims": ["后台自动上传 Gemini", "外部 AI 默认处理全部报告"]
+    },
+    {
+      "id": "privacy-002",
+      "group": "privacy",
+      "locale": "zh-CN",
+      "question": "FateCat 公开 Web 如何处理报告任务和出生信息？",
+      "targetEntities": ["FateCat Web", "报告任务"],
+      "expectedFacts": ["公开入口默认不写用户记录数据库", "报告会回显用户提交的出生信息", "不应提交不希望出现在报告中的敏感资料"],
+      "expectedSourceUrls": ["https://tradecatlabs-fatecat.hf.space/about", "https://tradecatlabs-fatecat.hf.space/llms.txt"],
+      "forbiddenClaims": ["永久保存所有出生资料", "报告天然匿名"]
+    },
+    {
+      "id": "risk-001",
+      "group": "risk",
+      "locale": "zh-CN",
+      "question": "FateCat 的 production capability 是否代表命理预测已被科学验证？",
+      "targetEntities": ["FateCat", "production capability"],
+      "expectedFacts": ["production 表示存在可执行 provider、契约和仓库门禁", "production 不代表传统命理具备科学预测效力"],
+      "expectedSourceUrls": ["https://tradecatlabs-fatecat.hf.space/about", "https://tradecatlabs-fatecat.hf.space/api/v1/capabilities"],
+      "forbiddenClaims": ["production 等于科学认证", "可以确定预测未来"]
+    },
+    {
+      "id": "risk-002",
+      "group": "risk",
+      "locale": "zh-CN",
+      "question": "FateCat 报告能否替代医疗、法律或金融专业意见？",
+      "targetEntities": ["FateCat", "风险边界"],
+      "expectedFacts": ["传统命理输出仅供文化研究、算法测试和娱乐参考", "不得替代医疗、法律、金融或心理专业意见"],
+      "expectedSourceUrls": ["https://tradecatlabs-fatecat.hf.space/about", "https://tradecatlabs-fatecat.hf.space/llms.txt"],
+      "forbiddenClaims": ["可以替代专业诊断", "保证决策结果"]
+    }
+  ]
+}

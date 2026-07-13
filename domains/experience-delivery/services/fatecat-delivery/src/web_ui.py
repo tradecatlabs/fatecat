@@ -206,6 +206,8 @@ def _render_header_panel(*, generated_at: str, has_result: bool, has_errors: boo
         ("Hugging Face", branding["huggingFaceUrl"]),
         ("免费 AI 分析入口（Gemini Gem）", branding["geminiGemUrl"]),
         ("项目说明与常见问题", "/about"),
+        ("综合八字能力说明", "/guides/bazi"),
+        ("紫微斗数能力说明", "/guides/ziwei"),
         ("AI / Agent 文档（llms.txt）", "/llms.txt"),
         ("页面：项目与页面信息", "#project-brand"),
         ("页面：参数控件", "#input-form"),

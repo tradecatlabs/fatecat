@@ -389,6 +389,7 @@ run_quick() {
     --certification-json "${output_dir}/measurement-infrastructure-certification.json" \
     --output-json "${output_dir}/external-evidence-submission-readiness-audit.json" \
     --output-markdown "${output_dir}/EXTERNAL_EVIDENCE_SUBMISSION_READINESS_AUDIT.md"
+  run_step "GEO query set gate" "${python_bin}" "${script_dir}/geo-query-set-gate.py"
   run_step "ruff check" env RUFF_CACHE_DIR="${RUFF_CACHE_DIR:-/tmp/fatecat-ruff-cache}" \
     "${python_bin}" -m ruff check "${runtime_root}"
   run_step "ruff format check" env RUFF_CACHE_DIR="${RUFF_CACHE_DIR:-/tmp/fatecat-ruff-cache}" \

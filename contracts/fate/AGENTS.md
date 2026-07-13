@@ -38,6 +38,9 @@ contracts/fate/
 │   ├── sdk-release-baseline.json
 │   ├── sandbox.json
 │   └── AGENTS.md
+├── discovery/
+│   ├── AGENTS.md
+│   └── query-set.json
 ├── evaluations/
 │   ├── registry.json
 │   └── schemas/
@@ -69,6 +72,7 @@ contracts/fate/
 - `capabilities/errors.json`：标准错误码字典，服务层只负责读取和映射，不在业务代码里另起一套错误事实源。
 - `control-plane/`：控制面资源对账契约；把 Capability、Provider、ReleaseGate、EvaluationRun 纳入统一 spec/status/admission/drift 视图，只做发现和对账，不保存运行结果或生产凭证。
 - `control-plane/registry.json`：登记控制面资源来源、期望状态、准入策略、验证命令和当前状态口径；最终发布证明仍由 `current-release-proof` 等外部 gate 生成，不写回该 registry。
+- `discovery/`：公开发现与 GEO 效果验证契约；只定义稳定采样问题、预期事实、官方来源和禁止声明，不保存平台答案或伪造指标。
 - `audit/`：第三方审计交接契约；只登记 audit handoff bundle 输出结构、证据来源和外部待验证项策略，不保存真实生产证据或用户报告正文。
 - `audit/handoff.json`：审计包 generator 的机器真相源；要求 Markdown/JSON 输出完整列出 tracked 和 untracked non-ignored `外部连通验证待执行` occurrence。
 - `audit/dry-run.json`：审计包 dry-run verifier 的机器真相源；要求本地预检结构完整，同时在外部 live 证据缺失时保持 ship gate blocked。

@@ -19,11 +19,14 @@ FateCat 是面向 Agent 与应用开发者的测算基础设施，提供统一�
 - 站点根入口：`/`（永久跳转到 `/web`）
 - Web 工作台：`/web`
 - 项目说明与常见问题：`/about`
+- 综合八字能力说明：`/guides/bazi`
+- 紫微斗数能力说明：`/guides/ziwei`
 - AI / Agent 事实文档：`/llms.txt`
 - 抓取策略：`/robots.txt`
 - 站点地图：`/sitemap.xml`
 - OpenAPI JSON：`/openapi.json`
 - Capability 注册表：`/api/v1/capabilities`
+- GEO 问答采样题集：`/api/v1/discovery/query-set`
 - 健康检查：`/health`
 - Markdown API：`POST /api/v1/report/markdown`
 - 异步报告任务：`POST /api/v1/report/jobs`、`GET /api/v1/report/jobs/{job_id}`
@@ -50,6 +53,8 @@ FateCat 不会自动把用户输入或报告发送给 Gemini。
 
 - `/web` 服务端首屏包含 canonical、描述、作者、更新时间和 Schema.org JSON-LD，不依赖 JavaScript 才能读取核心身份。
 - `/about` 提供答案前置的项目事实、实时能力表、证据入口、接入步骤和可见 FAQ，并暴露与正文一致的 `TechArticle` 与 `FAQPage`。
+- `/guides/bazi` 与 `/guides/ziwei` 分别提供两个 L4/Web 旗舰 capability 的输入、引擎、证据、范围、边界与 FAQ；其他能力不自动生成页面。
+- `/api/v1/discovery/query-set` 公开固定采样问题、预期事实和官方来源，不包含或暗示任何 AI 平台真实结果。
 - `/llms.txt` 区分 Web 报告体系、production API capability 与 planned capability，并提供来源和引用建议。
 - `production` 表示存在可执行 provider 与仓库门禁，不表示传统命理具备科学预测效力。
 - 项目只能提高公开内容被发现、理解和引用的概率，不能保证任何 AI 搜索或问答平台收录、引用或推荐。

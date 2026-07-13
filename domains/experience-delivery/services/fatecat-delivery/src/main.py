@@ -12,6 +12,7 @@ from contextlib import asynccontextmanager, contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, field
 from datetime import datetime
+from functools import cache
 from pathlib import Path
 from threading import BoundedSemaphore, Lock
 from typing import Any
@@ -25,7 +26,13 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Red
 
 from _paths import ASSETS_DIR, FATE_CORE_SRC_DIR, REPO_ROOT, RUNTIME_DATABASE_DIR, get_env_file
 from branding import attach_branding, get_branding_payload, get_disclaimer_payload
-from public_discovery import render_about_html, render_robots_txt, render_sitemap_xml
+from public_discovery import (
+    PUBLIC_CAPABILITY_GUIDES,
+    render_about_html,
+    render_capability_guide_html,
+    render_robots_txt,
+    render_sitemap_xml,
+)
 from service_config import cors_allow_origins, env_flag, env_int
 from utils.timezone import now_cn
 from webhook_config_store import FernetWebhookConfigCodec, WebhookConfigStoreError
@@ -921,6 +928,31 @@ def _public_about_capabilities_payload() -> list[dict[str, Any]]:
     ]
 
 
+@cache
+def _public_capability_contracts() -> dict[str, dict[str, Any]]:
+    """读取版本化 capability 原始契约，供公开说明页展示完整静态字段。"""
+    path = REPO_ROOT / "contracts" / "fate" / "capabilities" / "registry.json"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    return {item["capabilityId"]: item for item in payload["capabilities"]}
+
+
+def _public_capability_guide_payload(capability_id: str) -> dict[str, Any] | None:
+    """只允许 L4 且已开放 Web 报告的旗舰 capability 生成公开说明页。"""
+    if capability_id not in PUBLIC_CAPABILITY_GUIDES or capability_id not in set(enabled_report_system_ids()):
+        return None
+    item = _public_capability_contracts().get(capability_id)
+    if not item or item.get("status") != "production" or item.get("maturity", {}).get("level") != "L4":
+        return None
+    return item
+
+
+@cache
+def _public_geo_query_set_payload() -> dict[str, Any]:
+    """读取已通过仓库门禁的公开 GEO 采样题集。"""
+    path = REPO_ROOT / "contracts" / "fate" / "discovery" / "query-set.json"
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 def _provider_resource_payload(provider: Any) -> dict[str, Any]:
     metadata = provider.metadata().as_dict()
     provider_id = metadata["providerId"]
@@ -1454,6 +1486,30 @@ def public_about():
             "Cache-Control": "public, max-age=300",
             "Link": '</llms.txt>; rel="alternate"; type="text/plain", </sitemap.xml>; rel="sitemap"',
         },
+    )
+
+
+@app.get("/guides/{capability_id}", response_class=HTMLResponse, include_in_schema=False)
+def public_capability_guide(capability_id: str):
+    """返回通过公开准入门槛的旗舰 capability 权威说明页。"""
+    capability = _public_capability_guide_payload(capability_id)
+    if capability is None:
+        raise HTTPException(status_code=404, detail="能力说明页不存在")
+    return HTMLResponse(
+        render_capability_guide_html(capability),
+        headers={
+            "Cache-Control": "public, max-age=300",
+            "Link": '</llms.txt>; rel="alternate"; type="text/plain", </sitemap.xml>; rel="sitemap"',
+        },
+    )
+
+
+@app.get("/api/v1/discovery/query-set", include_in_schema=False)
+def public_geo_query_set():
+    """返回不含平台结果的稳定 GEO 问答采样题集。"""
+    return JSONResponse(
+        content=_public_geo_query_set_payload(),
+        headers={"Cache-Control": "public, max-age=300"},
     )
 
 

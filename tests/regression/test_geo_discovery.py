@@ -17,7 +17,13 @@ for source_root in (DELIVERY_SRC, FATE_CORE_SRC):
         sys.path.insert(0, str(source_root))
 
 from main import app  # noqa: E402
-from public_discovery import PUBLIC_FAQS, about_schema_org_graph, public_base_url, schema_org_graph  # noqa: E402
+from public_discovery import (  # noqa: E402
+    PUBLIC_CAPABILITY_GUIDES,
+    PUBLIC_FAQS,
+    about_schema_org_graph,
+    public_base_url,
+    schema_org_graph,
+)
 
 
 def test_public_root_redirects_permanently_to_web():
@@ -49,10 +55,13 @@ def test_sitemap_is_parseable_and_contains_canonical_resources():
     urls = {node.text for node in root.findall("s:url/s:loc", namespace)}
     assert "https://tradecatlabs-fatecat.hf.space/web" in urls
     assert "https://tradecatlabs-fatecat.hf.space/about" in urls
+    assert "https://tradecatlabs-fatecat.hf.space/guides/bazi" in urls
+    assert "https://tradecatlabs-fatecat.hf.space/guides/ziwei" in urls
     assert "https://tradecatlabs-fatecat.hf.space/llms.txt" in urls
     assert "https://tradecatlabs-fatecat.hf.space/openapi.json" in urls
     assert "https://tradecatlabs-fatecat.hf.space/api/v1/capabilities" in urls
-    assert len(urls) == 8
+    assert "https://tradecatlabs-fatecat.hf.space/api/v1/discovery/query-set" in urls
+    assert len(urls) == 11
 
 
 def test_web_exposes_canonical_metadata_and_schema_org_graph():
@@ -89,6 +98,8 @@ def test_about_page_is_answer_first_traceable_and_schema_aligned():
     assert text.count("<h3>") == len(PUBLIC_FAQS)
     for capability_id in ("bazi", "ziwei", "almanac", "meihua", "liuyao", "qimen"):
         assert f"<code>{capability_id}</code>" in text
+    assert 'href="/guides/bazi"' in text
+    assert 'href="/guides/ziwei"' in text
 
     match = re.search(r'<script type="application/ld\+json">(.*?)</script>', text)
     assert match
@@ -122,6 +133,74 @@ def test_about_page_does_not_depend_on_provider_health_payload(monkeypatch):
     assert "<code>bazi</code>" in response.text
 
 
+def test_flagship_capability_guides_are_traceable_and_schema_aligned():
+    client = TestClient(app)
+    expected_engines = {"bazi": "fate-core-bazi-v1", "ziwei": "fate-core-ziwei-v1"}
+
+    for capability_id, guide in PUBLIC_CAPABILITY_GUIDES.items():
+        response = client.get(f"/guides/{capability_id}")
+        assert response.status_code == 200
+        assert response.headers["cache-control"] == "public, max-age=300"
+        text = response.text
+        canonical = f"https://tradecatlabs-fatecat.hf.space/guides/{capability_id}"
+        assert f'<link rel="canonical" href="{canonical}">' in text
+        assert "<main><article>" in text
+        assert "<strong>结论：</strong>" in text
+        assert "输入契约" in text
+        assert "证据与复现" in text
+        assert "边界与禁止声明" in text
+        assert f"<code>{expected_engines[capability_id]}</code>" in text
+        for field in ("birthDateTime", "longitude", "latitude"):
+            assert field in text
+        for forbidden in ("<style", " style=", " class="):
+            assert forbidden not in text
+        assert text.count("<section><h3>") == len(guide["faqs"])
+
+        match = re.search(r'<script type="application/ld\+json">(.*?)</script>', text)
+        assert match
+        payload = json.loads(match.group(1))
+        graph = payload["@graph"]
+        graph_types = {item["@type"] for item in graph}
+        assert {"TechArticle", "DefinedTerm", "BreadcrumbList", "FAQPage"} <= graph_types
+        faq = next(item for item in graph if item["@type"] == "FAQPage")
+        schema_answers = {item["acceptedAnswer"]["text"] for item in faq["mainEntity"]}
+        assert schema_answers == {answer for _, answer in guide["faqs"]}
+
+
+def test_only_l4_web_capabilities_have_public_guides():
+    client = TestClient(app)
+
+    for capability_id in ("almanac", "meihua", "liuyao", "qimen", "unknown"):
+        assert client.get(f"/guides/{capability_id}").status_code == 404
+
+
+def test_capability_guides_do_not_depend_on_provider_health(monkeypatch):
+    main_module = sys.modules["main"]
+
+    def fail_if_called(*args, **kwargs):  # noqa: ANN002, ANN003
+        raise AssertionError("公开能力说明页不得调用 provider health")
+
+    monkeypatch.setattr(main_module, "_capability_provider_payload", fail_if_called)
+    response = TestClient(app).get("/guides/bazi")
+
+    assert response.status_code == 200
+    assert "fate-core-bazi-v1" in response.text
+
+
+def test_geo_query_set_is_public_stable_and_contains_no_platform_results():
+    response = TestClient(app).get("/api/v1/discovery/query-set")
+
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "public, max-age=300"
+    payload = response.json()
+    source = json.loads((ROOT / "contracts/fate/discovery/query-set.json").read_text(encoding="utf-8"))
+    assert payload == source
+    assert payload["samplingPolicy"]["resultState"] == "external_validation_pending"
+    assert len(payload["prompts"]) == 12
+    result_keys = {"answer", "answerText", "brandMentioned", "brandRecommended", "rank"}
+    assert all(not (result_keys & set(prompt)) for prompt in payload["prompts"])
+
+
 def test_public_base_url_accepts_self_hosting_and_rejects_paths(monkeypatch):
     monkeypatch.setenv("FATE_PUBLIC_BASE_URL", "http://127.0.0.1:8001/")
     assert public_base_url() == "http://127.0.0.1:8001"
@@ -152,7 +231,7 @@ def test_schema_org_graph_contains_only_current_public_identity():
     assert by_type["Organization"]["alternateName"] == "交易猫实验室"
     assert by_type["SoftwareApplication"]["name"] == "FateCat"
     assert by_type["SoftwareApplication"]["codeRepository"] == "https://github.com/tradecatlabs/fatecat"
-    assert by_type["SoftwareApplication"]["dateModified"] == "2026-07-13"
+    assert by_type["SoftwareApplication"]["dateModified"] == "2026-07-14"
     assert "六爻" not in json.dumps(payload, ensure_ascii=False)
 
 
@@ -177,6 +256,8 @@ def test_llms_is_fact_first_and_distinguishes_production_from_planned():
     assert "planned and must not be described as implemented" in text
     assert "not a claim of scientific validity" in text
     assert "https://tradecatlabs-fatecat.hf.space/about" in text
+    assert "https://tradecatlabs-fatecat.hf.space/guides/bazi" in text
+    assert "https://tradecatlabs-fatecat.hf.space/guides/ziwei" in text
 
 
 def test_geo_audit_is_part_of_public_release_gate():
@@ -184,7 +265,9 @@ def test_geo_audit_is_part_of_public_release_gate():
     local_ci = (ROOT / "scripts" / "local-ci.sh").read_text(encoding="utf-8")
 
     assert '"${script_dir}/geo-audit.py"' in release_gate
+    assert '"${script_dir}/geo-query-set-gate.py"' in release_gate
     assert "tests/regression/test_geo_discovery.py" in local_ci
+    assert '"${script_dir}/geo-query-set-gate.py"' in local_ci
 
 
 def test_geo_audit_checks_redirect_and_capability_lifecycle_sets():

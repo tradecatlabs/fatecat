@@ -86,6 +86,8 @@ def run_audit(base_url: str, *, timeout: float) -> dict[str, Any]:
         "root": fetch(base + "/", timeout=timeout, follow_redirects=False),
         "web": fetch(base + "/web", timeout=timeout),
         "about": fetch(base + "/about", timeout=timeout),
+        "bazi_guide": fetch(base + "/guides/bazi", timeout=timeout),
+        "ziwei_guide": fetch(base + "/guides/ziwei", timeout=timeout),
         "llms": fetch(base + "/llms.txt", timeout=timeout),
         "robots": fetch(base + "/robots.txt", timeout=timeout),
         "sitemap": fetch(base + "/sitemap.xml", timeout=timeout),
@@ -93,9 +95,12 @@ def run_audit(base_url: str, *, timeout: float) -> dict[str, Any]:
         "docs": fetch(base + "/docs", timeout=timeout),
         "capabilities": fetch(base + "/api/v1/capabilities", timeout=timeout),
         "providers": fetch(base + "/api/v1/providers", timeout=timeout),
+        "query_set": fetch(base + "/api/v1/discovery/query-set", timeout=timeout),
     }
     web = resources["web"]
     about = resources["about"]
+    bazi_guide = resources["bazi_guide"]
+    ziwei_guide = resources["ziwei_guide"]
     llms = resources["llms"]
     robots = resources["robots"]
     sitemap = resources["sitemap"]
@@ -115,6 +120,8 @@ def run_audit(base_url: str, *, timeout: float) -> dict[str, Any]:
         Check("web.sitemap_link", contains(web, 'href="/sitemap.xml"'), "/sitemap.xml"),
         Check("web.json_ld", contains(web, 'type="application/ld+json"'), "Schema.org JSON-LD"),
         Check("web.about_link", contains(web, 'href="/about"'), "/about"),
+        Check("web.bazi_guide_link", contains(web, 'href="/guides/bazi"'), "/guides/bazi"),
+        Check("web.ziwei_guide_link", contains(web, 'href="/guides/ziwei"'), "/guides/ziwei"),
         Check("about.http_200", about.status == 200, f"status={about.status}"),
         Check("about.html", "text/html" in about.content_type, about.content_type),
         Check(
@@ -128,6 +135,26 @@ def run_audit(base_url: str, *, timeout: float) -> dict[str, Any]:
         Check("about.sources", contains(about, "来源与复核入口"), "source ledger"),
         Check("about.faq", contains(about, "<h2>常见问题</h2>"), "visible FAQ"),
         Check("about.risk", contains(about, "风险与隐私边界"), "risk boundary"),
+        Check("about.bazi_guide_link", contains(about, 'href="/guides/bazi"'), "/guides/bazi"),
+        Check("about.ziwei_guide_link", contains(about, 'href="/guides/ziwei"'), "/guides/ziwei"),
+        Check("bazi_guide.http_200", bazi_guide.status == 200, f"status={bazi_guide.status}"),
+        Check("bazi_guide.html", "text/html" in bazi_guide.content_type, bazi_guide.content_type),
+        Check(
+            "bazi_guide.canonical",
+            contains(bazi_guide, f'<link rel="canonical" href="{base}/guides/bazi">'),
+            f"canonical={base}/guides/bazi",
+        ),
+        Check("bazi_guide.summary", contains(bazi_guide, "<strong>结论：</strong>"), "answer-first summary"),
+        Check("bazi_guide.evidence", contains(bazi_guide, "证据与复现"), "evidence boundary"),
+        Check("ziwei_guide.http_200", ziwei_guide.status == 200, f"status={ziwei_guide.status}"),
+        Check("ziwei_guide.html", "text/html" in ziwei_guide.content_type, ziwei_guide.content_type),
+        Check(
+            "ziwei_guide.canonical",
+            contains(ziwei_guide, f'<link rel="canonical" href="{base}/guides/ziwei">'),
+            f"canonical={base}/guides/ziwei",
+        ),
+        Check("ziwei_guide.summary", contains(ziwei_guide, "<strong>结论：</strong>"), "answer-first summary"),
+        Check("ziwei_guide.evidence", contains(ziwei_guide, "证据与复现"), "evidence boundary"),
         Check("robots.http_200", robots.status == 200, f"status={robots.status}"),
         Check("robots.default_agent", contains(robots, "User-agent: *"), "User-agent: *"),
         Check("robots.sitemap", contains(robots, f"Sitemap: {base}/sitemap.xml"), f"{base}/sitemap.xml"),
@@ -135,6 +162,12 @@ def run_audit(base_url: str, *, timeout: float) -> dict[str, Any]:
         Check("sitemap.xml", "application/xml" in sitemap.content_type, sitemap.content_type),
         Check("sitemap.web", contains(sitemap, f"<loc>{base}/web</loc>"), f"{base}/web"),
         Check("sitemap.about", contains(sitemap, f"<loc>{base}/about</loc>"), f"{base}/about"),
+        Check("sitemap.bazi_guide", contains(sitemap, f"<loc>{base}/guides/bazi</loc>"), f"{base}/guides/bazi"),
+        Check(
+            "sitemap.ziwei_guide",
+            contains(sitemap, f"<loc>{base}/guides/ziwei</loc>"),
+            f"{base}/guides/ziwei",
+        ),
         Check("sitemap.llms", contains(sitemap, f"<loc>{base}/llms.txt</loc>"), f"{base}/llms.txt"),
         Check("llms.http_200", llms.status == 200, f"status={llms.status}"),
         Check("llms.plain_text", "text/plain" in llms.content_type, llms.content_type),
@@ -152,6 +185,16 @@ def run_audit(base_url: str, *, timeout: float) -> dict[str, Any]:
             f"status={resources['capabilities'].status}",
         ),
         Check("providers.http_200", resources["providers"].status == 200, f"status={resources['providers'].status}"),
+        Check(
+            "query_set.http_200",
+            resources["query_set"].status == 200,
+            f"status={resources['query_set'].status}",
+        ),
+        Check(
+            "query_set.json",
+            "application/json" in resources["query_set"].content_type,
+            resources["query_set"].content_type,
+        ),
     ]
 
     try:
@@ -182,6 +225,62 @@ def run_audit(base_url: str, *, timeout: float) -> dict[str, Any]:
                 "capabilities.planned_set",
                 planned_ids == {"liuyao", "qimen", "daliuren", "fengshui_nine_stars", "name_marriage"},
                 ",".join(sorted(planned_ids)),
+            )
+        )
+
+    for capability_id, resource in (("bazi", bazi_guide), ("ziwei", ziwei_guide)):
+        match = re.search(r'<script type="application/ld\+json">(.*?)</script>', resource.body, flags=re.DOTALL)
+        try:
+            payload = json.loads(match.group(1)) if match else None
+        except json.JSONDecodeError as exc:
+            checks.append(Check(f"{capability_id}_guide.json_ld_parseable", False, str(exc)))
+        else:
+            graph = (payload or {}).get("@graph", [])
+            graph_types = {item.get("@type") for item in graph if isinstance(item, dict)}
+            required = {"TechArticle", "DefinedTerm", "BreadcrumbList", "FAQPage"}
+            faq_value = next(
+                (item.get("mainEntity", []) for item in graph if item.get("@type") == "FAQPage"),
+                [],
+            )
+            visible_count = resource.body.count("<section><h3>")
+            checks.append(
+                Check(
+                    f"{capability_id}_guide.json_ld_parseable",
+                    required <= graph_types,
+                    ",".join(sorted(graph_types)),
+                )
+            )
+            checks.append(
+                Check(
+                    f"{capability_id}_guide.faq_schema_alignment",
+                    visible_count >= 4 and isinstance(faq_value, list) and len(faq_value) == visible_count,
+                    f"visible={visible_count},schema={len(faq_value) if isinstance(faq_value, list) else 0}",
+                )
+            )
+
+    try:
+        query_set_payload = json.loads(resources["query_set"].body)
+        query_prompts = query_set_payload["prompts"]
+        query_groups = set(query_set_payload["queryGroups"])
+        result_state = query_set_payload["samplingPolicy"]["resultState"]
+    except (json.JSONDecodeError, KeyError, TypeError) as exc:
+        checks.append(Check("query_set.contract_parseable", False, type(exc).__name__))
+    else:
+        expected_groups = {"brand_verification", "capability", "integration", "evidence", "privacy", "risk"}
+        checks.append(
+            Check(
+                "query_set.contract_parseable",
+                query_set_payload.get("kind") == "fatecat.geo_query_set"
+                and len(query_prompts) >= 12
+                and query_groups == expected_groups,
+                f"prompts={len(query_prompts)},groups={len(query_groups)}",
+            )
+        )
+        checks.append(
+            Check(
+                "query_set.external_pending",
+                result_state == "external_validation_pending",
+                result_state,
             )
         )
 

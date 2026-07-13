@@ -62,11 +62,14 @@
 | 资源 | 用途 |
 |---|---|
 | [项目说明与常见问题](https://tradecatlabs-fatecat.hf.space/about) | 项目定位、实时能力、证据边界、Agent 接入步骤与可引用 FAQ |
+| [综合八字能力说明](https://tradecatlabs-fatecat.hf.space/guides/bazi) | 综合八字输入、引擎、证据、范围、边界与独立 FAQ |
+| [紫微斗数能力说明](https://tradecatlabs-fatecat.hf.space/guides/ziwei) | 紫微斗数输入、引擎、证据、范围、边界与独立 FAQ |
 | [llms.txt](https://tradecatlabs-fatecat.hf.space/llms.txt) | 产品身份、能力状态、输入契约、证据来源、高意图问答和引用边界 |
 | [robots.txt](https://tradecatlabs-fatecat.hf.space/robots.txt) | 公开抓取策略与 sitemap 发现 |
 | [sitemap.xml](https://tradecatlabs-fatecat.hf.space/sitemap.xml) | Web、OpenAPI 与机器资源索引 |
 | [OpenAPI](https://tradecatlabs-fatecat.hf.space/openapi.json) | 当前 HTTP 请求和响应契约 |
 | [Capability Registry](https://tradecatlabs-fatecat.hf.space/api/v1/capabilities) | production 与 planned 能力的实时真相源 |
+| [GEO Query Set](https://tradecatlabs-fatecat.hf.space/api/v1/discovery/query-set) | 固定 AI 问答采样题集、预期事实、官方来源与禁止声明；不包含平台结果 |
 
 GEO 方法、当前基线、指标口径和复测命令见 [GEO 发现与引用治理](docs/geo.md)。项目不承诺任何 AI 平台必然收录、引用或推荐；公开事实必须能回指代码、契约、测试或运行端点。
 

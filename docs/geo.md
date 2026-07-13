@@ -1,6 +1,6 @@
 # FateCat GEO 发现与引用治理
 
-最后审阅：2026-07-13（Asia/Hong_Kong）
+最后审阅：2026-07-14（Asia/Hong_Kong）
 负责人：TradeCat Labs
 方法来源：`/home/lenovo/.projects/geo` 固定上游中的 `yao-geo-panorama-audit`、`yao-geo-page-audit`、`yao-geo-brand-graph`、`yao-geo-tracking` 与 `yao-geo-effect-monitor`。
 
@@ -28,6 +28,12 @@ FateCat 的 GEO 目标是提高公开项目被搜索引擎、AI 问答系统和 
 
 GitHub 仓库元数据必须同步维护项目描述、公开主页和主题标签；它们用于仓库发现，不替代 README、`llms.txt`、实时注册表或源码证据。任何标签都必须描述项目真实能力，禁止添加未实现体系或泛化流量词。
 
+## 第三阶段：旗舰能力权威页与采样基线
+
+项目总览无法独立承载每个能力的高意图问题。`/guides/bazi` 与 `/guides/ziwei` 只面向同时达到 L4、production 和 Web 可用的两个旗舰 capability，分别公开答案前置摘要、输入、引擎版本、确定性、证据要求、能力范围、禁止声明、来源和 FAQ。动态字段来自 capability registry；正文、`DefinedTerm`、`TechArticle`、`BreadcrumbList` 与 `FAQPage` 共用同一事实源。L3、planned 或没有 Web 交付面的能力不会自动生成页面。
+
+`contracts/fate/discovery/query-set.json` 固定品牌验证、能力、接入、证据、隐私和风险六组问题。每题只登记预期事实、官方来源与禁止声明，不保存虚构答案、排名、推荐或引用率。`scripts/geo-query-set-gate.py` 负责拒绝无来源题目、重复 ID、结果字段和外部指标越界；真实采样仍需要平台、时间、答案、采集人和引用 URL 证据。
+
 ## 事实与实体模型
 
 规范实体包括 TradeCat Labs、FateCat、FateCat Web 和公开站点。关系只使用公开证据：TradeCat Labs 发布 FateCat；FateCat 提供 capability、evidence 与多端交付；Web 暴露独立的综合八字和紫微报告。`contracts/fate/capabilities/registry.json` 是能力生命周期真相源，`llms.txt` 不得把 `planned` 写成已实现。
@@ -47,6 +53,12 @@ GitHub 仓库元数据必须同步维护项目描述、公开主页和主题标�
 | 转化率 | 成功提交报告任务 / 有效访问 | 外部连通验证待执行 | 隐私合规事件与去重口径 |
 
 外部指标不得用一次性手工查询冒充趋势。建议每周固定平台、固定问题、固定地区与新会话采样，至少保留样本数、答案、引用 URL、时间和失败原因；月度汇总时再计算提及率、引用率与推荐曝光。
+
+稳定问题集入口：`GET /api/v1/discovery/query-set`。本地修改后先运行：
+
+```bash
+python3 scripts/geo-query-set-gate.py
+```
 
 ## 运行方式
 
@@ -75,7 +87,7 @@ bash scripts/public-release-gate.sh \
 
 ## 复测与迭代
 
-1. capability 生命周期、公开 URL、品牌身份、隐私策略或输出边界变化时，同步更新 `/about`、`llms.txt`、JSON-LD、README 和 sitemap。
+1. capability 生命周期、公开 URL、品牌身份、隐私策略或输出边界变化时，同步更新 `/about`、匹配的 `/guides/*`、`llms.txt`、JSON-LD、README 和 sitemap。
 2. 每次部署后运行线上 GEO 审计，保存 JSON 证据并比较失败项。
 3. 每月审查高意图问题覆盖；只有存在真实用户需求和可靠来源时才新增内容。
 4. 有访问日志和平台所有权后接入 crawler、索引与流量指标；没有数据时保持“外部连通验证待执行”。

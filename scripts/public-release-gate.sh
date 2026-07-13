@@ -79,6 +79,7 @@ if [[ "${skip_local_ci}" != "1" ]]; then
   local_ci_summary="${output_dir}/local-ci-quick/summary.json"
 fi
 
+run_step "GEO query set gate" "${python_bin}" "${script_dir}/geo-query-set-gate.py"
 run_step "public release policy" bash "${script_dir}/check-public-release-policy.sh"
 
 public_skill_parent="${output_dir}/public-skill"

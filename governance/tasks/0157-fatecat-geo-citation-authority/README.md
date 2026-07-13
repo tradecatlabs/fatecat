@@ -2,7 +2,7 @@
 - Task ID: `0157`
 - Slug: `fatecat-geo-citation-authority`
 - Objective: 建立 FateCat 可引用权威页、GitHub 实体元数据与第二阶段 GEO 机械门禁。
-- Status: `In Progress`
+- Status: `Done`
 
 ## In Scope
 - 新增服务端直出的 `/about` 权威说明页与正文一致的 Schema.org 实体。

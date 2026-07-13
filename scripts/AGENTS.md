@@ -272,7 +272,8 @@ scripts/
 - `evaluation-trend-gate.sh` / `evaluation-trend-gate.py` 是 EvaluationRun history/latest 趋势门禁；拒绝最新失败、连续失败、缺失 required run 和失败命令，只输出 summary-only 趋势 JSON，不复制 stdout/stderr tail、benchmark 标准答案、报告正文、真实凭证或真实用户输入。
 - `evaluation-trend-gate-smoke.sh` 使用 synthetic history fixture 验证 trend gate 策略和隐私边界；进入 quick CI，不执行重型评测、不访问公网。
 - `evaluation-nightly.sh` 执行 releaseRequired EvaluationRun、记录 history/latest、生成 diff 和 dashboard artifact；默认不执行 reference repo benchmark，不访问外部模型 API。
-- `geo-audit.py` 对公开根跳转、Web、权威说明页、可见 FAQ、canonical/Schema.org、robots、sitemap、llms、OpenAPI、capability 和 provider 做真实 HTTP 审计并输出量化 JSON；无法从公开 HTTP 得到的索引、引用、流量和转化指标必须保持外部待验证。
+- `geo-audit.py` 对公开根跳转、Web、项目与旗舰 capability 权威说明页、可见 FAQ、canonical/Schema.org、robots、sitemap、llms、OpenAPI、query set、capability 和 provider 做真实 HTTP 审计并输出量化 JSON；无法从公开 HTTP 得到的索引、引用、流量和转化指标必须保持外部待验证。
+- `geo-query-set-gate.py` 校验公开 GEO 采样题集的稳定 ID、问题组、官方来源、禁止声明和 external-pending 边界；拒绝把答案、排名、推荐或引用率等平台结果写入公开契约。
 - `mingli-bench-gate.sh` / `mingli-bench-gate.py` 是 MingLi-Bench 离线聚合门禁；校验 core corpus、vendor license/usage、EvaluationRun 边界和 FateCat baseline 汇总，不保存逐题结果或标准答案。
 - `generate-mingli-predictions.sh` 是 `fate_core.evaluation.mingli_baseline` 的薄封装，不承载领域评测规则。
 - `run-mingli-bench.sh` 负责离线 FortuneTellingBench 统计、提示词生成和预测结果评估，不调用外部模型 API。
@@ -293,7 +294,8 @@ scripts/
 - `scripts -> domains + contracts + infra + governance`
 - `scripts/generate-mingli-predictions.sh -> fate_core.evaluation.mingli_baseline`
 - `scripts/hf-space-deploy.sh -> infra/huggingface-space + hf CLI`
-- `scripts/geo-audit.py -> public Web + /about + llms.txt + robots.txt + sitemap.xml + OpenAPI + capability/provider registries`
+- `scripts/geo-audit.py -> public Web + /about + /guides/bazi + /guides/ziwei + query set + llms.txt + robots.txt + sitemap.xml + OpenAPI + capability/provider registries`
+- `scripts/geo-query-set-gate.py -> contracts/fate/discovery/query-set.json`
 - `scripts/live-release-gate.py -> contracts/fate/delivery/release-gate.json + contracts/fate/delivery/registry.json + .github/workflows`
 - `scripts/release-artifacts.py -> pyproject.toml + requirements.lock.txt + requirements-dev.lock.txt + infra/docker + contracts/fate/delivery`
 - `scripts/developer-docs-smoke.py -> contracts/fate/developer + docs/reference-materials/developer + FastAPI TestClient`

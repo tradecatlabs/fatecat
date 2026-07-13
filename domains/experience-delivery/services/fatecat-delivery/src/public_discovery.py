@@ -9,7 +9,8 @@ from typing import Any
 from urllib.parse import urlsplit
 
 DEFAULT_PUBLIC_BASE_URL = "https://tradecatlabs-fatecat.hf.space"
-DISCOVERY_UPDATED_ON = "2026-07-13"
+DISCOVERY_UPDATED_ON = "2026-07-14"
+ABOUT_PUBLISHED_ON = "2026-07-13"
 
 PUBLIC_FAQS: tuple[tuple[str, str], ...] = (
     (
@@ -37,6 +38,71 @@ PUBLIC_FAQS: tuple[tuple[str, str], ...] = (
         "不会。公开 Web 不会自动把输入或报告发送给 Gemini；用户只能自行复制 Markdown 到外部服务。",
     ),
 )
+
+PUBLIC_CAPABILITY_GUIDES: dict[str, dict[str, Any]] = {
+    "bazi": {
+        "summary": "FateCat 综合八字是独立的 L4 production capability，使用完整出生时间、性别和地点坐标生成结构化计算、证据字段与可复制 Markdown 报告。",
+        "scope": (
+            "综合八字主线，包括四柱、日主、五行、格局、用神、调候和干支关系。",
+            "动态运势，包括大运、流年、流月和小运。",
+            "神煞、干支取象和袁天罡称骨作为辅助或民俗附录，不替代核心格局与喜忌判断。",
+        ),
+        "boundaries": (
+            "综合八字报告不混入紫微斗数、黄历择日、六爻、奇门或其他独立体系。",
+            "出生时间是必填计算输入；FateCat 不猜测未知时辰，也不生成缺少核心字段的半完整报告。",
+            "production 表示 provider、契约和仓库门禁可执行，不表示传统命理具备科学预测效力。",
+        ),
+        "faqs": (
+            (
+                "FateCat 综合八字需要哪些核心输入？",
+                "核心输入是完整出生日期时间、性别、经度和纬度；姓名、出生地文本和真太阳时开关属于可选字段。",
+            ),
+            (
+                "综合八字报告是否包含紫微斗数？",
+                "不包含。综合八字和紫微斗数是两个独立 capability，每次 Web 请求只输出一个体系。",
+            ),
+            (
+                "未知出生时辰能否直接生成完整综合八字报告？",
+                "不能。出生日期时间是必填输入，FateCat 不默认猜测未知时辰。",
+            ),
+            (
+                "综合八字结论如何追溯？",
+                "能力契约要求保留来源、依据、规则 ID、权重和风险字段，并要求计算轨迹可审计。",
+            ),
+        ),
+    },
+    "ziwei": {
+        "summary": "FateCat 紫微斗数是独立的 L4 production capability，生成命盘、十二宫、命身宫、三方四正、四化与运限结构，并以独立 Markdown 报告交付。",
+        "scope": (
+            "紫微斗数命盘、十二宫、命宫与身宫结构。",
+            "三方四正、四化落宫以及大限、流年、流月等运限信息。",
+            "结构化计算结果、证据字段和独立可复制 Markdown 报告。",
+        ),
+        "boundaries": (
+            "紫微斗数不作为综合八字的附属章节，也不混入默认综合八字报告。",
+            "出生时间、性别和地点坐标是必填计算输入；FateCat 不猜测未知时辰。",
+            "production 表示 provider、契约和仓库门禁可执行，不表示传统命理具备科学预测效力。",
+        ),
+        "faqs": (
+            (
+                "FateCat 紫微斗数需要哪些核心输入？",
+                "核心输入是完整出生日期时间、性别、经度和纬度；姓名、出生地文本和真太阳时开关属于可选字段。",
+            ),
+            (
+                "紫微斗数与综合八字是否独立？",
+                "是。两者使用独立 capability 和报告 profile，每次 Web 请求只选择并输出一个体系。",
+            ),
+            (
+                "紫微斗数当前覆盖哪些结构？",
+                "当前契约覆盖命盘、十二宫、命身宫、三方四正、四化落宫与运限四化，并继续通过规则和 golden 回归加固深度。",
+            ),
+            (
+                "紫微斗数结论如何追溯？",
+                "能力契约要求保留来源、依据、规则 ID 和风险字段，并要求计算轨迹可审计。",
+            ),
+        ),
+    },
+}
 
 
 def public_base_url() -> str:
@@ -143,7 +209,7 @@ def about_schema_org_graph() -> dict[str, Any]:
                 "author": {"@id": f"{base}/#organization"},
                 "publisher": {"@id": f"{base}/#organization"},
                 "about": {"@id": f"{base}/#software"},
-                "datePublished": DISCOVERY_UPDATED_ON,
+                "datePublished": ABOUT_PUBLISHED_ON,
                 "dateModified": DISCOVERY_UPDATED_ON,
                 "inLanguage": "zh-CN",
             },
@@ -168,20 +234,185 @@ def _about_schema_org_json() -> str:
     return json.dumps(about_schema_org_graph(), ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
 
 
+def capability_guide_schema_org_graph(capability: dict[str, Any]) -> dict[str, Any]:
+    """构建与能力说明页正文一致的实体、文章、面包屑和问答。"""
+    capability_id = str(capability.get("capabilityId", ""))
+    guide = PUBLIC_CAPABILITY_GUIDES.get(capability_id)
+    if guide is None:
+        raise ValueError(f"未登记公开能力说明: {capability_id}")
+    base = public_base_url()
+    guide_url = f"{base}/guides/{capability_id}"
+    graph = list(schema_org_graph()["@graph"])
+    graph.extend(
+        [
+            {
+                "@type": "DefinedTerm",
+                "@id": f"{guide_url}#capability",
+                "name": str(capability.get("name", "")),
+                "termCode": capability_id,
+                "description": str(capability.get("description", "")),
+                "url": guide_url,
+                "inDefinedTermSet": {
+                    "@type": "DefinedTermSet",
+                    "name": "FateCat capability registry",
+                    "url": f"{base}/api/v1/capabilities",
+                },
+            },
+            {
+                "@type": "TechArticle",
+                "@id": f"{guide_url}#article",
+                "headline": f"FateCat {capability.get('name', '')}能力说明",
+                "description": str(guide["summary"]),
+                "mainEntityOfPage": guide_url,
+                "author": {"@id": f"{base}/#organization"},
+                "publisher": {"@id": f"{base}/#organization"},
+                "about": {"@id": f"{guide_url}#capability"},
+                "datePublished": DISCOVERY_UPDATED_ON,
+                "dateModified": DISCOVERY_UPDATED_ON,
+                "inLanguage": "zh-CN",
+            },
+            {
+                "@type": "BreadcrumbList",
+                "@id": f"{guide_url}#breadcrumb",
+                "itemListElement": [
+                    {"@type": "ListItem", "position": 1, "name": "FateCat", "item": f"{base}/about"},
+                    {
+                        "@type": "ListItem",
+                        "position": 2,
+                        "name": str(capability.get("name", "")),
+                        "item": guide_url,
+                    },
+                ],
+            },
+            {
+                "@type": "FAQPage",
+                "@id": f"{guide_url}#faq",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": question,
+                        "acceptedAnswer": {"@type": "Answer", "text": answer},
+                    }
+                    for question, answer in guide["faqs"]
+                ],
+            },
+        ]
+    )
+    return {"@context": "https://schema.org", "@graph": graph}
+
+
+def _capability_guide_schema_org_json(capability: dict[str, Any]) -> str:
+    return json.dumps(
+        capability_guide_schema_org_graph(capability),
+        ensure_ascii=False,
+        separators=(",", ":"),
+    ).replace("</", "<\\/")
+
+
+def render_capability_guide_html(capability: dict[str, Any]) -> str:
+    """生成不依赖 JavaScript 的旗舰 capability 权威说明页。"""
+    capability_id = str(capability.get("capabilityId", ""))
+    guide = PUBLIC_CAPABILITY_GUIDES.get(capability_id)
+    if guide is None:
+        raise ValueError(f"未登记公开能力说明: {capability_id}")
+    base = public_base_url()
+    name = str(capability.get("name", ""))
+    maturity = capability.get("maturity") if isinstance(capability.get("maturity"), dict) else {}
+    engine = capability.get("engine") if isinstance(capability.get("engine"), dict) else {}
+    report = capability.get("report") if isinstance(capability.get("report"), dict) else {}
+    evidence = capability.get("evidence") if isinstance(capability.get("evidence"), dict) else {}
+    evidence_policy = capability.get("evidencePolicy") if isinstance(capability.get("evidencePolicy"), dict) else {}
+    risk_policy = capability.get("riskPolicy") if isinstance(capability.get("riskPolicy"), dict) else {}
+
+    def list_items(values: object) -> str:
+        items = values if isinstance(values, (list, tuple)) else ()
+        return "".join(f"<li><code>{escape(str(item))}</code></li>" for item in items)
+
+    scope_html = "".join(f"<li>{escape(str(item))}</li>" for item in guide["scope"])
+    boundary_html = "".join(f"<li>{escape(str(item))}</li>" for item in guide["boundaries"])
+    faq_html = "\n".join(
+        f"<section><h3>{escape(question)}</h3><p>{escape(answer)}</p></section>" for question, answer in guide["faqs"]
+    )
+    deterministic = "是" if engine.get("deterministic") is True else "否"
+    return "\n".join(
+        [
+            "<!doctype html>",
+            '<html lang="zh-CN">',
+            "<head>",
+            '<meta charset="utf-8">',
+            '<meta name="viewport" content="width=device-width, initial-scale=1">',
+            f'<meta name="description" content="{escape(str(guide["summary"]), quote=True)}">',
+            '<meta name="author" content="TradeCat Labs">',
+            f'<meta name="date" content="{DISCOVERY_UPDATED_ON}">',
+            '<meta name="robots" content="index,follow,max-snippet:-1">',
+            f'<link rel="canonical" href="{escape(base + "/guides/" + capability_id, quote=True)}">',
+            '<link rel="alternate" type="text/plain" href="/llms.txt" title="FateCat llms.txt">',
+            '<script type="application/ld+json">' + _capability_guide_schema_org_json(capability) + "</script>",
+            f"<title>FateCat {escape(name)}能力说明</title>",
+            "</head>",
+            "<body>",
+            '<header><nav aria-label="主要入口"><a href="/about">项目说明</a> | <a href="/web">Web 工作台</a> | <a href="/docs">API 文档</a> | <a href="/llms.txt">llms.txt</a> | <a href="https://github.com/tradecatlabs/fatecat">GitHub</a></nav></header>',
+            "<main><article>",
+            f"<h1>FateCat {escape(name)}能力说明</h1>",
+            f"<p><strong>结论：</strong>{escape(str(guide['summary']))}</p>",
+            f'<p>发布者：TradeCat Labs（交易猫实验室）；最后审阅：<time datetime="{DISCOVERY_UPDATED_ON}">{DISCOVERY_UPDATED_ON}</time>。</p>',
+            "<h2>能力事实</h2>",
+            "<dl>"
+            f"<dt>能力 ID</dt><dd><code>{escape(capability_id)}</code></dd>"
+            f"<dt>状态</dt><dd>{escape(str(capability.get('status', '')))}</dd>"
+            f"<dt>成熟度</dt><dd>{escape(str(maturity.get('level', '')))}</dd>"
+            f"<dt>引擎</dt><dd><code>{escape(str(engine.get('provider', '')))}</code></dd>"
+            f"<dt>引擎版本</dt><dd><code>{escape(str(engine.get('engineVersion', '')))}</code></dd>"
+            f"<dt>确定性计算</dt><dd>{deterministic}</dd>"
+            f"<dt>报告 profile</dt><dd><code>{escape(str(report.get('profile', '')))}</code></dd>"
+            "</dl>",
+            "<h2>能力范围</h2>",
+            f"<ul>{scope_html}</ul>",
+            "<h2>输入契约</h2>",
+            f"<h3>必填字段</h3><ul>{list_items(capability.get('inputRequired'))}</ul>",
+            f"<h3>可选字段</h3><ul>{list_items(capability.get('inputOptional'))}</ul>",
+            "<h2>证据与复现</h2>",
+            f"<p>响应要求保留以下 evidence 字段：</p><ul>{list_items(evidence.get('fields'))}</ul>",
+            "<dl>"
+            f"<dt>规则 ID 必需</dt><dd>{'是' if evidence_policy.get('ruleIdRequired') else '否'}</dd>"
+            f"<dt>来源必需</dt><dd>{'是' if evidence_policy.get('sourceRequired') else '否'}</dd>"
+            f"<dt>计算轨迹必需</dt><dd>{'是' if evidence_policy.get('calculationTraceRequired') else '否'}</dd>"
+            "</dl>",
+            "<h2>边界与禁止声明</h2>",
+            f"<ul>{boundary_html}</ul>",
+            f"<p>风险等级：<code>{escape(str(risk_policy.get('riskLevel', '')))}</code>；禁止声明：</p>",
+            f"<ul>{list_items(risk_policy.get('forbiddenClaims'))}</ul>",
+            "<h2>接入方式</h2>",
+            f'<ol><li>读取 <a href="/capabilities/{escape(capability_id, quote=True)}">capability JSON</a>。</li><li>按照 <a href="/openapi.json">OpenAPI</a> 提交完整输入。</li><li>通过 <code>POST /capabilities/{escape(capability_id)}/calculate</code> 执行。</li><li>保留返回的结构化结果、evidence、engineVersion 与风险字段。</li></ol>',
+            "<h2>来源与复核入口</h2>",
+            f'<ul><li><a href="/capabilities/{escape(capability_id, quote=True)}">实时 capability JSON</a></li><li><a href="https://github.com/tradecatlabs/fatecat/blob/main/contracts/fate/capabilities/registry.json">版本化 capability registry</a></li><li><a href="/openapi.json">OpenAPI JSON</a></li><li><a href="https://github.com/tradecatlabs/fatecat/actions">GitHub Actions</a></li></ul>',
+            "<h2>常见问题</h2>",
+            faq_html,
+            "</article></main>",
+            "</body>",
+            "</html>",
+        ]
+    )
+
+
 def render_about_html(capabilities: list[dict[str, Any]]) -> str:
     """生成可抓取、可引用且不依赖 JavaScript 的项目权威说明页。"""
     base = public_base_url()
     capability_rows = []
     for item in capabilities:
+        capability_id = str(item.get("capabilityId", ""))
         maturity_value = item.get("maturity")
         maturity: dict[str, Any] = maturity_value if isinstance(maturity_value, dict) else {}
         surfaces_value = item.get("surfaces")
         surfaces: dict[str, Any] = surfaces_value if isinstance(surfaces_value, dict) else {}
         available_surfaces = [name for name, enabled in surfaces.items() if enabled]
+        name = escape(str(item.get("name", "")))
+        if capability_id in PUBLIC_CAPABILITY_GUIDES:
+            name = f'<a href="/guides/{escape(capability_id, quote=True)}">{name}</a>'
         capability_rows.append(
             "<tr>"
-            f"<td><code>{escape(str(item.get('capabilityId', '')))}</code></td>"
-            f"<td>{escape(str(item.get('name', '')))}</td>"
+            f"<td><code>{escape(capability_id)}</code></td>"
+            f"<td>{name}</td>"
             f"<td>{escape(str(item.get('status', '')))}</td>"
             f"<td>{escape(str(maturity.get('level', '')))}</td>"
             f"<td>{escape(', '.join(available_surfaces) or '仅登记')}</td>"
@@ -261,12 +492,15 @@ def render_sitemap_xml() -> str:
     paths = (
         ("/web", "daily", "1.0"),
         ("/about", "weekly", "0.9"),
+        ("/guides/bazi", "weekly", "0.9"),
+        ("/guides/ziwei", "weekly", "0.9"),
         ("/llms.txt", "weekly", "0.9"),
         ("/docs", "weekly", "0.8"),
         ("/openapi.json", "weekly", "0.8"),
         ("/api/v1/capabilities", "weekly", "0.8"),
         ("/api/v1/providers", "weekly", "0.7"),
         ("/api/v1/report/systems", "weekly", "0.7"),
+        ("/api/v1/discovery/query-set", "weekly", "0.6"),
     )
     entries = []
     for path, frequency, priority in paths:
@@ -285,11 +519,15 @@ def render_sitemap_xml() -> str:
 
 
 __all__ = [
+    "ABOUT_PUBLISHED_ON",
     "DISCOVERY_UPDATED_ON",
+    "PUBLIC_CAPABILITY_GUIDES",
     "PUBLIC_FAQS",
     "about_schema_org_graph",
+    "capability_guide_schema_org_graph",
     "public_base_url",
     "render_about_html",
+    "render_capability_guide_html",
     "render_robots_txt",
     "render_sitemap_xml",
     "schema_org_graph",
