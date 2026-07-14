@@ -453,7 +453,13 @@ class BaziCalculator:
         lunar_month = self.lunar.getMonth()
         lunar_day = self.lunar.getDay()
         hour_zhi = ec.getTimeZhi()
-        bone = calc_bone_weight(year_gz, abs(lunar_month), lunar_day, hour_zhi)
+        bone = calc_bone_weight(
+            year_gz,
+            lunar_month,
+            lunar_day,
+            hour_zhi,
+            gender=self.gender,
+        )
 
         # 命卦
         ming_gua = calc_ming_gua(self.calc_dt.year, self.gender)
@@ -2395,10 +2401,29 @@ class BaziCalculator:
                 "boneWeight": evidence_item(
                     conclusion={
                         "weight": bone_weight.get("weight", "") if isinstance(bone_weight, dict) else "",
+                        "weightQian": bone_weight.get("weightQian", "") if isinstance(bone_weight, dict) else "",
+                        "tableVersion": (
+                            bone_weight.get("calculation", {}).get("tableVersion", "")
+                            if isinstance(bone_weight, dict)
+                            else ""
+                        ),
+                        "interpretationVersion": (
+                            bone_weight.get("interpretation", {}).get("version", "")
+                            if isinstance(bone_weight, dict)
+                            else ""
+                        ),
+                        "genderSpecific": (
+                            bool(bone_weight.get("interpretation", {}).get("genderSpecific"))
+                            if isinstance(bone_weight, dict)
+                            else False
+                        ),
                         "textPresent": bool(bone_weight.get("text", "")) if isinstance(bone_weight, dict) else False,
                     },
-                    basis=["称骨按年、月、日、时权重求和；不参与喜忌、格局、旺衰判断。"],
-                    sources=["袁天罡称骨民俗表"],
+                    basis=[
+                        "称骨按年、月、日、时的整数钱权重求和；男女共用计算表。",
+                        "称骨只作民俗附录，不参与喜忌、格局、旺衰判断。",
+                    ],
+                    sources=["项目版本化通行称骨民俗权重表"],
                     rule_ids=["folk.bone_weight_appendix_only"],
                     weight="folk",
                 ),

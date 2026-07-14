@@ -1,226 +1,327 @@
-"""称骨权重计算。
+"""称骨民俗权重计算。
 
-本模块只承载称骨表和构成明细计算；八字主计算器只负责装配结果。
+权重一律以整数“钱”为计算单位。称骨只作为综合八字报告的民俗附录，
+不参与旺衰、格局、调候、喜忌或运势判断。
 """
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
-BONE_YEAR = {
-    "甲子": 1.2,
-    "乙丑": 0.9,
-    "丙寅": 0.6,
-    "丁卯": 0.7,
-    "戊辰": 1.2,
-    "己巳": 0.5,
-    "庚午": 0.9,
-    "辛未": 0.8,
-    "壬申": 0.7,
-    "癸酉": 0.8,
-    "甲戌": 1.5,
-    "乙亥": 0.9,
-    "丙子": 1.6,
-    "丁丑": 0.8,
-    "戊寅": 0.8,
-    "己卯": 1.9,
-    "庚辰": 1.2,
-    "辛巳": 0.6,
-    "壬午": 0.8,
-    "癸未": 0.7,
-    "甲申": 0.5,
-    "乙酉": 1.5,
-    "丙戌": 0.6,
-    "丁亥": 1.6,
-    "戊子": 1.5,
-    "己丑": 0.7,
-    "庚寅": 0.9,
-    "辛卯": 1.2,
-    "壬辰": 1.0,
-    "癸巳": 0.7,
-    "甲午": 1.5,
-    "乙未": 0.6,
-    "丙申": 0.5,
-    "丁酉": 1.4,
-    "戊戌": 1.4,
-    "己亥": 0.9,
-    "庚子": 0.7,
-    "辛丑": 0.7,
-    "壬寅": 0.9,
-    "癸卯": 1.2,
-    "甲辰": 0.8,
-    "乙巳": 0.7,
-    "丙午": 1.3,
-    "丁未": 0.5,
-    "戊申": 1.4,
-    "己酉": 0.5,
-    "庚戌": 0.9,
-    "辛亥": 1.7,
-    "壬子": 0.5,
-    "癸丑": 0.7,
-    "甲寅": 1.2,
-    "乙卯": 0.8,
-    "丙辰": 0.8,
-    "丁巳": 0.6,
-    "戊午": 1.9,
-    "己未": 0.6,
-    "庚申": 0.8,
-    "辛酉": 1.6,
-    "壬戌": 1.0,
-    "癸亥": 0.7,
-}
-BONE_MONTH = {
-    1: 0.6,
-    2: 0.7,
-    3: 1.8,
-    4: 0.9,
-    5: 0.5,
-    6: 1.6,
-    7: 0.9,
-    8: 1.5,
-    9: 1.8,
-    10: 0.8,
-    11: 0.9,
-    12: 0.5,
-}
-BONE_DAY = {
-    1: 0.5,
-    2: 1.0,
-    3: 0.8,
-    4: 1.5,
-    5: 1.6,
-    6: 1.5,
-    7: 0.8,
-    8: 1.6,
-    9: 0.8,
-    10: 1.6,
-    11: 0.9,
-    12: 1.7,
-    13: 0.8,
-    14: 1.7,
-    15: 1.0,
-    16: 0.8,
-    17: 0.9,
-    18: 1.8,
-    19: 0.5,
-    20: 1.5,
-    21: 1.0,
-    22: 0.9,
-    23: 0.8,
-    24: 0.9,
-    25: 1.5,
-    26: 1.8,
-    27: 0.7,
-    28: 0.8,
-    29: 1.6,
-    30: 0.6,
-}
-BONE_HOUR = {
-    "子": 1.6,
-    "丑": 0.6,
-    "寅": 0.7,
-    "卯": 1.0,
-    "辰": 0.9,
-    "巳": 1.6,
-    "午": 1.0,
-    "未": 0.8,
-    "申": 0.8,
-    "酉": 0.9,
-    "戌": 0.6,
-    "亥": 0.6,
-}
-BONE_TEXT = {
-    2.1: "终身行乞孤苦之命",
-    2.2: "一生劳碌之命",
-    2.3: "终身困苦之命",
-    2.4: "一生薄福之命",
-    2.5: "六亲无靠自立更生之命",
-    2.6: "平生衣禄苦中求之命",
-    2.7: "一生衣禄不周之命",
-    2.8: "一生行事似飘蓬之命",
-    2.9: "初年运限未曾亨之命",
-    3.0: "劳劳碌碌苦中求之命",
-    3.1: "先苦后甘之命",
-    3.2: "性巧过人衣食到贵之命",
-    3.3: "早年作事事难成之命",
-    3.4: "财谷有余主得内助之命",
-    3.5: "生平福量不周全之命",
-    3.6: "超群拔类衣禄厚重之命",
-    3.7: "聪明富贵之命",
-    3.8: "财帛丰厚宜称之命",
-    3.9: "少年命运不通之命",
-    4.0: "富贵近益生匪浅之命",
-    4.1: "税户近贵门庭光彩之命",
-    4.2: "兵权有职富贵才能之命",
-    4.3: "财禄厚重白手成家之命",
-    4.4: "初年无财中年有财之命",
-    4.5: "福禄丰厚极富且贵之命",
-    4.6: "富贵有余福寿双全之命",
-    4.7: "高官禄厚学业饱满之命",
-    4.8: "官员财禄厚重之命",
-    4.9: "性巧精神仓库财禄之命",
-    5.0: "文武才能钱谷丰盛之命",
-    5.1: "官职财禄荣华富贵之命",
-    5.2: "掌握兵权富贵长命",
-    5.3: "僧道门中近贵之命",
-    5.4: "大富大贵之命",
-    5.5: "官职财禄丰厚之命",
-    5.6: "官职长享荣华富贵之命",
-    5.7: "官职财禄皆有之命",
-    5.8: "官禄旺相才能性直富贵之命",
-    5.9: "官品极品之命",
-    6.0: "官职王侯之命",
-    6.1: "名利双收之命",
-    6.2: "权贵之命",
-    6.3: "受职高官之命",
-    6.4: "权贵显达之命",
-    6.5: "细推此命福不轻之命",
-    6.6: "大富大贵之命",
-    6.7: "一世荣华富贵之命",
-    6.8: "富贵双全之命",
-    6.9: "受职于天之命",
-    7.0: "荣华富贵之命",
-    7.1: "此命生成大不同之命",
-    7.2: "此格推来福禄宏之命",
+LeapMonthPolicy = Literal["split_at_15", "same_month"]
+
+DEFAULT_LEAP_MONTH_POLICY: LeapMonthPolicy = "split_at_15"
+WEIGHT_TABLE_VERSION = "common-weight-table-v1"
+INTERPRETATION_VERSION = "common-summary-v1"
+GENDERED_INTERPRETATION_VERSION = "chxb-chenggu-gendered-boundary-v1"
+GENDERED_INTERPRETATION_SOURCE = {
+    "repository": "https://github.com/chxb/chenggu",
+    "revision": "0f86a690499bfe828aa534fea17f241c85f038f1",
+    "license": "MIT",
+    "historicalAuthority": False,
 }
 
+BONE_YEAR_QIAN = {
+    "甲子": 12,
+    "乙丑": 9,
+    "丙寅": 6,
+    "丁卯": 7,
+    "戊辰": 12,
+    "己巳": 5,
+    "庚午": 9,
+    "辛未": 8,
+    "壬申": 7,
+    "癸酉": 8,
+    "甲戌": 15,
+    "乙亥": 9,
+    "丙子": 16,
+    "丁丑": 8,
+    "戊寅": 8,
+    "己卯": 19,
+    "庚辰": 12,
+    "辛巳": 6,
+    "壬午": 8,
+    "癸未": 7,
+    "甲申": 5,
+    "乙酉": 15,
+    "丙戌": 6,
+    "丁亥": 16,
+    "戊子": 15,
+    "己丑": 7,
+    "庚寅": 9,
+    "辛卯": 12,
+    "壬辰": 10,
+    "癸巳": 7,
+    "甲午": 15,
+    "乙未": 6,
+    "丙申": 5,
+    "丁酉": 14,
+    "戊戌": 14,
+    "己亥": 9,
+    "庚子": 7,
+    "辛丑": 7,
+    "壬寅": 9,
+    "癸卯": 12,
+    "甲辰": 8,
+    "乙巳": 7,
+    "丙午": 13,
+    "丁未": 5,
+    "戊申": 14,
+    "己酉": 5,
+    "庚戌": 9,
+    "辛亥": 17,
+    "壬子": 5,
+    "癸丑": 7,
+    "甲寅": 12,
+    "乙卯": 8,
+    "丙辰": 8,
+    "丁巳": 6,
+    "戊午": 19,
+    "己未": 6,
+    "庚申": 8,
+    "辛酉": 16,
+    "壬戌": 10,
+    "癸亥": 7,
+}
+BONE_MONTH_QIAN = {
+    1: 6,
+    2: 7,
+    3: 18,
+    4: 9,
+    5: 5,
+    6: 16,
+    7: 9,
+    8: 15,
+    9: 18,
+    10: 8,
+    11: 9,
+    12: 5,
+}
+BONE_DAY_QIAN = {
+    1: 5,
+    2: 10,
+    3: 8,
+    4: 15,
+    5: 16,
+    6: 15,
+    7: 8,
+    8: 16,
+    9: 8,
+    10: 16,
+    11: 9,
+    12: 17,
+    13: 8,
+    14: 17,
+    15: 10,
+    16: 8,
+    17: 9,
+    18: 18,
+    19: 5,
+    20: 15,
+    21: 10,
+    22: 9,
+    23: 8,
+    24: 9,
+    25: 15,
+    26: 18,
+    27: 7,
+    28: 8,
+    29: 16,
+    30: 6,
+}
+BONE_HOUR_QIAN = {
+    "子": 16,
+    "丑": 6,
+    "寅": 7,
+    "卯": 10,
+    "辰": 9,
+    "巳": 16,
+    "午": 10,
+    "未": 8,
+    "申": 8,
+    "酉": 9,
+    "戌": 6,
+    "亥": 6,
+}
+BONE_TEXT_QIAN = {
+    21: "终身行乞孤苦之命",
+    22: "一生劳碌之命",
+    23: "终身困苦之命",
+    24: "一生薄福之命",
+    25: "六亲无靠自立更生之命",
+    26: "平生衣禄苦中求之命",
+    27: "一生衣禄不周之命",
+    28: "一生行事似飘蓬之命",
+    29: "初年运限未曾亨之命",
+    30: "劳劳碌碌苦中求之命",
+    31: "先苦后甘之命",
+    32: "性巧过人衣食到贵之命",
+    33: "早年作事事难成之命",
+    34: "财谷有余主得内助之命",
+    35: "生平福量不周全之命",
+    36: "超群拔类衣禄厚重之命",
+    37: "聪明富贵之命",
+    38: "财帛丰厚宜称之命",
+    39: "少年命运不通之命",
+    40: "富贵近益生匪浅之命",
+    41: "税户近贵门庭光彩之命",
+    42: "兵权有职富贵才能之命",
+    43: "财禄厚重白手成家之命",
+    44: "初年无财中年有财之命",
+    45: "福禄丰厚极富且贵之命",
+    46: "富贵有余福寿双全之命",
+    47: "高官禄厚学业饱满之命",
+    48: "官员财禄厚重之命",
+    49: "性巧精神仓库财禄之命",
+    50: "文武才能钱谷丰盛之命",
+    51: "官职财禄荣华富贵之命",
+    52: "掌握兵权富贵长命",
+    53: "僧道门中近贵之命",
+    54: "大富大贵之命",
+    55: "官职财禄丰厚之命",
+    56: "官职长享荣华富贵之命",
+    57: "官职财禄皆有之命",
+    58: "官禄旺相才能性直富贵之命",
+    59: "官品极品之命",
+    60: "官职王侯之命",
+    61: "名利双收之命",
+    62: "权贵之命",
+    63: "受职高官之命",
+    64: "权贵显达之命",
+    65: "细推此命福不轻之命",
+    66: "大富大贵之命",
+    67: "一世荣华富贵之命",
+    68: "富贵双全之命",
+    69: "受职于天之命",
+    70: "荣华富贵之命",
+    71: "此命生成大不同之命",
+}
+BONE_GENDERED_VERSE_QIAN = {
+    "male": {
+        71: "此命生来大不同，公侯卿相在其中；一生自有逍遥福，富贵荣华极品隆。",
+    },
+    "female": {
+        71: "此命推来宏运交，不须再愁苦劳难；一生身有衣禄福，安享荣华胜班超。",
+    },
+}
 
-def calc_bone_weight(year_gz: str, lunar_month: int, lunar_day: int, hour_zhi: str) -> dict[str, Any]:
-    """计算称骨权重和构成明细。"""
-    year_weight = BONE_YEAR.get(year_gz, 0)
-    month_weight = BONE_MONTH.get(lunar_month, 0)
-    day_weight = BONE_DAY.get(lunar_day, 0)
-    hour_weight = BONE_HOUR.get(hour_zhi, 0)
-    total = round(year_weight + month_weight + day_weight + hour_weight, 1)
 
-    text = ""
-    for weight, candidate_text in sorted(BONE_TEXT.items()):
-        if total <= weight:
-            text = candidate_text
-            break
-    if not text:
-        text = BONE_TEXT.get(7.2, "大富大贵之命")
+def _validate_inputs(year_gz: str, lunar_month: int, lunar_day: int, hour_zhi: str) -> None:
+    if not isinstance(year_gz, str) or year_gz not in BONE_YEAR_QIAN:
+        raise ValueError(f"未知年柱：{year_gz}")
+    if isinstance(lunar_month, bool) or not isinstance(lunar_month, int):
+        raise ValueError("农历月份必须是 1 至 12；负数表示闰月")
+    if lunar_month == 0 or abs(lunar_month) not in BONE_MONTH_QIAN:
+        raise ValueError(f"无效农历月份：{lunar_month}")
+    if isinstance(lunar_day, bool) or not isinstance(lunar_day, int) or lunar_day not in BONE_DAY_QIAN:
+        raise ValueError(f"无效农历日期：{lunar_day}")
+    if not isinstance(hour_zhi, str) or hour_zhi not in BONE_HOUR_QIAN:
+        raise ValueError(f"未知时支：{hour_zhi}")
 
-    liang = int(total)
-    qian = int((total - liang) * 10)
+
+def _resolve_lunar_month(
+    lunar_month: int,
+    lunar_day: int,
+    policy: LeapMonthPolicy,
+) -> tuple[int, bool]:
+    if policy not in ("split_at_15", "same_month"):
+        raise ValueError(f"不支持的闰月折算策略：{policy}")
+
+    source_month = abs(lunar_month)
+    is_leap_month = lunar_month < 0
+    if not is_leap_month or policy == "same_month" or lunar_day <= 15:
+        return source_month, is_leap_month
+    return (source_month % 12) + 1, is_leap_month
+
+
+def _normalize_gender(gender: str | None) -> tuple[str | None, str]:
+    if gender is None:
+        return None, "通用"
+    if gender not in ("male", "female"):
+        raise ValueError(f"不支持的性别值：{gender}")
+    return gender, "男" if gender == "male" else "女"
+
+
+def calc_bone_weight(
+    year_gz: str,
+    lunar_month: int,
+    lunar_day: int,
+    hour_zhi: str,
+    *,
+    gender: str | None = None,
+    leap_month_policy: LeapMonthPolicy = DEFAULT_LEAP_MONTH_POLICY,
+) -> dict[str, Any]:
+    """计算称骨权重和构成明细。
+
+    男女使用同一套年月日时权重表；性别只标记解释受众，不改变重量。
+    ``lunar-python`` 使用负数月份表示闰月，本函数保留该语义并显式记录折算策略。
+    """
+    _validate_inputs(year_gz, lunar_month, lunar_day, hour_zhi)
+    gender_code, audience = _normalize_gender(gender)
+    effective_month, is_leap_month = _resolve_lunar_month(
+        lunar_month,
+        lunar_day,
+        leap_month_policy,
+    )
+
+    year_qian = BONE_YEAR_QIAN[year_gz]
+    month_qian = BONE_MONTH_QIAN[effective_month]
+    day_qian = BONE_DAY_QIAN[lunar_day]
+    hour_qian = BONE_HOUR_QIAN[hour_zhi]
+    total_qian = year_qian + month_qian + day_qian + hour_qian
+    liang, qian = divmod(total_qian, 10)
+    gendered_verse = BONE_GENDERED_VERSE_QIAN.get(gender_code or "", {}).get(total_qian)
+    interpretation_version = GENDERED_INTERPRETATION_VERSION if gendered_verse is not None else INTERPRETATION_VERSION
+
     return {
-        "weight": total,
+        "weightQian": total_qian,
+        "weight": total_qian / 10,
         "weightCn": f"{liang}两{qian}钱",
-        "text": text,
+        "text": gendered_verse or BONE_TEXT_QIAN[total_qian],
         "components": {
-            "year": {"ganZhi": year_gz, "weight": year_weight},
-            "month": {"month": lunar_month, "weight": month_weight},
-            "day": {"day": lunar_day, "weight": day_weight},
-            "hour": {"zhi": hour_zhi, "weight": hour_weight},
+            "year": {"ganZhi": year_gz, "weight": year_qian / 10},
+            "month": {
+                "month": effective_month,
+                "sourceMonth": abs(lunar_month),
+                "effectiveMonth": effective_month,
+                "isLeapMonth": is_leap_month,
+                "leapMonthPolicy": leap_month_policy,
+                "weight": month_qian / 10,
+            },
+            "day": {"day": lunar_day, "weight": day_qian / 10},
+            "hour": {"zhi": hour_zhi, "weight": hour_qian / 10},
+        },
+        "interpretation": {
+            "audience": audience,
+            "genderSpecific": gendered_verse is not None,
+            "version": interpretation_version,
+            "coverage": "gendered-boundary-71" if gendered_verse is not None else "generic-summary",
+            "source": GENDERED_INTERPRETATION_SOURCE if gendered_verse is not None else None,
+            "sourceRevision": (GENDERED_INTERPRETATION_SOURCE["revision"] if gendered_verse is not None else ""),
+        },
+        "calculation": {
+            "tableVersion": WEIGHT_TABLE_VERSION,
+            "unit": "qian",
+            "maxReachableQian": 71,
+            "nonExecutableWeightsQian": [72],
+            "historicalAttributionVerified": False,
+            "scope": "folk-appendix-only",
         },
     }
 
 
 __all__ = [
-    "BONE_DAY",
-    "BONE_HOUR",
-    "BONE_MONTH",
-    "BONE_TEXT",
-    "BONE_YEAR",
+    "BONE_DAY_QIAN",
+    "BONE_GENDERED_VERSE_QIAN",
+    "BONE_HOUR_QIAN",
+    "BONE_MONTH_QIAN",
+    "BONE_TEXT_QIAN",
+    "BONE_YEAR_QIAN",
+    "DEFAULT_LEAP_MONTH_POLICY",
+    "GENDERED_INTERPRETATION_SOURCE",
+    "GENDERED_INTERPRETATION_VERSION",
+    "INTERPRETATION_VERSION",
+    "LeapMonthPolicy",
+    "WEIGHT_TABLE_VERSION",
     "calc_bone_weight",
 ]

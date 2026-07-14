@@ -794,7 +794,12 @@ def generate_bone_section(result: dict[str, Any]) -> str:
             lines.append(f"  - 数值：{bw.get('weight', '')}两")
         if bw.get("weightCn", ""):
             lines.append(f"  - 中文：{bw.get('weightCn', '')}")
-        lines.append(f"* 评语：{bw.get('text', '')}")
+        interpretation = bw.get("interpretation", {})
+        if interpretation.get("genderSpecific"):
+            audience = interpretation.get("audience", "")
+            lines.append(f"* {audience}命歌诀（现代流传版本，非事实判断）：{bw.get('text', '')}")
+        else:
+            lines.append(f"* 评语（民俗文本，非事实判断）：{bw.get('text', '')}")
         comp = bw.get("components", {})
         if comp:
             lines.append("* 权重构成：")
@@ -803,9 +808,18 @@ def generate_bone_section(result: dict[str, Any]) -> str:
             day = comp.get("day", {})
             hour = comp.get("hour", {})
             lines.append(f"  - 年柱 {year.get('ganZhi', '')}：{year.get('weight', '')}两")
-            lines.append(f"  - 月份 {month.get('month', '')}月：{month.get('weight', '')}两")
+            month_label = f"{month.get('month', '')}月"
+            if month.get("isLeapMonth"):
+                source_month = month.get("sourceMonth", "")
+                effective_month = month.get("effectiveMonth", "")
+                month_label = f"闰{source_month}月（折算为{effective_month}月）"
+            lines.append(f"  - 月份 {month_label}：{month.get('weight', '')}两")
             lines.append(f"  - 出生日 {day.get('day', '')}日：{day.get('weight', '')}两")
             lines.append(f"  - 时辰 {hour.get('zhi', '')}时：{hour.get('weight', '')}两")
+        calculation = bw.get("calculation", {})
+        if calculation:
+            lines.append("* 版本边界：通行称骨重量表；男女共用重量算法；传统托名尚未得到可靠史料核验。")
+            lines.append("* 用途边界：仅作民俗附录，不参与八字格局、旺衰、调候或喜忌判断。")
         lines.append("")
     return "\n".join(lines)
 

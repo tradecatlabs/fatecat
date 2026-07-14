@@ -14,9 +14,10 @@ def build_classical_section(runtime: PureAnalysisRuntime) -> dict[str, Any]:
 
     bone_weight = calc_bone_weight(
         ec.getYear(),
-        abs(runtime.lunar.getMonth()),
+        runtime.lunar.getMonth(),
         runtime.lunar.getDay(),
         ec.getTimeZhi(),
+        gender=runtime.payload.gender,
     )
     ming_gua = calc_ming_gua(calculator.calc_dt.year, runtime.payload.gender)
     jieqi_detail = calculator._calc_jieqi_detail()

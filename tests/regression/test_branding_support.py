@@ -90,6 +90,25 @@ def test_full_report_puts_sponsor_before_report_and_drops_extension_blocks():
     assert "## 袁天罡称骨" in text
 
 
+def test_bone_report_marks_gendered_boundary_verse_as_modern_folk_text():
+    from report_generator import generate_bone_section
+
+    text = generate_bone_section(
+        {
+            "boneWeight": {
+                "weight": 7.1,
+                "weightCn": "7两1钱",
+                "text": "测试女命歌诀",
+                "interpretation": {"audience": "女", "genderSpecific": True},
+                "calculation": {"tableVersion": "common-weight-table-v1"},
+            }
+        }
+    )
+
+    assert "女命歌诀（现代流传版本，非事实判断）：测试女命歌诀" in text
+    assert "男女共用重量算法" in text
+
+
 def test_full_report_default_heading_contract_matches_standard_blocks():
     from datetime import datetime
 
@@ -150,6 +169,9 @@ def test_full_report_default_heading_contract_matches_standard_blocks():
     for section in ["### 建除十二神", "## 紫微斗数", "## 紫微基础"]:
         assert section not in headings
     assert "analysisEvidence" not in text
+    assert "评语（民俗文本，非事实判断）" in text
+    assert "男女共用重量算法" in text
+    assert "不参与八字格局、旺衰、调候或喜忌判断" in text
 
 
 def test_comprehensive_bazi_result_contains_hidden_analysis_evidence():

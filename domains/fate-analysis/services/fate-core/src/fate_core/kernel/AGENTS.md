@@ -20,7 +20,7 @@ kernel/
 ## 职责边界
 
 - `bazi_calculator.py`：八字 legacy 核心实现的 fate-core 归属位置；复用 `lunar-python`、`bazi-1` 等成熟来源，保持历史字段兼容。
-- `bone_weight.py`：称骨权重表和构成明细计算；只输出民俗附录数据，不参与核心格局判断。
+- `bone_weight.py`：以整数“钱”维护版本化称骨权重、闰月策略、输入校验、男女解释边界和构成明细；男女共用计算表，只输出民俗附录数据，不参与核心格局判断。
 - `ming_gua.py`：命卦计算；只承载年份、性别到命卦结果的纯函数。
 - `solar_time.py`：真太阳时边界；封装 paipan-master Node 脚本调用、JSON 解析和历史简化公式公开函数。
 - `projector.py`：按 profile 裁剪结构化结果，不计算命理事实。

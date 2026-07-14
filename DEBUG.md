@@ -1,5 +1,70 @@
 # DEBUG.md - FateCat 调试证据
 
+## 2026-07-15 称骨浮点、非法输入与版本边界错误
+
+### Bug
+
+称骨模块使用二进制浮点数累计“钱”并截断小数，最高组合 `7.1` 被格式化为 `7两0钱`；不存在的农历月份等非法输入又会按零权重继续生成看似有效的评语。
+
+### Observations
+
+- `己卯年 + 三月 + 十八日 + 子时` 的四项权重为 `1.9 + 1.8 + 1.8 + 1.6 = 7.1`，当前返回 `weightCn=7两0钱`。
+- 月份 `13` 不在权重表中，当前仍返回 `5两2钱` 和一条完整评语，而不是拒绝输入。
+- 对 60 年柱、12 月、30 日、12 时辰共 259,200 个组合穷举后，可达范围为 2.1 至 7.1 两，7.2 两组合数为 0。
+- 生产调用方对负数闰月直接取 `abs()`，闰月身份和采用的折算规则都不可追溯。
+- 现有模块只有一套通用摘要，函数没有性别参数，却使用容易让人误认为男女算法不同的“袁天罡称骨”包装。
+- 首轮修复后继续复核发现：虽然结果记录了男女受众，`7两1钱` 仍返回同一摘要，没有真正选择男女不同歌诀。
+
+### Hypotheses
+
+1. `int((total - liang) * 10)` 受二进制浮点误差影响并向下截断。
+   - Supports: `7.1` 的运行结果为 `7两0钱`，总重量字段本身仍显示 `7.1`。
+2. 表中 `7.2` 是与当前重量表混用的不可达解释条目。
+   - Supports: 穷举全部输入后最大值为 7.1，且 7.2 命中数为 0。
+3. 男女使用不同重量算法。
+   - Conflicts: 当前实现和现代通行实现均为同一套年月日时重量表；差异只可能属于解释文本版本。
+
+### Root Cause
+
+模块没有把“整数钱计算表”“民俗解释版本”“闰月折算策略”和“展示文本”建模为不同边界，导致浮点表示、宽松字典回退、版本混表和调用方预处理共同污染结果。
+
+### Fix
+
+- 以整数“钱”作为唯一计算单位，中文重量使用 `divmod()` 格式化。
+- 非法年柱、农历月日、时支和性别值直接报错，不再生成半残结果。
+- 删除当前表不可达的 7.2 条目，解释按精确重量查找。
+- 保留有符号闰月，默认采用 `split_at_15`，并保留 `same_month` 作为显式版本复现策略。
+- 男女共用计算表；性别只影响独立解释层，未完成来源校定的完整男女歌诀库不进入生产。
+- 对当前可达上界 `7两1钱`，按性别选择经过版本固定的现代流传歌诀；来源固定到 `chxb/chenggu@0f86a690499bfe828aa534fea17f241c85f038f1`，并明确其不是历史权威。
+- `7两2钱` 只记录为当前权重表的不可执行重量，不加入男女生产解释表，也不允许计算命中。
+- 旧计算器和纯分析 provider 均传入原始闰月与性别，证据链增加整数重量和表版本。
+- Markdown 明确称骨是非事实民俗文本，不参与格局、旺衰、调候或喜忌判断。
+
+### Regression Evidence
+
+```bash
+.venv/bin/python -m pytest -q domains/fate-analysis/services/fate-core/tests/test_bone_weight.py
+.venv/bin/python -m pytest -q domains/fate-analysis/services/fate-core/tests/test_bone_weight.py domains/fate-analysis/services/fate-core/tests/test_service_contract.py tests/regression/test_branding_support.py tests/regression/test_web_html.py tests/regression/test_bazi_ziwei_rule_depth.py tests/regression/test_fate_policy_assets.py
+.venv/bin/python -m pytest -q --ignore=tests/regression/test_suanzhun_corpus_crawl.py
+.venv/bin/ruff check . --exclude tests/regression/test_suanzhun_corpus_crawl.py
+.venv/bin/ruff format --check . --exclude tests/regression/test_suanzhun_corpus_crawl.py
+.venv/bin/mypy domains/fate-analysis/services/fate-core/src/fate_core
+.venv/bin/python governance/tools/validate_governance_package.py --strict
+.venv/bin/python governance/tools/governance_health_report.py --strict
+```
+
+- 称骨与报告专项最终结果：`27 passed`。
+- 称骨、报告、规则深度和策略定向回归：`82 passed`。
+- 排除无关未跟踪任务测试后的仓库全量回归：`677 passed, 1 skipped`。
+- Ruff（排除无关未跟踪任务测试）、format、fate-core mypy、治理 strict validation 和治理 health 均通过。
+- `bash scripts/local-ci.sh --profile quick` 在称骨相关门禁、L4 golden、性能、供应链、结构、安全和证据门禁通过后，被无关未跟踪文件 `tests/regression/test_suanzhun_corpus_crawl.py` 的导入排序错误阻断；本次修复未修改该用户文件。
+- 性能复杂度保持 O(1) 时间和 O(1) 额外空间；整数加法替代浮点累计，没有新增 I/O、缓存或并发状态。
+
+### Audit Case Sampling
+
+- 决定：不新增审计案例。
+- 原因：问题局限于称骨单模块的精确单位、输入校验和民俗版本边界，现已由穷举可达集合、非法输入、双调用链和报告边界测试机械覆盖；没有新增跨项目审查问题。
+
 ## 2026-07-13 紫微并发计算污染进程 stdout
 
 ### Bug
