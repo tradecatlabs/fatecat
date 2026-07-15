@@ -977,7 +977,7 @@
         "三命通会规则索引"
       ],
       "appliesWhen": [
-        "ganzhiRelations 与 branchRelations 齐备"
+        "ganzhiRelations.tianGan 与 branchRelations.canonical 齐备"
       ],
       "doesNotApplyWhen": [
         "只存在年柱或生肖"

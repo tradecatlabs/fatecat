@@ -1,0 +1,17 @@
+version: 1
+cases:
+  - id: CASE-9001
+    slug: canonical-field-and-compatibility-projection-double-consumption
+    path: cases/CASE-9001-canonical-field-and-compatibility-projection-double-consumption/CASE.md
+    status: active
+    severity: BLOCK
+    root_cause_class: canonical_field_and_compatibility_projection_double_consumption
+    trigger_signals:
+      - canonical field
+      - compatibility projection
+      - duplicate report section
+      - duplicate renderer
+      - multiple truth sources
+      - deprecated as source
+      - consumer migration
+      - report ownership

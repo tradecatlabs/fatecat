@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-15T11:35:00+08:00",
+  "task_id": "0160",
+  "delivery_status": "ready_for_auto_github",
+  "branch": {
+    "name": "main",
+    "upstream": "origin/main",
+    "ahead": 0,
+    "behind": 0
+  },
+  "head": {
+    "sha": "cb7216853a5ca6939c63dba57e333d5b8a12d370",
+    "subject": "fix: 删除重复神煞报告块"
+  },
+  "worktree": {
+    "clean": false,
+    "porcelain_entry_count": 64,
+    "concurrent_changes_present": true,
+    "protected_concurrent_task": "0159-suanzhun-content-corpus-crawl",
+    "boundary": "0160 已在仅应用本任务文件的隔离副本验证；不得把当前 worktree 整体提交。"
+  },
+  "task_scope": {
+    "manifest": "/tmp/fatecat-0160-files.txt",
+    "isolated_clone": "/tmp/fatecat-0160-final-PhEZGQ",
+    "partial_file_ownership": {
+      "governance/tasks/INDEX.md": "只归属 0160 行；0159 行属于并发任务，禁止整文件无审查提交。"
+    },
+    "excluded": [
+      "governance/tasks/0159-suanzhun-content-corpus-crawl/",
+      "scripts/suanzhun-corpus-crawl.py",
+      "tests/regression/test_suanzhun_corpus_crawl.py",
+      "pyproject.toml",
+      "requirements-dev.txt",
+      "requirements-dev.lock.txt"
+    ]
+  },
+  "validation": {
+    "local_ci": {
+      "command": "bash scripts/local-ci.sh --profile quick --output /tmp/fatecat-local-ci-0160-final",
+      "status": "passed",
+      "tests": 468,
+      "summary": "/tmp/fatecat-local-ci-0160-final/summary.json",
+      "summary_sha256": "610ccb8f087808a3235cd19a6e7921995fb172ff14a418db7e53d7beabe0536a"
+    },
+    "governance_strict": "passed_with_two_non_blocking_runtime_directory_warnings",
+    "principle_gate": "passed_zero_findings",
+    "audit_case_overlay": "passed",
+    "audit_case_library_tests": "passed",
+    "governance_health": "passed",
+    "debug_conclude": "passed"
+  },
+  "version_control": {
+    "commit_performed": false,
+    "push_performed": false,
+    "remote_ci_for_task_diff": "not_executed",
+    "reason": "当前任务只要求生成可提交交接包；提交、推送与远端 CI 由 auto-github 在隔离 0160 文件后执行。"
+  },
+  "pull_request": {
+    "available": false,
+    "number": null,
+    "url": null,
+    "reviews": {
+      "total": 0
+    },
+    "status_checks": {
+      "total": 0,
+      "attention_required": []
+    }
+  },
+  "ship_gate": {
+    "task_closeout": "ready",
+    "git_delivery": "pending_auto_github",
+    "production_live": "external_connectivity_pending"
+  }
+}

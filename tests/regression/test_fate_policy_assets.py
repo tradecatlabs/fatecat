@@ -45,6 +45,17 @@ def test_weight_policy_keeps_auxiliary_and_folk_out_of_core_judgement():
     assert "格局定性" in levels["folk"]["mustNotAffect"]
 
 
+def test_pure_analysis_profile_declares_canonical_and_compatibility_fields():
+    profile = _load_json("profiles/pure_analysis.json")
+    semantics = profile["fieldSemantics"]
+
+    assert "唯一事实源" in semantics["branchRelations"]
+    assert "过渡容器" in semantics["ganzhiRelations"]
+    assert "deprecatedAsSourceFields" in semantics["ganzhiRelations"]
+    assert "不得独立计算或渲染" in semantics["spirits"]
+    assert "不得独立计算或渲染" in semantics["spiritsExplain"]
+
+
 def test_classics_rule_index_is_traceable_and_bounded():
     index = _load_json("classics_rule_index.json")
     rules = {rule["id"]: rule for rule in index["rules"]}

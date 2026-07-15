@@ -28,7 +28,7 @@ evaluators/
 - `combine_transform.py`：合化条件链 evaluator，输出合象、候选、成化、破化、争合状态矩阵。
 - `constants.py`：天干地支、五行、合化、冲克等 evaluator 共享常量；不承载业务流程。
 - `fortune.py`：岁运触发矩阵 evaluator，输入 `raw` 与已识别 triggers，输出 `fortuneTriggerMatrix`。
-- `relation.py`：干支关系优先级与阻隔证据 evaluator，输出 `ganzhiPriority` 所需排序结构。
+- `relation.py`：消费 `branchRelations.canonical`、`ganzhiRelations.tianGan` 与 `ganzhiExtra` 的干支关系优先级和阻隔证据，输出 `ganzhiPriority` 所需排序结构；不得回读 `ganzhiRelations.diZhi` 兼容投影。
 - `regular_pattern.py`：常规格局候选 evaluator，输出正格候选、uncertainty 与破格边界。
 - `strength.py`：日主强弱评分 evaluator，输入 `raw` 与人元司令上下文，输出 `strengthScore`。
 - `ten_god.py`：十神结构 evaluator，输入 `raw.tenGods` 与藏干，输出 `tenGodStructure` 与家族统计。

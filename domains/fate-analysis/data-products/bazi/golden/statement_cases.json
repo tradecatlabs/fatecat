@@ -17,7 +17,7 @@
         "dayMaster": {"stem": "丙", "strength": "中和偏弱"},
         "gejuMain": "普通格局",
         "yongShen": {"note": "印重", "basisSource": "金不换调候表", "tiaohouRaw": "1壬2己戊"},
-        "ganzhiRelations": {"tianGan": ["月时丙壬冲", "日时丙壬冲"], "branchConflictCount": 10},
+        "ganzhiRelations": {"tianGan": ["月时丙壬冲", "日时丙壬冲"], "canonicalRelationCount": 4},
         "fortuneStart": {"startDate": "1998-04-11 07:42:01", "anchorTerm": "立冬"},
         "accuracyRuleIds": [
           "bazi.true_solar_time_pipeline",
@@ -41,7 +41,7 @@
         "dayMaster": {"stem": "戊", "strength": "中和偏弱"},
         "gejuMain": "普通格局",
         "yongShen": {"note": "喜财杀", "basisSource": "金不换调候表", "tiaohouRaw": "1丙2_甲"},
-        "ganzhiRelations": {"tianGan": ["年日戊癸合化火", "月时乙庚合化金"], "branchConflictCount": 8},
+        "ganzhiRelations": {"tianGan": ["年日戊癸合化火", "月时乙庚合化金"], "canonicalRelationCount": 4},
         "fortuneStart": {"startDate": "2033-12-04 16:25:18", "anchorTerm": "大雪"},
         "accuracyRuleIds": [
           "bazi.true_solar_time_pipeline",
@@ -65,7 +65,7 @@
         "dayMaster": {"stem": "戊", "strength": "中和"},
         "gejuMain": "偏印格",
         "yongShen": {"note": "", "basisSource": "金不换调候表", "tiaohouRaw": "1丙2癸甲"},
-        "ganzhiRelations": {"tianGan": ["年时甲庚冲"], "branchConflictCount": 16},
+        "ganzhiRelations": {"tianGan": ["年时甲庚冲"], "canonicalRelationCount": 7},
         "fortuneStart": {"startDate": "2034-01-04 16:27:18", "anchorTerm": "惊蛰"},
         "accuracyRuleIds": [
           "bazi.true_solar_time_pipeline",
@@ -89,7 +89,7 @@
         "dayMaster": {"stem": "辛", "strength": "中和"},
         "gejuMain": "普通格局",
         "yongShen": {"note": "喜根深", "basisSource": "金不换调候表", "tiaohouRaw": "1壬2癸巳"},
-        "ganzhiRelations": {"tianGan": [], "branchConflictCount": 8},
+        "ganzhiRelations": {"tianGan": [], "canonicalRelationCount": 4},
         "fortuneStart": {"startDate": "1991-09-04 12:15:05", "anchorTerm": "立夏"},
         "accuracyRuleIds": [
           "bazi.true_solar_time_pipeline",
@@ -113,7 +113,7 @@
         "dayMaster": {"stem": "庚", "strength": "身强"},
         "gejuMain": "羊刃格",
         "yongShen": {"note": "喜七杀", "basisSource": "金不换调候表", "tiaohouRaw": "1丁2丙甲"},
-        "ganzhiRelations": {"tianGan": ["年月乙庚合化金", "月日乙庚合化金"], "branchConflictCount": 14},
+        "ganzhiRelations": {"tianGan": ["年月乙庚合化金", "月日乙庚合化金"], "canonicalRelationCount": 4},
         "fortuneStart": {"startDate": "2010-03-01 23:18:40", "anchorTerm": "寒露"},
         "accuracyRuleIds": [
           "bazi.true_solar_time_pipeline",
@@ -137,7 +137,7 @@
         "dayMaster": {"stem": "丙", "strength": "中和偏弱"},
         "gejuMain": "普通格局",
         "yongShen": {"note": "忌杀喜官", "basisSource": "金不换调候表", "tiaohouRaw": "1壬2_庚"},
-        "ganzhiRelations": {"tianGan": ["月日丙辛合化水", "月时辛乙冲"], "branchConflictCount": 8},
+        "ganzhiRelations": {"tianGan": ["月日丙辛合化水", "月时辛乙冲"], "canonicalRelationCount": 5},
         "fortuneStart": {"startDate": "2004-10-13 13:54:14", "anchorTerm": "芒种"},
         "accuracyRuleIds": [
           "bazi.balance_five_elements",
@@ -161,7 +161,7 @@
         "dayMaster": {"stem": "癸", "strength": "中和"},
         "gejuMain": "普通格局",
         "yongShen": {"note": "", "basisSource": "金不换调候表", "tiaohouRaw": "1辛2壬甲3癸"},
-        "ganzhiRelations": {"tianGan": ["月时丙壬冲"], "branchConflictCount": 6},
+        "ganzhiRelations": {"tianGan": ["月时丙壬冲"], "canonicalRelationCount": 3},
         "fortuneStart": {"startDate": "2011-03-10 00:43:48", "anchorTerm": "白露"},
         "accuracyRuleIds": [
           "bazi.balance_five_elements",
@@ -185,7 +185,7 @@
         "dayMaster": {"stem": "乙", "strength": "中和"},
         "gejuMain": "普通格局",
         "yongShen": {"note": "", "basisSource": "金不换调候表", "tiaohouRaw": "1癸2_辛"},
-        "ganzhiRelations": {"tianGan": ["年时甲己合化土", "月时甲己合化土"], "branchConflictCount": 6},
+        "ganzhiRelations": {"tianGan": ["年时甲己合化土", "月时甲己合化土"], "canonicalRelationCount": 2},
         "fortuneStart": {"startDate": "1994-10-17 06:32:08", "anchorTerm": "白露"},
         "accuracyRuleIds": [
           "bazi.balance_five_elements",

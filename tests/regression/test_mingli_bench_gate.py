@@ -171,3 +171,21 @@ def test_mingli_baseline_reuses_chart_for_same_birth_input(tmp_path, monkeypatch
     assert all(row["predicted_answer"] in {"A", "B", "C", "D"} for row in rows)
     forbidden_leakage_fields = {"expected", "answer", "correct", "gold", "label"}
     assert all(forbidden_leakage_fields.isdisjoint(row) for row in rows)
+
+
+def test_mingli_relation_pressure_reads_canonical_branch_relations():
+    from fate_core.evaluation.mingli_baseline import _relation_pressure
+
+    result = {
+        "branchRelations": {
+            "canonical": [
+                {"relation": "冲"},
+                {"relation": "刑"},
+                {"relation": "害"},
+                {"relation": "破"},
+                {"relation": "六合"},
+            ]
+        }
+    }
+
+    assert _relation_pressure(result) == 4 / 12

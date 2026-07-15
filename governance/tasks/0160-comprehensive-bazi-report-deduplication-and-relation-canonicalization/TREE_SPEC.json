@@ -1,0 +1,467 @@
+{
+  "schema_version": "1.0.0",
+  "overall_status": "Done",
+  "future_optimal_contract": {
+    "target_end_state": "综合八字内部每个业务概念只有一个计算事实源，每个报告字段只有一个 canonical 展示章节；公开旧字段只能由 canonical 结果投影。",
+    "real_constraints": "保持成熟规则源、公开 API 兼容性、证据可追溯、多端同源输出和唯一信息完整。",
+    "inertia_constraints": "旧标题顺序、旧 renderer 边界、历史结构快照和内部字段别名不得决定终态。",
+    "wrong_concept_or_boundary": "把兼容字段当事实源、把章节拼装函数当字段 owner、把独立硬编码关系表当第二生产引擎。",
+    "kill_list": "独立 `_calc_ganzhi_relations` 规则判断、重复五行/调候 renderer、兼容字段独立渲染和锁定重复行为的测试期望。",
+    "proof_point": "单辰无自刑、对称关系唯一、标准报告无重复业务块、唯一信息 diff 完整、多端 parity 通过。",
+    "falsifier": "成熟关系源无法覆盖现有必要关系，或去重导致唯一证据/公开兼容数据无法恢复。",
+    "migration_slice": "先 red tests 和所有权契约，再分别迁移关系计算与报告渲染，最后同步兼容契约和门禁。",
+    "rejected_short_term_patches": "不在渲染末尾做字符串去重，不只过滤当前样本的辰自刑，不保留两套算法后比较选一，不靠扩张 allowlist 放过重复。",
+    "review_owner": "auto-review: future-optimal-drift"
+  },
+  "ponytail_contract": {
+    "existence_check": "P0 正确性缺陷和已复现报告冗余证明任务与回归门禁现在必须存在。",
+    "selected_ladder_rung": "复用成熟规则源与项目现有 renderer/test 能力；仅编写 canonical 适配、投影和业务所有权代码。",
+    "skipped_scope": "不新增报告框架、规则引擎、命理规则、运行时服务或通用去重平台。",
+    "ceiling_or_upgrade_path": "只有新增更多生产 capability 且出现跨体系复用需求时，才评估抽取通用 report ownership contract。",
+    "do_not_simplify": "不得删除唯一信息、证据、公开兼容边界、方向关系语义或多端一致性验证。",
+    "minimal_runnable_check": "关系边界 pytest + 标准报告唯一性 pytest + multi-surface parity。",
+    "complexity_review_owner": "auto-review: ponytail-complexity"
+  },
+  "document_driven_contract": {
+    "operating_model_update": "not needed: 项目定位与操作模型不变。",
+    "toolchain_model_update": "not needed: 复用现有 pytest、local-ci、auto-review 和 governance 校验。",
+    "process_update": "completed: CASE-9001 进入项目审计案例 overlay，未新增平行流程。",
+    "source_of_truth_updates": "completed: report structure tests、pure_analysis profile、rule registry 与 evidence 映射已同步。",
+    "local_readme_agents_impact": "completed: fate-core 与 delivery 局部 AGENTS.md 已同步。",
+    "contract_catalog_schema_impact": "completed: profile/规则契约已更新；catalog 与持久化 schema 不变。",
+    "adr_gate_module_context_impact": "completed with exemption: 项目案例和局部 AGENTS.md 已承载边界，无需新 ADR/module context。",
+    "documentation_exemption_reason": "项目定位、操作模型、工具链和 catalog 未变化，不创建平行文档体系。",
+    "validation_evidence": "隔离 quick CI 468 passed；governance/principle/audit-case/debug/task closeout strict 通过。"
+  },
+  "nodes": [
+    {
+      "id": "TP-01",
+      "title": "确认缺陷基线与目标契约",
+      "priority": "P0",
+      "type": "Package",
+      "objective": "把重复渲染、关系自关联、双向重复和结构化别名固化为可重复验证的缺陷基线，并确定章节字段所有权与 canonical 关系模型。",
+      "parent": null,
+      "depends_on": [],
+      "parallelizable": false,
+      "status": "Done"
+    },
+    {
+      "id": "TP-01.01",
+      "title": "建立动态复现与影响矩阵",
+      "priority": "P0",
+      "type": "Bugfix",
+      "objective": "使用匿名八字样本复现重复标题、重复表格、单辰自刑、对称关系双向输出和 API 别名重叠，并记录精确输出与调用链。",
+      "parent": "TP-01",
+      "depends_on": [],
+      "parallelizable": false,
+      "debug_required": true,
+      "inputs": [
+        "domains/fate-analysis/services/fate-core/src/fate_core/kernel/bazi_calculator.py",
+        "domains/experience-delivery/services/fatecat-delivery/src/report_generator.py",
+        "tests/regression/test_branding_support.py",
+        "tests/regression/test_bazi_statement_golden.py"
+      ],
+      "outputs": [
+        "DEBUG.md 中的最小复现证据",
+        "字段到章节与字段到计算源的影响矩阵",
+        "关系错误样本集合"
+      ],
+      "acceptance": [
+        "动态样本稳定复现两组重复标题和三张完全重复表格",
+        "稳定复现单个辰支错误自刑与对称关系双向重复",
+        "区分展示冗余、API 兼容别名和计算正确性缺陷"
+      ],
+      "verify": "运行匿名八字报告重复扫描和关系输出探针，并把命令与摘要写入 DEBUG.md",
+      "gate": "所有已报告症状都有可重复输入、输出和源码调用链",
+      "status": "Done",
+      "evidence": "DEBUG.md E2/E3 与 FIELD_OWNERSHIP.md"
+    },
+    {
+      "id": "TP-01.02",
+      "title": "定义章节所有权与 canonical 关系契约",
+      "priority": "P0",
+      "type": "Architecture",
+      "objective": "确定每类八字数据的唯一展示章节，并定义由成熟规则源生成、可规范化和可投影的唯一干支关系内部模型。",
+      "parent": "TP-01",
+      "depends_on": [
+        "TP-01.01"
+      ],
+      "parallelizable": false,
+      "debug_required": true,
+      "outputs": [
+        "章节字段所有权表",
+        "canonical 关系键与方向语义",
+        "旧字段兼容投影边界"
+      ],
+      "acceptance": [
+        "每个静态字段只有一个 canonical 展示章节",
+        "对称、方向、组合和自刑关系拥有明确去重键",
+        "ganzhiExtra、branchRelations、ganzhiRelations 不再被视为三套独立事实源"
+      ],
+      "verify": "人工审查所有权表与现有 pure_analysis/profile/evidence 契约的字段映射",
+      "gate": "后续实现不需要自行猜测字段归属或关系语义",
+      "status": "Done",
+      "evidence": "FIELD_OWNERSHIP.md"
+    },
+    {
+      "id": "TP-02",
+      "title": "收敛干支关系计算真相源",
+      "priority": "P0",
+      "type": "Package",
+      "objective": "消除独立硬编码关系算法与成熟规则源并行计算，修复自关联和对称重复，同时保留可审计依据。",
+      "parent": null,
+      "depends_on": [
+        "TP-01"
+      ],
+      "parallelizable": false,
+      "status": "Done",
+      "evidence": "canonical 关系模型、兼容投影与关系回归测试"
+    },
+    {
+      "id": "TP-02.01",
+      "title": "先写关系正确性失败测试",
+      "priority": "P0",
+      "type": "Testing",
+      "objective": "用单辰、辰辰、巳寅、子辰及无关系样本建立 red tests，锁定自刑基数、对称去重、方向关系和半合边界。",
+      "parent": "TP-02",
+      "depends_on": [],
+      "parallelizable": false,
+      "debug_required": true,
+      "outputs": [
+        "关系正确性 red tests",
+        "匿名边界 fixture"
+      ],
+      "acceptance": [
+        "单个辰支不得产生辰辰自刑",
+        "两个辰支的自刑结果只出现一次且带两个柱位",
+        "对称关系按无序柱位对只输出一次",
+        "关系依据仍可追溯到规则源"
+      ],
+      "verify": "定向 pytest 在旧实现上按预期失败，失败原因与 DEBUG.md 一致",
+      "gate": "测试能区分真正自刑、方向关系和错误自关联",
+      "status": "Done",
+      "evidence": "旧实现 red test 复现 canonical 缺失、自关联与方向重复"
+    },
+    {
+      "id": "TP-02.02",
+      "title": "实现 canonical 关系模型与兼容投影",
+      "priority": "P0",
+      "type": "Bugfix",
+      "objective": "以现有成熟 bazi-1 关系数据为事实来源，规范化柱位、关系类型、方向、完整度和五行，并由 canonical 模型生成必要的旧字段投影。",
+      "parent": "TP-02",
+      "depends_on": [
+        "TP-02.01"
+      ],
+      "parallelizable": false,
+      "debug_required": true,
+      "outputs": [
+        "单一关系计算路径",
+        "规范化关系键",
+        "兼容字段投影"
+      ],
+      "acceptance": [
+        "删除或停用独立硬编码的第二套关系判断",
+        "同一关系在 canonical 结果中只出现一次",
+        "兼容字段不得再次独立计算",
+        "现有证据字段能够映射到 canonical 关系结果"
+      ],
+      "verify": "关系定向测试、八字 statement golden 与 evidence 回归通过",
+      "gate": "计算结果不存在双真相源、自关联或无依据关系",
+      "status": "Done",
+      "evidence": "test_bazi_statement_golden.py 与 rule-depth 回归通过"
+    },
+    {
+      "id": "TP-03",
+      "title": "收敛报告章节字段所有权",
+      "priority": "P0",
+      "type": "Package",
+      "objective": "消除完全重复和无价值语义重叠，同时保留全部唯一业务信息与现有输出体系边界。",
+      "parent": null,
+      "depends_on": [
+        "TP-01"
+      ],
+      "parallelizable": true,
+      "status": "Done",
+      "evidence": "标准报告章节字段所有权已收敛"
+    },
+    {
+      "id": "TP-03.01",
+      "title": "先写全报告唯一性失败测试",
+      "priority": "P0",
+      "type": "Testing",
+      "objective": "建立标题、表格、静态字段所有权和神煞唯一性 red tests，并保留紫微独立报告的非回归扫描。",
+      "parent": "TP-03",
+      "depends_on": [],
+      "parallelizable": true,
+      "debug_required": true,
+      "outputs": [
+        "八字报告唯一性 red tests",
+        "紫微报告无重复基线"
+      ],
+      "acceptance": [
+        "能够检测五行分数、天干分数和长生概要的完全重复",
+        "能够检测温湿度与拱神的重复所有权",
+        "能够检测同一神煞释义被渲染多次",
+        "不会把紫微不同运限的合法同名字段误报为重复"
+      ],
+      "verify": "定向 pytest 在旧报告实现上按预期失败，并对紫微基线通过",
+      "gate": "测试检查语义所有权而非绑定整份易变长文本快照",
+      "status": "Done",
+      "evidence": "旧报告重复标题与重复表格 red test；紫微基线无误报"
+    },
+    {
+      "id": "TP-03.02",
+      "title": "按所有权重构报告渲染",
+      "priority": "P0",
+      "type": "Refactor",
+      "objective": "将四柱、日主、五行、调候、格局、节气、关系和运势数据分别收敛到唯一章节，删除重复渲染分支。",
+      "parent": "TP-03",
+      "depends_on": [
+        "TP-03.01"
+      ],
+      "parallelizable": true,
+      "debug_required": true,
+      "outputs": [
+        "唯一章节渲染路径",
+        "更新后的标准 Markdown 结构"
+      ],
+      "acceptance": [
+        "五行和天干分数只在五行喜忌章节展示一次",
+        "温湿度、拱神和调候只在寒湿燥热章节展示一次",
+        "日主概览不重复格局和完整五行分析",
+        "运势章节不重复静态空亡、司令和完整用神原文",
+        "所有原有唯一信息仍可在报告中找到"
+      ],
+      "verify": "标准报告结构测试、唯一性测试和匿名报告语义 diff 通过",
+      "gate": "默认综合八字 Markdown 不含完全重复块或无所有权字段",
+      "status": "Done",
+      "evidence": "report_generator.py 唯一 owner 渲染；标准样本 1666 行"
+    },
+    {
+      "id": "TP-04",
+      "title": "治理兼容字段与机器契约",
+      "priority": "P1",
+      "type": "Package",
+      "objective": "在不静默破坏公开调用方的前提下，把重复结构字段从内部事实源降为显式兼容投影并同步契约。",
+      "parent": null,
+      "depends_on": [
+        "TP-01"
+      ],
+      "parallelizable": true,
+      "status": "Done",
+      "evidence": "CONSUMER_AUDIT.md 与 profile 兼容边界"
+    },
+    {
+      "id": "TP-04.01",
+      "title": "审计公开字段依赖与迁移边界",
+      "priority": "P1",
+      "type": "Contract",
+      "objective": "盘点 spirits、spiritsFull、spiritsExplain、ganzhiExtra、branchRelations 和 ganzhiRelations 在 profile、文档、测试及交付面的真实依赖。",
+      "parent": "TP-04",
+      "depends_on": [],
+      "parallelizable": true,
+      "debug_required": false,
+      "outputs": [
+        "公开字段消费者清单",
+        "保留、弃用或迁移决策",
+        "版本与回滚边界"
+      ],
+      "acceptance": [
+        "每个重复字段都有真实消费者证据或明确无消费者结论",
+        "不得仅因内部方便直接删除公开字段",
+        "不得继续把兼容字段描述成独立计算能力"
+      ],
+      "verify": "rg/contract/profile/catalog 扫描结果与 API 回归契约对齐",
+      "gate": "兼容决策有证据、版本策略和移除条件",
+      "status": "Done",
+      "evidence": "CONSUMER_AUDIT.md"
+    },
+    {
+      "id": "TP-04.02",
+      "title": "同步 profile、证据与文档契约",
+      "priority": "P1",
+      "type": "Contract",
+      "objective": "将 canonical 字段和兼容投影的关系写入 profile、证据索引、开发文档与回归测试，消除机器契约继续鼓励双真相源的可能。",
+      "parent": "TP-04",
+      "depends_on": [
+        "TP-02",
+        "TP-03",
+        "TP-04.01"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "outputs": [
+        "更新后的 pure_analysis/profile 契约",
+        "兼容投影说明",
+        "证据映射回归"
+      ],
+      "acceptance": [
+        "机器契约只声明一个内部事实源",
+        "兼容字段的来源和弃用状态明确",
+        "README、SKILL 或操作文档只在长期事实发生变化时同步"
+      ],
+      "verify": "contract/profile/evidence/文档回归与多端语义测试通过",
+      "gate": "代码、契约、测试和文档对 canonical/compat 的表述一致",
+      "status": "Done",
+      "evidence": "pure_analysis profile、规则 registry、文档与契约测试"
+    },
+    {
+      "id": "TP-05",
+      "title": "建立防复发质量门禁",
+      "priority": "P0",
+      "type": "Package",
+      "objective": "把本次灯下黑问题转化为稳定的全报告唯一性、关系正确性、多端一致性和性能门禁。",
+      "parent": null,
+      "depends_on": [
+        "TP-02",
+        "TP-03",
+        "TP-04"
+      ],
+      "parallelizable": false,
+      "status": "Done",
+      "evidence": "最终隔离副本 quick CI、468 项 focused regression、多端语义与性能验收"
+    },
+    {
+      "id": "TP-05.01",
+      "title": "补齐唯一性与关系门禁",
+      "priority": "P0",
+      "type": "Testing",
+      "objective": "将标题唯一、表格唯一、章节字段所有权、关系规范化和无单支自刑加入现有回归测试，不新增无必要生产抽象。",
+      "parent": "TP-05",
+      "depends_on": [],
+      "parallelizable": false,
+      "debug_required": true,
+      "outputs": [
+        "唯一性回归门禁",
+        "关系规范化回归门禁",
+        "误报边界说明"
+      ],
+      "acceptance": [
+        "重复标题和完全重复业务表格默认失败",
+        "允许项必须有明确业务原因和最小 allowlist",
+        "关系键、柱位与自刑基数可机械验证"
+      ],
+      "verify": "pytest 运行新增门禁并通过故障注入负例",
+      "gate": "原问题的任一旧实现回潮都会使测试失败",
+      "status": "Done",
+      "evidence": "故障注入、关系基数、标题与表格唯一性门禁"
+    },
+    {
+      "id": "TP-05.02",
+      "title": "执行多端回归与性能验证",
+      "priority": "P0",
+      "type": "Verification",
+      "objective": "验证 Web、API、Bot、CLI 继续同源输出，八字与紫微报告结构正确，并量化去重后的体积与耗时变化。",
+      "parent": "TP-05",
+      "depends_on": [
+        "TP-05.01"
+      ],
+      "parallelizable": false,
+      "debug_required": true,
+      "outputs": [
+        "定向 pytest 结果",
+        "quick CI 结果",
+        "报告大小与生成耗时前后对比"
+      ],
+      "acceptance": [
+        "Web/API/Bot/CLI normalized Markdown 一致",
+        "紫微报告无结构回归",
+        "报告生成耗时不得出现无解释的显著退化",
+        "输出体积下降但不丢失唯一字段"
+      ],
+      "verify": "定向回归、bash scripts/local-ci.sh --profile quick 与最小 benchmark",
+      "gate": "正确性、兼容性、性能和多端一致性全部通过",
+      "status": "Done",
+      "evidence": "104 项定向回归、15 项多端/报告回归、干净副本 quick CI 与 renderer benchmark"
+    },
+    {
+      "id": "TP-06",
+      "title": "审查、治理与交付收口",
+      "priority": "P0",
+      "type": "Package",
+      "objective": "完成 correctness、architecture、performance、test-quality 与 document-drift 审查，并形成可提交交接包。",
+      "parent": null,
+      "depends_on": [
+        "TP-05"
+      ],
+      "parallelizable": false,
+      "status": "Done",
+      "evidence": "进入专项审查与任务 closeout"
+    },
+    {
+      "id": "TP-06.01",
+      "title": "执行修复后专项审查与案例采样",
+      "priority": "P0",
+      "type": "Review",
+      "objective": "复核是否仍有双真相源、重复字段、错误自关联、兼容投影扩散或测试灯下黑，并完成审计案例采样决定。",
+      "parent": "TP-06",
+      "depends_on": [],
+      "parallelizable": false,
+      "debug_required": true,
+      "outputs": [
+        "REVIEW.md",
+        "AUDIT_CASE_SAMPLING.md",
+        "文档漂移结论"
+      ],
+      "acceptance": [
+        "correctness 与 architecture 无 BLOCK",
+        "测试没有再次把重复行为写成正确契约",
+        "可复发模式完成项目级案例入库或记录明确 no-case reason"
+      ],
+      "verify": "auto-review 专项路由、审计采样 strict 校验与 governance strict",
+      "gate": "修复没有以新的兼容双轨或过度抽象替代旧问题",
+      "status": "Done",
+      "evidence": "准备执行 auto-review 路由与审计案例采样"
+    },
+    {
+      "id": "TP-06.02",
+      "title": "生成 closeout 与 Git 交付交接",
+      "priority": "P0",
+      "type": "Delivery",
+      "objective": "收口 DEBUG、测试、审查、文档同步和回滚证据，生成任务 closeout，并交给 auto-github 执行后续版本控制。",
+      "parent": "TP-06",
+      "depends_on": [
+        "TP-06.01"
+      ],
+      "parallelizable": false,
+      "debug_required": true,
+      "outputs": [
+        "TASK_CLOSEOUT_PACKET.json",
+        "Git 交付边界与验证摘要"
+      ],
+      "acceptance": [
+        "所有叶子任务和 checklist 已真实关闭",
+        "DEBUG.md 通过 conclude 校验",
+        "closeout 不混入 0159 或其他并发任务改动",
+        "提交、推送和远端 CI 由 auto-github 单独执行并保留真实证据"
+      ],
+      "verify": "validate_task_docs --phase closeout 与 build_task_closeout --audit-case-sampling-required",
+      "gate": "任务证据完整、工作树边界清晰且可安全交付",
+      "status": "Done"
+    }
+  ],
+  "document_blocks": {
+    "in_scope": "- 综合八字标准 Markdown 的重复标题、重复表格和语义字段所有权\n- 干支/地支关系的单一计算真相源、自关联、对称重复与兼容投影\n- spirits 与关系相关结构化别名的公开消费者审计和迁移边界\n- 八字、紫微、多端语义一致性和性能回归\n- DEBUG、review、审计案例采样、治理与 closeout 证据",
+    "out_of_scope": "- 新增或调整八字命理规则、格局、喜忌、神煞释义或称骨内容\n- 新增紫微、黄历、六爻、梅花、奇门等能力\n- 修改 Web 视觉、地区控件、生产部署或外部 live 配置\n- 无关仓库卫生、依赖升级、语料抓取或 0159 并发任务\n- 未经版本契约审计直接删除公开 API 字段",
+    "requirement_alignment": "- 用户要求把本次重复与相似问题落盘，并制定可执行修复计划。\n- 已确认神煞重复是同一计算结果通过兼容字段被重复渲染；当前展示已修复，但结构化别名仍存在。\n- 已确认综合八字还存在五行/天干/长生表格完全重复、调候语义重复和关系双真相源。\n- 本任务只制定并落盘修复任务树，业务实现留给后续执行波次。",
+    "repo_evidence": "- 匿名 1990-01-01 08:00 北京男命样本实测：`### 五行分数` 与 `### 天干分数` 各出现 2 次。\n- 同一样本检测到完全相同表格位置 `[64, 258]`、`[74, 268]`、`[89, 283]`。\n- `branchRelations.conflictsDetail` 输出 10 条，其中包含单个辰支的 `时支辰刑时支辰`、`时支辰被刑时支辰` 以及合/刑/害反向重复。\n- `ganzhiRelations.diZhi` 对同一命盘另行输出 3 条规范不同的关系结论。\n- `spirits == spiritsFull`，且 `spiritsExplain == spiritsFull.descriptions`。\n- `tests/regression/test_branding_support.py` 当前结构契约明确期待两组五行/天干分数标题，只对神煞建立了唯一性断言。\n- 紫微标准报告实测 249 行，未发现重复标题或完全重复表格。",
+    "constraints_matrix": "- 保持当前 `main` 分支，不切换分支、不改写历史。\n- 当前 worktree 存在 0159 及其依赖、脚本、测试和治理文档并发改动；本任务不得覆盖、回滚或混入这些文件。\n- 核心关系规则优先复用已登记的成熟 bazi-1 数据，不新增第二套硬编码命理规则。\n- 报告去重必须保留全部唯一信息，不得以删除章节掩盖数据缺失。\n- 公开字段变更必须先审计 profile、contract、文档和消费者，再决定兼容投影或版本迁移。\n- Web/API/Bot/CLI 必须继续调用同一 report profile，不允许各交付面自行去重。",
+    "change_boundary": "- 预计业务修改仅限 `bazi_calculator.py`、`report_generator.py` 及现有相关回归测试。\n- 只有公开字段事实发生变化时，才更新 `contracts/fate/profiles/pure_analysis.json`、证据索引、README/SKILL 或 module context。\n- 优先扩展现有测试文件，不为一次性扫描新增生产脚本或通用框架。\n- 任务规划阶段只写 `governance/tasks/0160-*` 和 `governance/tasks/INDEX.md` 当前任务行。",
+    "risk_matrix": "- P0 正确性：单支错误自刑、关系双向重复或两套算法结论不一致。\n- P0 兼容性：直接删除旧字段可能破坏 API/Agent 调用方。\n- P1 完整性：去重时误删只在某一章节出现的唯一依据。\n- P1 测试质量：快照继续把重复输出固化为正确行为。\n- P2 性能：规范化或兼容投影若重复遍历，可能抵消报告去重收益。\n- P2 文档漂移：代码改成 canonical/compat 后，profile 与说明仍宣称多套独立能力。",
+    "assumptions_and_falsification": "- 假设 A：`ganzhiExtra` 与 `branchRelations` 的成熟规则数据足以构建 canonical 关系模型；若匿名边界样本证明缺失必要关系，则重新评估 provider，而不是恢复独立硬编码算法。\n- 假设 B：重复表格没有独占信息；若字段级 diff 发现唯一内容，则先迁移到所属章节再删除旧渲染。\n- 假设 C：旧字段可能存在外部消费者；在没有版本化迁移证据前保留为纯投影，不直接删除。\n- 假设 D：紫微当前无同类完全重复；若更大 fixture 扫描发现反例，则另建独立任务，不把紫微改动混入本任务。",
+    "critical_ambiguities": "- `ganzhiRelations` 当前既是公开字段又是独立硬编码算法；计划采用“canonical 内部模型 + 旧字段纯投影”，最终删除时间取决于消费者审计。\n- 刑关系是否方向化必须以成熟规则源和既有证据契约为准；不得用简单无序去重误删真实方向信息。\n- 原标准结构曾明确包含两组五行分数标题；修复需要同步结构契约，而不是只修改生成器。",
+    "debug_evidence_contract": "- 调试模式: Required\n- 当前任务目录必须持续维护 `DEBUG.md`。\n- BUILD 前必须完成 observe/hypothesize 校验；修复完成后必须通过 conclude 校验。\n- 每个关系和报告修复必须记录 red/green 或等价回归证据。\n- closeout 的 Recent Evidence 必须回指 DEBUG、测试和 review。",
+    "validation_plan": "- 匿名八字动态重复扫描：标题计数、连续 Markdown 表格 hash、字段所有权检查。\n- 关系边界测试：单辰、辰辰、巳寅、子辰、无关系样本和成熟 provider 对照。\n- `tests/regression/test_bazi_statement_golden.py`：结构化关系与证据回归。\n- `tests/regression/test_branding_support.py`：标准块、神煞和全报告唯一性回归。\n- 多端 normalized semantic parity 与紫微独立报告回归。\n- 报告生成耗时、行数和字节数前后 benchmark。\n- `bash scripts/local-ci.sh --profile quick`。\n- `python3 governance/tools/validate_governance_package.py --strict` 与任务文档校验。",
+    "review_gate": "- correctness：不存在单支自刑、对称重复、冲突结果或唯一信息丢失。\n- architecture：计算内部只有一个关系事实源，兼容字段只做投影。\n- test-quality：失败测试先于修复，且不以整份易变长文本快照替代语义断言。\n- performance：去重和规范化不引入重复全量扫描或显著耗时退化。\n- future-optimal-drift：禁止通过新的 wrapper 或双轨算法保留错误概念。\n- document-drift：结构、profile、evidence 与文档口径一致。",
+    "runtime_verification_gate": "- 本任务不新增运行时服务、数据库或外部调用。\n- 运行验证限定为本地确定性报告、现有多端语义测试和 quick CI。\n- 无需生产 live；不得把本地报告样本写入日志或提交真实用户资料。",
+    "ship_readiness": "- 所有 P0 正确性与唯一性门禁通过。\n- DEBUG.md 通过 conclude 校验，REVIEW 无 BLOCK。\n- API 兼容边界、回滚方式和残余弃用项明确。\n- 任务 closeout 与审计案例采样通过 strict 校验。\n- 后续提交必须只包含 0160 任务相关改动，并由 auto-github 获取真实远端 CI 证据。",
+    "global_acceptance_standards": "- [x] 单个地支不会与自身发生需要两个实例才成立的关系\n- [x] 同一对称关系按 canonical 键只出现一次\n- [x] 报告不存在重复标题、完全重复业务表格或同字段多章节所有权\n- [x] 所有唯一业务信息和证据仍然存在\n- [x] 兼容字段仅由 canonical 结果投影，不独立计算\n- [x] Web/API/Bot/CLI 同源，紫微无回归\n- [x] DEBUG、测试、review、文档同步和回滚证据完整\n- [x] 不混入 0159 或其他并发任务改动",
+    "planning_summary": "先用动态样本和 red tests 锁定缺陷，再并行收敛关系计算与报告字段所有权；随后审计并迁移机器契约，建立全报告防复发门禁，最后执行多端、性能、治理和交付审查。",
+    "lifecycle_gates": "- SPEC：缺陷分类、目标终态、真实约束和兼容边界已落盘。\n- PLAN：十二个叶子节点、依赖波次、验证命令和回滚边界明确。\n- BUILD：先 red tests，再分别修改 core 关系模型与 delivery 渲染；禁止跨范围重写。\n- TEST：关系边界、报告唯一性、结构契约、多端 parity、紫微和性能验证通过。\n- REVIEW：correctness、architecture、performance、test-quality、future-optimal-drift、document-drift 无 BLOCK。\n- SHIP：closeout、审计案例采样和 Git 交付证据完整后才允许提交推送。\n- 执行纪律：不得跳过 gate；任一 gate 未闭合时不得进入下一阶段。",
+    "simplest_path": "复用现有 bazi-1 关系数据、BaziCalculator、report_generator 和 pytest 门禁；删除独立硬编码关系判断及重复 renderer，不新增新的规则库、报告框架或运行时服务。",
+    "split_strategy": "按故障边界拆分为基线契约、关系计算、报告渲染、兼容契约、质量门禁和交付收口六个包；关系与报告实现可在共同契约确定后并行，契约同步和最终验证必须等待两者完成。",
+    "runtime_workflow_contract": "- 本任务使用语义 DAG，但不需要原子执行图：节点均为本地、确定性、可重试的代码与测试工作。\n- TP-01 至 TP-06 已按依赖顺序完成；core/delivery 写集隔离。\n- 最终隔离副本只应用 0160 文件，所有验证和 closeout 均通过。",
+    "runtime_state": "- Phase: COMPLETE\n- Ready: 无\n- Blocked: 无\n- External blocker: 无\n- Concurrent worktree protection: 0159 相关文件和并发修改未进入 0160 隔离验证",
+    "blockers": "- 当前无外部阻断。\n- 实施前需保持 0159 并发改动不进入本任务提交。\n- 若消费者审计发现公开字段不能在当前版本迁移，则保留显式兼容投影并登记后续移除任务，不阻塞正确性修复。"
+  }
+}

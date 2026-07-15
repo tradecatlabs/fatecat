@@ -17,9 +17,13 @@ FIELD_CATEGORIES = {
         "fields": ["fourPillars", "hiddenStems", "tenGods", "twelveGrowth", "dayMaster"],
     },
     "wuxing": {"name": "五行分析", "desc": "五行统计与状态", "fields": ["fiveElements", "wuxingState"]},
-    "spirits": {"name": "神煞系统", "desc": "吉神凶煞", "fields": ["spirits"]},
+    "spirits": {"name": "神煞系统", "desc": "吉神凶煞", "fields": ["spiritsFull"]},
     "palaces": {"name": "宫位系统", "desc": "特殊宫位与空亡", "fields": ["specialPalaces", "voidInfo"]},
-    "relations": {"name": "干支关系", "desc": "合冲刑害", "fields": ["ganzhiRelations"]},
+    "relations": {
+        "name": "干支关系",
+        "desc": "合冲刑害",
+        "fields": ["branchRelations", "ganzhiExtra", "ganzhiRelations"],
+    },
     "fortune": {
         "name": "运势流年",
         "desc": "大运流年流月",

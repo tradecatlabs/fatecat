@@ -49,6 +49,7 @@ fatecat-delivery/
 - `src/webhook_callbacks.py` 只承载 report job 终态 callback payload、HMAC-SHA256 签名、URL 基础校验和可注入 HTTP dispatcher；不得保存 webhook secret、发送报告正文或实现持久重试队列。
 - `src/webhook_config_store.py` 只承载本地 Fernet key ring、callback URL/secret 加密存储、解密和 key rotation baseline；不得承载外部 Vault/KMS、分布式租约、生产密钥生命周期或 webhook dispatcher。
 - `src/report_markdown.py` 只承载 Markdown 表格、转义和行内文本压缩工具；报告层可复用，但不得写入命理规则。
+- `src/report_generator.py` 只按章节字段所有权渲染 fate-core 结果；四柱、日主、五行、调候、格局、节气、关系和运势各有唯一展示章节，兼容字段不得再次独立渲染。
 - `src/main.py` 负责 HTTP requestId、W3C `traceparent` 传播、OpenTelemetry 语义兼容本地 span 日志接入、metrics、结构化日志和本地 sandbox access gateway；sandbox gateway 只做 `FATE_SANDBOX_TOKENS` 环境变量 smoke、scope enforcement、rate limit 与 audit 脱敏，不发行公网 token。trace context 真相源在 `fate_core.observability`，delivery 不自建第二套 trace 协议。
 - `GET /about` 由 `public_discovery.py` 以实时 capability 元数据生成项目级可引用正文；`GET /guides/bazi` 与 `GET /guides/ziwei` 只读取版本化 registry 静态字段，不执行 provider health；`GET /api/v1/discovery/query-set` 只读公开稳定问题集。`GET /llms.txt` 读取仓库根 `llms.txt`，robots 与 sitemap 确定性生成。
 - `src/bot_progress.py` 只承载 Telegram Bot 进度项和提示文案；Bot 主流程仍在 `src/bot.py`。

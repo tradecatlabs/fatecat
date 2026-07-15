@@ -818,7 +818,7 @@
         "yongShenRanking": [
           {
             "strategy": "通关",
-            "score": 100
+            "score": 89
           },
           {
             "strategy": "调候",
@@ -842,14 +842,19 @@
           {
             "strategy": "调候",
             "tier": "parallel_review",
-            "selectionReason": "non_absolute_secondary_strategy_retained"
+            "selectionReason": "score_within_parallel_threshold"
+          },
+          {
+            "strategy": "扶抑",
+            "tier": "parallel_review",
+            "selectionReason": "score_within_parallel_threshold"
           }
         ],
         "yongShenConflictMatrix": [
           {
             "type": "strategy_ranking_delta",
-            "severity": "low",
-            "delta": 20,
+            "severity": "medium",
+            "delta": 9,
             "strategies": [
               "通关",
               "调候"
@@ -867,7 +872,7 @@
           {
             "type": "relationship_or_imbalance_overlay",
             "severity": "medium",
-            "delta": 36,
+            "delta": 25,
             "strategies": [
               "通关",
               "病药"
@@ -1165,7 +1170,7 @@
         "yongShenRanking": [
           {
             "strategy": "通关",
-            "score": 100
+            "score": 97
           },
           {
             "strategy": "调候",
@@ -1196,7 +1201,7 @@
           {
             "type": "strategy_ranking_delta",
             "severity": "low",
-            "delta": 20,
+            "delta": 17,
             "strategies": [
               "通关",
               "调候"
@@ -1214,7 +1219,7 @@
           {
             "type": "relationship_or_imbalance_overlay",
             "severity": "medium",
-            "delta": 39,
+            "delta": 36,
             "strategies": [
               "通关",
               "病药"
@@ -1868,14 +1873,25 @@
             ]
           },
           "branchRelations": {
-            "conflictsDetail": [
+            "schemaVersion": 1,
+            "source": "bazi-1",
+            "canonical": [
               {
-                "rel": "冲",
-                "from": "year",
-                "to": [
-                  "month"
+                "key": "branch:冲:year-day",
+                "relation": "冲",
+                "positions": [
+                  "year",
+                  "day"
                 ],
-                "text": "年支冲月支，阻隔甲己合化"
+                "branches": [
+                  "子",
+                  "午"
+                ],
+                "directional": false,
+                "full": true,
+                "element": "",
+                "source": "bazi-1.zhi_atts",
+                "text": "年支子冲日支午，阻隔甲己合化"
               }
             ]
           }

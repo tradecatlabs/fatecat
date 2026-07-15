@@ -276,3 +276,5 @@
 | 0156 | fatecat-geo-discovery-optimization | In Progress | P0 | 基于固定 GEO 方法与公开证据，审计并提升 FateCat 在 AI 搜索、问答引擎和智能体生态中的可发现性、可解析性、可引用性与可信度，落地机器发现入口、实体结构、事实底座和可重复验证门禁。 | 0156-fatecat-geo-discovery-optimization/ |
 
 | 0157 | fatecat-geo-citation-authority | In Progress | P1 | 建立 FateCat 可引用主题页、实体证据页、GitHub 元数据与第二阶段 GEO 机械门禁 | 0157-fatecat-geo-citation-authority/ |
+
+| 0160 | comprehensive-bazi-report-deduplication-and-relation-canonicalization | Done | P0 | 修复综合八字报告重复渲染、地支关系自关联与双向重复，并收敛结构化结果和报告章节的单一事实源，建立全报告唯一性与关系正确性回归门禁。 | 0160-comprehensive-bazi-report-deduplication-and-relation-canonicalization/ |

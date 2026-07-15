@@ -76,7 +76,7 @@ def build_regular_pattern_candidates(raw: dict[str, Any]) -> dict[str, Any]:
                     f"tenGods.month.branch[{index}]",
                     f"hiddenStems.month[{index}]",
                     "tenGods.*.stem",
-                    "branchRelations.conflictsDetail",
+                    "branchRelations.canonical",
                 ],
                 "conditions": [
                     condition("month_branch_ten_god_present", True, ten_god),

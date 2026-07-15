@@ -117,7 +117,12 @@ def build_topic_profiles(
                 {"factor": "官杀", "value": families.get("官杀", 0) * 5, "evidenceField": "tenGods.官杀"},
                 {"factor": "关系压力", "value": relation_count * 3, "evidenceField": "baziBenchmark.ganzhiPriority"},
             ],
-            "evidenceFields": ["tenGods.财", "tenGods.官杀", "branchRelations", "baziBenchmark.fortuneTriggers"],
+            "evidenceFields": [
+                "tenGods.财",
+                "tenGods.官杀",
+                "branchRelations.canonical",
+                "baziBenchmark.fortuneTriggers",
+            ],
             "riskBoundary": "婚姻 profile 只作关系结构证据，不替代亲密关系、心理或法律决策。",
         },
         {
@@ -158,7 +163,11 @@ def build_topic_profiles(
                     "evidenceField": "baziBenchmark.fortuneTriggers",
                 },
             ],
-            "evidenceFields": ["branchRelations", "ganzhiRelations", "baziBenchmark.fortuneTriggers"],
+            "evidenceFields": [
+                "branchRelations.canonical",
+                "ganzhiRelations.tianGan",
+                "baziBenchmark.fortuneTriggers",
+            ],
             "riskBoundary": "迁移 profile 只作变动结构证据，不替代搬迁、出行或签证决策。",
         },
         {
@@ -176,7 +185,12 @@ def build_topic_profiles(
                     "evidenceField": "baziBenchmark.ganzhiPriority",
                 },
             ],
-            "evidenceFields": ["tenGods.印", "tenGods.比劫", "branchRelations", "baziBenchmark.ganzhiPriority"],
+            "evidenceFields": [
+                "tenGods.印",
+                "tenGods.比劫",
+                "branchRelations.canonical",
+                "baziBenchmark.ganzhiPriority",
+            ],
             "riskBoundary": "家庭 profile 只作亲属结构证据，不替代家庭、法律或心理决策。",
         },
     ]

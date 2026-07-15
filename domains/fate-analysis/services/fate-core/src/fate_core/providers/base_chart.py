@@ -40,6 +40,7 @@ def build_base_chart_section(runtime: PureAnalysisRuntime) -> dict[str, Any]:
 
     spirits_full = calculator._calc_all_spirits(ec)
     wuxing_scores = calculator._calc_wuxing_scores(four_pillars)
+    branch_relations = calculator._calc_zhi_relations(four_pillars)
 
     return {
         "input": _build_input(runtime),
@@ -60,10 +61,10 @@ def build_base_chart_section(runtime: PureAnalysisRuntime) -> dict[str, Any]:
             "strength": wuxing_scores.get("weakStrong"),
             "selfSitting": calculator._calc_self_sitting(ec.getDayGan(), ec.getDayZhi()),
         },
-        "ganzhiRelations": calculator._calc_ganzhi_relations(four_pillars),
+        "ganzhiRelations": calculator._calc_ganzhi_relations(four_pillars, branch_relations),
         "ganzhiImagery": calculator._calc_ganzhi_imagery(four_pillars),
         "ganzhiExtra": calculator._calc_ganzhi_extra(four_pillars, hidden_stems),
-        "branchRelations": calculator._calc_zhi_relations(four_pillars),
+        "branchRelations": branch_relations,
         "wuxingScores": wuxing_scores,
         "climateScores": calculator._calc_climate_scores(four_pillars),
     }

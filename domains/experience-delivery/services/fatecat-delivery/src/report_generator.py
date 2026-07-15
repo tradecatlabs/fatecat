@@ -322,282 +322,6 @@ def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None)
         table_rows.append([label] + row_vals[keyname])
     lines.extend(_render_table(col_headers, table_rows))
 
-    # 五行分数（表格化）
-    wx_score = result.get("wuxingScores", {})
-    if wx_score:
-        lines.append("### 五行分数")
-        lines.append("")
-        fe = wx_score.get("fiveElementScore", {})
-        if fe:
-            lines.extend(_render_table(["五行", "分数"], [[k, v] for k, v in fe.items()]))
-        gs = wx_score.get("ganScore", {})
-        if gs:
-            lines.append("### 天干分数")
-            lines.append("")
-            lines.extend(_render_table(["天干", "分数"], [[k, v] for k, v in gs.items()]))
-        detail = wx_score.get("statusDetail", [])
-        if detail:
-            seq = "、".join([str(x) for x in detail if str(x).strip()])
-            if seq:
-                lines.append(f"日主状态序列：{seq}")
-        summary = wx_score.get("statusSummary", "")
-        if summary:
-            parts = [x.strip() for x in str(summary).replace("／", "/").split("/") if x.strip()]
-            if parts:
-                lines.append("长生概要：")
-                lines.extend(_render_table(["项目", "内容"], [[str(i + 1), x] for i, x in enumerate(parts)]))
-            else:
-                lines.append(f"长生概要：{summary}")
-        lines.append("")
-
-    # 温湿度与拱神（表格化）
-    climate = result.get("climateScores", {})
-    if climate and not climate.get("error"):
-        lines.append("### 温湿度与拱神")
-        lines.append("")
-        crows: list[list[object]] = []
-        if climate.get("temperatureScore", "") != "":
-            crows.append(["湿度分数", climate.get("temperatureScore", "")])
-        if climate.get("hint", ""):
-            crows.append(["说明", climate.get("hint", "")])
-        gongs = climate.get("gongs", []) or []
-        if gongs:
-            crows.append(["拱神", "、".join([str(x) for x in gongs if str(x).strip()])])
-        empties = climate.get("empties", []) or []
-        if empties:
-            crows.append(["空亡提示", "、".join([str(x) for x in empties if str(x).strip()])])
-        if crows:
-            lines.extend(_render_table(["项目", "内容"], crows))
-
-    # 干支合克与入库
-    gz_extra = result.get("ganzhiExtra", {})
-    if gz_extra:
-        lines.append("### 干支合克与入库")
-        lines.append("")
-
-        def _fmt_score(d: dict) -> str:
-            if not isinstance(d, dict) or not d:
-                return ""
-            return "、".join([f"{k}:{v}" for k, v in d.items() if str(k).strip()])
-
-        name_map = {"year": "年", "month": "月", "day": "日", "hour": "时"}
-        order = ["year", "month", "day", "hour"]
-
-        # 1) 干支相合
-        he_detail = gz_extra.get("heDetail", {})
-        if he_detail:
-            rows: list[list[object]] = []
-            for k in order:
-                item = he_detail.get(k, {})
-                label = f"{name_map.get(k, k)}柱"
-                if not isinstance(item, dict):
-                    rows.append([label, "", "", str(item), "", ""])
-                    continue
-                if item.get("error"):
-                    rows.append([label, "", "", f"error: {item.get('error')}", "", ""])
-                    continue
-                rows.append(
-                    [
-                        label,
-                        item.get("ganZhi", ""),
-                        item.get("heGan", ""),
-                        item.get("hitItem", "") or "-",
-                        "相合" if item.get("hit") is True else "不相合",
-                        _fmt_score(item.get("zhiHiddenScore", {})),
-                    ]
-                )
-            lines.append("#### 干支相合（依据）")
-            lines.append("")
-            lines.extend(_render_table(["柱", "干支", "合干", "命中", "结论", "支藏干强度"], rows))
-        else:
-            if gz_extra.get("he"):
-                raise RuntimeError("干支相合数据缺失: ganzhiExtra.heDetail 缺失但 he 非空")
-
-        # 2) 天干相克
-        ke_detail = gz_extra.get("keDetail", [])
-        if ke_detail:
-            rows: list[list[object]] = []
-            for i, item in enumerate(ke_detail, 1):
-                txt = item.get("text", "") if isinstance(item, dict) else str(item)
-                for kk, vv in name_map.items():
-                    txt = txt.replace(f"{kk}干", f"{vv}柱天干")
-                rows.append([i, txt])
-            if rows:
-                lines.append("#### 天干相克（依据）")
-                lines.append("")
-                lines.extend(_render_table(["序号", "关系"], rows))
-        else:
-            ke = gz_extra.get("ke", [])
-            if ke:
-                raise RuntimeError("天干相克数据缺失: ganzhiExtra.keDetail 缺失但 ke 非空")
-
-        # 3) 地支入库
-        ku_detail = gz_extra.get("kuDetail", {})
-        if ku_detail:
-            rows: list[list[object]] = []
-            for k in order:
-                item = ku_detail.get(k, {})
-                label = f"{name_map.get(k, k)}柱"
-                if not isinstance(item, dict):
-                    rows.append([label, "", str(item), "", "", "", "", "", "", ""])
-                    continue
-                if item.get("error"):
-                    rows.append([label, "", f"error: {item.get('error')}", "", "", "", "", "", "", ""])
-                    continue
-                zhi = item.get("zhi", "")
-                is_ku = item.get("isKu") is True
-                ku_elem = item.get("kuElement", "") or ""
-                weakest = item.get("weakestGan", "") or ""
-                weakest_score = item.get("weakestScore", "")
-                hit_item = item.get("hitItem", "") or "-"
-                verdict = "入库" if item.get("hit") is True else "不入库"
-                hiddens = item.get("hidden", []) if isinstance(item.get("hidden", []), list) else []
-                rows.append(
-                    [
-                        label,
-                        zhi,
-                        "是" if is_ku else "否",
-                        f"{ku_elem}库" if ku_elem else "",
-                        weakest,
-                        weakest_score,
-                        hit_item,
-                        verdict,
-                        "、".join([str(x) for x in hiddens if str(x).strip()]),
-                        _fmt_score(item.get("zhiHiddenScore", {})),
-                    ]
-                )
-            lines.append("#### 地支入库（依据）")
-            lines.append("")
-            lines.extend(
-                _render_table(
-                    ["柱", "地支", "四库", "库类", "最弱藏干", "最弱分数", "命中", "结论", "本柱藏干", "支藏干强度"],
-                    rows,
-                )
-            )
-        else:
-            if gz_extra.get("ku"):
-                raise RuntimeError("地支入库数据缺失: ganzhiExtra.kuDetail 缺失但 ku 非空")
-
-        lines.append("")
-
-    # 地支六合 / 三会 / 三合 / 冲刑害破
-    zhi_rel = result.get("branchRelations", {})
-    if zhi_rel and not zhi_rel.get("error"):
-        lines.append("### 地支关系")
-        lines.append("")
-        liu_he_detail = zhi_rel.get("liuHeDetail", [])
-        san_hui_detail = zhi_rel.get("sanHuiDetail", [])
-        san_he_detail = zhi_rel.get("sanHeDetail", [])
-        conf_detail = zhi_rel.get("conflictsDetail", [])
-
-        def _expand_relation_text(text: str) -> list[str]:
-            """
-            将 bazi_calculator 输出的关系 text（经常带“（半）/六合(金)/刑(名字)/三会：... => ...”）
-            拆成“全展开”多行结构，避免一行塞多个信息。
-            """
-            if not text:
-                return []
-            t = str(text).strip()
-            out: list[str] = []
-
-            # 1) 半/全 标记
-            completeness = ""
-            if t.endswith("（半）"):
-                completeness = "半"
-                t = t[:-3]
-            elif t.endswith("（全）"):
-                completeness = "全"
-                t = t[:-3]
-
-            # 2) 三会/三合：带 “=>”
-            if t.startswith("三会：") or t.startswith("三合："):
-                out.append("  - 关系（展开）：")
-                out.append(f"    - 原文：{t}")
-                head, _, tail = t.partition("=>")
-                if head:
-                    out.append(f"    - 组成：{head.strip()}")
-                if tail:
-                    out.append(f"    - 结论：{tail.strip()}")
-                if completeness:
-                    out.append(f"    - 完整度：{completeness}")
-                return out
-
-            # 3) 六合：末尾可能带 “(金)” 这种元素标记
-            m = re.search(r"六合\(([^)]+)\)\s*$", t)
-            liuhe_elem = ""
-            if m:
-                liuhe_elem = m.group(1).strip()
-                t = t[: m.start()].rstrip()
-
-            # 4) 刑：末尾可能带 “刑(子卯刑)” 这类
-            m = re.search(r"刑\(([^)]+)\)\s*$", t)
-            xing_name = ""
-            if m:
-                xing_name = m.group(1).strip()
-                t = t[: m.start()].rstrip()
-
-            # 5) 尝试抽取“年/月/日/时支X … 月支Y”这类柱位与地支信息
-            pairs = re.findall(r"([年月日时])支([子丑寅卯辰巳午未申酉戌亥])", t)
-            rel = ""
-            # 关系关键字（优先“六合”，其次“合/会/冲/害/破”等）
-            for k in ["六合", "三会", "三合", "合", "会", "冲", "害", "破"]:
-                if k in t:
-                    rel = k
-                    break
-
-            out.append("  - 关系（展开）：")
-            out.append(f"    - 原文：{t}")
-            if rel:
-                out.append(f"    - 关系：{rel}")
-            if liuhe_elem:
-                out.append(f"    - 六合五行：{liuhe_elem}")
-            if xing_name:
-                out.append(f"    - 刑类：{xing_name}")
-            if pairs:
-                out.append("    - 柱位地支（展开）：")
-                for pos, zhi in pairs:
-                    out.append(f"      - {pos}支：{zhi}")
-            if completeness:
-                out.append(f"    - 完整度：{completeness}")
-            return out
-
-        if liu_he_detail:
-            lines.append("* 六合（依据）：")
-            for item in liu_he_detail:
-                if isinstance(item, dict) and item.get("text"):
-                    for x in _expand_relation_text(item.get("text")):
-                        lines.append(x)
-        elif zhi_rel.get("liuHe"):
-            raise RuntimeError("地支关系数据缺失: branchRelations.liuHeDetail 缺失但 liuHe 非空")
-
-        if san_hui_detail:
-            lines.append("* 三会（依据）：")
-            for item in san_hui_detail:
-                if isinstance(item, dict) and item.get("text"):
-                    for x in _expand_relation_text(item.get("text")):
-                        lines.append(x)
-        elif zhi_rel.get("sanHui"):
-            raise RuntimeError("地支关系数据缺失: branchRelations.sanHuiDetail 缺失但 sanHui 非空")
-
-        if san_he_detail:
-            lines.append("* 三合（依据）：")
-            for item in san_he_detail:
-                if isinstance(item, dict) and item.get("text"):
-                    for x in _expand_relation_text(item.get("text")):
-                        lines.append(x)
-        elif zhi_rel.get("sanHe"):
-            raise RuntimeError("地支关系数据缺失: branchRelations.sanHeDetail 缺失但 sanHe 非空")
-
-        if conf_detail:
-            lines.append("* 刑冲害破（依据）：")
-            for item in conf_detail:
-                if isinstance(item, dict) and item.get("text"):
-                    for x in _expand_relation_text(item.get("text")):
-                        lines.append(x)
-        elif zhi_rel.get("conflicts"):
-            raise RuntimeError("地支关系数据缺失: branchRelations.conflictsDetail 缺失但 conflicts 非空")
-        lines.append("")
-
     # 神煞（默认输出合并后的全量列表；禁止回退到简表口径）
     full_sp = result.get("spiritsFull", {})
     full_by = full_sp.get("byPillar", {})
@@ -626,13 +350,11 @@ def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None)
 
 
 def generate_daymaster_section(result: dict[str, Any]) -> str:
-    """生成日主概览（属性/阴阳/旺衰/格局参考）"""
+    """生成日主独占的属性、阴阳与旺衰摘要。"""
     lines = []
     dm = result.get("dayMaster", {})
-    wx_state = result.get("wuxingState", {})
-    geju = result.get("geju", {})
     sizi_sum = result.get("siziSummary", {}) or {}
-    if dm or wx_state or geju:
+    if dm or sizi_sum:
         lines.append("## 日主概览")
         lines.append("")
         if dm:
@@ -645,25 +367,6 @@ def generate_daymaster_section(result: dict[str, Any]) -> str:
             lines.append(f"* 阴阳参考：{dm.get('yinYang', '')}")
             if dm.get("strength"):
                 lines.append(f"* 旺衰参考：{dm.get('strength')}")
-        if wx_state:
-            desc = wx_state.get("description", "")
-            if desc:
-                lines.append(f"* 五行状态：{desc}")
-            summary = wx_state.get("statusSummary", "")
-            if summary:
-                lines.append(f"* 旺衰概要：{summary}")
-        if geju:
-            main = geju.get("main", "")
-            pats = geju.get("patterns", [])
-            if main or pats:
-                if main:
-                    lines.append(f"* 格局参考：{main}")
-                # 备选格局展开
-                others = [p for p in pats if p and p != main]
-                if others:
-                    lines.append("* 备选格局：")
-                    for p in others:
-                        lines.append(f"  - {p}")
         # 外部断语（bazi-1 sizi.summarys）：属于“干支性情”文本资源，不做自写推断
         if isinstance(sizi_sum, dict) and sizi_sum.get("text"):
             lines.append("* 四柱断语：")
@@ -682,24 +385,9 @@ def generate_daymaster_section(result: dict[str, Any]) -> str:
 
 
 def generate_wuxing_section(result: dict[str, Any]) -> str:
-    """生成五行分析部分"""
+    """生成五行比例、分数与旺相休囚死状态。"""
     lines = []
     lines.append("## 五行喜忌（调候与平衡）")
-    lines.append("")
-
-    dm = result.get("dayMaster", {})
-    # 日主属性与强弱（单一口径，取 weakStrong 优先，其次 dayMaster.strength）
-    strength = dm.get("strength", "")
-    wx_strength = result.get("wuxingScores", {}).get("weakStrong")
-    final_strength = wx_strength or strength
-    lines.append("日主属性（展开）：")
-    if dm.get("stem", ""):
-        lines.append(f"* 天干：{dm.get('stem', '')}")
-    elem = dm.get("elementCn", dm.get("element", ""))
-    if elem:
-        lines.append(f"* 五行：{elem}")
-    if final_strength:
-        lines.append(f"强弱判断：{final_strength}")
     lines.append("")
 
     # 五行统计
@@ -736,7 +424,6 @@ def generate_wuxing_section(result: dict[str, Any]) -> str:
             lines.append("### 天干分数")
             lines.append("")
             lines.extend(_render_table(["天干", "分数"], rows))
-        # 避免重复展示，与上方“强弱判断”保持一致
         if wx_score.get("statusDetail"):
             seq = "、".join([str(x) for x in wx_score.get("statusDetail") if str(x).strip()])
             if seq:
@@ -810,7 +497,7 @@ def generate_fortune_section(result: dict[str, Any], recent_years: int | None = 
     lines.append("## 运势分析")
     lines.append("")
 
-    # 大运建议（外部口径）：直接引用 yongShen.basis 中的“大运：...”段落
+    # 大运建议（外部口径）：只提取动态“大运”片段，不复制完整静态用神原文。
     ys = result.get("yongShen", {}) or {}
     basis = ys.get("basis", "") if isinstance(ys, dict) else ""
     if basis and "大运：" in basis:
@@ -838,15 +525,6 @@ def generate_fortune_section(result: dict[str, Any], recent_years: int | None = 
             if desc:
                 lines.append(f"* 描述：{desc}")
         lines.append(f"交运：逢{jy.get('jiaoJieQi', '')}节后交大运")
-        vi = result.get("voidInfo", {}).get("day", {})
-        if isinstance(vi, dict):
-            lines.append("空亡（展开）：")
-            if vi.get("kong", ""):
-                lines.append(f"* 空亡：{vi.get('kong', '')}")
-            lines.append("* 依据：日柱")
-        sl = result.get("siling", {})
-        if sl:
-            lines.append(f"司令：{sl.get('current', '')}")
         lines.append("")
 
     # 大运（表格化呈现：压缩排版，不减少字段）
@@ -917,164 +595,121 @@ def generate_fortune_section(result: dict[str, Any], recent_years: int | None = 
 
 
 def generate_relations_section(result: dict[str, Any]) -> str:
-    """生成干支关系部分"""
-    lines = []
-    gr = result.get("ganzhiRelations", {})
-    if gr:
-        lines.append("## 干支关系")
+    """生成唯一的干支关系章节，兼容字段不再单独渲染。"""
+    gr = result.get("ganzhiRelations", {}) or {}
+    extra = result.get("ganzhiExtra", {}) or {}
+    branch_relations = result.get("branchRelations", {}) or {}
+    if not any((gr, extra, branch_relations)):
+        return ""
+
+    lines = ["## 干支关系", ""]
+    position_name = {"year": "年", "month": "月", "day": "日", "hour": "时"}
+
+    stem_relations = gr.get("tianGan", []) if isinstance(gr, dict) else []
+    if stem_relations:
+        lines.append("### 天干关系")
         lines.append("")
+        lines.extend(_render_table(["序号", "关系"], [[index, value] for index, value in enumerate(stem_relations, 1)]))
 
-        tg = gr.get("tianGan", gr.get("stems", {}))
-        dz = gr.get("diZhi", gr.get("branches", {}))
+    def format_scores(scores: object) -> str:
+        if not isinstance(scores, dict):
+            return ""
+        return "、".join(f"{key}:{value}" for key, value in scores.items() if str(key).strip())
 
-        def _expand_tg_text(text: str) -> list[str]:
-            t = (text or "").strip()
-            if not t:
-                return []
-            out: list[str] = []
-            # 形如：年月甲己合化土 / 年日甲庚冲
-            m = re.match(
-                r"^([年月日时])([年月日时])([甲乙丙丁戊己庚辛壬癸])([甲乙丙丁戊己庚辛壬癸])合化([木火土金水])$", t
+    he_detail = extra.get("heDetail", {}) if isinstance(extra, dict) else {}
+    if he_detail:
+        rows = []
+        for position in ["year", "month", "day", "hour"]:
+            item = he_detail.get(position, {})
+            if not isinstance(item, dict):
+                continue
+            rows.append(
+                [
+                    f"{position_name[position]}柱",
+                    item.get("ganZhi", ""),
+                    item.get("heGan", ""),
+                    item.get("hitItem", "") or "-",
+                    "相合" if item.get("hit") is True else "不相合",
+                    format_scores(item.get("zhiHiddenScore", {})),
+                ]
             )
-            if m:
-                out.append("  - 关系（展开）：")
-                out.append("    - 柱位（展开）：")
-                out.append(f"      - {m.group(1)}")
-                out.append(f"      - {m.group(2)}")
-                out.append("    - 天干（展开）：")
-                out.append(f"      - {m.group(3)}")
-                out.append(f"      - {m.group(4)}")
-                out.append("    - 关系：合化")
-                out.append(f"    - 化气：{m.group(5)}")
-                return out
-            m = re.match(r"^([年月日时])([年月日时])([甲乙丙丁戊己庚辛壬癸])([甲乙丙丁戊己庚辛壬癸])冲$", t)
-            if m:
-                out.append("  - 关系（展开）：")
-                out.append("    - 柱位（展开）：")
-                out.append(f"      - {m.group(1)}")
-                out.append(f"      - {m.group(2)}")
-                out.append("    - 天干（展开）：")
-                out.append(f"      - {m.group(3)}")
-                out.append(f"      - {m.group(4)}")
-                out.append("    - 关系：冲")
-                return out
-            # 兜底：保留原文（不做错误解释）
-            out.append("  - 关系（展开）：")
-            out.append(f"    - 原文：{t}")
-            return out
+        if rows:
+            lines.append("### 干支相合（依据）")
+            lines.append("")
+            lines.extend(_render_table(["柱", "干支", "合干", "命中", "结论", "支藏干强度"], rows))
 
-        def _expand_dz_text(text: str) -> list[str]:
-            t = (text or "").strip()
-            if not t:
-                return []
-            out: list[str] = []
-            # 六合：年月子丑合土
-            m = re.match(
-                r"^([年月日时])([年月日时])([子丑寅卯辰巳午未申酉戌亥])([子丑寅卯辰巳午未申酉戌亥])合([木火土金水])$", t
-            )
-            if m:
-                out.append("  - 关系（展开）：")
-                out.append("    - 柱位（展开）：")
-                out.append(f"      - {m.group(1)}")
-                out.append(f"      - {m.group(2)}")
-                out.append("    - 地支（展开）：")
-                out.append(f"      - {m.group(3)}")
-                out.append(f"      - {m.group(4)}")
-                out.append("    - 关系：合")
-                out.append(f"    - 合化五行：{m.group(5)}")
-                return out
-            # 六冲：年月子午冲
-            m = re.match(r"^([年月日时])([年月日时])([子丑寅卯辰巳午未申酉戌亥])([子丑寅卯辰巳午未申酉戌亥])冲$", t)
-            if m:
-                out.append("  - 关系（展开）：")
-                out.append("    - 柱位（展开）：")
-                out.append(f"      - {m.group(1)}")
-                out.append(f"      - {m.group(2)}")
-                out.append("    - 地支（展开）：")
-                out.append(f"      - {m.group(3)}")
-                out.append(f"      - {m.group(4)}")
-                out.append("    - 关系：冲")
-                return out
-            # 三合/半合：申子辰三合水局 / 申子半合水
-            m = re.match(r"^([子丑寅卯辰巳午未申酉戌亥]+)(三合)([木火土金水])局$", t)
-            if m:
-                out.append("  - 关系（展开）：")
-                out.append(f"    - 地支：{m.group(1)}")
-                out.append("    - 关系：三合")
-                out.append(f"    - 五行：{m.group(3)}")
-                out.append("    - 结论：成局")
-                return out
-            m = re.match(r"^([子丑寅卯辰巳午未申酉戌亥]+)半合([木火土金水])$", t)
-            if m:
-                out.append("  - 关系（展开）：")
-                out.append(f"    - 地支：{m.group(1)}")
-                out.append("    - 关系：半合")
-                out.append(f"    - 五行：{m.group(2)}")
-                return out
-            # 刑：子卯刑(无礼之刑)
-            m = re.match(r"^([子丑寅卯辰巳午未申酉戌亥]+)刑\(([^)]+)\)$", t)
-            if m:
-                out.append("  - 关系（展开）：")
-                out.append(f"    - 地支：{m.group(1)}")
-                out.append("    - 关系：刑")
-                out.append(f"    - 刑类：{m.group(2)}")
-                return out
-            # 害/破：年月子未害 / 年日子酉破
-            m = re.match(r"^([年月日时])([年月日时])([子丑寅卯辰巳午未申酉戌亥])([子丑寅卯辰巳午未申酉戌亥])害$", t)
-            if m:
-                out.append("  - 关系（展开）：")
-                out.append("    - 柱位（展开）：")
-                out.append(f"      - {m.group(1)}")
-                out.append(f"      - {m.group(2)}")
-                out.append("    - 地支（展开）：")
-                out.append(f"      - {m.group(3)}")
-                out.append(f"      - {m.group(4)}")
-                out.append("    - 关系：害")
-                return out
-            m = re.match(r"^([年月日时])([年月日时])([子丑寅卯辰巳午未申酉戌亥])([子丑寅卯辰巳午未申酉戌亥])破$", t)
-            if m:
-                out.append("  - 关系（展开）：")
-                out.append("    - 柱位（展开）：")
-                out.append(f"      - {m.group(1)}")
-                out.append(f"      - {m.group(2)}")
-                out.append("    - 地支（展开）：")
-                out.append(f"      - {m.group(3)}")
-                out.append(f"      - {m.group(4)}")
-                out.append("    - 关系：破")
-                return out
-
-            out.append("  - 关系（展开）：")
-            out.append(f"    - 原文：{t}")
-            return out
-
-        if tg:
-            lines.append("* 天干关系（展开）：")
-            items = tg if isinstance(tg, list) else []
-            if isinstance(tg, dict):
-                for v in tg.values():
-                    if isinstance(v, list):
-                        items.extend(v)
-                    elif v:
-                        items.append(v)
-            for item in items:
-                for x in _expand_tg_text(str(item)):
-                    lines.append(x)
-
-        if dz:
-            lines.append("* 地支关系（展开）：")
-            items = dz if isinstance(dz, list) else []
-            if isinstance(dz, dict):
-                for v in dz.values():
-                    if isinstance(v, list):
-                        items.extend(v)
-                    elif v:
-                        items.append(v)
-            for item in items:
-                for x in _expand_dz_text(str(item)):
-                    lines.append(x)
-
+    ke_detail = extra.get("keDetail", []) if isinstance(extra, dict) else []
+    if ke_detail:
+        rows = []
+        for index, item in enumerate(ke_detail, 1):
+            text = item.get("text", "") if isinstance(item, dict) else str(item)
+            for position, name in position_name.items():
+                text = text.replace(f"{position}干", f"{name}柱天干")
+            rows.append([index, text])
+        lines.append("### 天干相克（依据）")
         lines.append("")
+        lines.extend(_render_table(["序号", "关系"], rows))
 
+    ku_detail = extra.get("kuDetail", {}) if isinstance(extra, dict) else {}
+    if ku_detail:
+        rows = []
+        for position in ["year", "month", "day", "hour"]:
+            item = ku_detail.get(position, {})
+            if not isinstance(item, dict):
+                continue
+            hiddens = item.get("hidden", []) if isinstance(item.get("hidden"), list) else []
+            rows.append(
+                [
+                    f"{position_name[position]}柱",
+                    item.get("zhi", ""),
+                    "是" if item.get("isKu") is True else "否",
+                    f"{item.get('kuElement')}库" if item.get("kuElement") else "",
+                    item.get("weakestGan", ""),
+                    item.get("weakestScore", ""),
+                    item.get("hitItem", "") or "-",
+                    "入库" if item.get("hit") is True else "不入库",
+                    "、".join(str(value) for value in hiddens if str(value).strip()),
+                    format_scores(item.get("zhiHiddenScore", {})),
+                ]
+            )
+        if rows:
+            lines.append("### 地支入库（依据）")
+            lines.append("")
+            lines.extend(
+                _render_table(
+                    ["柱", "地支", "四库", "库类", "最弱藏干", "最弱分数", "命中", "结论", "本柱藏干", "支藏干强度"],
+                    rows,
+                )
+            )
+
+    canonical = branch_relations.get("canonical", []) if isinstance(branch_relations, dict) else []
+    if canonical:
+        rows = []
+        for item in canonical:
+            if not isinstance(item, dict):
+                continue
+            positions = "、".join(f"{position_name.get(value, value)}柱" for value in item.get("positions", []))
+            branches = "、".join(str(value) for value in item.get("branches", []))
+            direction = "有向" if item.get("directional") is True else "对称"
+            completeness = "完整" if item.get("full") is True else "部分"
+            rows.append(
+                [
+                    positions,
+                    branches,
+                    item.get("relation", ""),
+                    direction,
+                    completeness,
+                    item.get("element", ""),
+                    item.get("text", ""),
+                    item.get("source", ""),
+                ]
+            )
+        if rows:
+            lines.append("### 地支关系")
+            lines.append("")
+            lines.extend(_render_table(["柱位", "地支", "关系", "方向", "完整度", "五行", "依据", "规则源"], rows))
+
+    lines.append("")
     return "\n".join(lines)
 
 
@@ -1106,6 +741,15 @@ def generate_bingyao_section(result: dict[str, Any]) -> str:
             rows.append(["调候喜用", "，".join([str(x) for x in xi if x])])
         if ji:
             rows.append(["调候忌神", "，".join([str(x) for x in ji if x])])
+    if isinstance(ys, dict):
+        if ys.get("basisSource"):
+            rows.append(["调候依据来源", ys.get("basisSource")])
+        if ys.get("tiaohouRaw"):
+            rows.append(["调候编码", ys.get("tiaohouRaw")])
+        basis = str(ys.get("basis", ""))
+        match = re.search(r"调候：(.+?)(?:大运：|备注：|$)", basis)
+        if match and match.group(1).strip():
+            rows.append(["调候原文", match.group(1).strip()])
     if rows:
         lines.extend(_render_table(["项目", "内容"], rows))
     return "\n".join(lines)
@@ -1357,32 +1001,9 @@ def generate_geju_section(result: dict[str, Any]) -> str:
                     lines.append(f"  - {p}")
 
         if ys:
-            th = ys.get("tiaoHou", {})
-            xi = th.get("xi", [])
-            ji = th.get("ji", [])
-            if xi:
-                lines.append("* 调候喜用：")
-                for x in xi:
-                    lines.append(f"  - {x}")
-            if ji:
-                lines.append("* 调候忌神：")
-                for x in ji:
-                    lines.append(f"  - {x}")
             note = ys.get("note", "")
             if note:
                 lines.append(f"* 用神备注：{note}")
-            basis = ys.get("basis", "") if isinstance(ys, dict) else ""
-            if basis:
-                lines.append("* 取用依据：")
-                raw = ys.get("tiaohouRaw", "")
-                if raw:
-                    lines.append(f"  - 调候编码：{raw}")
-                lines.append("  - 原文：")
-                # 保留原文，不做“自写解释”
-                for ln in str(basis).splitlines():
-                    t = ln.strip()
-                    if t:
-                        lines.append(f"    - {t}")
         narrative = _rule_depth_narrative(result, "baziRuleDepth")
         if narrative:
             lines.append("")

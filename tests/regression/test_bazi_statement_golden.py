@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 
 import pytest
 
+from fate_core.kernel.bazi_calculator import BaziCalculator
 from fate_core.usecases import PureAnalysisInput, calculate_pure_analysis
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -36,6 +40,115 @@ def _pillar_names(result: dict) -> dict[str, str]:
     return {name: result["fourPillars"][name]["fullName"] for name in ["year", "month", "day", "hour"]}
 
 
+def _relation_pillars(branches: tuple[str, str, str, str]) -> dict[str, dict[str, str]]:
+    return {
+        position: {"stem": stem, "branch": branch}
+        for position, stem, branch in zip(
+            ("year", "month", "day", "hour"),
+            ("甲", "乙", "丙", "丁"),
+            branches,
+            strict=True,
+        )
+    }
+
+
+def _branch_relations(branches: tuple[str, str, str, str]) -> dict:
+    calculator = object.__new__(BaziCalculator)
+    return calculator._calc_zhi_relations(_relation_pillars(branches))
+
+
+def _canonical_relation_violations(relations: list[dict]) -> list[str]:
+    violations = []
+    keys = [item.get("key") for item in relations]
+    if len(keys) != len(set(keys)):
+        violations.append("duplicate_key")
+    if any(len(item.get("positions", [])) != len(set(item.get("positions", []))) for item in relations):
+        violations.append("same_position_instance")
+    return violations
+
+
+@pytest.mark.parametrize("branch", ("辰", "午", "酉", "亥"))
+def test_single_branch_instance_does_not_create_self_punishment(branch: str):
+    fillers = tuple(value for value in ("子", "寅", "巳", "未") if value != branch)[:3]
+    relations = _branch_relations((branch, *fillers))
+
+    self_punishments = [
+        item for item in relations["canonical"] if item["relation"] == "刑" and item["branches"] == [branch, branch]
+    ]
+    assert self_punishments == []
+
+
+@pytest.mark.parametrize("branch", ("辰", "午", "酉", "亥"))
+def test_two_distinct_branch_instances_create_one_self_punishment(branch: str):
+    fillers = tuple(value for value in ("子", "寅", "巳", "未") if value != branch)[:2]
+    relations = _branch_relations((branch, branch, *fillers))
+
+    self_punishments = [
+        item for item in relations["canonical"] if item["relation"] == "刑" and item["branches"] == [branch, branch]
+    ]
+    assert len(self_punishments) == 1
+    assert set(self_punishments[0]["positions"]) == {"year", "month"}
+    assert self_punishments[0]["source"] == "bazi-1.zhi_atts"
+
+
+def test_symmetric_and_directional_branch_relations_have_stable_unique_keys():
+    relations = _branch_relations(("巳", "子", "寅", "辰"))
+    canonical = relations["canonical"]
+
+    assert _canonical_relation_violations(canonical) == []
+    assert len({item["key"] for item in canonical}) == len(canonical)
+    assert sum(item["relation"] == "害" and set(item["branches"]) == {"巳", "寅"} for item in canonical) == 1
+    assert sum(item["relation"] == "合" and set(item["branches"]) == {"子", "辰"} for item in canonical) == 1
+    punishments = [item for item in canonical if item["relation"] == "刑" and set(item["branches"]) == {"巳", "寅"}]
+    assert len(punishments) == 1
+    assert punishments[0]["directional"] is True
+    assert punishments[0]["positions"] == ["day", "year"]
+
+
+def test_relation_uniqueness_gate_detects_injected_invalid_records():
+    invalid = [
+        {"key": "branch:刑:year-year", "positions": ["year", "year"]},
+        {"key": "branch:刑:year-year", "positions": ["year", "month"]},
+    ]
+
+    assert _canonical_relation_violations(invalid) == ["duplicate_key", "same_position_instance"]
+
+
+def test_canonical_relation_order_is_stable_across_hash_seeds():
+    script = """
+import json
+from fate_core.kernel.bazi_calculator import BaziCalculator
+
+pillars = {
+    position: {"stem": stem, "branch": branch}
+    for position, stem, branch in zip(
+        ("year", "month", "day", "hour"),
+        ("甲", "乙", "丙", "丁"),
+        ("丑", "戌", "未", "辰"),
+        strict=True,
+    )
+}
+calculator = object.__new__(BaziCalculator)
+relations = calculator._calc_zhi_relations(pillars)
+print(json.dumps([item["key"] for item in relations["canonical"]], ensure_ascii=False))
+"""
+    outputs = []
+    for seed in ("1", "2", "3"):
+        env = os.environ.copy()
+        env["PYTHONHASHSEED"] = seed
+        result = subprocess.run(
+            [sys.executable, "-c", script],
+            cwd=ROOT,
+            env=env,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        outputs.append(result.stdout.strip())
+
+    assert len(set(outputs)) == 1
+
+
 @pytest.mark.parametrize("case", _load_fixture()["cases"], ids=lambda case: case["id"])
 def test_bazi_statement_cases_lock_core_judgement_boundaries(case: dict):
     result = _run_case(case)
@@ -52,7 +165,10 @@ def test_bazi_statement_cases_lock_core_judgement_boundaries(case: dict):
     assert yong_shen.get("tiaohouRaw", "") == expected["yongShen"]["tiaohouRaw"]
 
     assert result["ganzhiRelations"]["tianGan"] == expected["ganzhiRelations"]["tianGan"]
-    assert len(result["branchRelations"]["conflicts"]) == expected["ganzhiRelations"]["branchConflictCount"]
+    assert len(result["branchRelations"]["canonical"]) == expected["ganzhiRelations"]["canonicalRelationCount"]
+    assert result["ganzhiRelations"]["projectionOf"]["diZhi"] == "branchRelations.canonical"
+    assert result["ganzhiRelations"]["deprecatedAsSourceFields"] == ["diZhi"]
+    assert len(result["ganzhiRelations"]["diZhi"]) == len(set(result["ganzhiRelations"]["diZhi"]))
     assert result["jiaoYun"]["startDate"] == expected["fortuneStart"]["startDate"]
     assert result["jiaoYun"]["jiaoJieQi"] == expected["fortuneStart"]["anchorTerm"]
 

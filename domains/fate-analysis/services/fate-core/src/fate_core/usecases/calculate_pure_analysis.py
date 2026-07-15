@@ -357,8 +357,11 @@ def _build_yongshen_strategies(raw: dict[str, Any]) -> list[dict[str, Any]]:
         {
             "strategy": "通关",
             "conclusion": "仅在合冲克战明显时作为冲突调解策略登记。",
-            "basis": raw.get("ganzhiRelations", {}),
-            "source": "项目干支关系规则",
+            "basis": {
+                "tianGan": raw.get("ganzhiRelations", {}).get("tianGan", {}),
+                "diZhi": raw.get("branchRelations", {}).get("canonical", []),
+            },
+            "source": "bazi-1 关系表与项目兼容投影",
             "ruleIds": ["bazi.stem_branch_relations"],
         },
         {

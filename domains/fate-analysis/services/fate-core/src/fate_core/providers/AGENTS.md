@@ -19,7 +19,7 @@ domains/fate-analysis/services/fate-core/src/fate_core/providers/
 ## 职责边界
 
 - `runtime.py`：构建共享运行时，只通过 `fate_core.adapters` 复用遗留 `BaziCalculator` 与外部库入口。
-- `base_chart.py`：本命盘基础字段。
+- `base_chart.py`：本命盘基础字段；一次生成 canonical 地支关系，并把同一结果交给旧字段投影，禁止重复计算。
 - `fortune.py`：大运 / 流年 / 流月等运势字段。
 - `classical.py`：格局、调候、称骨等传统分析字段；建除十二神已退役到后续黄历/择日功能。
 

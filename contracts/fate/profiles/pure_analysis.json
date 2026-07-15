@@ -6,6 +6,14 @@
     "fortune",
     "classical"
   ],
+  "fieldSemantics": {
+    "branchRelations": "地支关系 canonical 结果；canonical 数组是内部唯一事实源，旧 detail/list 字段由其投影。",
+    "ganzhiExtra": "同柱干支相合、天干相克与地支入库的独占补充事实。",
+    "ganzhiRelations": "过渡容器；tianGan 是来自 bazi-1 天干表的当前事实，diZhi 只由 branchRelations.canonical 投影且列入 deprecatedAsSourceFields。",
+    "spiritsFull": "神煞 canonical 结果。",
+    "spirits": "spiritsFull 的公开兼容别名；不得独立计算或渲染。",
+    "spiritsExplain": "spiritsFull.descriptions 的公开兼容投影；不得独立计算或渲染。"
+  },
   "fields": [
     "input",
     "inputTrace",

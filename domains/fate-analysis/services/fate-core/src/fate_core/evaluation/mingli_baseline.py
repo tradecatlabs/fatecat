@@ -182,12 +182,11 @@ def _topic_scores(result: dict[str, Any]) -> dict[str, int]:
 
 
 def _relation_pressure(result: dict[str, Any]) -> float:
-    evidence = _as_dict(result.get("analysisEvidence"))
-    items = _as_dict(evidence.get("items"))
-    relations = _as_dict(items.get("ganzhiRelations"))
-    conclusion = _as_dict(relations.get("conclusion"))
-    dizhi = _as_dict(conclusion.get("diZhi"))
-    conflicts = _as_list(dizhi.get("conflicts"))
+    branch_relations = _as_dict(result.get("branchRelations"))
+    canonical = _as_list(branch_relations.get("canonical"))
+    conflicts = [
+        item for item in canonical if isinstance(item, dict) and item.get("relation") in {"冲", "刑", "害", "破"}
+    ]
     return min(1.0, len(conflicts) / 12)
 
 

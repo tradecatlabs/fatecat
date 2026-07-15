@@ -134,10 +134,25 @@ FateCat 八字排盘系统 API / Bot 接口规范，基于当前 skill 化后的
       }
     },
     
-    // 干支关系
+    // 地支关系唯一事实源
+    "branchRelations": {
+      "schemaVersion": 1,
+      "source": "bazi-1",
+      "canonical": [
+        {
+          "key": "branch:冲:year-day", "relation": "冲",
+          "positions": ["year", "day"], "branches": ["午", "子"],
+          "directional": false, "full": true,
+          "element": "", "source": "bazi-1.zhi_atts"
+        }
+      ]
+    },
+
+    // 干支关系过渡容器；天干是当前事实，地支只从 branchRelations.canonical 投影
     "ganzhiRelations": {
-      "ganHe": [], "ganChong": [],
-      "zhiHe": [], "zhiChong": [], "zhiXing": [], "zhiHai": [], "zhiPo": []
+      "tianGan": [], "diZhi": ["年日午子冲"],
+      "projectionOf": {"diZhi": "branchRelations.canonical"},
+      "deprecatedAsSourceFields": ["diZhi"]
     },
     
     // 大运
@@ -231,7 +246,8 @@ FateCat 八字排盘系统 API / Bot 接口规范，基于当前 skill 化后的
 | specialPalaces | ✅ | 胎元/胎息/命宫/身宫 | 已接入标准输出 |
 | voidInfo | ✅ | 空亡信息 | 已接入标准输出 |
 | spirits | ✅ | 神煞 | 已接入标准输出 |
-| ganzhiRelations | ✅ | 干支关系 | 已接入标准输出 |
+| branchRelations | ✅ | 地支关系 canonical 唯一事实源 | 已接入结构化输出与标准报告 |
+| ganzhiRelations | ✅ | 天干关系事实与地支兼容投影 | `tianGan` 可作为当前天干事实；`diZhi` 不得作为独立事实源 |
 | majorFortune | ✅ | 大运+十神 | 已接入标准输出 |
 | annualFortune | ✅ | 流年+十神 | 已接入标准输出 |
 | monthlyFortune | ✅ | 流月 | 已接入标准输出 |

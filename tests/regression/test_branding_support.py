@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """测试统一品牌配置加载与拼装。"""
 
+from collections import Counter, defaultdict
+
 import pytest
 
 from fate_core.support import (
@@ -9,6 +11,26 @@ from fate_core.support import (
     get_branding_payload,
     get_disclaimer_payload,
 )
+
+
+def _duplicate_headings(markdown: str) -> list[str]:
+    headings = [line for line in markdown.splitlines() if line.startswith("#")]
+    return [heading for heading, count in Counter(headings).items() if count > 1]
+
+
+def _duplicate_business_table_positions(markdown: str) -> list[list[int]]:
+    lines = markdown.splitlines()
+    table_positions: dict[str, list[int]] = defaultdict(list)
+    index = 0
+    while index < len(lines):
+        if not lines[index].startswith("|"):
+            index += 1
+            continue
+        start = index
+        while index < len(lines) and lines[index].startswith("|"):
+            index += 1
+        table_positions["\n".join(lines[start:index])].append(start + 1)
+    return [positions for positions in table_positions.values() if len(positions) > 1]
 
 
 def test_get_branding_payload_contains_required_fields():
@@ -156,14 +178,6 @@ def test_full_report_default_heading_contract_matches_standard_blocks():
         "## 基本资料（含真太阳时、节气）",
         "### 基本资料",
         "## 八字排盘详情",
-        "### 五行分数",
-        "### 天干分数",
-        "### 温湿度与拱神",
-        "### 干支合克与入库",
-        "#### 干支相合（依据）",
-        "#### 天干相克（依据）",
-        "#### 地支入库（依据）",
-        "### 地支关系",
         "## 神煞断语",
         "## 日主概览",
         "## 五行喜忌（调候与平衡）",
@@ -175,6 +189,11 @@ def test_full_report_default_heading_contract_matches_standard_blocks():
         "## 命造格局（格局用神）",
         "## 节气司令",
         "## 干支关系",
+        "### 天干关系",
+        "### 干支相合（依据）",
+        "### 天干相克（依据）",
+        "### 地支入库（依据）",
+        "### 地支关系",
         "## 第二卷：后天运路（动态趋势）",
         "## 运势分析",
         "### 大运分析",
@@ -198,6 +217,73 @@ def test_full_report_default_heading_contract_matches_standard_blocks():
     assert "现代流传版本，非事实判断" not in text
     assert "版本边界" not in text
     assert "用途边界" not in text
+
+
+def test_comprehensive_bazi_report_has_unique_headings_and_business_tables():
+    from datetime import datetime
+
+    from bazi_calculator import BaziCalculator
+    from report_generator import build_report_hide, generate_full_report
+
+    hide = build_report_hide("bazi")
+    result = BaziCalculator(
+        datetime(1990, 1, 1, 8, 0, 0),
+        "male",
+        116.4074,
+        latitude=39.9042,
+        name="测试样本",
+        birth_place="北京",
+        use_true_solar_time=True,
+    ).calculate(hide=hide)
+    text = generate_full_report(result, hide=hide)
+
+    assert _duplicate_headings(text) == []
+    assert _duplicate_business_table_positions(text) == []
+    assert text.count("### 五行分数") == 1
+    assert text.count("### 天干分数") == 1
+    assert text.count("**神煞释义**") == 1
+
+    def section(start: str, end: str) -> str:
+        return text.split(start, 1)[1].split(end, 1)[0]
+
+    chart_section = section("## 八字排盘详情", "## 神煞断语")
+    assert "五行分数" not in chart_section
+    assert "温湿度" not in chart_section
+    assert "地支关系" not in chart_section
+
+    daymaster_section = section("## 日主概览", "## 五行喜忌（调候与平衡）")
+    assert "格局参考" not in daymaster_section
+    assert "五行状态" not in daymaster_section
+
+    climate_section = section("## 五行停匀与寒湿燥热（调候依据）", "## 干支取象（原文）")
+    assert "温湿度分数" in climate_section
+    assert "调候依据来源" in climate_section
+    assert "调候编码" in climate_section
+
+    fortune_section = section("## 运势分析", "## 第三卷：民俗与建议（生活应用）")
+    assert "空亡（展开）" not in fortune_section
+    assert "司令：" not in fortune_section
+
+
+def test_report_uniqueness_gate_detects_injected_duplicates():
+    duplicated = "\n".join(
+        [
+            "## 测试块",
+            "",
+            "| 项目 | 内容 |",
+            "| --- | --- |",
+            "| 五行 | 木 |",
+            "",
+            "## 测试块",
+            "",
+            "| 项目 | 内容 |",
+            "| --- | --- |",
+            "| 五行 | 木 |",
+        ]
+    )
+
+    assert _duplicate_headings(duplicated) == ["## 测试块"]
+    assert _duplicate_business_table_positions(duplicated) == [[3, 9]]
 
 
 def test_comprehensive_bazi_result_contains_hidden_analysis_evidence():
@@ -259,6 +345,8 @@ def test_full_report_other_systems_are_independent_outputs():
     assert "## 紫微基础" not in ziwei_text
     assert "## 八字排盘详情" not in ziwei_text
     assert "## 袁天罡称骨" not in ziwei_text
+    assert _duplicate_headings(ziwei_text) == []
+    assert _duplicate_business_table_positions(ziwei_text) == []
 
     with pytest.raises(ValueError, match="未知报告体系"):
         generate_full_report(result, report_system="bone")

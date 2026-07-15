@@ -135,7 +135,11 @@ def build_yongshen_decision(raw: dict[str, Any], strategies: list[dict[str, Any]
                 "sourceBasis": strategy_names.get("通关", {}).get("basis", {}),
             },
             "scoreBasis": score_basis["通关"],
-            "evidenceFields": ["ganzhiRelations", "branchRelations", "baziBenchmark.ganzhiPriority"],
+            "evidenceFields": [
+                "ganzhiRelations.tianGan",
+                "branchRelations.canonical",
+                "baziBenchmark.ganzhiPriority",
+            ],
             "source": strategy_names.get("通关", {}).get("source", ""),
         },
         {

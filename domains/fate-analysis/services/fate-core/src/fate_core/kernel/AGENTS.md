@@ -20,7 +20,7 @@ kernel/
 
 ## 职责边界
 
-- `bazi_calculator.py`：八字 legacy 核心实现的 fate-core 归属位置；复用 `lunar-python`、`bazi-1` 等成熟来源，保持历史字段兼容。
+- `bazi_calculator.py`：八字 legacy 核心实现的 fate-core 归属位置；复用 `lunar-python`、`bazi-1` 等成熟来源；`branchRelations.canonical` 是地支关系唯一事实源，旧 `ganzhiRelations.diZhi` 只做兼容投影。
 - `bone_weight.py`：以整数“钱”维护版本化称骨权重、闰月策略、输入校验和构成明细；按性别选择独立歌诀，只输出民俗附录数据，不参与核心格局判断。
 - `bone_weight_verses.py`：保存固定来源版本的男女称骨歌诀与许可证；男命覆盖二两一钱至七两二钱，女命覆盖二两一钱至七两一钱。
 - `ming_gua.py`：命卦计算；只承载年份、性别到命卦结果的纯函数。

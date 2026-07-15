@@ -149,8 +149,8 @@
             "只有单点五行偏枯而无冲突链"
           ],
           "scoreBasis": [
-            "ganzhiRelations",
-            "branchRelations",
+            "ganzhiRelations.tianGan",
+            "branchRelations.canonical",
             "baziBenchmark.ganzhiPriority"
           ],
           "conflictPolicy": "通关只解释冲突缓冲，不替代调候或扶抑主策略。"
@@ -200,8 +200,8 @@
       "priority": 88,
       "weight": 0.78,
       "evidenceFields": [
-        "ganzhiRelations",
-        "branchRelations",
+        "ganzhiRelations.tianGan",
+        "branchRelations.canonical",
         "baziBenchmark.ganzhiPriority"
       ],
       "conditions": [
@@ -909,8 +909,8 @@
       "priority": 79,
       "weight": 0.66,
       "evidenceFields": [
-        "ganzhiRelations",
-        "branchRelations",
+        "ganzhiRelations.tianGan",
+        "branchRelations.canonical",
         "baziBenchmark.ganzhiPriority"
       ],
       "conditions": [
@@ -929,7 +929,7 @@
           "label": "合象登记",
           "evidenceFields": [
             "ganzhiRelations.tianGan",
-            "branchRelations",
+            "branchRelations.canonical",
             "baziBenchmark.combineTransformMatrix.candidates"
           ],
           "appliesWhen": [
@@ -946,7 +946,7 @@
           ],
           "requiredEvidenceFields": [
             "ganzhiRelations.tianGan",
-            "branchRelations",
+            "branchRelations.canonical",
             "baziBenchmark.combineTransformMatrix.candidates"
           ],
           "conditionChainFields": [
@@ -1039,7 +1039,7 @@
           "state": "transform_broken",
           "label": "破化/阻隔",
           "evidenceFields": [
-            "branchRelations.conflictsDetail",
+            "branchRelations.canonical",
             "ganzhiExtra.keDetail",
             "blockers"
           ],
@@ -1058,7 +1058,7 @@
             "只有弱反证且主条件完整"
           ],
           "requiredEvidenceFields": [
-            "branchRelations.conflictsDetail",
+            "branchRelations.canonical",
             "ganzhiExtra.keDetail",
             "blockers"
           ],
@@ -1325,8 +1325,8 @@
       "priority": 77,
       "weight": 0.63,
       "evidenceFields": [
-        "ganzhiRelations",
-        "branchRelations",
+        "ganzhiRelations.tianGan",
+        "branchRelations.canonical",
         "baziBenchmark.ganzhiPriority"
       ],
       "conditions": [

@@ -41,6 +41,7 @@ import subprocess
 import sys
 import time
 from datetime import datetime
+from itertools import product
 from typing import Any
 
 from fate_core.kernel.bone_weight import calc_bone_weight
@@ -465,7 +466,7 @@ class BaziCalculator:
         ming_gua = calc_ming_gua(self.calc_dt.year, self.gender)
 
         # 干支关系
-        gz_relations = self._calc_ganzhi_relations(four_pillars)
+        gz_relations = self._calc_ganzhi_relations(four_pillars, zhi_rel)
 
         # 五行状态
         month_zhi = ec.getMonthZhi()
@@ -758,7 +759,8 @@ class BaziCalculator:
         complete_true_solar_time = self.true_solar_detail
         zi_time_analysis = self.zi_time_analysis
 
-        # 姓名合婚需要姓名、配偶八字等独立输入契约；标准排盘不输出占位结果。
+        # ponytail: 当前公共结果契约仍消费这些空字段；独立输入契约上线并迁移消费者后删除。
+        # 标准排盘缺少姓名和配偶八字，不生成姓名或合婚结论。
         marriageCompatibility = {}
         baziMatching = {}
         nameAnalysis = {}
@@ -1596,10 +1598,7 @@ class BaziCalculator:
         return scores
 
     def _calc_zhi_relations(self, pillars: dict) -> dict:
-        """
-        地支六合 / 三会 / 三合 / 破害刑冲 关系
-        直接读取 bazi-1-master/ganzhi.py 中的表：zhi_6hes, zhi_huis, zhi_3hes, zhi_atts
-        """
+        """以柱位实例为单位生成唯一、可审计的地支关系。"""
         try:
             from ganzhi import zhi_3hes, zhi_6hes, zhi_atts, zhi_huis
         except Exception as e:
@@ -1607,13 +1606,16 @@ class BaziCalculator:
 
         pos_order = ["year", "month", "day", "hour"]
         branches_by_pos = [(p, pillars[p]["branch"]) for p in pos_order if pillars.get(p)]
-        branches = [b for _, b in branches_by_pos]
         pos_name = {"year": "年", "month": "月", "day": "日", "hour": "时"}
+        pos_rank = {position: index for index, position in enumerate(pos_order)}
         zhi_pos_map: dict[str, list[str]] = {}
         for p, b in branches_by_pos:
             zhi_pos_map.setdefault(b, []).append(p)
 
         result = {
+            "schemaVersion": 1,
+            "source": "bazi-1",
+            "canonical": [],
             "liuHe": [],
             "liuHeDetail": [],
             "sanHui": [],
@@ -1624,114 +1626,267 @@ class BaziCalculator:
             "conflictsDetail": [],
         }
 
-        # 六合判断：任意两支匹配表
+        canonical: list[dict[str, Any]] = []
+        seen_keys: set[str] = set()
+
+        def ordered_positions(positions: list[str]) -> list[str]:
+            return sorted(positions, key=pos_rank.__getitem__)
+
+        def append_relation(
+            *,
+            key: str,
+            relation: str,
+            positions: list[str],
+            branches: list[str],
+            directional: bool,
+            full: bool,
+            source: str,
+            text: str,
+            element: str = "",
+        ) -> None:
+            if key in seen_keys:
+                return
+            seen_keys.add(key)
+            canonical.append(
+                {
+                    "key": key,
+                    "relation": relation,
+                    "positions": positions,
+                    "branches": branches,
+                    "directional": directional,
+                    "full": full,
+                    "element": element,
+                    "source": source,
+                    "text": text,
+                }
+            )
+
+        # 六合是对称二元关系。
         for i in range(len(branches_by_pos)):
             for j in range(i + 1, len(branches_by_pos)):
                 pa, a = branches_by_pos[i]
                 pb, b = branches_by_pos[j]
-                key = a + b
-                key_rev = b + a
-                elem = ""
-                if key in zhi_6hes:
-                    elem = zhi_6hes.get(key, "")
-                elif key_rev in zhi_6hes:
-                    elem = zhi_6hes.get(key_rev, "")
-                else:
+                elem = zhi_6hes.get(a + b) or zhi_6hes.get(b + a) or ""
+                if not elem:
                     continue
-                result["liuHe"].append(f"{a}{b}({elem})" if elem else f"{a}{b}")
+                pair_positions = ordered_positions([pa, pb])
+                branch_by_position = {pa: a, pb: b}
+                pair_branches = [branch_by_position[position] for position in pair_positions]
+                append_relation(
+                    key=f"branch:六合:{'-'.join(pair_positions)}",
+                    relation="六合",
+                    positions=pair_positions,
+                    branches=pair_branches,
+                    directional=False,
+                    full=True,
+                    element=elem,
+                    source="bazi-1.zhi_6hes",
+                    text=(
+                        f"{pos_name[pair_positions[0]]}支{pair_branches[0]}与"
+                        f"{pos_name[pair_positions[1]]}支{pair_branches[1]}六合({elem})"
+                    ),
+                )
+
+        full_group_positions: dict[str, list[set[str]]] = {"合": [], "会": []}
+
+        def append_group_relations(relation: str, rules: dict[str, str], source: str) -> None:
+            for pattern, raw_value in rules.items():
+                position_groups = [zhi_pos_map.get(branch, []) for branch in pattern]
+                if not all(position_groups):
+                    continue
+                for selected in product(*position_groups):
+                    if len(set(selected)) != len(pattern):
+                        continue
+                    positions = list(selected)
+                    element = str(raw_value).split()[0]
+                    full_group_positions["合" if relation == "三合" else "会"].append(set(positions))
+                    parts = "".join(
+                        f"{branch}({pos_name[position]})" for branch, position in zip(pattern, positions, strict=True)
+                    )
+                    append_relation(
+                        key=f"branch:{relation}:{pattern}:{'-'.join(ordered_positions(positions))}",
+                        relation=relation,
+                        positions=positions,
+                        branches=list(pattern),
+                        directional=False,
+                        full=True,
+                        element=element,
+                        source=source,
+                        text=f"{relation}：{parts} => {raw_value}",
+                    )
+
+        append_group_relations("三会", zhi_huis, "bazi-1.zhi_huis")
+        append_group_relations("三合", zhi_3hes, "bazi-1.zhi_3hes")
+
+        def target_matches(branch: str, relation: str, target: str) -> bool:
+            configured = zhi_atts.get(branch, {}).get(relation)
+            if not configured:
+                return False
+            choices = configured if isinstance(configured, tuple) else (configured,)
+            return target in choices
+
+        # 对称二元关系按无序柱位对生成一次。完整三合/三会存在时不再重复生成其半合/半会。
+        symmetric_rules = {
+            "合": ("合", "bazi-1.zhi_atts"),
+            "会": ("会", "bazi-1.zhi_atts"),
+            "冲": ("冲", "bazi-1.zhi_atts"),
+            "害": ("害", "bazi-1.zhi_atts"),
+            "破": ("破", "bazi-1.zhi_atts"),
+            "暗": ("暗合", "bazi-1.zhi_atts"),
+        }
+        for i in range(len(branches_by_pos)):
+            for j in range(i + 1, len(branches_by_pos)):
+                pa, a = branches_by_pos[i]
+                pb, b = branches_by_pos[j]
+                pair_positions = ordered_positions([pa, pb])
+                branch_by_position = {pa: a, pb: b}
+                pair_branches = [branch_by_position[position] for position in pair_positions]
+                for raw_relation, (relation, source) in symmetric_rules.items():
+                    if not (target_matches(a, raw_relation, b) or target_matches(b, raw_relation, a)):
+                        continue
+                    if raw_relation in {"合", "会"} and any(
+                        set(pair_positions).issubset(group) for group in full_group_positions[raw_relation]
+                    ):
+                        continue
+                    element = ""
+                    if raw_relation == "合":
+                        element = next(
+                            (
+                                str(value).split()[0]
+                                for pattern, value in zhi_3hes.items()
+                                if a in pattern and b in pattern
+                            ),
+                            "",
+                        )
+                    elif raw_relation == "会":
+                        element = next(
+                            (str(value) for pattern, value in zhi_huis.items() if a in pattern and b in pattern),
+                            "",
+                        )
+                    suffix = "（半）" if raw_relation in {"合", "会"} else ""
+                    append_relation(
+                        key=f"branch:{relation}:{'-'.join(pair_positions)}",
+                        relation=relation,
+                        positions=pair_positions,
+                        branches=pair_branches,
+                        directional=False,
+                        full=raw_relation not in {"合", "会"},
+                        element=element,
+                        source=source,
+                        text=(
+                            f"{pos_name[pair_positions[0]]}支{pair_branches[0]}{relation}"
+                            f"{pos_name[pair_positions[1]]}支{pair_branches[1]}{suffix}"
+                        ),
+                    )
+
+        # 刑与被刑先统一成有向边；双向刑或同支自刑按无序柱位对合并。
+        punishment_edges: set[tuple[str, str]] = set()
+        branch_lookup = dict(branches_by_pos)
+        for pa, a in branches_by_pos:
+            for pb, b in branches_by_pos:
+                if pa == pb:
+                    continue
+                if target_matches(a, "刑", b):
+                    punishment_edges.add((pa, pb))
+                if target_matches(a, "被刑", b):
+                    punishment_edges.add((pb, pa))
+
+        punishment_pairs: dict[tuple[str, str], set[tuple[str, str]]] = {}
+        for source_position, target_position in sorted(
+            punishment_edges,
+            key=lambda edge: (pos_rank[edge[0]], pos_rank[edge[1]]),
+        ):
+            pair = tuple(ordered_positions([source_position, target_position]))
+            punishment_pairs.setdefault(pair, set()).add((source_position, target_position))
+
+        for pair, directions in punishment_pairs.items():
+            first, second = pair
+            mutual = (first, second) in directions and (second, first) in directions
+            same_branch = branch_lookup[first] == branch_lookup[second]
+            directional = not (mutual or same_branch)
+            if directional:
+                source_position, target_position = next(iter(directions))
+                positions = [source_position, target_position]
+                key = f"branch:刑:{source_position}>{target_position}"
+                relation_text = (
+                    f"{pos_name[source_position]}支{branch_lookup[source_position]}刑"
+                    f"{pos_name[target_position]}支{branch_lookup[target_position]}"
+                )
+            else:
+                positions = [first, second]
+                key = f"branch:刑:{first}-{second}"
+                relation_text = (
+                    f"{pos_name[first]}支{branch_lookup[first]}与{pos_name[second]}支{branch_lookup[second]}相刑"
+                )
+            append_relation(
+                key=key,
+                relation="刑",
+                positions=positions,
+                branches=[branch_lookup[position] for position in positions],
+                directional=directional,
+                full=True,
+                source="bazi-1.zhi_atts",
+                text=relation_text,
+            )
+
+        result["canonical"] = canonical
+
+        # 旧字段完全由 canonical 记录投影，仅供现有公开 API 兼容读取。
+        for item in canonical:
+            relation = item["relation"]
+            positions = item["positions"]
+            branches = item["branches"]
+            if relation == "六合":
+                result["liuHe"].append(f"{''.join(branches)}({item['element']})")
                 result["liuHeDetail"].append(
                     {
-                        "text": f"{pos_name.get(pa, pa)}支{a}与{pos_name.get(pb, pb)}支{b}六合{('(' + elem + ')') if elem else ''}",
-                        "a": a,
-                        "b": b,
-                        "pa": pa,
-                        "pb": pb,
-                        "element": elem,
+                        "text": item["text"],
+                        "a": branches[0],
+                        "b": branches[1],
+                        "pa": positions[0],
+                        "pb": positions[1],
+                        "element": item["element"],
+                        "key": item["key"],
+                        "source": item["source"],
                     }
                 )
-
-        # 三会：三支组成表中的 key
-        branch_set = set(branches)
-        for key, val in zhi_huis.items():
-            if set(key).issubset(branch_set):
-                result["sanHui"].append(f"{key}({val})")
-                parts = []
-                for ch in key:
-                    poss = zhi_pos_map.get(ch, [])
-                    pos_txt = "".join([pos_name.get(p, p) for p in poss]) if poss else ""
-                    parts.append({"zhi": ch, "pos": poss, "posCn": pos_txt})
-                result["sanHuiDetail"].append(
-                    {
-                        "pattern": key,
-                        "element": val,
-                        "parts": parts,
-                        "text": "三会：" + "".join([f"{x['zhi']}({x['posCn']})" for x in parts]) + f" => {val}",
-                    }
-                )
-
-        # 三合：按 zhi_3hes key（两支+长生支）
-        for k, v in zhi_3hes.items():
-            if set(k).issubset(set(branches)):
-                result["sanHe"].append(f"{k}({v})")
-                parts = []
-                for ch in k:
-                    poss = zhi_pos_map.get(ch, [])
-                    pos_txt = "".join([pos_name.get(p, p) for p in poss]) if poss else ""
-                    parts.append({"zhi": ch, "pos": poss, "posCn": pos_txt})
-                result["sanHeDetail"].append(
-                    {
-                        "pattern": k,
-                        "value": v,
-                        "parts": parts,
-                        "text": "三合：" + "".join([f"{x['zhi']}({x['posCn']})" for x in parts]) + f" => {v}",
-                    }
-                )
-
-        # 冲/刑/害/破
-        for pa, a in branches_by_pos:
-            att = zhi_atts.get(a, {})
-            for rel_key, target in att.items():
-                if not target:
-                    continue
-                target_set = target if isinstance(target, tuple) else (target,)
-                matched = [t for t in target_set if t in branch_set]
-                if not matched:
-                    continue
-                # 保持旧输出（不带柱位）
-                result["conflicts"].append(f"{a}{rel_key}{''.join(matched)}")
-                # 依据输出：带柱位与匹配详情
-                to_parts = []
-                for t in matched:
-                    poss = zhi_pos_map.get(t, []) or [""]
-                    for pb in poss:
-                        to_parts.append({"pos": pb, "posCn": pos_name.get(pb, pb), "zhi": t})
-                full = len(matched) == len(target_set)
+            elif relation in {"三会", "三合"}:
+                target_key = "sanHui" if relation == "三会" else "sanHe"
+                detail_key = f"{target_key}Detail"
+                pattern = "".join(branches)
+                result[target_key].append(f"{pattern}({item['element']})")
+                detail = {
+                    "pattern": pattern,
+                    "parts": [
+                        {"zhi": branch, "pos": [position], "posCn": pos_name[position]}
+                        for branch, position in zip(branches, positions, strict=True)
+                    ],
+                    "text": item["text"],
+                    "key": item["key"],
+                    "source": item["source"],
+                }
+                detail["element" if relation == "三会" else "value"] = item["element"]
+                result[detail_key].append(detail)
+            else:
+                legacy_relation = "暗" if relation == "暗合" else relation
+                result["conflicts"].append(f"{branches[0]}{legacy_relation}{''.join(branches[1:])}")
                 result["conflictsDetail"].append(
                     {
-                        "from": pa,
-                        "fromZhi": a,
-                        "rel": rel_key,
-                        "to": matched,
-                        "full": full,
-                        "text": f"{pos_name.get(pa, pa)}支{a}{rel_key}"
-                        + "".join([f"{x['posCn']}支{x['zhi']}" for x in to_parts])
-                        + ("" if full else "（半）"),
+                        "from": positions[0],
+                        "fromZhi": branches[0],
+                        "rel": legacy_relation,
+                        "to": branches[1:],
+                        "toPositions": positions[1:],
+                        "full": item["full"],
+                        "directional": item["directional"],
+                        "text": item["text"],
+                        "key": item["key"],
+                        "source": item["source"],
                     }
                 )
 
-        # 去重
-        for k in ["liuHe", "sanHui", "sanHe", "conflicts"]:
-            result[k] = list(dict.fromkeys(result[k]))
-        for k in ["liuHeDetail", "sanHuiDetail", "sanHeDetail", "conflictsDetail"]:
-            seen = set()
-            uniq = []
-            for item in result.get(k, []):
-                txt = item.get("text") if isinstance(item, dict) else str(item)
-                if not txt or txt in seen:
-                    continue
-                seen.add(txt)
-                uniq.append(item)
-            result[k] = uniq
+        for key in ("liuHe", "sanHui", "sanHe", "conflicts"):
+            result[key] = list(dict.fromkeys(result[key]))
 
         return result
 
@@ -1837,95 +1992,78 @@ class BaziCalculator:
             "empties": empties_hit,
         }
 
-    def _calc_ganzhi_relations(self, pillars: dict) -> dict:
-        """干支关系（合冲刑害破）"""
+    def _calc_ganzhi_relations(self, pillars: dict, branch_relations: dict | None = None) -> dict:
+        """生成旧干支关系视图；地支部分只投影 canonical 结果。"""
+        try:
+            from ganzhi import gan_chongs, gan_hes
+        except Exception as e:
+            raise RuntimeError(f"天干关系数据表导入失败: {e}") from e
+
         stems = [pillars[p]["stem"] for p in ["year", "month", "day", "hour"]]
-        branches = [pillars[p]["branch"] for p in ["year", "month", "day", "hour"]]
         pos_names = ["年", "月", "日", "时"]
 
-        result = {"tianGan": [], "diZhi": []}
+        result = {
+            "tianGan": [],
+            "diZhi": [],
+            "projectionOf": {"diZhi": "branchRelations.canonical"},
+            "deprecatedAsSourceFields": ["diZhi"],
+        }
 
-        # 天干五合
-        gan_he = {"甲己": "土", "乙庚": "金", "丙辛": "水", "丁壬": "木", "戊癸": "火"}
         for i in range(4):
             for j in range(i + 1, 4):
-                pair = stems[i] + stems[j]
-                pair_rev = stems[j] + stems[i]
-                if pair in gan_he:
-                    result["tianGan"].append(f"{pos_names[i]}{pos_names[j]}{pair}合化{gan_he[pair]}")
-                elif pair_rev in gan_he:
-                    result["tianGan"].append(f"{pos_names[i]}{pos_names[j]}{pair_rev}合化{gan_he[pair_rev]}")
-
-        # 天干相冲
-        gan_chong = {"甲庚", "乙辛", "丙壬", "丁癸"}
-        for i in range(4):
-            for j in range(i + 1, 4):
-                pair = stems[i] + stems[j]
-                pair_rev = stems[j] + stems[i]
-                if pair in gan_chong or pair_rev in gan_chong:
+                pair = (stems[i], stems[j])
+                pair_reversed = (stems[j], stems[i])
+                he_description = gan_hes.get(pair) or gan_hes.get(pair_reversed)
+                if he_description:
+                    ordered_pair = pair if pair in gan_hes else pair_reversed
+                    element_match = re.search(r"化([木火土金水])", str(he_description))
+                    suffix = f"合化{element_match.group(1)}" if element_match else "合"
+                    result["tianGan"].append(f"{pos_names[i]}{pos_names[j]}{''.join(ordered_pair)}{suffix}")
+                if pair in gan_chongs or pair_reversed in gan_chongs:
                     result["tianGan"].append(f"{pos_names[i]}{pos_names[j]}{stems[i]}{stems[j]}冲")
 
-        # 地支六合
-        zhi_he = {"子丑": "土", "寅亥": "木", "卯戌": "火", "辰酉": "金", "巳申": "水", "午未": "火"}
-        for i in range(4):
-            for j in range(i + 1, 4):
-                pair = branches[i] + branches[j]
-                pair_rev = branches[j] + branches[i]
-                if pair in zhi_he:
-                    result["diZhi"].append(f"{pos_names[i]}{pos_names[j]}{pair}合{zhi_he[pair]}")
-                elif pair_rev in zhi_he:
-                    result["diZhi"].append(f"{pos_names[i]}{pos_names[j]}{pair_rev}合{zhi_he[pair_rev]}")
-
-        # 地支六冲
-        zhi_chong = {"子午", "丑未", "寅申", "卯酉", "辰戌", "巳亥"}
-        for i in range(4):
-            for j in range(i + 1, 4):
-                pair = branches[i] + branches[j]
-                pair_rev = branches[j] + branches[i]
-                if pair in zhi_chong or pair_rev in zhi_chong:
-                    result["diZhi"].append(f"{pos_names[i]}{pos_names[j]}{branches[i]}{branches[j]}冲")
-
-        # 地支三合
-        san_he = [("申子辰", "水"), ("寅午戌", "火"), ("巳酉丑", "金"), ("亥卯未", "木")]
-        for pattern, elem in san_he:
-            matched = [(i, b) for i, b in enumerate(branches) if b in pattern]
-            if len(matched) >= 3:
-                result["diZhi"].append(f"{''.join([b for _, b in matched])}三合{elem}局")
-            elif len(matched) == 2:
-                result["diZhi"].append(f"{''.join([b for _, b in matched])}半合{elem}")
-
-        # 地支相刑
-        xing = [
-            ("寅巳申", "无恩之刑"),
-            ("丑戌未", "恃势之刑"),
-            ("子卯", "无礼之刑"),
-            ("辰辰", "自刑"),
-            ("午午", "自刑"),
-            ("酉酉", "自刑"),
-            ("亥亥", "自刑"),
+        branch_relations = branch_relations or self._calc_zhi_relations(pillars)
+        position_name = {"year": "年", "month": "月", "day": "日", "hour": "时"}
+        punishment_names = [
+            ({"寅", "巳", "申"}, "无恩之刑"),
+            ({"丑", "戌", "未"}, "恃势之刑"),
+            ({"子", "卯"}, "无礼之刑"),
         ]
-        for pattern, name in xing:
-            matched = [b for b in branches if b in pattern]
-            if len(matched) >= 2:
-                result["diZhi"].append(f"{''.join(matched)}刑({name})")
+        for item in branch_relations.get("canonical", []):
+            relation = item.get("relation", "")
+            positions = item.get("positions", [])
+            branches = item.get("branches", [])
+            if not positions or not branches:
+                continue
+            position_prefix = "".join(position_name.get(position, position) for position in positions)
+            branch_text = "".join(branches)
+            element = item.get("element", "")
+            if relation == "六合":
+                result["diZhi"].append(f"{position_prefix}{branch_text}合{element}")
+            elif relation == "三合":
+                result["diZhi"].append(f"{branch_text}三合{element}局")
+            elif relation == "合":
+                result["diZhi"].append(f"{branch_text}半合{element}")
+            elif relation == "三会":
+                result["diZhi"].append(f"{branch_text}三会{element}局")
+            elif relation == "会":
+                result["diZhi"].append(f"{branch_text}半会{element}")
+            elif relation == "刑":
+                branch_set = set(branches)
+                name = (
+                    "自刑"
+                    if len(branch_set) == 1
+                    else next(
+                        (label for pattern, label in punishment_names if branch_set.issubset(pattern)),
+                        "相刑",
+                    )
+                )
+                result["diZhi"].append(f"{branch_text}刑({name})")
+            elif relation in {"冲", "害", "破", "暗合"}:
+                result["diZhi"].append(f"{position_prefix}{branch_text}{relation}")
 
-        # 地支相害
-        zhi_hai = {"子未", "丑午", "寅巳", "卯辰", "申亥", "酉戌"}
-        for i in range(4):
-            for j in range(i + 1, 4):
-                pair = branches[i] + branches[j]
-                pair_rev = branches[j] + branches[i]
-                if pair in zhi_hai or pair_rev in zhi_hai:
-                    result["diZhi"].append(f"{pos_names[i]}{pos_names[j]}{branches[i]}{branches[j]}害")
-
-        # 地支相破
-        zhi_po = {"子酉", "丑辰", "寅亥", "卯午", "巳申", "未戌"}
-        for i in range(4):
-            for j in range(i + 1, 4):
-                pair = branches[i] + branches[j]
-                pair_rev = branches[j] + branches[i]
-                if pair in zhi_po or pair_rev in zhi_po:
-                    result["diZhi"].append(f"{pos_names[i]}{pos_names[j]}{branches[i]}{branches[j]}破")
+        result["tianGan"] = list(dict.fromkeys(result["tianGan"]))
+        result["diZhi"] = list(dict.fromkeys(result["diZhi"]))
 
         return result
 
@@ -2382,12 +2520,12 @@ class BaziCalculator:
                 "ganzhiRelations": evidence_item(
                     conclusion={
                         "tianGan": ganzhi_relations.get("tianGan", {}) if isinstance(ganzhi_relations, dict) else {},
-                        "diZhi": branch_relations,
+                        "diZhi": (branch_relations.get("canonical", []) if isinstance(branch_relations, dict) else []),
                     },
                     basis=[
                         f"四柱={','.join(p.get('fullName', '') for p in four_pillars.values() if isinstance(p, dict))}",
                     ],
-                    sources=["lunar-python", "项目干支关系规则"],
+                    sources=["lunar-python", "bazi-1"],
                     rule_ids=["bazi.stem_branch_relations"],
                     weight="core",
                 ),

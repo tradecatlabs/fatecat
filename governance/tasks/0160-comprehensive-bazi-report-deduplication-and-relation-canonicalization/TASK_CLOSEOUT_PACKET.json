@@ -1,0 +1,193 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-15T11:43:09+08:00",
+  "task": {
+    "task_id": "0160",
+    "slug": "comprehensive-bazi-report-deduplication-and-relation-canonicalization",
+    "task_dir": "governance/tasks/0160-comprehensive-bazi-report-deduplication-and-relation-canonicalization",
+    "detected_phase": "closeout",
+    "overall_status": "Done"
+  },
+  "source_refs": {
+    "task_context_packet": null,
+    "task_package_set": null,
+    "git_delivery_evidence": "governance/tasks/0160-comprehensive-bazi-report-deduplication-and-relation-canonicalization/GIT_DELIVERY_EVIDENCE.json",
+    "audit_case_sampling_decision": "governance/tasks/0160-comprehensive-bazi-report-deduplication-and-relation-canonicalization/AUDIT_CASE_SAMPLING.md"
+  },
+  "closeout_gate": {
+    "ready": true,
+    "failures": []
+  },
+  "summary": {
+    "leaf_total": 12,
+    "leaf_done": 12,
+    "todo_total": 12,
+    "todo_checked": 12,
+    "blocker_count": 0
+  },
+  "leaves": [
+    {
+      "id": "TP-01.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "DEBUG E2/E3：2 个重复标题、3 张重复表、单辰自刑与双真相源",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-01.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "FIELD_OWNERSHIP.md：章节 owner、canonical 键、兼容投影边界",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-02.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "red tests 在旧实现上暴露缺失 canonical、自关联与反向重复",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-02.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "statement golden、关系边界与 rule-depth 回归通过",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "旧报告重复标题/表格 red test 已形成",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "标准八字报告 1666 行且无重复标题、表格、神煞释义",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-04.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "CONSUMER_AUDIT.md 已记录消费者、迁移与回滚边界",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-04.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "profile、规则 registry、文档与契约测试已同步",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-05.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "故障注入、唯一性与关系基数门禁纳入 104 项定向回归",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-05.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "干净副本 quick CI 通过 468 tests；多端 15 tests；renderer benchmark 无退化",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-06.01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "REVIEW PASS；三个隐藏问题已修复；CASE-9001 项目 overlay 与采样 strict 通过",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-06.02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "隔离 quick CI 468 passed；治理/任务 strict 与 closeout packet 通过",
+      "blocker": "-",
+      "unblock_needed": "-"
+    }
+  ],
+  "git_delivery": {
+    "branch": {
+      "name": "main",
+      "upstream": "origin/main",
+      "ahead": 0,
+      "behind": 0
+    },
+    "head": {
+      "sha": "cb7216853a5ca6939c63dba57e333d5b8a12d370",
+      "subject": "fix: 删除重复神煞报告块"
+    },
+    "pull_request": {
+      "available": false,
+      "number": null,
+      "url": null,
+      "review_decision": "",
+      "review_total": 0,
+      "checks_total": 0,
+      "attention_required_count": 0
+    }
+  },
+  "audit_case_sampling": {
+    "ok": true,
+    "file": "governance/tasks/0160-comprehensive-bazi-report-deduplication-and-relation-canonicalization/AUDIT_CASE_SAMPLING.md",
+    "summary": {
+      "decision": "project-overlay",
+      "source": "governance/tasks/0160-comprehensive-bazi-report-deduplication-and-relation-canonicalization",
+      "case_id": "CASE-9001",
+      "case_path": "governance/evidence/audit-cases/cases/CASE-9001-canonical-field-and-compatibility-projection-double-consumption/CASE.md",
+      "root_cause_class": "canonical_field_and_compatibility_projection_double_consumption",
+      "has_no_case_reason": true,
+      "has_trigger_signals": true,
+      "has_evidence": true
+    },
+    "issues": [],
+    "required": true,
+    "loaded": true
+  },
+  "recommended_asset_handoff": {
+    "source_refs": [
+      "governance/tasks/0160-comprehensive-bazi-report-deduplication-and-relation-canonicalization/GIT_DELIVERY_EVIDENCE.json",
+      "governance/tasks/0160-comprehensive-bazi-report-deduplication-and-relation-canonicalization/AUDIT_CASE_SAMPLING.md"
+    ],
+    "artifacts": [
+      "git-delivery-evidence.json",
+      "audit-case-sampling-decision",
+      "task-closeout-packet.json"
+    ]
+  },
+  "upstream_packets": {
+    "task_context_packet_loaded": false,
+    "task_package_set_loaded": false,
+    "git_delivery_evidence_loaded": true,
+    "audit_case_sampling_loaded": true
+  }
+}
