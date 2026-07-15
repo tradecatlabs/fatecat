@@ -794,7 +794,7 @@ def generate_bone_section(result: dict[str, Any]) -> str:
         interpretation = bw.get("interpretation", {})
         if interpretation.get("genderSpecific"):
             audience = interpretation.get("audience", "")
-            lines.append(f"* {audience}命歌诀（现代流传版本，非事实判断）：{bw.get('text', '')}")
+            lines.append(f"* {audience}命歌诀：{bw.get('text', '')}")
         else:
             lines.append(f"* 评语（民俗文本，非事实判断）：{bw.get('text', '')}")
         comp = bw.get("components", {})
@@ -813,14 +813,6 @@ def generate_bone_section(result: dict[str, Any]) -> str:
             lines.append(f"  - 月份 {month_label}：{month.get('weightCn', '')}")
             lines.append(f"  - 出生日 {day.get('dayCn', '')}日：{day.get('weightCn', '')}")
             lines.append(f"  - 时辰 {hour.get('zhi', '')}时：{hour.get('weightCn', '')}")
-        calculation = bw.get("calculation", {})
-        if calculation:
-            lines.append(
-                "* 版本边界：通行称骨重量表；歌诀按男命/女命版本独立选择；"
-                "男命歌诀表含七两二钱，女命歌诀表止于七两一钱；"
-                "当前年月日时权重组合最高可达七两一钱；传统托名尚未得到可靠史料核验。"
-            )
-            lines.append("* 用途边界：仅作民俗附录，不参与八字格局、旺衰、调候或喜忌判断。")
         lines.append("")
     return "\n".join(lines)
 

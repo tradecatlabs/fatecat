@@ -90,7 +90,7 @@ def test_full_report_puts_sponsor_before_report_and_drops_extension_blocks():
     assert "## 袁天罡称骨" in text
 
 
-def test_bone_report_marks_gendered_boundary_verse_as_modern_folk_text():
+def test_bone_report_uses_concise_gendered_verse_output():
     from report_generator import generate_bone_section
 
     text = generate_bone_section(
@@ -112,7 +112,7 @@ def test_bone_report_marks_gendered_boundary_verse_as_modern_folk_text():
         }
     )
 
-    assert "女命歌诀（现代流传版本，非事实判断）：测试女命歌诀" in text
+    assert "女命歌诀：测试女命歌诀" in text
     assert "* 称骨：三两七钱" in text
     assert "数值：3.7两" not in text
     assert "中文：" not in text
@@ -121,8 +121,9 @@ def test_bone_report_marks_gendered_boundary_verse_as_modern_folk_text():
     assert "出生日 十七日：九钱" in text
     assert "时辰 卯时：一两" in text
     assert "男女共用" not in text
-    assert "歌诀按男命/女命版本独立选择" in text
-    assert "男命歌诀表含七两二钱，女命歌诀表止于七两一钱" in text
+    assert "现代流传版本，非事实判断" not in text
+    assert "版本边界" not in text
+    assert "用途边界" not in text
 
 
 def test_full_report_default_heading_contract_matches_standard_blocks():
@@ -185,10 +186,11 @@ def test_full_report_default_heading_contract_matches_standard_blocks():
     for section in ["### 建除十二神", "## 紫微斗数", "## 紫微基础"]:
         assert section not in headings
     assert "analysisEvidence" not in text
-    assert "男命歌诀（现代流传版本，非事实判断）" in text
+    assert "男命歌诀：" in text
     assert "男女共用" not in text
-    assert "歌诀按男命/女命版本独立选择" in text
-    assert "不参与八字格局、旺衰、调候或喜忌判断" in text
+    assert "现代流传版本，非事实判断" not in text
+    assert "版本边界" not in text
+    assert "用途边界" not in text
 
 
 def test_comprehensive_bazi_result_contains_hidden_analysis_evidence():
