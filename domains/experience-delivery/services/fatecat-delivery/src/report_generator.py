@@ -1004,10 +1004,6 @@ def generate_geju_section(result: dict[str, Any]) -> str:
             note = ys.get("note", "")
             if note:
                 lines.append(f"* 用神备注：{note}")
-        narrative = _rule_depth_narrative(result, "baziRuleDepth")
-        if narrative:
-            lines.append("")
-            lines.append(narrative)
         lines.append("")
 
     return "\n".join(lines)

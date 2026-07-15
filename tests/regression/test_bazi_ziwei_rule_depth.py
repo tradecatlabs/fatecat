@@ -762,7 +762,9 @@ def test_rule_depth_is_available_from_api_and_web_without_frontend_recalculation
         },
     )
     assert bazi_api.status_code == 200
-    assert bazi_api.json()["data"]["baziRuleDepth"]["appliedRules"]
+    bazi_rule_depth = bazi_api.json()["data"]["baziRuleDepth"]
+    assert bazi_rule_depth["appliedRules"]
+    assert "综合八字规则摘要" in bazi_rule_depth["narrativeSummary"]["markdown"]
 
     ziwei_api = client.post(
         "/api/v1/capabilities/ziwei",
@@ -789,8 +791,7 @@ def test_rule_depth_is_available_from_api_and_web_without_frontend_recalculation
         },
     )
     assert bazi_web.status_code == 200
-    assert "综合八字规则摘要" in bazi_web.text
-    assert "特殊格局边界" in bazi_web.text
+    assert "综合八字规则摘要" not in bazi_web.text
     assert "规则深度 / 冲突策略" in bazi_web.text
     assert "bazi.depth.yongshen.strategy_matrix" in bazi_web.text
 
