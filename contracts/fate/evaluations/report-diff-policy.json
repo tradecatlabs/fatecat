@@ -33,8 +33,8 @@
         "requiredTopLevelHeadings": [
           "# 命理排盘报告",
           "## 第一卷：先天命格（静态分析）",
-          "## 第三卷：后天运路（动态趋势）",
-          "## 第四卷：民俗与建议（生活应用）"
+          "## 第二卷：后天运路（动态趋势）",
+          "## 第三卷：民俗与建议（生活应用）"
         ],
         "requiredCoreBlocks": [
           "八字排盘详情",
@@ -53,7 +53,12 @@
       "capabilityId": "ziwei",
       "requiredGates": ["policyGate", "snapshotGate", "analysisEvidence"],
       "structurePolicy": {
-        "requiredTopLevelHeadings": ["# 紫微斗数报告", "## 紫微斗数", "## 紫微基础"],
+        "requiredTopLevelHeadings": [
+          "# 紫微斗数报告",
+          "## 紫微斗数",
+          "## 紫微结构解读（依据版）",
+          "## 紫微运限四化（大限/流年/流月/流日/流时）"
+        ],
         "requiredCoreBlocks": ["十二宫", "命宫", "身宫", "四化"],
         "forbiddenDefaultBlocks": ["八字排盘详情", "五行喜忌（调候与平衡）", "袁天罡称骨"]
       }
@@ -70,7 +75,13 @@
   },
   "structuralDiff": {
     "summaryOnly": true,
-    "requiredSummaryFields": ["policyGate", "snapshotGate", "headingCount", "requiredHeadings"],
+    "requiredSummaryFields": [
+      "policyGate",
+      "snapshotGate",
+      "headingCount",
+      "requiredHeadings",
+      "structureViolations"
+    ],
     "forbiddenStoredFields": ["markdown", "content", "body", "fullReport", "reportText"],
     "profileMinimums": {
       "bazi": {

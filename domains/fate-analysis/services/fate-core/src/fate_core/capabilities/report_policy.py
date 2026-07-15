@@ -10,7 +10,7 @@ from typing import Any
 
 POLICY_GATE_VERSION = "report-policy-gate-v1"
 POLICY_MATCH_ENGINE = "literal-substring-v1"
-SNAPSHOT_GATE_VERSION = "markdown-snapshot-gate-v1"
+SNAPSHOT_GATE_VERSION = "markdown-snapshot-gate-v2"
 
 _REQUIRED_MARKDOWN_HEADINGS: dict[str, tuple[str, ...]] = {
     "bazi": (
@@ -24,6 +24,62 @@ _REQUIRED_MARKDOWN_HEADINGS: dict[str, tuple[str, ...]] = {
         "## 紫微斗数",
         "## 紫微结构解读（依据版）",
         "### 大限/流年联动",
+    ),
+}
+
+_EXPECTED_MARKDOWN_OUTLINES: dict[str, tuple[str, ...]] = {
+    "bazi": (
+        "# 命理排盘报告：",
+        "## 第一卷：先天命格（静态分析）",
+        "### 基本资料（含真太阳时、节气）",
+        "#### 基本资料",
+        "#### 空亡信息（依据）",
+        "### 八字排盘详情",
+        "### 神煞断语",
+        "### 日主概览",
+        "### 五行喜忌（调候与平衡）",
+        "#### 五行比例",
+        "#### 五行分数",
+        "#### 天干分数",
+        "### 五行停匀与寒湿燥热（调候依据）",
+        "### 干支取象（原文）",
+        "### 命造格局（格局用神）",
+        "### 节气司令",
+        "### 干支关系",
+        "#### 天干关系",
+        "#### 干支相合（依据）",
+        "#### 天干相克（依据）",
+        "#### 地支入库（依据）",
+        "#### 地支关系",
+        "## 第二卷：后天运路（动态趋势）",
+        "### 运势分析",
+        "#### 大运分析",
+        "#### 流年",
+        "#### 近期流年指引（近",
+        "#### 流月运势",
+        "#### 近期流月指引（近",
+        "#### 小运",
+        "## 第三卷：民俗与建议（生活应用）",
+        "### 袁天罡称骨",
+    ),
+    "ziwei": (
+        "# 紫微斗数报告：",
+        "## 紫微斗数",
+        "### 入盘依据",
+        "### 命宫与身宫",
+        "### 十二宫",
+        "## 紫微结构解读（依据版）",
+        "### 命宫/身宫断语",
+        "### 主星组合",
+        "### 三方四正",
+        "### 四化落宫",
+        "### 大限/流年联动",
+        "## 紫微运限四化（大限/流年/流月/流日/流时）",
+        "### 大限",
+        "### 流年",
+        "### 流月",
+        "### 流日",
+        "### 流时",
     ),
 }
 
@@ -108,20 +164,25 @@ def build_markdown_report_policy_gate(
 
 
 def build_markdown_snapshot_gate(*, markdown: str, report_system: str) -> dict[str, Any]:
-    """Build a lightweight structure snapshot gate from Markdown headings."""
+    """Build a structure gate from Markdown headings."""
 
     headings = _extract_markdown_headings(markdown)
     heading_texts = [item["text"] for item in headings]
     required = list(_REQUIRED_MARKDOWN_HEADINGS.get(report_system, ()))
     missing = [item for item in required if not _heading_present(item, heading_texts)]
+    structure_violations = _validate_markdown_heading_structure(headings, report_system)
     return {
         "version": SNAPSHOT_GATE_VERSION,
-        "status": "fail" if missing else "pass",
+        "status": "fail" if missing or structure_violations else "pass",
         "scope": f"markdown-report:{report_system}",
-        "contentCoverage": "Markdown heading structure only; full body snapshot diff belongs to a later gate.",
+        "contentCoverage": (
+            "Markdown heading structure only: required headings, one H1, first-heading level, "
+            "level increments, known-heading levels and canonical order; full body snapshot diff belongs to a later gate."
+        ),
         "reportSystem": report_system,
         "requiredHeadings": required,
         "missingHeadings": missing,
+        "structureViolations": structure_violations,
         "headingCount": len(headings),
         "headings": headings,
     }
@@ -172,6 +233,112 @@ def _extract_markdown_headings(markdown: str) -> list[dict[str, Any]]:
             }
         )
     return headings
+
+
+def _validate_markdown_heading_structure(
+    headings: list[dict[str, Any]],
+    report_system: str,
+) -> list[dict[str, Any]]:
+    violations: list[dict[str, Any]] = []
+    if not headings:
+        return violations
+
+    first = headings[0]
+    if first["level"] != 1:
+        violations.append(
+            {
+                "code": "first_heading_not_h1",
+                "line": first["line"],
+                "actualLevel": first["level"],
+                "title": first["title"],
+            }
+        )
+
+    h1_headings = [item for item in headings if item["level"] == 1]
+    if len(h1_headings) != 1:
+        violations.append(
+            {
+                "code": "invalid_h1_count",
+                "expectedCount": 1,
+                "actualCount": len(h1_headings),
+                "lines": [item["line"] for item in h1_headings],
+            }
+        )
+
+    seen: dict[str, int] = {}
+    previous = headings[0]
+    for item in headings:
+        text = item["text"]
+        if text in seen:
+            violations.append(
+                {
+                    "code": "duplicate_heading",
+                    "title": item["title"],
+                    "firstLine": seen[text],
+                    "line": item["line"],
+                }
+            )
+        else:
+            seen[text] = item["line"]
+
+        if item is not previous and item["level"] > previous["level"] + 1:
+            violations.append(
+                {
+                    "code": "heading_level_skip",
+                    "line": item["line"],
+                    "previousLevel": previous["level"],
+                    "actualLevel": item["level"],
+                    "title": item["title"],
+                }
+            )
+        previous = item
+
+    outline = _EXPECTED_MARKDOWN_OUTLINES.get(report_system, ())
+    expected_positions: list[int] = []
+    for item in headings:
+        matching_index = _matching_outline_index(item["title"], outline)
+        if matching_index is None:
+            continue
+        expected_positions.append(matching_index)
+        expected_level, _title = _split_heading_spec(outline[matching_index])
+        if item["level"] != expected_level:
+            violations.append(
+                {
+                    "code": "unexpected_heading_level",
+                    "line": item["line"],
+                    "title": item["title"],
+                    "expectedLevel": expected_level,
+                    "actualLevel": item["level"],
+                }
+            )
+
+    if expected_positions != sorted(expected_positions):
+        violations.append(
+            {
+                "code": "unexpected_heading_order",
+                "expectedOrder": list(outline),
+                "actualOrder": [item["text"] for item in headings],
+            }
+        )
+    return violations
+
+
+def _matching_outline_index(title: str, outline: tuple[str, ...]) -> int | None:
+    for index, specification in enumerate(outline):
+        _level, expected_title = _split_heading_spec(specification)
+        if expected_title.endswith(("：", "（近")):
+            if title.startswith(expected_title):
+                return index
+        elif title == expected_title:
+            return index
+    return None
+
+
+def _split_heading_spec(specification: str) -> tuple[int, str]:
+    marker, separator, title = specification.partition(" ")
+    if not separator or not marker or any(char != "#" for char in marker):
+        raise ValueError(f"invalid Markdown heading specification: {specification}")
+    return len(marker), title
 
 
 def _heading_present(required: str, headings: list[str]) -> bool:

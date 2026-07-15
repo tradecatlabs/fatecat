@@ -846,7 +846,7 @@ def test_markdown_report_api_gate_selects_ziwei_without_bazi_blocks():
     assert "### 四化落宫" in markdown
     assert "### 大限/流年联动" in markdown
     assert "## 紫微基础" not in markdown
-    assert "## 八字排盘详情" not in markdown
+    assert "八字排盘详情" not in markdown
 
 
 def test_markdown_report_job_gate_api_returns_status_then_result():

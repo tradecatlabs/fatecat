@@ -107,7 +107,13 @@
     "path": "contracts/fate/evaluations/report-diff-policy.json",
     "releaseGate": "required",
     "gate": "policyGate=pass and snapshotGate=pass for production report profiles",
-    "requiredStructuralSummary": ["policyGate", "snapshotGate", "headingCount", "requiredHeadings"],
+    "requiredStructuralSummary": [
+      "policyGate",
+      "snapshotGate",
+      "headingCount",
+      "requiredHeadings",
+      "structureViolations"
+    ],
     "forbiddenStoredFields": ["markdown", "content", "body", "fullReport", "reportText"]
   },
   "professionalQualityRubric": {

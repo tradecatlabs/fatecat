@@ -80,7 +80,7 @@ def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None)
     lines.append("")
 
     # 基本信息
-    lines.append("## 基本资料（含真太阳时、节气）")
+    lines.append("### 基本资料（含真太阳时、节气）")
     lines.append("")
     bi = result.get("birthInfo", {})
     meta = result.get("meta", {})
@@ -120,7 +120,7 @@ def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None)
     lines.append("")
 
     # 基本信息展开（避免表格中信息被认为“缩写”）
-    lines.append("### 基本资料")
+    lines.append("#### 基本资料")
     lines.append("")
     rows = []
     rows.append(["姓名", name or "-"])
@@ -202,7 +202,7 @@ def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None)
                 isinstance(vi.get(k), dict) and (vi.get(k).get("xun") or vi.get(k).get("kong")) for k in order
             )
             if has_any:
-                lines.append("### 空亡信息（依据）")
+                lines.append("#### 空亡信息（依据）")
                 lines.append("")
                 for k in order:
                     item = vi.get(k, {})
@@ -219,7 +219,7 @@ def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None)
                 lines.append("")
 
     # 八字排盘详情
-    lines.append("## 八字排盘详情")
+    lines.append("### 八字排盘详情")
     lines.append("")
     fp = result.get("fourPillars", {})
     tg = result.get("tenGods", {})
@@ -325,7 +325,7 @@ def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None)
     # 神煞（默认输出合并后的全量列表；禁止回退到简表口径）
     full_sp = result.get("spiritsFull", {})
     full_by = full_sp.get("byPillar", {})
-    lines.append("## 神煞断语")
+    lines.append("### 神煞断语")
     lines.append("")
     if not isinstance(full_by, dict):
         raise RuntimeError("神煞数据缺失: spiritsFull.byPillar 不是 dict")
@@ -355,7 +355,7 @@ def generate_daymaster_section(result: dict[str, Any]) -> str:
     dm = result.get("dayMaster", {})
     sizi_sum = result.get("siziSummary", {}) or {}
     if dm or sizi_sum:
-        lines.append("## 日主概览")
+        lines.append("### 日主概览")
         lines.append("")
         if dm:
             lines.append("* 日主属性（展开）：")
@@ -387,12 +387,12 @@ def generate_daymaster_section(result: dict[str, Any]) -> str:
 def generate_wuxing_section(result: dict[str, Any]) -> str:
     """生成五行比例、分数与旺相休囚死状态。"""
     lines = []
-    lines.append("## 五行喜忌（调候与平衡）")
+    lines.append("### 五行喜忌（调候与平衡）")
     lines.append("")
 
     # 五行统计
     fe = result.get("fiveElements", {})
-    lines.append("### 五行比例")
+    lines.append("#### 五行比例")
     lines.append("")
     ratio_rows: list[list[object]] = []
     for wx in ["木", "火", "土", "金", "水"]:
@@ -412,7 +412,7 @@ def generate_wuxing_section(result: dict[str, Any]) -> str:
         fes = wx_score.get("fiveElementScore", {})
         gan_sc = wx_score.get("ganScore", {})
         if fes or gan_sc:
-            lines.append("### 五行分数")
+            lines.append("#### 五行分数")
             lines.append("")
         if fes:
             rows = [[k, v] for k, v in fes.items()]
@@ -421,7 +421,7 @@ def generate_wuxing_section(result: dict[str, Any]) -> str:
             lines.extend(_render_table(["五行", "分数"], rows))
         if gan_sc:
             rows = [[k, v] for k, v in gan_sc.items()]
-            lines.append("### 天干分数")
+            lines.append("#### 天干分数")
             lines.append("")
             lines.extend(_render_table(["天干", "分数"], rows))
         if wx_score.get("statusDetail"):
@@ -453,7 +453,7 @@ def generate_bone_section(result: dict[str, Any]) -> str:
     lines = []
     bw = result.get("boneWeight", {})
     if bw:
-        lines.append("## 袁天罡称骨")
+        lines.append("### 袁天罡称骨")
         lines.append("")
         if bw.get("weightCn", ""):
             lines.append(f"* 称骨：{bw.get('weightCn', '')}")
@@ -494,7 +494,7 @@ def generate_fortune_section(result: dict[str, Any], recent_years: int | None = 
       - N: 仅输出近 N 年（按北京时间当前年开始）
     """
     lines = []
-    lines.append("## 运势分析")
+    lines.append("### 运势分析")
     lines.append("")
 
     # 大运建议（外部口径）：只提取动态“大运”片段，不复制完整静态用神原文。
@@ -529,7 +529,7 @@ def generate_fortune_section(result: dict[str, Any], recent_years: int | None = 
 
     # 大运（表格化呈现：压缩排版，不减少字段）
     if mf:
-        lines.append("### 大运分析")
+        lines.append("#### 大运分析")
         lines.append("")
         pillars = mf.get("pillars", [])
         msp_map = {str(dy.get("startYear")): dy for dy in result.get("majorFortuneSpirits", []) if isinstance(dy, dict)}
@@ -571,7 +571,7 @@ def generate_fortune_section(result: dict[str, Any], recent_years: int | None = 
             picked = [x for x in years_sorted if str(x.get("year")) in target_years]
             selected = picked if len(picked) >= 1 else years_sorted[: int(recent_years)]
 
-        lines.append(f"### 近期流年指引（近{recent_years}年）" if recent_years else "### 流年")
+        lines.append(f"#### 近期流年指引（近{recent_years}年）" if recent_years else "#### 流年")
         lines.append("")
         asp_map = {
             str(y.get("year")): (y.get("spirits", []) or [])
@@ -602,12 +602,12 @@ def generate_relations_section(result: dict[str, Any]) -> str:
     if not any((gr, extra, branch_relations)):
         return ""
 
-    lines = ["## 干支关系", ""]
+    lines = ["### 干支关系", ""]
     position_name = {"year": "年", "month": "月", "day": "日", "hour": "时"}
 
     stem_relations = gr.get("tianGan", []) if isinstance(gr, dict) else []
     if stem_relations:
-        lines.append("### 天干关系")
+        lines.append("#### 天干关系")
         lines.append("")
         lines.extend(_render_table(["序号", "关系"], [[index, value] for index, value in enumerate(stem_relations, 1)]))
 
@@ -634,7 +634,7 @@ def generate_relations_section(result: dict[str, Any]) -> str:
                 ]
             )
         if rows:
-            lines.append("### 干支相合（依据）")
+            lines.append("#### 干支相合（依据）")
             lines.append("")
             lines.extend(_render_table(["柱", "干支", "合干", "命中", "结论", "支藏干强度"], rows))
 
@@ -646,7 +646,7 @@ def generate_relations_section(result: dict[str, Any]) -> str:
             for position, name in position_name.items():
                 text = text.replace(f"{position}干", f"{name}柱天干")
             rows.append([index, text])
-        lines.append("### 天干相克（依据）")
+        lines.append("#### 天干相克（依据）")
         lines.append("")
         lines.extend(_render_table(["序号", "关系"], rows))
 
@@ -673,7 +673,7 @@ def generate_relations_section(result: dict[str, Any]) -> str:
                 ]
             )
         if rows:
-            lines.append("### 地支入库（依据）")
+            lines.append("#### 地支入库（依据）")
             lines.append("")
             lines.extend(
                 _render_table(
@@ -705,7 +705,7 @@ def generate_relations_section(result: dict[str, Any]) -> str:
                 ]
             )
         if rows:
-            lines.append("### 地支关系")
+            lines.append("#### 地支关系")
             lines.append("")
             lines.extend(_render_table(["柱位", "地支", "关系", "方向", "完整度", "五行", "依据", "规则源"], rows))
 
@@ -720,7 +720,7 @@ def generate_bingyao_section(result: dict[str, Any]) -> str:
     if not cs and not ys:
         return ""
     lines: list[str] = []
-    lines.append("## 五行停匀与寒湿燥热（调候依据）")
+    lines.append("### 五行停匀与寒湿燥热（调候依据）")
     lines.append("")
     rows: list[list[object]] = []
     if cs:
@@ -763,7 +763,7 @@ def generate_ganzhi_imagery_section(result: dict[str, Any]) -> str:
         return ""
     pos_cn = {"year": "年柱", "month": "月柱", "day": "日柱", "hour": "时柱"}
     lines: list[str] = []
-    lines.append("## 干支取象（原文）")
+    lines.append("### 干支取象（原文）")
     lines.append("")
     rows: list[list[object]] = []
     for pos in ["year", "month", "day", "hour"]:
@@ -876,7 +876,7 @@ def _wrap_report(parts: list[str]) -> str:
     disclaimer_section = f"{build_disclaimer_text()}\n\n"
     sponsor_section = "\n".join(
         [
-            f"## {branding['reportFooterTitle']}",
+            f"**{branding['reportFooterTitle']}**",
             "",
             build_brand_footer_text(compact=False),
         ]
@@ -989,7 +989,7 @@ def generate_geju_section(result: dict[str, Any]) -> str:
     ys = result.get("yongShen", {})
 
     if gj or ys:
-        lines.append("## 命造格局（格局用神）")
+        lines.append("### 命造格局（格局用神）")
         lines.append("")
 
         if gj:
@@ -1027,7 +1027,7 @@ def generate_monthly_section(result: dict[str, Any], recent_years: int | None = 
         if recent_years is not None:
             years_filter = {str(now_year + i) for i in range(max(0, int(recent_years)))}
 
-        lines.append(f"### 近期流月指引（近{recent_years}年）" if recent_years else "### 流月运势（全展开）")
+        lines.append(f"#### 近期流月指引（近{recent_years}年）" if recent_years else "#### 流月运势（全展开）")
         lines.append("")
         # 以 monthlySpirits 为事实来源展开（每条含 year/monthCn/ganZhi/spirits）
         if not msp:
@@ -1057,7 +1057,7 @@ def generate_monthly_section(result: dict[str, Any], recent_years: int | None = 
         lines.extend(_render_table(["年份", "月份", "干支", "十神", "纳音", "神煞"], rows))
 
     if xy:
-        lines.append("### 小运")
+        lines.append("#### 小运")
         lines.append("")
         rows: list[list[object]] = []
         for item in [x for x in xy if isinstance(x, dict)]:
@@ -1081,7 +1081,7 @@ def generate_jieqi_section(result: dict[str, Any]) -> str:
     sl = result.get("siling", {})
 
     if jq or sl:
-        lines.append("## 节气司令")
+        lines.append("### 节气司令")
         lines.append("")
 
         if jq:

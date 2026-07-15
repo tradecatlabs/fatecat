@@ -197,6 +197,7 @@ def test_capability_schemas_define_required_protocol_boundaries():
         "reportSystem",
         "requiredHeadings",
         "missingHeadings",
+        "structureViolations",
         "headings",
     }
     assert report_schema["allowedPolicyGateStatus"] == ["pass", "fail"]
@@ -879,10 +880,70 @@ def test_markdown_snapshot_gate_locks_core_headings_without_full_body_hash():
     assert bazi_gate["contentCoverage"].startswith("Markdown heading structure only")
     assert bazi_gate["headingCount"] == 4
     assert bazi_gate["missingHeadings"] == []
+    assert bazi_gate["structureViolations"] == []
 
     broken_gate = build_markdown_snapshot_gate(markdown="# 命理排盘报告：测试\n", report_system="bazi")
     assert broken_gate["status"] == "fail"
     assert "## 第一卷：先天命格（静态分析）" in broken_gate["missingHeadings"]
+
+
+@pytest.mark.parametrize(
+    ("markdown", "violation_code"),
+    [
+        (
+            "\n".join(
+                [
+                    "## TradeCat Labs 实验室",
+                    "# 命理排盘报告：测试",
+                    "## 第一卷：先天命格（静态分析）",
+                    "## 第二卷：后天运路（动态趋势）",
+                    "## 第三卷：民俗与建议（生活应用）",
+                ]
+            ),
+            "first_heading_not_h1",
+        ),
+        (
+            "\n".join(
+                [
+                    "# 命理排盘报告：测试",
+                    "## 第一卷：先天命格（静态分析）",
+                    "## 八字排盘详情",
+                    "## 第二卷：后天运路（动态趋势）",
+                    "## 第三卷：民俗与建议（生活应用）",
+                ]
+            ),
+            "unexpected_heading_level",
+        ),
+        (
+            "\n".join(
+                [
+                    "# 命理排盘报告：测试",
+                    "## 第一卷：先天命格（静态分析）",
+                    "#### 五行比例",
+                    "## 第二卷：后天运路（动态趋势）",
+                    "## 第三卷：民俗与建议（生活应用）",
+                ]
+            ),
+            "heading_level_skip",
+        ),
+        (
+            "\n".join(
+                [
+                    "# 命理排盘报告：测试",
+                    "## 第二卷：后天运路（动态趋势）",
+                    "## 第一卷：先天命格（静态分析）",
+                    "## 第三卷：民俗与建议（生活应用）",
+                ]
+            ),
+            "unexpected_heading_order",
+        ),
+    ],
+)
+def test_markdown_snapshot_gate_rejects_invalid_heading_trees(markdown: str, violation_code: str):
+    gate = build_markdown_snapshot_gate(markdown=markdown, report_system="bazi")
+
+    assert gate["status"] == "fail"
+    assert violation_code in {item["code"] for item in gate["structureViolations"]}
 
 
 def test_provider_registry_covers_all_production_capabilities_and_excludes_planned():

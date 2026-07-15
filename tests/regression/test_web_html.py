@@ -319,13 +319,13 @@ def test_web_page_generates_copyable_markdown_report():
         assert forbidden not in text
     assert text.index('<pre><code id="report-markdown">') < text.index('<h2 id="workbench">八字工作台</h2>')
     assert text.index('<h2 id="project-brand">项目与页面信息</h2>') < text.index('<pre><code id="report-markdown">')
-    assert "## TradeCat Labs 实验室" in text
+    assert "**TradeCat Labs 实验室**" in text
     assert "# 命理排盘报告：测试样本" in text
     assert "当前输出体系：综合八字" in text
-    assert "## 八字排盘详情" in text
+    assert "### 八字排盘详情" in text
     assert "## 紫微斗数" not in text
     assert "## 第三卷：民俗与建议（生活应用）" in text
-    assert "## 袁天罡称骨" in text
+    assert "### 袁天罡称骨" in text
     assert "机器可读输入" in text
     assert '"birthPlace": "北京市朝阳区"' in text
     assert '"locationId": "cn:110105"' in text
@@ -369,8 +369,8 @@ def test_web_page_can_select_ziwei_report_without_bazi_blocks():
     assert "### 大限/流年联动" in text
     assert "## 紫微运限四化（大限/流年/流月/流日/流时）" in text
     assert "## 紫微基础" not in text
-    assert "## 八字排盘详情" not in text
-    assert "## 袁天罡称骨" not in text
+    assert "八字排盘详情" not in text
+    assert "袁天罡称骨" not in text
     assert '"reportSystem": "ziwei"' in text
     assert '<h2 id="workbench">紫微工作台</h2>' in text
     assert text.index('<pre><code id="report-markdown">') < text.index('<h2 id="workbench">紫微工作台</h2>')

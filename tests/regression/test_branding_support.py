@@ -84,7 +84,7 @@ def test_full_report_puts_sponsor_before_report_and_drops_extension_blocks():
     )
 
     assert text.startswith("⚠️ 免责声明")
-    assert text.index("## TradeCat Labs 实验室") < text.index("# 命理排盘报告：测试命主")
+    assert text.index("**TradeCat Labs 实验室**") < text.index("# 命理排盘报告：测试命主")
 
     removed_sections = [
         "### 建除十二神",
@@ -109,7 +109,7 @@ def test_full_report_puts_sponsor_before_report_and_drops_extension_blocks():
     ]
     for section in removed_sections:
         assert section not in text
-    assert "## 袁天罡称骨" in text
+    assert "### 袁天罡称骨" in text
 
 
 def test_bone_report_uses_concise_gendered_verse_output():
@@ -172,36 +172,35 @@ def test_full_report_default_heading_contract_matches_standard_blocks():
     assert text.startswith("⚠️ 免责声明")
     assert not text.splitlines()[0].startswith("#")
     assert headings == [
-        "## TradeCat Labs 实验室",
         "# 命理排盘报告：测试样本",
         "## 第一卷：先天命格（静态分析）",
-        "## 基本资料（含真太阳时、节气）",
-        "### 基本资料",
-        "## 八字排盘详情",
-        "## 神煞断语",
-        "## 日主概览",
-        "## 五行喜忌（调候与平衡）",
-        "### 五行比例",
-        "### 五行分数",
-        "### 天干分数",
-        "## 五行停匀与寒湿燥热（调候依据）",
-        "## 干支取象（原文）",
-        "## 命造格局（格局用神）",
-        "## 节气司令",
-        "## 干支关系",
-        "### 天干关系",
-        "### 干支相合（依据）",
-        "### 天干相克（依据）",
-        "### 地支入库（依据）",
-        "### 地支关系",
+        "### 基本资料（含真太阳时、节气）",
+        "#### 基本资料",
+        "### 八字排盘详情",
+        "### 神煞断语",
+        "### 日主概览",
+        "### 五行喜忌（调候与平衡）",
+        "#### 五行比例",
+        "#### 五行分数",
+        "#### 天干分数",
+        "### 五行停匀与寒湿燥热（调候依据）",
+        "### 干支取象（原文）",
+        "### 命造格局（格局用神）",
+        "### 节气司令",
+        "### 干支关系",
+        "#### 天干关系",
+        "#### 干支相合（依据）",
+        "#### 天干相克（依据）",
+        "#### 地支入库（依据）",
+        "#### 地支关系",
         "## 第二卷：后天运路（动态趋势）",
-        "## 运势分析",
-        "### 大运分析",
-        "### 流年",
-        "### 流月运势",
-        "### 小运",
+        "### 运势分析",
+        "#### 大运分析",
+        "#### 流年",
+        "#### 流月运势",
+        "#### 小运",
         "## 第三卷：民俗与建议（生活应用）",
-        "## 袁天罡称骨",
+        "### 袁天罡称骨",
     ]
     for section in ["### 建除十二神", "## 紫微斗数", "## 紫微基础"]:
         assert section not in headings
@@ -239,28 +238,28 @@ def test_comprehensive_bazi_report_has_unique_headings_and_business_tables():
 
     assert _duplicate_headings(text) == []
     assert _duplicate_business_table_positions(text) == []
-    assert text.count("### 五行分数") == 1
-    assert text.count("### 天干分数") == 1
+    assert text.count("#### 五行分数") == 1
+    assert text.count("#### 天干分数") == 1
     assert text.count("**神煞释义**") == 1
 
     def section(start: str, end: str) -> str:
         return text.split(start, 1)[1].split(end, 1)[0]
 
-    chart_section = section("## 八字排盘详情", "## 神煞断语")
+    chart_section = section("### 八字排盘详情", "### 神煞断语")
     assert "五行分数" not in chart_section
     assert "温湿度" not in chart_section
     assert "地支关系" not in chart_section
 
-    daymaster_section = section("## 日主概览", "## 五行喜忌（调候与平衡）")
+    daymaster_section = section("### 日主概览", "### 五行喜忌（调候与平衡）")
     assert "格局参考" not in daymaster_section
     assert "五行状态" not in daymaster_section
 
-    climate_section = section("## 五行停匀与寒湿燥热（调候依据）", "## 干支取象（原文）")
+    climate_section = section("### 五行停匀与寒湿燥热（调候依据）", "### 干支取象（原文）")
     assert "温湿度分数" in climate_section
     assert "调候依据来源" in climate_section
     assert "调候编码" in climate_section
 
-    fortune_section = section("## 运势分析", "## 第三卷：民俗与建议（生活应用）")
+    fortune_section = section("### 运势分析", "## 第三卷：民俗与建议（生活应用）")
     assert "空亡（展开）" not in fortune_section
     assert "司令：" not in fortune_section
 
@@ -343,8 +342,8 @@ def test_full_report_other_systems_are_independent_outputs():
     assert "### 大限/流年联动" in ziwei_text
     assert "## 紫微运限四化（大限/流年/流月/流日/流时）" in ziwei_text
     assert "## 紫微基础" not in ziwei_text
-    assert "## 八字排盘详情" not in ziwei_text
-    assert "## 袁天罡称骨" not in ziwei_text
+    assert "八字排盘详情" not in ziwei_text
+    assert "袁天罡称骨" not in ziwei_text
     assert _duplicate_headings(ziwei_text) == []
     assert _duplicate_business_table_positions(ziwei_text) == []
 
