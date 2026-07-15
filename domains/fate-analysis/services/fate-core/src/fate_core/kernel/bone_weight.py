@@ -8,18 +8,27 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
+from fate_core.kernel.bone_weight_verses import BONE_GENDERED_VERSE_QIAN
+
 LeapMonthPolicy = Literal["split_at_15", "same_month"]
 
 DEFAULT_LEAP_MONTH_POLICY: LeapMonthPolicy = "split_at_15"
 WEIGHT_TABLE_VERSION = "common-weight-table-v1"
 INTERPRETATION_VERSION = "common-summary-v1"
-GENDERED_INTERPRETATION_VERSION = "chxb-chenggu-gendered-boundary-v1"
+GENDERED_INTERPRETATION_VERSION = "chxb-chenggu-gendered-full-v1"
 GENDERED_INTERPRETATION_SOURCE = {
     "repository": "https://github.com/chxb/chenggu",
     "revision": "0f86a690499bfe828aa534fea17f241c85f038f1",
+    "contentSha256": "38c01b3c93e337d4126b1ccc4bd777ec19bcdbddedac3612ddba23d7434b7da2",
+    "rangeEvidenceUrl": "https://www.suanzhun.net/chengu/1750.html",
+    "rangeEvidenceSha256": "7aa9941b36b1fb886abfc003e0c9102498e0d93c2cf14953c8d8c2917fd70cf4",
+    "maleRangeQian": [21, 72],
+    "femaleRangeQian": [21, 71],
     "license": "MIT",
     "historicalAuthority": False,
 }
+
+_CN_DIGITS = "零一二三四五六七八九"
 
 BONE_YEAR_QIAN = {
     "甲子": 12,
@@ -196,14 +205,6 @@ BONE_TEXT_QIAN = {
     70: "荣华富贵之命",
     71: "此命生成大不同之命",
 }
-BONE_GENDERED_VERSE_QIAN = {
-    "male": {
-        71: "此命生来大不同，公侯卿相在其中；一生自有逍遥福，富贵荣华极品隆。",
-    },
-    "female": {
-        71: "此命推来宏运交，不须再愁苦劳难；一生身有衣禄福，安享荣华胜班超。",
-    },
-}
 
 
 def _validate_inputs(year_gz: str, lunar_month: int, lunar_day: int, hour_zhi: str) -> None:
@@ -242,6 +243,24 @@ def _normalize_gender(gender: str | None) -> tuple[str | None, str]:
     return gender, "男" if gender == "male" else "女"
 
 
+def _format_integer_cn(value: int) -> str:
+    if not 0 <= value < 100:
+        raise ValueError(f"中文数字格式化只支持 0 至 99：{value}")
+    if value < 10:
+        return _CN_DIGITS[value]
+    tens, ones = divmod(value, 10)
+    prefix = "" if tens == 1 else _CN_DIGITS[tens]
+    suffix = "" if ones == 0 else _CN_DIGITS[ones]
+    return f"{prefix}十{suffix}"
+
+
+def _format_qian_cn(weight_qian: int) -> str:
+    liang, qian = divmod(weight_qian, 10)
+    liang_text = f"{_format_integer_cn(liang)}两" if liang else ""
+    qian_text = f"{_format_integer_cn(qian)}钱" if qian else ""
+    return f"{liang_text}{qian_text}"
+
+
 def calc_bone_weight(
     year_gz: str,
     lunar_month: int,
@@ -253,7 +272,7 @@ def calc_bone_weight(
 ) -> dict[str, Any]:
     """计算称骨权重和构成明细。
 
-    男女使用同一套年月日时权重表；性别只标记解释受众，不改变重量。
+    年月日时按固定版本权重表求和，性别用于选择独立的男命或女命歌诀。
     ``lunar-python`` 使用负数月份表示闰月，本函数保留该语义并显式记录折算策略。
     """
     _validate_inputs(year_gz, lunar_month, lunar_day, hour_zhi)
@@ -269,33 +288,57 @@ def calc_bone_weight(
     day_qian = BONE_DAY_QIAN[lunar_day]
     hour_qian = BONE_HOUR_QIAN[hour_zhi]
     total_qian = year_qian + month_qian + day_qian + hour_qian
-    liang, qian = divmod(total_qian, 10)
     gendered_verse = BONE_GENDERED_VERSE_QIAN.get(gender_code or "", {}).get(total_qian)
     interpretation_version = GENDERED_INTERPRETATION_VERSION if gendered_verse is not None else INTERPRETATION_VERSION
 
     return {
         "weightQian": total_qian,
         "weight": total_qian / 10,
-        "weightCn": f"{liang}两{qian}钱",
+        "weightCn": _format_qian_cn(total_qian),
         "text": gendered_verse or BONE_TEXT_QIAN[total_qian],
         "components": {
-            "year": {"ganZhi": year_gz, "weight": year_qian / 10},
+            "year": {
+                "ganZhi": year_gz,
+                "weightQian": year_qian,
+                "weight": year_qian / 10,
+                "weightCn": _format_qian_cn(year_qian),
+            },
             "month": {
                 "month": effective_month,
+                "monthCn": _format_integer_cn(effective_month),
                 "sourceMonth": abs(lunar_month),
+                "sourceMonthCn": _format_integer_cn(abs(lunar_month)),
                 "effectiveMonth": effective_month,
+                "effectiveMonthCn": _format_integer_cn(effective_month),
                 "isLeapMonth": is_leap_month,
                 "leapMonthPolicy": leap_month_policy,
+                "weightQian": month_qian,
                 "weight": month_qian / 10,
+                "weightCn": _format_qian_cn(month_qian),
             },
-            "day": {"day": lunar_day, "weight": day_qian / 10},
-            "hour": {"zhi": hour_zhi, "weight": hour_qian / 10},
+            "day": {
+                "day": lunar_day,
+                "dayCn": _format_integer_cn(lunar_day),
+                "weightQian": day_qian,
+                "weight": day_qian / 10,
+                "weightCn": _format_qian_cn(day_qian),
+            },
+            "hour": {
+                "zhi": hour_zhi,
+                "weightQian": hour_qian,
+                "weight": hour_qian / 10,
+                "weightCn": _format_qian_cn(hour_qian),
+            },
         },
         "interpretation": {
             "audience": audience,
             "genderSpecific": gendered_verse is not None,
             "version": interpretation_version,
-            "coverage": "gendered-boundary-71" if gendered_verse is not None else "generic-summary",
+            "coverage": (
+                f"gendered-{gender_code}-21-{'72' if gender_code == 'male' else '71'}"
+                if gendered_verse is not None
+                else "generic-summary"
+            ),
             "source": GENDERED_INTERPRETATION_SOURCE if gendered_verse is not None else None,
             "sourceRevision": (GENDERED_INTERPRETATION_SOURCE["revision"] if gendered_verse is not None else ""),
         },

@@ -96,17 +96,33 @@ def test_bone_report_marks_gendered_boundary_verse_as_modern_folk_text():
     text = generate_bone_section(
         {
             "boneWeight": {
-                "weight": 7.1,
-                "weightCn": "7两1钱",
+                "weightQian": 37,
+                "weight": 3.7,
+                "weightCn": "三两七钱",
                 "text": "测试女命歌诀",
                 "interpretation": {"audience": "女", "genderSpecific": True},
+                "components": {
+                    "year": {"ganZhi": "丙午", "weight": 1.3, "weightCn": "一两三钱"},
+                    "month": {"month": 5, "monthCn": "五", "weight": 0.5, "weightCn": "五钱"},
+                    "day": {"day": 17, "dayCn": "十七", "weight": 0.9, "weightCn": "九钱"},
+                    "hour": {"zhi": "卯", "weight": 1.0, "weightCn": "一两"},
+                },
                 "calculation": {"tableVersion": "common-weight-table-v1"},
             }
         }
     )
 
     assert "女命歌诀（现代流传版本，非事实判断）：测试女命歌诀" in text
-    assert "男女共用重量算法" in text
+    assert "* 称骨：三两七钱" in text
+    assert "数值：3.7两" not in text
+    assert "中文：" not in text
+    assert "年柱 丙午：一两三钱" in text
+    assert "月份 五月：五钱" in text
+    assert "出生日 十七日：九钱" in text
+    assert "时辰 卯时：一两" in text
+    assert "男女共用" not in text
+    assert "歌诀按男命/女命版本独立选择" in text
+    assert "男命歌诀表含七两二钱，女命歌诀表止于七两一钱" in text
 
 
 def test_full_report_default_heading_contract_matches_standard_blocks():
@@ -169,8 +185,9 @@ def test_full_report_default_heading_contract_matches_standard_blocks():
     for section in ["### 建除十二神", "## 紫微斗数", "## 紫微基础"]:
         assert section not in headings
     assert "analysisEvidence" not in text
-    assert "评语（民俗文本，非事实判断）" in text
-    assert "男女共用重量算法" in text
+    assert "男命歌诀（现代流传版本，非事实判断）" in text
+    assert "男女共用" not in text
+    assert "歌诀按男命/女命版本独立选择" in text
     assert "不参与八字格局、旺衰、调候或喜忌判断" in text
 
 

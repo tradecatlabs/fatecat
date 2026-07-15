@@ -15,7 +15,7 @@ fate-core/
 │   └── fate_core/
 │       ├── adapters/
 │       ├── evaluation/
-│       ├── kernel/
+│       ├── kernel/       # 计算内核及版本化民俗数据
 │       ├── providers/
 │       └── usecases/
 ├── scripts/
@@ -29,6 +29,7 @@ fate-core/
 
 - 负责纯命理分析内核、capability registry 执行、字段契约加载、provider/usecase 编排。
 - `src/fate_core/evaluation/` 负责离线 benchmark 与预测 baseline；只能读取领域用例输出，不反向影响生产排盘。
+- `src/fate_core/kernel/bone_weight.py` 负责称骨整数权重计算，`bone_weight_verses.py` 只负责固定来源的男女歌诀数据与许可声明。
 - `src/fate_core/adapters/` 负责外部库、历史扩展模块和迁移中 kernel 的适配边界。
 - `scripts/` 负责 fate-core 自有的 Node glue 脚本，禁止从交付服务目录读取运行脚本。
 - 保持 CLI `fatecat pure-analysis`、`fatecat capability` 和 `fatecat health` 外部行为不变。

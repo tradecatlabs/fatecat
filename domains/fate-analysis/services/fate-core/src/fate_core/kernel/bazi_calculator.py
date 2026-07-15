@@ -2420,7 +2420,8 @@ class BaziCalculator:
                         "textPresent": bool(bone_weight.get("text", "")) if isinstance(bone_weight, dict) else False,
                     },
                     basis=[
-                        "称骨按年、月、日、时的整数钱权重求和；男女共用计算表。",
+                        "称骨按年、月、日、时的整数钱权重求和；歌诀按男命或女命版本独立选择。",
+                        "男命歌诀表含七两二钱，女命歌诀表止于七两一钱；当前权重组合最高可达七两一钱。",
                         "称骨只作民俗附录，不参与喜忌、格局、旺衰判断。",
                     ],
                     sources=["项目版本化通行称骨民俗权重表"],

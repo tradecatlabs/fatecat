@@ -22,7 +22,7 @@ def test_maximum_weight_uses_exact_integer_qian() -> None:
 
     assert result["weightQian"] == 71
     assert result["weight"] == 7.1
-    assert result["weightCn"] == "7两1钱"
+    assert result["weightCn"] == "七两一钱"
     assert result["text"] == BONE_GENDERED_VERSE_QIAN["male"][71]
 
 
@@ -57,7 +57,7 @@ def test_invalid_components_are_rejected(args: tuple[object, ...], message: str)
         calc_bone_weight(*args)
 
 
-def test_gender_changes_interpretation_audience_not_weight() -> None:
+def test_gender_selects_distinct_interpretation_without_changing_weight() -> None:
     male = calc_bone_weight("甲子", 1, 1, "子", gender="male")
     female = calc_bone_weight("甲子", 1, 1, "子", gender="female")
 
@@ -65,8 +65,34 @@ def test_gender_changes_interpretation_audience_not_weight() -> None:
     assert male["components"] == female["components"]
     assert male["interpretation"]["audience"] == "男"
     assert female["interpretation"]["audience"] == "女"
-    assert male["interpretation"]["genderSpecific"] is False
-    assert female["interpretation"]["genderSpecific"] is False
+    assert male["interpretation"]["genderSpecific"] is True
+    assert female["interpretation"]["genderSpecific"] is True
+    assert male["interpretation"]["coverage"] == "gendered-male-21-72"
+    assert female["interpretation"]["coverage"] == "gendered-female-21-71"
+    assert male["text"] != female["text"]
+
+
+def test_gendered_verse_tables_preserve_distinct_gender_ranges() -> None:
+    reachable = set(range(21, 72))
+
+    assert set(BONE_GENDERED_VERSE_QIAN) == {"male", "female"}
+    assert set(BONE_GENDERED_VERSE_QIAN["male"]) == reachable | {72}
+    assert set(BONE_GENDERED_VERSE_QIAN["female"]) == reachable
+
+
+def test_three_liang_seven_qian_uses_gendered_verse_and_chinese_components() -> None:
+    male = calc_bone_weight("丙午", 5, 17, "卯", gender="male")
+    female = calc_bone_weight("丙午", 5, 17, "卯", gender="female")
+
+    assert male["weightQian"] == female["weightQian"] == 37
+    assert male["weightCn"] == female["weightCn"] == "三两七钱"
+    assert male["text"] == BONE_GENDERED_VERSE_QIAN["male"][37]
+    assert female["text"] == BONE_GENDERED_VERSE_QIAN["female"][37]
+    assert male["text"] != female["text"]
+    assert male["components"]["year"]["weightCn"] == "一两三钱"
+    assert male["components"]["month"]["weightCn"] == "五钱"
+    assert male["components"]["day"]["weightCn"] == "九钱"
+    assert male["components"]["hour"]["weightCn"] == "一两"
 
 
 def test_seven_liang_one_qian_uses_distinct_gendered_verses() -> None:
@@ -82,9 +108,10 @@ def test_seven_liang_one_qian_uses_distinct_gendered_verses() -> None:
     assert male["interpretation"]["sourceRevision"] == "0f86a690499bfe828aa534fea17f241c85f038f1"
 
 
-def test_seven_liang_two_qian_has_no_executable_gendered_interpretation() -> None:
+def test_seven_liang_two_qian_exists_only_in_male_verse_table_but_is_not_calculable() -> None:
     assert 72 not in BONE_TEXT_QIAN
-    assert all(72 not in verses for verses in BONE_GENDERED_VERSE_QIAN.values())
+    assert BONE_GENDERED_VERSE_QIAN["male"][72]
+    assert 72 not in BONE_GENDERED_VERSE_QIAN["female"]
 
 
 def test_unknown_gender_is_rejected() -> None:
@@ -98,19 +125,29 @@ def test_leap_month_policy_is_explicit_and_preserves_source_month() -> None:
 
     assert first_half["components"]["month"] == {
         "month": 3,
+        "monthCn": "三",
         "sourceMonth": 3,
+        "sourceMonthCn": "三",
         "effectiveMonth": 3,
+        "effectiveMonthCn": "三",
         "isLeapMonth": True,
         "leapMonthPolicy": "split_at_15",
+        "weightQian": 18,
         "weight": 1.8,
+        "weightCn": "一两八钱",
     }
     assert second_half["components"]["month"] == {
         "month": 4,
+        "monthCn": "四",
         "sourceMonth": 3,
+        "sourceMonthCn": "三",
         "effectiveMonth": 4,
+        "effectiveMonthCn": "四",
         "isLeapMonth": True,
         "leapMonthPolicy": "split_at_15",
+        "weightQian": 9,
         "weight": 0.9,
+        "weightCn": "九钱",
     }
 
 
@@ -149,5 +186,7 @@ def test_legacy_and_pure_analysis_paths_preserve_gender_metadata() -> None:
 
     assert legacy["boneWeight"]["interpretation"]["audience"] == "女"
     assert pure["boneWeight"]["interpretation"]["audience"] == "女"
+    assert legacy["boneWeight"]["interpretation"]["genderSpecific"] is True
+    assert pure["boneWeight"]["interpretation"]["genderSpecific"] is True
     assert legacy["boneWeight"]["weightQian"] == pure["boneWeight"]["weightQian"]
     assert pure["analysisEvidence"]["items"]["boneWeight"]["conclusion"]["tableVersion"] == ("common-weight-table-v1")

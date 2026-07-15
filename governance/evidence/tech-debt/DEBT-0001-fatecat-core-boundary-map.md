@@ -16,8 +16,9 @@ last_reviewed: 2026-07-13
 
 | 文件 | 当前行数 | 保留职责 | 迁出职责 | 禁止新增职责 | 承接任务 |
 |---|---:|---|---|---|---|
-| `domains/fate-analysis/services/fate-core/src/fate_core/kernel/bazi_calculator.py` | 2514 | 八字 legacy 核心实现的当前归属位置、历史字段兼容、成熟库编排 | 已迁出称骨、命卦、真太阳时边界；后续继续按四柱、强弱、关系、格局、用神、岁运、神煞拆成更小 kernel/provider 模块 | Web/API/Bot/报告专属分支、确定性断语扩展、未登记规则源 | `TP-07.01` 后续维护 |
-| `domains/fate-analysis/services/fate-core/src/fate_core/kernel/bone_weight.py` | 327 | 版本化整数称骨权重、严格输入校验、闰月策略、男女解释边界和构成明细 | 当前只接入已固定来源的 7.1 男女歌诀边界；其余男女歌诀只有完成全表来源校定后才可接入 | 核心格局判断、报告渲染、Web/Bot/API 逻辑、7.2 伪可达、未经校定的传本混入 | `TP-07.01` |
+| `domains/fate-analysis/services/fate-core/src/fate_core/kernel/bazi_calculator.py` | 2515 | 八字 legacy 核心实现的当前归属位置、历史字段兼容、成熟库编排 | 已迁出称骨、命卦、真太阳时边界；后续继续按四柱、强弱、关系、格局、用神、岁运、神煞拆成更小 kernel/provider 模块 | Web/API/Bot/报告专属分支、确定性断语扩展、未登记规则源 | `TP-07.01` 后续维护 |
+| `domains/fate-analysis/services/fate-core/src/fate_core/kernel/bone_weight.py` | 370 | 版本化整数称骨权重、严格输入校验、闰月策略、中文重量格式和构成明细 | 只按性别查找固定版本歌诀，不维护歌诀正文；当前权重组合最高可达七两一钱 | 核心格局判断、报告渲染、Web/Bot/API 逻辑、把男命七两二钱误标为计算可达、未经校定的传本混入 | `TP-07.01` |
+| `domains/fate-analysis/services/fate-core/src/fate_core/kernel/bone_weight_verses.py` | 151 | 固定来源的男女称骨歌诀与 MIT 许可声明 | 男命覆盖二两一钱至七两二钱，女命覆盖二两一钱至七两一钱；只提供民俗文本查表 | 年月日时权重计算、报告渲染、历史权威声明、自动改写来源文本 | `TP-07.01` |
 | `domains/fate-analysis/services/fate-core/src/fate_core/kernel/ming_gua.py` | 39 | 命卦计算纯函数 | 无；保持独立、无 IO、无交付依赖 | 八字格局、报告渲染、Web/Bot/API 逻辑 | `TP-07.01` |
 | `domains/fate-analysis/services/fate-core/src/fate_core/kernel/solar_time.py` | 103 | 真太阳时脚本调用、JSON 解析和历史简化公开函数 | 后续若引入天文级 provider，应在此模块后面扩展，不回灌 `BaziCalculator` | Web/Bot/API 逻辑、双口径 fallback | `TP-07.01` |
 | `domains/experience-delivery/services/fatecat-delivery/src/bazi_calculator.py` | 30 | 公开裸模块导入兼容导出，仅转发 `fate_core.kernel.bazi_calculator` | 无；删除需先确认外部裸模块调用方全部退役 | 命理规则、路径解析、vendor 注入、报告/接口逻辑 | `TP-07.03` |
