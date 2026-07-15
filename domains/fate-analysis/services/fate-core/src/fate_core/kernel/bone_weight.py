@@ -295,6 +295,7 @@ def calc_bone_weight(
         "weightQian": total_qian,
         "weight": total_qian / 10,
         "weightCn": _format_qian_cn(total_qian),
+        "summary": BONE_TEXT_QIAN[total_qian],
         "text": gendered_verse or BONE_TEXT_QIAN[total_qian],
         "components": {
             "year": {

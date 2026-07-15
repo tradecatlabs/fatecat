@@ -23,6 +23,7 @@ def test_maximum_weight_uses_exact_integer_qian() -> None:
     assert result["weightQian"] == 71
     assert result["weight"] == 7.1
     assert result["weightCn"] == "七两一钱"
+    assert result["summary"] == BONE_TEXT_QIAN[71]
     assert result["text"] == BONE_GENDERED_VERSE_QIAN["male"][71]
 
 
@@ -86,6 +87,7 @@ def test_three_liang_seven_qian_uses_gendered_verse_and_chinese_components() -> 
 
     assert male["weightQian"] == female["weightQian"] == 37
     assert male["weightCn"] == female["weightCn"] == "三两七钱"
+    assert male["summary"] == female["summary"] == BONE_TEXT_QIAN[37]
     assert male["text"] == BONE_GENDERED_VERSE_QIAN["male"][37]
     assert female["text"] == BONE_GENDERED_VERSE_QIAN["female"][37]
     assert male["text"] != female["text"]

@@ -792,11 +792,14 @@ def generate_bone_section(result: dict[str, Any]) -> str:
         if bw.get("weightCn", ""):
             lines.append(f"* 称骨：{bw.get('weightCn', '')}")
         interpretation = bw.get("interpretation", {})
+        summary = bw.get("summary", "")
+        if not summary and not interpretation.get("genderSpecific"):
+            summary = bw.get("text", "")
+        if summary:
+            lines.append(f"* 评语：{summary}")
         if interpretation.get("genderSpecific"):
             audience = interpretation.get("audience", "")
             lines.append(f"* {audience}命歌诀：{bw.get('text', '')}")
-        else:
-            lines.append(f"* 评语（民俗文本，非事实判断）：{bw.get('text', '')}")
         comp = bw.get("components", {})
         if comp:
             lines.append("* 权重构成：")

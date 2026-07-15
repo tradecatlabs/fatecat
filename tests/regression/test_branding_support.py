@@ -99,6 +99,7 @@ def test_bone_report_uses_concise_gendered_verse_output():
                 "weightQian": 37,
                 "weight": 3.7,
                 "weightCn": "三两七钱",
+                "summary": "财禄厚重白手成家之命",
                 "text": "测试女命歌诀",
                 "interpretation": {"audience": "女", "genderSpecific": True},
                 "components": {
@@ -113,6 +114,7 @@ def test_bone_report_uses_concise_gendered_verse_output():
     )
 
     assert "女命歌诀：测试女命歌诀" in text
+    assert "* 评语：财禄厚重白手成家之命" in text
     assert "* 称骨：三两七钱" in text
     assert "数值：3.7两" not in text
     assert "中文：" not in text
@@ -187,6 +189,7 @@ def test_full_report_default_heading_contract_matches_standard_blocks():
         assert section not in headings
     assert "analysisEvidence" not in text
     assert "男命歌诀：" in text
+    assert "* 评语：" in text
     assert "男女共用" not in text
     assert "现代流传版本，非事实判断" not in text
     assert "版本边界" not in text
