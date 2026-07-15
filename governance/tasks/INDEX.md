@@ -277,4 +277,6 @@
 
 | 0157 | fatecat-geo-citation-authority | In Progress | P1 | 建立 FateCat 可引用主题页、实体证据页、GitHub 元数据与第二阶段 GEO 机械门禁 | 0157-fatecat-geo-citation-authority/ |
 
+| 0159 | suanzhun-content-corpus-crawl | Done | P0 | 完整抓取算准网基础与典籍栏目，交付可追溯、可增量、可重复执行的结构化语料与媒体资产 | 0159-suanzhun-content-corpus-crawl/ |
+
 | 0160 | comprehensive-bazi-report-deduplication-and-relation-canonicalization | Done | P0 | 修复综合八字报告重复渲染、地支关系自关联与双向重复，并收敛结构化结果和报告章节的单一事实源，建立全报告唯一性与关系正确性回归门禁。 | 0160-comprehensive-bazi-report-deduplication-and-relation-canonicalization/ |

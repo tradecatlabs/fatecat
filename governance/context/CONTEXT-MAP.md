@@ -4,7 +4,7 @@ type: index
 status: current
 owner: engineering
 created: 2026-06-06
-last_reviewed: 2026-06-06
+last_reviewed: 2026-07-15
 review_cycle: P90D
 ---
 
@@ -21,7 +21,7 @@ review_cycle: P90D
 | Delivery Service | `domains/experience-delivery/services/fatecat-delivery` | `context/module-contexts/domains-experience-delivery-services-fatecat-delivery/CONTEXT.md` | `decisions/adr/INDEX.md` | API/surface/Telegram regression |
 | Contracts | `contracts` | `context/module-contexts/contracts/CONTEXT.md` | `decisions/adr/INDEX.md` | contract/structure gates |
 | Infrastructure | `infra` | `context/module-contexts/infra/CONTEXT.md` | `decisions/adr/INDEX.md` | container/readiness/export gates |
-| Scripts | `scripts` | `context/module-contexts/scripts/CONTEXT.md` | `decisions/adr/INDEX.md` | local-ci/acceptance/release proof |
+| Scripts | `scripts` | `context/module-contexts/scripts/CONTEXT.md` | `decisions/adr/INDEX.md` | local-ci/acceptance/release proof/研究语料离线回归与完整性校验 |
 | FateCat Web HTML 语义界面 | `domains/experience-delivery/services/fatecat-delivery/src/web_ui.py` | `context/module-contexts/domains-experience-delivery-services-fatecat-delivery-src-web-ui-py/CONTEXT.md` | `GATE-0001` | `bash scripts/local-ci.sh --profile quick` |
 
 ## 维护规则

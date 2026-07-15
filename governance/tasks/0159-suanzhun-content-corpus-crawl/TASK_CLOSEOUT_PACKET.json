@@ -1,0 +1,164 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-15T10:39:28+08:00",
+  "task": {
+    "task_id": "0159",
+    "slug": "suanzhun-content-corpus-crawl",
+    "task_dir": "governance/tasks/0159-suanzhun-content-corpus-crawl",
+    "detected_phase": "closeout",
+    "overall_status": "Done"
+  },
+  "source_refs": {
+    "task_context_packet": null,
+    "task_package_set": "governance/tasks/0159-suanzhun-content-corpus-crawl/TASK_PACKAGE_SET.json",
+    "git_delivery_evidence": null,
+    "audit_case_sampling_decision": "governance/tasks/0159-suanzhun-content-corpus-crawl/AUDIT_CASE_SAMPLING.md"
+  },
+  "closeout_gate": {
+    "ready": true,
+    "failures": []
+  },
+  "summary": {
+    "leaf_total": 11,
+    "leaf_done": 11,
+    "todo_total": 11,
+    "todo_checked": 11,
+    "blocker_count": 0
+  },
+  "leaves": [
+    {
+      "id": "TP-01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "两张本地截图、robots、sitemap、栏目入口及新旧详情路径已实测；37 个分类入口口径锁定",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "目标脚本缺失时 5 项红灯；实现后 6 项离线回归全绿，覆盖正负范围与增量自重复",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`ruff` 通过、目标 pytest 6 passed、CLI `--help` 通过、10 页真实站点烟雾形成可恢复 SQLite",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-04",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "全量 3584 页进入终态；3344 文档、25 个 404，无活动失败；首轮 3586 HTTP 请求、0 重试",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-05",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "`--validate-only` 为 PASS_WITH_UNAVAILABLE；37 分类齐全，pending/failed/orphan/missing/hash error 均为 0",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-06",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "AGENTS/module context/工具入口/版权边界已同步；structure/source hygiene/governance strict/health 均 PASS",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-07",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "deep REVIEW PASS、principle gate PASS、审计案例采样 PASS；closeout validator PASS 且 packet `ready=true`",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-08",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "只读实验确认三类续页均被判为 ignore；原始响应有 6 个续页 token 而 parser/frontier 为 0；新增回归 5 项按预期 RED，DEBUG hypothesize 校验通过",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-09",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "详情分页身份、`document_pages`、逻辑聚合、v1 原位迁移和 raw href 独立门禁完成；目标 pytest 15 passed、ruff PASS",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-10",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "756/756 续页 done；4100 个物理详情页聚合为 3344 篇文章；页序列/来源映射/作者污染/校验和缺口均为 0",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-11",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "DEBUG conclude、深审 REVIEW、GATE-0002、governance strict/health、结构与源码卫生均 PASS；采样判定通过",
+      "blocker": "-",
+      "unblock_needed": "-"
+    }
+  ],
+  "git_delivery": null,
+  "audit_case_sampling": {
+    "ok": true,
+    "file": "governance/tasks/0159-suanzhun-content-corpus-crawl/AUDIT_CASE_SAMPLING.md",
+    "summary": {
+      "decision": "promoted-to-gate",
+      "source": "governance/tasks/0159-suanzhun-content-corpus-crawl",
+      "case_id": "CASE-0001",
+      "case_path": "",
+      "root_cause_class": "shared_discovery_validation_blindness",
+      "has_no_case_reason": true,
+      "has_trigger_signals": true,
+      "has_evidence": true
+    },
+    "issues": [],
+    "required": true,
+    "loaded": true
+  },
+  "recommended_asset_handoff": {
+    "source_refs": [
+      "governance/tasks/0159-suanzhun-content-corpus-crawl/TASK_PACKAGE_SET.json",
+      "governance/tasks/0159-suanzhun-content-corpus-crawl/AUDIT_CASE_SAMPLING.md"
+    ],
+    "artifacts": [
+      "task-package-set.json",
+      "audit-case-sampling-decision",
+      "task-closeout-packet.json"
+    ]
+  },
+  "upstream_packets": {
+    "task_context_packet_loaded": false,
+    "task_package_set_loaded": true,
+    "git_delivery_evidence_loaded": false,
+    "audit_case_sampling_loaded": true
+  }
+}

@@ -171,6 +171,7 @@ scripts/
 ├── mingli-bench-gate.py
 ├── generate-mingli-predictions.sh
 ├── run-mingli-bench.sh
+├── suanzhun-corpus-crawl.py
 └── ...
 ```
 
@@ -203,6 +204,7 @@ scripts/
 - `container-release.sh`：构建、smoke，并在显式 `--push` 时推送 registry。
 - `data-supply-chain-gate.sh` / `data-supply-chain-gate.py` 是数据供应链门禁；校验 data supply chain registry、canonical classics source/copyright manifest、solar terms source manifest 和 vendor production dependency 许可边界。
 - `build-location-catalog.py` 是全球出生地点 canonical 数据产品构建器；只接受 `sources.lock.json` 中固定 URL/version/hash 的行政区和 GeoNames 来源，输出确定性 gzip NDJSON 与 manifest，不生成或提交运行时 SQLite。
+- `suanzhun-corpus-crawl.py` 是算准网“基础/典籍”研究语料抓取器；按 robots、栏目递归和 sitemap 交叉发现，以 SQLite 同时保存物理详情页与逻辑文章，按 `1..N` 聚合详情续页，并用独立原始 href 扫描阻止发现规则与验证规则共因失明；输出只进入忽略的 `infra/runtime/local-state/exports/suanzhun-corpus/`，未经版权审查不得晋升为 canonical 数据产品。
 - `event-contract-gate.sh` / `event-contract-gate.py` 是异步事件 contract gate；校验 AsyncEvent registry、CloudEvents 必备字段、AsyncAPI 风格 channel/operation/message、producer path、required consumer、additive compatibility、replay/DLQ 策略、脱敏示例和 delivery/resource schema 链接，不连接真实 broker 或公网 webhook 接收端。
 - `runtime-backend-gate.sh` / `runtime-backend-gate.py` 是 durable runtime 后端 contract gate；校验 RuntimeBackend registry、memory/sqlite 本地边界、Postgres external backend 候选、Temporal future orchestrator、Redis queue 非 source-of-truth 约束和隐私边界，不连接真实数据库或服务。
 - `postgres-job-store-dry-run.sh` / `postgres-job-store-dry-run.py` 是 Postgres ReportJobStore adapter baseline dry-run；校验 tracked Postgres DDL、required tables/indexes、upsert、webhook outbox conditional claim/release SQL、optional dependency 边界和隐私边界，不连接真实 Postgres、不读取或输出 DSN。

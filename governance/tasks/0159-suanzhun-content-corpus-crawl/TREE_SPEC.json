@@ -1,0 +1,341 @@
+{
+  "schema_version": "1.0.0",
+  "overall_status": "Done",
+  "nodes": [
+    {
+      "id": "TP-01",
+      "title": "锁定抓取边界与数据契约",
+      "priority": "P0",
+      "type": "分析",
+      "objective": "用真实站点证据确定 URL 类型、栏目闭包、正文边界、输出 schema、版权与停止条件",
+      "parent": null,
+      "depends_on": [],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "任务 CONTEXT/PLAN 包含截图、robots、sitemap、入口、详情和旧路径实测证据",
+      "gate": "不存在会改变实现路径的未决范围歧义",
+      "outputs": [
+        "稳定抓取规格",
+        "URL/字段/输出契约",
+        "风险与停止条件"
+      ],
+      "acceptance": [
+        "三源发现策略和目标范围过滤规则明确",
+        "缺失字段和不可访问 URL 的处理明确"
+      ],
+      "status": "Done",
+      "evidence": "两张本地截图、robots、sitemap、栏目入口及新旧详情路径已实测；37 个分类入口口径锁定",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-02",
+      "title": "建立离线解析与安全回归契约",
+      "priority": "P0",
+      "type": "测试",
+      "objective": "用最小 fixture 锁定分页发现、详情元数据、正文噪声裁剪、格式和媒体引用行为",
+      "parent": null,
+      "depends_on": [
+        "TP-01"
+      ],
+      "parallelizable": false,
+      "debug_required": true,
+      "verify": "pytest 先出现目标缺失红灯，完成实现后全部转绿",
+      "gate": "测试不访问公网且覆盖正负边界",
+      "outputs": [
+        "tests/regression/test_suanzhun_corpus_crawl.py"
+      ],
+      "acceptance": [
+        "覆盖 URL canonicalization、scope、metadata、body、noise、links、media 和 filename"
+      ],
+      "status": "Done",
+      "evidence": "目标脚本缺失时 5 项红灯；实现后 6 项离线回归全绿，覆盖正负范围与增量自重复",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-03",
+      "title": "实现可恢复全量抓取器",
+      "priority": "P0",
+      "type": "开发",
+      "objective": "实现 robots/限速/重试/SQLite 状态、递归发现、正文媒体抽取、去重导出和内置校验",
+      "parent": null,
+      "depends_on": [
+        "TP-02"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "目标 pytest 与 ruff 通过，--help 和 --validate-only 可执行",
+      "gate": "无无界队列、无静默失败、所有输出限定在显式目录",
+      "outputs": [
+        "scripts/suanzhun-corpus-crawl.py"
+      ],
+      "acceptance": [
+        "支持断点续跑和增量刷新",
+        "保存原始响应与规范化输出",
+        "生成机器可读失败和完整性报告"
+      ],
+      "status": "Done",
+      "evidence": "`ruff` 通过、目标 pytest 6 passed、CLI `--help` 通过、10 页真实站点烟雾形成可恢复 SQLite",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-04",
+      "title": "执行基础与典籍全量抓取",
+      "priority": "P0",
+      "type": "数据",
+      "objective": "在有界速率下实际跑完页面和媒体闭包并持续写入可恢复状态",
+      "parent": null,
+      "depends_on": [
+        "TP-03"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "抓取命令正常退出且 manifest 记录 complete 或明确 residual failures",
+      "gate": "robots 允许、页面上限未触发、无活动 transient failure",
+      "outputs": [
+        "infra/runtime/local-state/exports/suanzhun-corpus"
+      ],
+      "acceptance": [
+        "入口、分类、分页、详情和正文媒体均有映射",
+        "中断后原命令可续跑"
+      ],
+      "status": "Done",
+      "evidence": "全量 3584 页进入终态；3344 文档、25 个 404，无活动失败；首轮 3586 HTTP 请求、0 重试",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-05",
+      "title": "审计链接、内容、媒体和失败闭包",
+      "priority": "P0",
+      "type": "验收",
+      "objective": "交叉核对导航、分页、详情、sitemap、内容哈希、文件哈希和失败终态，证明覆盖边界",
+      "parent": null,
+      "depends_on": [
+        "TP-04"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "--validate-only 通过，completeness.json 无未解释 dangling target URL 或 active failure",
+      "gate": "可访问目标与失效/拒绝/失败状态严格区分",
+      "outputs": [
+        "完整性报告",
+        "重复组",
+        "失败与不可用明细",
+        "文件 sha256 清单"
+      ],
+      "acceptance": [
+        "所有 record/file 引用存在且 hash 匹配",
+        "URL 和内容重复均有 alias 记录",
+        "sitemap 差异有解释"
+      ],
+      "status": "Done",
+      "evidence": "`--validate-only` 为 PASS_WITH_UNAVAILABLE；37 分类齐全，pending/failed/orphan/missing/hash error 均为 0",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-06",
+      "title": "同步工具链、架构与版权边界文档",
+      "priority": "P1",
+      "type": "文档",
+      "objective": "更新脚本与测试目录说明、治理工具入口和任务证据，明确本地输出与分发边界",
+      "parent": null,
+      "depends_on": [
+        "TP-05"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "结构检查、governance index 重建与 strict validate 通过",
+      "gate": "文档描述与实际 CLI、路径和验证证据一致",
+      "outputs": [
+        "AGENTS/治理/任务文档更新"
+      ],
+      "acceptance": [
+        "Operating model: not needed 有具体理由",
+        "Toolchain/process/source-of-truth 影响有 owner 与证据",
+        "版权边界明确"
+      ],
+      "status": "Done",
+      "evidence": "AGENTS/module context/工具入口/版权边界已同步；structure/source hygiene/governance strict/health 均 PASS",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-07",
+      "title": "完成独立审查与任务收口",
+      "priority": "P0",
+      "type": "审查",
+      "objective": "按 correctness/security/reliability/performance/architecture/document lenses 审查并生成可复核 closeout",
+      "parent": null,
+      "depends_on": [
+        "TP-06"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "review 无 BLOCK，任务 closeout validator 和 closeout packet 通过",
+      "gate": "所有叶子完成、Recent Evidence 非空、无活动 blocker",
+      "outputs": [
+        "REVIEW 结论",
+        "任务 closeout packet",
+        "最终交付摘要"
+      ],
+      "acceptance": [
+        "发现的问题已修或明确阻塞",
+        "效率检查含复杂度、瓶颈、验证指标和权衡",
+        "用户可按命令复跑"
+      ],
+      "status": "Done",
+      "evidence": "deep REVIEW PASS、principle gate PASS、审计案例采样 PASS；closeout validator PASS 且 packet `ready=true`",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-08",
+      "title": "固化详情续页漏抓根因与 RED 契约",
+      "priority": "P0",
+      "type": "调试/测试",
+      "objective": "把详情续页分类失明、完整性假通过和元数据正文污染转成可复现的调试链与离线回归测试",
+      "parent": null,
+      "depends_on": [
+        "TP-07"
+      ],
+      "parallelizable": false,
+      "debug_required": true,
+      "verify": "DEBUG.md 通过 hypothesize 校验，新增测试在生产修复前按预期失败",
+      "gate": "根因由只读最小实验确认，RED 失败原因与 756 页现场证据一致",
+      "outputs": [
+        "DEBUG.md",
+        "详情分页与元数据 RED 回归"
+      ],
+      "acceptance": [
+        "至少三条可证伪假设和确认实验落盘",
+        "覆盖当前/旧式续页、隐藏中间页、聚合、作者隔离和缺页门禁"
+      ],
+      "status": "Done",
+      "evidence": "只读实验确认三类续页均被判为 ignore；原始响应有 6 个续页 token 而 parser/frontier 为 0；新增回归 5 项按预期 RED，DEBUG hypothesize 校验通过",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-09",
+      "title": "实现逐页存证与逻辑文章聚合",
+      "priority": "P0",
+      "type": "开发",
+      "objective": "在现有抓取器内永久修复详情续页发现、完整序列推导、有序聚合、增量迁移、作者隔离和校验盲点",
+      "parent": null,
+      "depends_on": [
+        "TP-08"
+      ],
+      "parallelizable": false,
+      "debug_required": true,
+      "verify": "目标 pytest 与 ruff 全绿，旧数据库可原位迁移，缺页 fixture 被 validator 拒绝",
+      "gate": "页面与逻辑文章职责分离，1..N 序列有唯一约束和独立门禁，不新增平行真相源",
+      "outputs": [
+        "分页识别与推导",
+        "document_pages 持久化",
+        "逻辑文章聚合",
+        "分页完整性门禁"
+      ],
+      "acceptance": [
+        "续页不会导出为独立文章",
+        "现有 page-1 文档可迁移并增量续跑",
+        "正文作者标签不再污染 metadata"
+      ],
+      "status": "Done",
+      "evidence": "详情分页身份、`document_pages`、逻辑聚合、v1 原位迁移和 raw href 独立门禁完成；目标 pytest 15 passed、ruff PASS",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-10",
+      "title": "增量补抓并独立审计详情分页闭包",
+      "priority": "P0",
+      "type": "数据/验收",
+      "objective": "从现有原始响应恢复分页发现，补抓全部续页并重建结构化交付物，独立核对页面、文章、资源和校验和",
+      "parent": null,
+      "depends_on": [
+        "TP-09"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "756 个已知续页全部终态，详情页序列缺口为 0，3344 个逻辑文档完整聚合，files.sha256 全部通过",
+      "gate": "内置 validator 与独立 SQLite/文件审计同时通过，无活动失败或未解释缺口",
+      "outputs": [
+        "增量更新语料",
+        "completeness.json",
+        "manifest/NDJSON/正文/媒体/校验清单",
+        "独立审计证据"
+      ],
+      "acceptance": [
+        "页面来源与聚合文档双向可追溯",
+        "作者污染为 0",
+        "重复和不可用状态仍有解释"
+      ],
+      "status": "Done",
+      "evidence": "756/756 续页 done；4100 个物理详情页聚合为 3344 篇文章；页序列/来源映射/作者污染/校验和缺口均为 0",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-11",
+      "title": "同步防复发治理并重新审查收口",
+      "priority": "P0",
+      "type": "文档/审查",
+      "objective": "更新任务与 owning 文档，采样假完成案例，执行独立 review、治理 strict 与 closeout",
+      "parent": null,
+      "depends_on": [
+        "TP-10"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "DEBUG conclude、auto-review、任务 closeout、governance strict/health 全部通过",
+      "gate": "旧 PASS 已被新证据取代，防详情分页假闭包规则进入 owning source，最终无 BLOCK",
+      "outputs": [
+        "更新后的任务/治理文档",
+        "AUDIT_CASE_SAMPLING",
+        "REVIEW",
+        "TASK_CLOSEOUT_PACKET"
+      ],
+      "acceptance": [
+        "完成声明精确覆盖详情分页",
+        "效率与优化检查有复杂度和实测指标",
+        "可按同一命令增量复跑"
+      ],
+      "status": "Done",
+      "evidence": "DEBUG conclude、深审 REVIEW、GATE-0002、governance strict/health、结构与源码卫生均 PASS；采样判定通过",
+      "blocker": "-",
+      "unblock": "-"
+    }
+  ],
+  "document_blocks": {
+    "in_scope": "- 从 https://www.suanzhun.net/jichu/ 和 https://www.suanzhun.net/dianji/ 递归发现分类、分页、当前详情页、旧层级详情页和目标范围内关联详情页\n- 保存 UTF-8 结构化记录、清洗正文 HTML/Markdown、正文媒体、压缩原始响应、URL 到本地文件映射、失败明细和完整性报告\n- 实现 robots 遵循、同站限速、超时重试、断点续跑、条件刷新、URL 去重、内容去重、内容哈希与可执行校验\n- 实际执行一次全量抓取并审计结果",
+    "out_of_scope": "- 绕过登录、验证码、IP 限制、robots.txt 或其他访问控制\n- 抓取基础与典籍之外的工具、排盘、名人、黄历或用户数据\n- 把未经版权复核的站点全文晋升为生产输入、公开发行物或 canonical classics\n- 为提高速度使用无界并发或侵入式浏览器自动化",
+    "requirement_alignment": "- 目标: 完整抓取算准网基础与典籍栏目，交付可追溯、可增量、可重复执行的结构化语料与媒体资产\n- approved plan 顶层步骤数: 11\n- 编译后节点总数: 11\n- 编译后叶子节点数: 11\n- 对齐项: 用户明确要求完整覆盖基础与典籍两栏目、全部分页分类详情、正文资源、噪声清洗、追溯映射、去重重试失败记录和完整性校验\n- 对齐项: 两张本地截图已从 /mnt/c/Users/13208/Desktop 读取，确认基础 9 类、典籍 28 类的下拉导航和每页 25 条摘要列表\n- 对齐项: 入口页、robots.txt、sitemap.xml、当前详情页和旧层级详情页均已真实访问验证\n- 计划摘要: 保留已完成的首轮抓取历史证据，重开任务并在同一 SQLite 真相源内补建详情分页实体、逻辑文章聚合与独立闭合门禁，再增量补抓、交叉审计、同步文档并重新审查。",
+    "repo_evidence": "- 仓库根为 /home/lenovo/.projects/fatecat，任务容器为 governance/tasks/0159-suanzhun-content-corpus-crawl\n- scripts 是可重复工具入口，infra/runtime/local-state/exports 是 Git 忽略的本地输出边界，tests/regression 是仓库级回归入口\n- tools/reference-repos/web 只适合小型解析 fixture；整站未审全文不应进入 tracked vendor 快照或 canonical data-products\n- robots.txt 允许 jichu、dianji、article、book；sitemap 当前共 943 个唯一 URL，其中 /dianji/ 906、/jichu/ 32\n- 当前详情正文位于 .content-text，但 HTML 会把上一篇/下一篇和相关文章误嵌进正文节点，必须按结构标记裁剪\n- 2026-07-15 独立审计确认 138 篇文章的 756 个 `_N.html` 详情续页未进入 frontier，缺少约 124.6 万正文字符；3 条作者字段被正文伪元数据污染",
+    "constraints_matrix": "- Target end state: 单一 SQLite 抓取状态真相源驱动原始证据、规范化正文、媒体和审计导出，可恢复且可增量\n- Real constraints: 公开可访问边界、robots、站点负载、版权/分发限制、动态页面漂移、本地磁盘\n- Inertia constraints: 旧 sitemap 路径、当前新详情路径和历史页面形状不得迫使系统维护两套抓取器\n- Kill list: 一次性 wget 镜像、仅信 sitemap、仅抓入口首页、静默丢弃 404/解析异常、无来源纯文本堆放\n- Existence check: 用户要求可重复全量交付，持续抓取脚本和状态库必须存在；生产业务抽象与新服务不应存在\n- Selected ladder rung: project-native scripts + Python 标准库 + 已有成熟 httpx/BeautifulSoup 能力；不引入 Scrapy 平台或浏览器集群\n- Do-not-simplify: robots、限速、失败证据、内容/链接闭包、版权边界和原始响应追溯不可删除",
+    "change_boundary": "- 允许新增 scripts/suanzhun-corpus-crawl.py、tests/regression/test_suanzhun_corpus_crawl.py 和必要的 AGENTS/治理/任务文档\n- 允许实际输出到 infra/runtime/local-state/exports/suanzhun-corpus，但不追踪全文和数据库\n- 禁止修改 fate-core、delivery 服务、生产 contracts 或 canonical classics 内容",
+    "risk_matrix": "- 站点正文可能为现代原创或混合转载，输出只作本地 reference_only，禁止默认公开分发或生产依赖\n- 旧 sitemap 含 404，完整性必须区分 unavailable 与 retry_exhausted\n- 页面 HTML 非严格闭合且正文多用 br 表达段落，需同时保留清洗 HTML 与文本视图\n- 详情和媒体规模未知，必须设置页面上限、流式写盘和单主机限速，避免内存和站点压力\n- 站点结构继续变化\n- fixture 与真实站点漂移\n- 异常 HTML\n- 重试风暴\n- 磁盘增长\n- 站点限流\n- 网络中断\n- 动态发布造成审计时漂移\n- 文档漂移\n- 把本地抓取完成过度声明成版权或事实认证\n- 测试只覆盖可见页而再次漏掉隐藏中间页\n- 迁移破坏既有 3344 个逻辑文档\n- 内容聚合顺序错误\n- 分页资源映射丢失\n- 运行中站点动态新增内容\n- 瞬时网络失败\n- 校验清单重建成本\n- 只改报告不修正门禁\n- 任务状态与真实证据再次漂移",
+    "assumptions_and_falsification": "- 基础正文的当前详情 URL 主要为 /article/<id>.html，典籍正文主要为 /book/<id>.html 与 /dianji/<category>/<id>.html；实际分类以面包屑验证\n- 没有作者时保留 publisher/source 或 null，不从标题猜作者\n- Proof point: 全量运行后列表分页与详情续页序列、详情、媒体和 sitemap 交叉闭包无未解释缺口，逻辑文章按页聚合且输出校验通过\n- Falsifier: 发现正文由 JavaScript 才能加载、存在未授权访问层或分页无法由静态链接闭合时重新规划",
+    "critical_ambiguities": "- 关联文章只纳入经目标页面发现且路径/面包屑属于基础或典籍的公开详情；跨到其他栏目只记录外链，不扩大抓取范围\n- sitemap 只作为补漏与审计输入，不把已失效 URL 计为可访问详情页\n- 正文原始语义以站点 DOM 为准；纯文本编号不会被无证据提升为新的 HTML 标题层级",
+    "debug_evidence_contract": "- 调试模式: Required\n- 若任务属于 bugfix / regression / flaky / crash / CI-only failure，必须切到 `Required`\n- `Required` 时必须在当前任务目录创建并维护 `DEBUG.md`\n- `DEBUG.md` 必须覆盖复现、观察、假设、实验、根因、修复、回归证据\n- 调试关注点: 详情续页 URL 语法、隐藏中间页推导与逻辑文章聚合\n- 调试关注点: validator 对详情页序列的独立闭合检查\n- 调试关注点: 元数据解析不得跨入正文\n- 强制调试叶子节点: TP-02, TP-08, TP-09",
+    "runtime_workflow_contract": "- workflow artifact 必须存入任务目录，而不是只留在聊天上下文。\n- worker 只能消费当前 packet 的最小上下文、允许工具、禁止动作、证据要求和停止条件。\n- verifier / 自审必须独立挑战关键发现，不能把 worker 自评当作验收。\n- integrator / closeout 必须报告 verified、rejected、unresolved、failed、not-covered。\n- 全局预算: 单主机默认最多 1 个并发请求，页面上限 10000，单资源大小有限制\n- 全局预算: 瞬时错误最多 4 次尝试，指数退避并尊重 Retry-After\n- 全局停止条件: robots 明确禁止目标路径\n- 全局停止条件: 出现登录、验证码或访问控制\n- 全局停止条件: 目标站持续 403/429/5xx 且有限重试耗尽\n- 全局停止条件: 页面上限触发或输出磁盘不可写\n- TP-01: tools=read-only filesystem;HTTP GET;governance context bundle; forbidden=写业务代码;绕过访问控制; evidence=robots 响应;sitemap 计数;DOM selector 证据; budget=仅少量探测请求; stop=robots 禁止或目标需认证\n- TP-02: tools=apply_patch;pytest; forbidden=在测试中访问公网; evidence=red/green 命令输出; budget=秒级离线测试; stop=规格仍有阻塞歧义\n- TP-03: tools=apply_patch;python;pytest;ruff; forbidden=修改生产服务;引入通用爬虫平台; evidence=测试输出;lint 输出;CLI smoke; budget=页面上限与资源大小上限可配置; stop=需要绕过访问控制才能继续\n- TP-04: tools=crawler CLI;process polling; forbidden=无界并发;抓取非目标栏目; evidence=运行日志;manifest;failure ledger; budget=单并发;默认请求间隔不低于 0.25 秒;最大 10000 页; stop=429/403 持续;页面上限;磁盘不可写\n- TP-05: tools=crawler validate;sqlite read-only queries;filesystem hash; forbidden=人工删除失败行以造绿; evidence=validator summary;counts;hash verification; budget=O(files + links) 本地审计; stop=存在不可解释抓取缺口\n- TP-06: tools=apply_patch;governance tools;task validators; forbidden=把运行态全文写入 governance; evidence=governance strict output;task validation output; budget=只更新 owning sources; stop=owner/source-of-truth 不明确\n- TP-07: tools=auto-review;task closeout tools;read-only git diff; forbidden=无证据声明完整或合法分发; evidence=review findings;task validator;closeout packet; budget=只审查任务范围; stop=存在 BLOCK finding\n- TP-08: tools=read-only SQLite;raw response probe;apply_patch;pytest; forbidden=在根因确认前修改生产实现;用手工 URL 清单替代分页模型; evidence=只读实验输出;pytest RED 输出;DEBUG hypothesize validator; budget=秒级离线实验; stop=现场证据与原始响应相互矛盾\n- TP-09: tools=apply_patch;pytest;ruff;临时 SQLite fixture; forbidden=删除现有语料重抓以掩盖迁移缺陷;引入通用爬虫框架; evidence=pytest GREEN;ruff;迁移 fixture;validator negative test; budget=单脚本内直接实现;无新增依赖; stop=无法无损迁移现有数据库\n- TP-10: tools=crawler CLI;process polling;read-only SQLite;filesystem hash; forbidden=无界并发;人工删除失败行造绿;扩大到目标栏目外; evidence=运行日志;页面/分页/文章计数;validator;sha256 audit; budget=单并发;有限重试;最多 10000 页面; stop=robots 禁止;持续 403/429/5xx;磁盘不可写;存在无法解释的分页断层\n- TP-11: tools=auto-review;auto-governance;task validators;apply_patch; forbidden=保留虚假 PASS;把运行态正文写入 Git; evidence=DEBUG conclude;review findings;governance strict/health;closeout packet; budget=只更新 owning sources; stop=存在 BLOCK finding 或审计缺口",
+    "runtime_verification_gate": "- [ ] 每个 tool/action 结果都有可回指证据或明确未执行原因。\n- [ ] 高风险动作没有由 worker/agent 自我批准；审批状态可追踪。\n- [ ] compaction / resume 后目标、计划、修改文件、审批状态和验证项未丢失。\n- [ ] verifier / 自审已检查关键发现是否有证据支持。\n- [ ] closeout 明确 coverage gaps、failed packets 和 unresolved questions。\n- [ ] TP-01: 输出格式 `任务规格与发现证据`；证据要求：robots 响应;sitemap 计数;DOM selector 证据\n- [ ] TP-02: 输出格式 `pytest regression suite`；证据要求：red/green 命令输出\n- [ ] TP-03: 输出格式 `single CLI crawler with SQLite state and exports`；证据要求：测试输出;lint 输出;CLI smoke\n- [ ] TP-04: 输出格式 `corpus output tree`；证据要求：运行日志;manifest;failure ledger\n- [ ] TP-05: 输出格式 `audit reports`；证据要求：validator summary;counts;hash verification\n- [ ] TP-06: 输出格式 `documentation sync evidence`；证据要求：governance strict output;task validation output\n- [ ] TP-07: 输出格式 `PASS/WARN/BLOCK review and closeout packet`；证据要求：review findings;task validator;closeout packet\n- [ ] TP-08: 输出格式 `DEBUG evidence and deterministic RED regression suite`；证据要求：只读实验输出;pytest RED 输出;DEBUG hypothesize validator\n- [ ] TP-09: 输出格式 `backward-compatible crawler and schema migration`；证据要求：pytest GREEN;ruff;迁移 fixture;validator negative test\n- [ ] TP-10: 输出格式 `complete local corpus and independent audit summary`；证据要求：运行日志;页面/分页/文章计数;validator;sha256 audit\n- [ ] TP-11: 输出格式 `PASS/WARN/BLOCK review and ready closeout packet`；证据要求：DEBUG conclude;review findings;governance strict/health;closeout packet",
+    "runtime_state": "- Active workflow state: 以 `TASK_PACKAGE_SET.json` / `TASK_EXECUTION_WAVE_PACKET.json` 为准。\n- Approval state: 未记录即视为未授权。\n- Resume rule: 继续任务前重新读取当前 packet、Recent Evidence、Blockers、Runtime State。\n- Stop condition: robots 明确禁止目标路径\n- Stop condition: 出现登录、验证码或访问控制\n- Stop condition: 目标站持续 403/429/5xx 且有限重试耗尽\n- Stop condition: 页面上限触发或输出磁盘不可写\n- TP-01: status=Done; verifier_context=实测 URL 与截图\n- TP-02: status=Done; verifier_context=测试必须独立于全量抓取结果\n- TP-03: status=Done; verifier_context=抓取器不得依赖运行态全文才能通过单测\n- TP-04: status=Done; verifier_context=禁止仅凭进程退出码声明完整\n- TP-05: status=Done; verifier_context=完整性不等同内容真实性或版权授权\n- TP-06: status=Done; verifier_context=检查本地全文未进入 tracked source\n- TP-07: status=Done; verifier_context=完成声明只覆盖本轮可访问公开范围\n- TP-08: status=Done; verifier_context=RED 必须因续页能力缺失而失败，不得依赖公网\n- TP-09: status=Done; verifier_context=逻辑文档数量稳定、分页记录可追溯\n- TP-10: status=Done; verifier_context=独立审计不得复用分类器作为唯一发现证据\n- TP-11: status=Done; verifier_context=false-success 和 document-drift lens 必须独立挑战",
+    "task_level_acceptance": "- 目标栏目导航分类、分页和可访问详情页全部进入 URL 映射，未成功项具有明确终态和失败证据\n- 每条正文包含标题、正文、层级、作者或来源、发布时间、原始链接、分类、哈希和本地文件引用；缺失字段显式为 null 而非猜测\n- 正文噪声清除且原始响应可回查，媒体资源具有来源页、本地路径、MIME、大小和 sha256\n- 同一命令可断点续跑、增量刷新并重新生成确定性清单和完整性报告\n- 自动测试、输出校验、任务文档校验、治理校验和最终审查有真实证据\n- approved plan 已成功编译为递归任务树\n- 叶子节点数量: 11\n- 当前可立即执行叶子节点: 无",
+    "validation_plan": "- 用离线 HTML fixture 覆盖列表分页、详情元数据、噪声裁剪、正文格式、关联链接和资源提取\n- 运行抓取器内置 validate，校验数据库/NDJSON/文件/hash/映射/失败终态与详情分页序列一致性\n- 以 sitemap、入口导航、分页闭包、详情链接闭包和媒体引用闭包做交叉完整性核对\n- 运行目标 pytest、ruff、任务文档 strict 校验和 governance strict 校验\n- bugfix / regression / flaky 任务必须把 DEBUG.md 的回归证据串到 Recent Evidence\n- TP-01 | Verify: 任务 CONTEXT/PLAN 包含截图、robots、sitemap、入口、详情和旧路径实测证据 | Gate: 不存在会改变实现路径的未决范围歧义\n- TP-02 | Verify: pytest 先出现目标缺失红灯，完成实现后全部转绿 | Gate: 测试不访问公网且覆盖正负边界\n- TP-03 | Verify: 目标 pytest 与 ruff 通过，--help 和 --validate-only 可执行 | Gate: 无无界队列、无静默失败、所有输出限定在显式目录\n- TP-04 | Verify: 抓取命令正常退出且 manifest 记录 complete 或明确 residual failures | Gate: robots 允许、页面上限未触发、无活动 transient failure\n- TP-05 | Verify: --validate-only 通过，completeness.json 无未解释 dangling target URL 或 active failure | Gate: 可访问目标与失效/拒绝/失败状态严格区分\n- TP-06 | Verify: 结构检查、governance index 重建与 strict validate 通过 | Gate: 文档描述与实际 CLI、路径和验证证据一致\n- TP-07 | Verify: review 无 BLOCK，任务 closeout validator 和 closeout packet 通过 | Gate: 所有叶子完成、Recent Evidence 非空、无活动 blocker\n- TP-08 | Verify: DEBUG.md 通过 hypothesize 校验，新增测试在生产修复前按预期失败 | Gate: 根因由只读最小实验确认，RED 失败原因与 756 页现场证据一致\n- TP-09 | Verify: 目标 pytest 与 ruff 全绿，旧数据库可原位迁移，缺页 fixture 被 validator 拒绝 | Gate: 页面与逻辑文章职责分离，1..N 序列有唯一约束和独立门禁，不新增平行真相源\n- TP-10 | Verify: 756 个已知续页全部终态，详情页序列缺口为 0，3344 个逻辑文档完整聚合，files.sha256 全部通过 | Gate: 内置 validator 与独立 SQLite/文件审计同时通过，无活动失败或未解释缺口\n- TP-11 | Verify: DEBUG conclude、auto-review、任务 closeout、governance strict/health 全部通过 | Gate: 旧 PASS 已被新证据取代，防详情分页假闭包规则进入 owning source，最终无 BLOCK",
+    "review_gate": "- 正确性: URL 分类、正文边界、去重、增量状态和完整性统计一致\n- 安全: 不访问禁止路径、不跟随私网 URL、不泄露用户数据、不绕过访问控制\n- 可靠性: 有限重试、断点续跑、原子文件写入、失败终态和校验\n- 性能: O(V+E) 发现、流式写盘、索引去重、单主机有界速率和磁盘预算\n- 文档: scripts/tests AGENTS、工具验证入口和任务证据与最终实现同步",
+    "ship_readiness": "- 运行产物位于 infra/runtime/local-state/exports/suanzhun-corpus\n- 回滚为删除新增脚本/测试/文档，运行数据可由 scripts/clean-runtime.sh 或删除输出目录清理\n- 观察项为 request 数量、p95 延迟、重试数、状态分布、解析失败、内容重复组、媒体失败和磁盘占用",
+    "global_acceptance_standards": "- [ ] 所有文本 UTF-8，JSON 使用稳定字段名，URL canonicalization 不丢失语义路径\n- [ ] 所有网络请求有超时、有限重试、指数退避、限速和可观察日志\n- [ ] 抓取输出写入 Git 忽略的本地 exports，版权状态标记 review_required/reference_only/distribution_not_allowed\n- [ ] 不以 404 stale sitemap 条目冒充抓取故障，也不吞掉 5xx、解析失败或媒体失败",
+    "package_context_blocks": "## TP-01\n- Step Key: `discover_scope`\n- 标题: 锁定抓取边界与数据契约\n- 类型: `分析`\n- 目标: 用真实站点证据确定 URL 类型、栏目闭包、正文边界、输出 schema、版权与停止条件\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: 无\n- 依赖节点 ID: 无\n- 输入: 用户需求；本地截图；目标入口；项目治理与目录边界\n- 输出: 稳定抓取规格；URL/字段/输出契约；风险与停止条件\n- 允许工具: read-only filesystem；HTTP GET；governance context bundle\n- 禁止动作: 写业务代码；绕过访问控制\n- 证据要求: robots 响应；sitemap 计数；DOM selector 证据\n- 停止条件: robots 禁止或目标需认证\n- 风险: 站点结构继续变化\n- 备注: 无\n\n## TP-02\n- Step Key: `parser_contract_tests`\n- 标题: 建立离线解析与安全回归契约\n- 类型: `测试`\n- 目标: 用最小 fixture 锁定分页发现、详情元数据、正文噪声裁剪、格式和媒体引用行为\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: discover_scope\n- 依赖节点 ID: TP-01\n- 输入: 抓取规格；脱敏最小 HTML fixture\n- 输出: tests/regression/test_suanzhun_corpus_crawl.py\n- 允许工具: apply_patch；pytest\n- 禁止动作: 在测试中访问公网\n- 证据要求: red/green 命令输出\n- 停止条件: 规格仍有阻塞歧义\n- 风险: fixture 与真实站点漂移\n- 备注: 无\n\n## TP-03\n- Step Key: `crawler_implementation`\n- 标题: 实现可恢复全量抓取器\n- 类型: `开发`\n- 目标: 实现 robots/限速/重试/SQLite 状态、递归发现、正文媒体抽取、去重导出和内置校验\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: parser_contract_tests\n- 依赖节点 ID: TP-02\n- 输入: 稳定规格；离线回归契约；项目 scripts 约定\n- 输出: scripts/suanzhun-corpus-crawl.py\n- 允许工具: apply_patch；python；pytest；ruff\n- 禁止动作: 修改生产服务；引入通用爬虫平台\n- 证据要求: 测试输出；lint 输出；CLI smoke\n- 停止条件: 需要绕过访问控制才能继续\n- 风险: 异常 HTML；重试风暴；磁盘增长\n- 备注: 无\n\n## TP-04\n- Step Key: `full_crawl`\n- 标题: 执行基础与典籍全量抓取\n- 类型: `数据`\n- 目标: 在有界速率下实际跑完页面和媒体闭包并持续写入可恢复状态\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: crawler_implementation\n- 依赖节点 ID: TP-03\n- 输入: 两个栏目入口；sitemap；抓取器\n- 输出: infra/runtime/local-state/exports/suanzhun-corpus\n- 允许工具: crawler CLI；process polling\n- 禁止动作: 无界并发；抓取非目标栏目\n- 证据要求: 运行日志；manifest；failure ledger\n- 停止条件: 429/403 持续；页面上限；磁盘不可写\n- 风险: 站点限流；网络中断；磁盘增长\n- 备注: 无\n\n## TP-05\n- Step Key: `completeness_audit`\n- 标题: 审计链接、内容、媒体和失败闭包\n- 类型: `验收`\n- 目标: 交叉核对导航、分页、详情、sitemap、内容哈希、文件哈希和失败终态，证明覆盖边界\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: full_crawl\n- 依赖节点 ID: TP-04\n- 输入: crawl.sqlite3；NDJSON manifests；raw/content/media files\n- 输出: 完整性报告；重复组；失败与不可用明细；文件 sha256 清单\n- 允许工具: crawler validate；sqlite read-only queries；filesystem hash\n- 禁止动作: 人工删除失败行以造绿\n- 证据要求: validator summary；counts；hash verification\n- 停止条件: 存在不可解释抓取缺口\n- 风险: 动态发布造成审计时漂移\n- 备注: 无\n\n## TP-06\n- Step Key: `docs_governance`\n- 标题: 同步工具链、架构与版权边界文档\n- 类型: `文档`\n- 目标: 更新脚本与测试目录说明、治理工具入口和任务证据，明确本地输出与分发边界\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: completeness_audit\n- 依赖节点 ID: TP-05\n- 输入: 最终实现；全量审计结果；项目文档契约\n- 输出: AGENTS/治理/任务文档更新\n- 允许工具: apply_patch；governance tools；task validators\n- 禁止动作: 把运行态全文写入 governance\n- 证据要求: governance strict output；task validation output\n- 停止条件: owner/source-of-truth 不明确\n- 风险: 文档漂移\n- 备注: 无\n\n## TP-07\n- Step Key: `review_closeout`\n- 标题: 完成独立审查与任务收口\n- 类型: `审查`\n- 目标: 按 correctness/security/reliability/performance/architecture/document lenses 审查并生成可复核 closeout\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: docs_governance\n- 依赖节点 ID: TP-06\n- 输入: 最终 diff；抓取产物摘要；测试/校验/治理证据\n- 输出: REVIEW 结论；任务 closeout packet；最终交付摘要\n- 允许工具: auto-review；task closeout tools；read-only git diff\n- 禁止动作: 无证据声明完整或合法分发\n- 证据要求: review findings；task validator；closeout packet\n- 停止条件: 存在 BLOCK finding\n- 风险: 把本地抓取完成过度声明成版权或事实认证\n- 备注: 无\n\n## TP-08\n- Step Key: `repair_debug_contract`\n- 标题: 固化详情续页漏抓根因与 RED 契约\n- 类型: `调试/测试`\n- 目标: 把详情续页分类失明、完整性假通过和元数据正文污染转成可复现的调试链与离线回归测试\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: review_closeout\n- 依赖节点 ID: TP-07\n- 输入: 独立缺失审计；现有 crawl.sqlite3；已保存原始响应；抓取器与离线测试\n- 输出: DEBUG.md；详情分页与元数据 RED 回归\n- 允许工具: read-only SQLite；raw response probe；apply_patch；pytest\n- 禁止动作: 在根因确认前修改生产实现；用手工 URL 清单替代分页模型\n- 证据要求: 只读实验输出；pytest RED 输出；DEBUG hypothesize validator\n- 停止条件: 现场证据与原始响应相互矛盾\n- 风险: 测试只覆盖可见页而再次漏掉隐藏中间页\n- 备注: 无\n\n## TP-09\n- Step Key: `repair_pagination_model`\n- 标题: 实现逐页存证与逻辑文章聚合\n- 类型: `开发`\n- 目标: 在现有抓取器内永久修复详情续页发现、完整序列推导、有序聚合、增量迁移、作者隔离和校验盲点\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: repair_debug_contract\n- 依赖节点 ID: TP-08\n- 输入: DEBUG 根因；RED 回归；现有 SQLite schema 与导出契约\n- 输出: 分页识别与推导；document_pages 持久化；逻辑文章聚合；分页完整性门禁\n- 允许工具: apply_patch；pytest；ruff；临时 SQLite fixture\n- 禁止动作: 删除现有语料重抓以掩盖迁移缺陷；引入通用爬虫框架\n- 证据要求: pytest GREEN；ruff；迁移 fixture；validator negative test\n- 停止条件: 无法无损迁移现有数据库\n- 风险: 迁移破坏既有 3344 个逻辑文档；内容聚合顺序错误；分页资源映射丢失\n- 备注: 无\n\n## TP-10\n- Step Key: `repair_incremental_crawl_audit`\n- 标题: 增量补抓并独立审计详情分页闭包\n- 类型: `数据/验收`\n- 目标: 从现有原始响应恢复分页发现，补抓全部续页并重建结构化交付物，独立核对页面、文章、资源和校验和\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: repair_pagination_model\n- 依赖节点 ID: TP-09\n- 输入: 修复后抓取器；现有本地语料；robots/sitemap；已知 138 篇分页基址\n- 输出: 增量更新语料；completeness.json；manifest/NDJSON/正文/媒体/校验清单；独立审计证据\n- 允许工具: crawler CLI；process polling；read-only SQLite；filesystem hash\n- 禁止动作: 无界并发；人工删除失败行造绿；扩大到目标栏目外\n- 证据要求: 运行日志；页面/分页/文章计数；validator；sha256 audit\n- 停止条件: robots 禁止；持续 403/429/5xx；磁盘不可写；存在无法解释的分页断层\n- 风险: 运行中站点动态新增内容；瞬时网络失败；校验清单重建成本\n- 备注: 无\n\n## TP-11\n- Step Key: `repair_review_closeout`\n- 标题: 同步防复发治理并重新审查收口\n- 类型: `文档/审查`\n- 目标: 更新任务与 owning 文档，采样假完成案例，执行独立 review、治理 strict 与 closeout\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: repair_incremental_crawl_audit\n- 依赖节点 ID: TP-10\n- 输入: 最终 diff；增量语料审计；DEBUG/测试证据；审计案例库\n- 输出: 更新后的任务/治理文档；AUDIT_CASE_SAMPLING；REVIEW；TASK_CLOSEOUT_PACKET\n- 允许工具: auto-review；auto-governance；task validators；apply_patch\n- 禁止动作: 保留虚假 PASS；把运行态正文写入 Git\n- 证据要求: DEBUG conclude；review findings；governance strict/health；closeout packet\n- 停止条件: 存在 BLOCK finding 或审计缺口\n- 风险: 只改报告不修正门禁；任务状态与真实证据再次漂移\n- 备注: 无",
+    "package_acceptance_blocks": "## TP-01\n- 标题: 锁定抓取边界与数据契约\n- 验收标准:\n  - 三源发现策略和目标范围过滤规则明确\n  - 缺失字段和不可访问 URL 的处理明确\n- Verify: 任务 CONTEXT/PLAN 包含截图、robots、sitemap、入口、详情和旧路径实测证据\n- Gate: 不存在会改变实现路径的未决范围歧义\n- 输出物: 稳定抓取规格；URL/字段/输出契约；风险与停止条件\n\n## TP-02\n- 标题: 建立离线解析与安全回归契约\n- 验收标准:\n  - 覆盖 URL canonicalization、scope、metadata、body、noise、links、media 和 filename\n- Verify: pytest 先出现目标缺失红灯，完成实现后全部转绿\n- Gate: 测试不访问公网且覆盖正负边界\n- 输出物: tests/regression/test_suanzhun_corpus_crawl.py\n\n## TP-03\n- 标题: 实现可恢复全量抓取器\n- 验收标准:\n  - 支持断点续跑和增量刷新\n  - 保存原始响应与规范化输出\n  - 生成机器可读失败和完整性报告\n- Verify: 目标 pytest 与 ruff 通过，--help 和 --validate-only 可执行\n- Gate: 无无界队列、无静默失败、所有输出限定在显式目录\n- 输出物: scripts/suanzhun-corpus-crawl.py\n\n## TP-04\n- 标题: 执行基础与典籍全量抓取\n- 验收标准:\n  - 入口、分类、分页、详情和正文媒体均有映射\n  - 中断后原命令可续跑\n- Verify: 抓取命令正常退出且 manifest 记录 complete 或明确 residual failures\n- Gate: robots 允许、页面上限未触发、无活动 transient failure\n- 输出物: infra/runtime/local-state/exports/suanzhun-corpus\n\n## TP-05\n- 标题: 审计链接、内容、媒体和失败闭包\n- 验收标准:\n  - 所有 record/file 引用存在且 hash 匹配\n  - URL 和内容重复均有 alias 记录\n  - sitemap 差异有解释\n- Verify: --validate-only 通过，completeness.json 无未解释 dangling target URL 或 active failure\n- Gate: 可访问目标与失效/拒绝/失败状态严格区分\n- 输出物: 完整性报告；重复组；失败与不可用明细；文件 sha256 清单\n\n## TP-06\n- 标题: 同步工具链、架构与版权边界文档\n- 验收标准:\n  - Operating model: not needed 有具体理由\n  - Toolchain/process/source-of-truth 影响有 owner 与证据\n  - 版权边界明确\n- Verify: 结构检查、governance index 重建与 strict validate 通过\n- Gate: 文档描述与实际 CLI、路径和验证证据一致\n- 输出物: AGENTS/治理/任务文档更新\n\n## TP-07\n- 标题: 完成独立审查与任务收口\n- 验收标准:\n  - 发现的问题已修或明确阻塞\n  - 效率检查含复杂度、瓶颈、验证指标和权衡\n  - 用户可按命令复跑\n- Verify: review 无 BLOCK，任务 closeout validator 和 closeout packet 通过\n- Gate: 所有叶子完成、Recent Evidence 非空、无活动 blocker\n- 输出物: REVIEW 结论；任务 closeout packet；最终交付摘要\n\n## TP-08\n- 标题: 固化详情续页漏抓根因与 RED 契约\n- 验收标准:\n  - 至少三条可证伪假设和确认实验落盘\n  - 覆盖当前/旧式续页、隐藏中间页、聚合、作者隔离和缺页门禁\n- Verify: DEBUG.md 通过 hypothesize 校验，新增测试在生产修复前按预期失败\n- Gate: 根因由只读最小实验确认，RED 失败原因与 756 页现场证据一致\n- 输出物: DEBUG.md；详情分页与元数据 RED 回归\n\n## TP-09\n- 标题: 实现逐页存证与逻辑文章聚合\n- 验收标准:\n  - 续页不会导出为独立文章\n  - 现有 page-1 文档可迁移并增量续跑\n  - 正文作者标签不再污染 metadata\n- Verify: 目标 pytest 与 ruff 全绿，旧数据库可原位迁移，缺页 fixture 被 validator 拒绝\n- Gate: 页面与逻辑文章职责分离，1..N 序列有唯一约束和独立门禁，不新增平行真相源\n- 输出物: 分页识别与推导；document_pages 持久化；逻辑文章聚合；分页完整性门禁\n\n## TP-10\n- 标题: 增量补抓并独立审计详情分页闭包\n- 验收标准:\n  - 页面来源与聚合文档双向可追溯\n  - 作者污染为 0\n  - 重复和不可用状态仍有解释\n- Verify: 756 个已知续页全部终态，详情页序列缺口为 0，3344 个逻辑文档完整聚合，files.sha256 全部通过\n- Gate: 内置 validator 与独立 SQLite/文件审计同时通过，无活动失败或未解释缺口\n- 输出物: 增量更新语料；completeness.json；manifest/NDJSON/正文/媒体/校验清单；独立审计证据\n\n## TP-11\n- 标题: 同步防复发治理并重新审查收口\n- 验收标准:\n  - 完成声明精确覆盖详情分页\n  - 效率与优化检查有复杂度和实测指标\n  - 可按同一命令增量复跑\n- Verify: DEBUG conclude、auto-review、任务 closeout、governance strict/health 全部通过\n- Gate: 旧 PASS 已被新证据取代，防详情分页假闭包规则进入 owning source，最终无 BLOCK\n- 输出物: 更新后的任务/治理文档；AUDIT_CASE_SAMPLING；REVIEW；TASK_CLOSEOUT_PACKET",
+    "package_acceptance_checklists": "## TP-01\n- 标题: 锁定抓取边界与数据契约\n- 验收项:\n  - [ ] 三源发现策略和目标范围过滤规则明确\n  - [ ] 缺失字段和不可访问 URL 的处理明确\n- Verify: 任务 CONTEXT/PLAN 包含截图、robots、sitemap、入口、详情和旧路径实测证据\n- Gate: 不存在会改变实现路径的未决范围歧义\n- 输出物:\n  - [ ] 稳定抓取规格\n  - [ ] URL/字段/输出契约\n  - [ ] 风险与停止条件\n- 标准清单:\n  - [ ] Verify: 任务 CONTEXT/PLAN 包含截图、robots、sitemap、入口、详情和旧路径实测证据\n  - [ ] Gate: 不存在会改变实现路径的未决范围歧义\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-02\n- 标题: 建立离线解析与安全回归契约\n- 验收项:\n  - [ ] 覆盖 URL canonicalization、scope、metadata、body、noise、links、media 和 filename\n- Verify: pytest 先出现目标缺失红灯，完成实现后全部转绿\n- Gate: 测试不访问公网且覆盖正负边界\n- 输出物:\n  - [ ] tests/regression/test_suanzhun_corpus_crawl.py\n- 标准清单:\n  - [ ] Verify: pytest 先出现目标缺失红灯，完成实现后全部转绿\n  - [ ] Gate: 测试不访问公网且覆盖正负边界\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n  - [ ] 维护 `DEBUG.md` 并保留回归证据\n\n## TP-03\n- 标题: 实现可恢复全量抓取器\n- 验收项:\n  - [ ] 支持断点续跑和增量刷新\n  - [ ] 保存原始响应与规范化输出\n  - [ ] 生成机器可读失败和完整性报告\n- Verify: 目标 pytest 与 ruff 通过，--help 和 --validate-only 可执行\n- Gate: 无无界队列、无静默失败、所有输出限定在显式目录\n- 输出物:\n  - [ ] scripts/suanzhun-corpus-crawl.py\n- 标准清单:\n  - [ ] Verify: 目标 pytest 与 ruff 通过，--help 和 --validate-only 可执行\n  - [ ] Gate: 无无界队列、无静默失败、所有输出限定在显式目录\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-04\n- 标题: 执行基础与典籍全量抓取\n- 验收项:\n  - [ ] 入口、分类、分页、详情和正文媒体均有映射\n  - [ ] 中断后原命令可续跑\n- Verify: 抓取命令正常退出且 manifest 记录 complete 或明确 residual failures\n- Gate: robots 允许、页面上限未触发、无活动 transient failure\n- 输出物:\n  - [ ] infra/runtime/local-state/exports/suanzhun-corpus\n- 标准清单:\n  - [ ] Verify: 抓取命令正常退出且 manifest 记录 complete 或明确 residual failures\n  - [ ] Gate: robots 允许、页面上限未触发、无活动 transient failure\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-05\n- 标题: 审计链接、内容、媒体和失败闭包\n- 验收项:\n  - [ ] 所有 record/file 引用存在且 hash 匹配\n  - [ ] URL 和内容重复均有 alias 记录\n  - [ ] sitemap 差异有解释\n- Verify: --validate-only 通过，completeness.json 无未解释 dangling target URL 或 active failure\n- Gate: 可访问目标与失效/拒绝/失败状态严格区分\n- 输出物:\n  - [ ] 完整性报告\n  - [ ] 重复组\n  - [ ] 失败与不可用明细\n  - [ ] 文件 sha256 清单\n- 标准清单:\n  - [ ] Verify: --validate-only 通过，completeness.json 无未解释 dangling target URL 或 active failure\n  - [ ] Gate: 可访问目标与失效/拒绝/失败状态严格区分\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-06\n- 标题: 同步工具链、架构与版权边界文档\n- 验收项:\n  - [ ] Operating model: not needed 有具体理由\n  - [ ] Toolchain/process/source-of-truth 影响有 owner 与证据\n  - [ ] 版权边界明确\n- Verify: 结构检查、governance index 重建与 strict validate 通过\n- Gate: 文档描述与实际 CLI、路径和验证证据一致\n- 输出物:\n  - [ ] AGENTS/治理/任务文档更新\n- 标准清单:\n  - [ ] Verify: 结构检查、governance index 重建与 strict validate 通过\n  - [ ] Gate: 文档描述与实际 CLI、路径和验证证据一致\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-07\n- 标题: 完成独立审查与任务收口\n- 验收项:\n  - [ ] 发现的问题已修或明确阻塞\n  - [ ] 效率检查含复杂度、瓶颈、验证指标和权衡\n  - [ ] 用户可按命令复跑\n- Verify: review 无 BLOCK，任务 closeout validator 和 closeout packet 通过\n- Gate: 所有叶子完成、Recent Evidence 非空、无活动 blocker\n- 输出物:\n  - [ ] REVIEW 结论\n  - [ ] 任务 closeout packet\n  - [ ] 最终交付摘要\n- 标准清单:\n  - [ ] Verify: review 无 BLOCK，任务 closeout validator 和 closeout packet 通过\n  - [ ] Gate: 所有叶子完成、Recent Evidence 非空、无活动 blocker\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-08\n- 标题: 固化详情续页漏抓根因与 RED 契约\n- 验收项:\n  - [ ] 至少三条可证伪假设和确认实验落盘\n  - [ ] 覆盖当前/旧式续页、隐藏中间页、聚合、作者隔离和缺页门禁\n- Verify: DEBUG.md 通过 hypothesize 校验，新增测试在生产修复前按预期失败\n- Gate: 根因由只读最小实验确认，RED 失败原因与 756 页现场证据一致\n- 输出物:\n  - [ ] DEBUG.md\n  - [ ] 详情分页与元数据 RED 回归\n- 标准清单:\n  - [ ] Verify: DEBUG.md 通过 hypothesize 校验，新增测试在生产修复前按预期失败\n  - [ ] Gate: 根因由只读最小实验确认，RED 失败原因与 756 页现场证据一致\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n  - [ ] 维护 `DEBUG.md` 并保留回归证据\n\n## TP-09\n- 标题: 实现逐页存证与逻辑文章聚合\n- 验收项:\n  - [ ] 续页不会导出为独立文章\n  - [ ] 现有 page-1 文档可迁移并增量续跑\n  - [ ] 正文作者标签不再污染 metadata\n- Verify: 目标 pytest 与 ruff 全绿，旧数据库可原位迁移，缺页 fixture 被 validator 拒绝\n- Gate: 页面与逻辑文章职责分离，1..N 序列有唯一约束和独立门禁，不新增平行真相源\n- 输出物:\n  - [ ] 分页识别与推导\n  - [ ] document_pages 持久化\n  - [ ] 逻辑文章聚合\n  - [ ] 分页完整性门禁\n- 标准清单:\n  - [ ] Verify: 目标 pytest 与 ruff 全绿，旧数据库可原位迁移，缺页 fixture 被 validator 拒绝\n  - [ ] Gate: 页面与逻辑文章职责分离，1..N 序列有唯一约束和独立门禁，不新增平行真相源\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n  - [ ] 维护 `DEBUG.md` 并保留回归证据\n\n## TP-10\n- 标题: 增量补抓并独立审计详情分页闭包\n- 验收项:\n  - [ ] 页面来源与聚合文档双向可追溯\n  - [ ] 作者污染为 0\n  - [ ] 重复和不可用状态仍有解释\n- Verify: 756 个已知续页全部终态，详情页序列缺口为 0，3344 个逻辑文档完整聚合，files.sha256 全部通过\n- Gate: 内置 validator 与独立 SQLite/文件审计同时通过，无活动失败或未解释缺口\n- 输出物:\n  - [ ] 增量更新语料\n  - [ ] completeness.json\n  - [ ] manifest/NDJSON/正文/媒体/校验清单\n  - [ ] 独立审计证据\n- 标准清单:\n  - [ ] Verify: 756 个已知续页全部终态，详情页序列缺口为 0，3344 个逻辑文档完整聚合，files.sha256 全部通过\n  - [ ] Gate: 内置 validator 与独立 SQLite/文件审计同时通过，无活动失败或未解释缺口\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-11\n- 标题: 同步防复发治理并重新审查收口\n- 验收项:\n  - [ ] 完成声明精确覆盖详情分页\n  - [ ] 效率与优化检查有复杂度和实测指标\n  - [ ] 可按同一命令增量复跑\n- Verify: DEBUG conclude、auto-review、任务 closeout、governance strict/health 全部通过\n- Gate: 旧 PASS 已被新证据取代，防详情分页假闭包规则进入 owning source，最终无 BLOCK\n- 输出物:\n  - [ ] 更新后的任务/治理文档\n  - [ ] AUDIT_CASE_SAMPLING\n  - [ ] REVIEW\n  - [ ] TASK_CLOSEOUT_PACKET\n- 标准清单:\n  - [ ] Verify: DEBUG conclude、auto-review、任务 closeout、governance strict/health 全部通过\n  - [ ] Gate: 旧 PASS 已被新证据取代，防详情分页假闭包规则进入 owning source，最终无 BLOCK\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检",
+    "planning_summary": "保留已完成的首轮抓取历史证据，重开任务并在同一 SQLite 真相源内补建详情分页实体、逻辑文章聚合与独立闭合门禁，再增量补抓、交叉审计、同步文档并重新审查。\n- 编译节点总数: 11\n- 叶子执行项: 11\n- 执行波次数: 11\n- 当前任务必须遵守 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP`",
+    "lifecycle_gates": "- 所有阶段必须按 SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP 顺序闭合，不得跳过 gate\n- SPEC: 真实站点、截图、robots、sitemap、详情结构和版权边界已记录\n- PLAN: 数据模型、发现闭包、恢复模型、输出结构和失败分类已确定\n- BUILD: 抓取器只写显式 output 目录并通过离线测试\n- TEST: 离线回归与全量内置校验均通过\n- REVIEW: correctness/security/reliability/performance/document drift 审查无 BLOCK\n- SHIP: 输出清单、失败明细、复跑命令、回滚/清理路径和任务 closeout 可复核",
+    "simplest_path": "复用项目 scripts 入口、httpx 与 BeautifulSoup，在一个直接脚本中组合发现、抓取、抽取、导出和校验；不创建服务、队列、插件系统或通用爬虫框架。",
+    "split_strategy": "按可独立验收的证据切片拆分；网站发现、解析测试、实现、全量副作用运行、完整性审计、文档治理和最终审查严格显式依赖。",
+    "blockers": "- 无"
+  }
+}

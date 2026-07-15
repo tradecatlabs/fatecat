@@ -11,6 +11,7 @@ tests/
 ├── AGENTS.md
 └── regression/
     ├── conftest.py
+    ├── test_suanzhun_corpus_crawl.py
     ├── fate_core/
 	    ├── test_bazi_golden_coverage_matrix.py
 	    ├── test_calendar_oracle_contract.py
@@ -59,6 +60,7 @@ tests/
 ## 职责边界
 
 - `regression/`：原项目行为回归测试，路径已切到 canonical roots。
+- `regression/test_suanzhun_corpus_crawl.py`：算准网抓取器离线合同；覆盖 URL 规范化、当前/旧详情续页、隐藏中间页推导、物理页到逻辑文章聚合、v1 原位迁移、元数据隔离、缺页与共因失明门禁、正文去噪和 Windows 安全路径，不访问公网。
 - `regression/test_bazi_golden_coverage_matrix.py`：300+ 八字匿名结构 golden 矩阵合同、requiredTags 代表集回放，以及 `FATECAT_RUN_FULL_GOLDEN_MATRIX=1` 全量 release gate；全量可用 `FATECAT_GOLDEN_SHARD_TOTAL` / `FATECAT_GOLDEN_SHARD_INDEX` 分片。
 - `regression/test_calendar_oracle_contract.py`：历法/四柱 oracle 对照测试；只服务开发门禁，不允许 oracle 库进入生产源码路径。
 - `regression/test_catalog_contracts.py`：组件 catalog canonical root 与 compatibility box 退役防回潮测试。
