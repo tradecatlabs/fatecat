@@ -72,7 +72,6 @@ def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None)
     hide = hide or {}
     inp = result.get("input", {})
     name = inp.get("name", "命主")
-    hide_non_bazi_basic = hide.get("non_bazi_basic", False)
 
     lines.append(f"# 命理排盘报告：{name or '命主'}")
     lines.append("")
@@ -85,7 +84,6 @@ def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None)
     bi = result.get("birthInfo", {})
     meta = result.get("meta", {})
     jq = result.get("jieqiDetail", {})
-    sl = result.get("siling", {})
 
     # 农历日期
     lunar_str = bi.get("lunar") or bi.get("lunarCn") or bi.get("lunarDate", "")
@@ -105,18 +103,13 @@ def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None)
     lat = inp.get("latitude", "")
     lnglat = f"{lng}° / {lat}°" if (lng or lat) else ""
 
-    vi = result.get("voidInfo", {})
-    day_void = vi.get("day", {})
-    void_str = day_void.get("kong", "") if isinstance(day_void, dict) else str(day_void)
-
     sp = result.get("specialPalaces", {})
     ty = sp.get("taiYuan", {})
     tx = sp.get("taiXi", {})
     mg = sp.get("mingGong", {})
     sg = sp.get("shenGong", {})
+    vi = result.get("voidInfo", {})
     zi_time = result.get("ziTimeAnalysis", {})
-
-    mgua = result.get("mingGua", {})
     lines.append("")
 
     # 基本信息展开（避免表格中信息被认为“缩写”）
@@ -147,13 +140,6 @@ def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None)
             rows.append(["纬度", f"{lat}°"])
     if true_solar_time:
         rows.append(["真太阳时", true_solar_time])
-    if (not hide_non_bazi_basic) and bi.get("zodiac", ""):
-        rows.append(["生肖", bi.get("zodiac", "")])
-    if (not hide_non_bazi_basic) and bi.get("constellation", ""):
-        rows.append(["星座", bi.get("constellation", "")])
-    xx = bi.get("xingXiu", bi.get("xiu", bi.get("xingxiu", bi.get("star", "-"))))
-    if (not hide_non_bazi_basic) and xx and xx != "-":
-        rows.append(["星宿", xx])
     if prev_jq:
         rows.append(
             ["前节气", f"{prev_jq.get('name', '')} {prev_jq.get('date', '')} 已过{prev_jq.get('daysAfter', '')}天"]
@@ -162,34 +148,8 @@ def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None)
         rows.append(
             ["后节气", f"{next_jq.get('name', '')} {next_jq.get('date', '')} 还有{next_jq.get('daysBefore', '')}天"]
         )
-    if sl.get("current", ""):
-        rows.append(["人元司令", f"{sl.get('current', '')}用事"])
-    if void_str:
-        rows.append(["空亡", void_str])
-    if ty.get("pillar", ""):
-        rows.append(["胎元", f"{ty.get('pillar', '')} {ty.get('nayin', '')}".strip()])
-    if tx.get("pillar", ""):
-        rows.append(["胎息", f"{tx.get('pillar', '')} {tx.get('nayin', '')}".strip()])
-    if mg.get("pillar", ""):
-        rows.append(["命宫", f"{mg.get('pillar', '')} {mg.get('nayin', '')}".strip()])
-    if sg.get("pillar", ""):
-        rows.append(["身宫", f"{sg.get('pillar', '')} {sg.get('nayin', '')}".strip()])
-    if zi_time and isinstance(zi_time, dict):
-        zt = []
-        if zi_time.get("timeZhi", ""):
-            zt.append(f"时支{zi_time.get('timeZhi', '')}")
-        if "zwzShift" in zi_time:
-            zt.append(f"早晚子规则触发{'是' if zi_time.get('zwzShift') else '否'}")
-        if zi_time.get("dayPillarNormal", ""):
-            zt.append(f"日柱常规{zi_time.get('dayPillarNormal', '')}")
-        if zi_time.get("dayPillarZwz", ""):
-            zt.append(f"日柱早晚子{zi_time.get('dayPillarZwz', '')}")
-        if zi_time.get("rule", ""):
-            zt.append(f"规则{zi_time.get('rule', '')}")
-        if zt:
-            rows.append(["子时判定", "；".join(zt)])
-    if (not hide_non_bazi_basic) and mgua.get("guaName", ""):
-        rows.append(["命卦", f"{mgua.get('guaName', '')} {mgua.get('group', '')}".strip()])
+    if isinstance(zi_time, dict) and zi_time.get("timeZhi", ""):
+        rows.append(["子时判定", f"时支{zi_time.get('timeZhi', '')}"])
     lines.extend(_render_table(["项目", "内容"], rows))
 
     # 空亡信息明细：已在“四柱信息表”中给出（旬/空亡），这里默认不再重复输出
@@ -321,6 +281,17 @@ def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None)
     for label, keyname in row_keys:
         table_rows.append([label] + row_vals[keyname])
     lines.extend(_render_table(col_headers, table_rows))
+
+    special_palace_rows: list[list[object]] = []
+    for label, item in [("胎元", ty), ("胎息", tx), ("命宫", mg), ("身宫", sg)]:
+        if not isinstance(item, dict) or not item.get("pillar", ""):
+            continue
+        special_palace_rows.append([label, item.get("pillar", ""), item.get("nayin", "")])
+    if special_palace_rows:
+        lines.append("")
+        lines.append("**胎元、胎息、命宫与身宫**")
+        lines.append("")
+        lines.extend(_render_table(["项目", "干支", "纳音"], special_palace_rows))
 
     # 神煞（默认输出合并后的全量列表；禁止回退到简表口径）
     full_sp = result.get("spiritsFull", {})
@@ -926,7 +897,6 @@ def build_report_hide(report_system: str | None = "bazi", hide: dict[str, bool] 
 def generate_bazi_standard_report(result: dict[str, Any], hide: dict[str, bool] | None = None) -> str:
     """生成综合八字标准报告：八字主线 + 称骨民俗辅助，不混入紫微或建除。"""
     HIDE = build_report_hide("bazi", hide=hide)
-    HIDE["non_bazi_basic"] = True
 
     RECENT_YEARS = None
     parts: list[str] = [

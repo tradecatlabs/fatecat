@@ -222,7 +222,7 @@ def test_comprehensive_bazi_report_has_unique_headings_and_business_tables():
     from datetime import datetime
 
     from bazi_calculator import BaziCalculator
-    from report_generator import build_report_hide, generate_full_report
+    from report_generator import build_report_hide, generate_full_report, generate_report
 
     hide = build_report_hide("bazi")
     result = BaziCalculator(
@@ -235,6 +235,7 @@ def test_comprehensive_bazi_report_has_unique_headings_and_business_tables():
         use_true_solar_time=True,
     ).calculate(hide=hide)
     text = generate_full_report(result, hide=hide)
+    unfiltered_main_text = generate_report(result)
 
     assert _duplicate_headings(text) == []
     assert _duplicate_business_table_positions(text) == []
@@ -245,10 +246,55 @@ def test_comprehensive_bazi_report_has_unique_headings_and_business_tables():
     def section(start: str, end: str) -> str:
         return text.split(start, 1)[1].split(end, 1)[0]
 
+    basic_section = section("#### 基本资料", "### 八字排盘详情")
+    for expected in [
+        "姓名",
+        "出生日期",
+        "出生时间",
+        "农历",
+        "性别",
+        "出生地区",
+        "经度",
+        "纬度",
+        "真太阳时",
+        "前节气",
+        "后节气",
+        "子时判定",
+        "时支辰",
+    ]:
+        assert expected in basic_section
+    for misplaced in [
+        "生肖",
+        "星座",
+        "星宿",
+        "人元司令",
+        "空亡",
+        "胎元",
+        "胎息",
+        "命宫",
+        "身宫",
+        "早晚子规则触发",
+        "日柱常规",
+        "日柱早晚子",
+        "启用早晚子时后",
+        "命卦",
+    ]:
+        assert misplaced not in basic_section
+        assert misplaced not in unfiltered_main_text.split("#### 基本资料", 1)[1].split("### 八字排盘详情", 1)[0]
+
     chart_section = section("### 八字排盘详情", "### 神煞断语")
     assert "五行分数" not in chart_section
     assert "温湿度" not in chart_section
     assert "地支关系" not in chart_section
+    assert "**胎元、胎息、命宫与身宫**" in chart_section
+    for chart_field in ["胎元", "胎息", "命宫", "身宫"]:
+        assert chart_field in chart_section
+
+    assert result["ziTimeAnalysis"]
+    assert "zwzShift" in result["ziTimeAnalysis"]
+    assert "| 子时判定 | 时支辰 |" in text
+    for diagnostic in ["早晚子规则触发", "日柱常规", "日柱早晚子", "启用早晚子时后"]:
+        assert diagnostic not in text
 
     daymaster_section = section("### 日主概览", "### 五行喜忌（调候与平衡）")
     assert "格局参考" not in daymaster_section
@@ -262,6 +308,37 @@ def test_comprehensive_bazi_report_has_unique_headings_and_business_tables():
     fortune_section = section("### 运势分析", "## 第三卷：民俗与建议（生活应用）")
     assert "空亡（展开）" not in fortune_section
     assert "司令：" not in fortune_section
+
+    jieqi_section = section("### 节气司令", "### 干支关系")
+    assert "人元司令" in jieqi_section
+
+
+def test_bazi_report_keeps_zi_boundary_diagnostics_in_structured_data_only():
+    from datetime import datetime
+
+    from bazi_calculator import BaziCalculator
+    from report_generator import build_report_hide, generate_full_report
+
+    hide = build_report_hide("bazi")
+    result = BaziCalculator(
+        datetime(2000, 9, 9, 23, 30, 0),
+        "male",
+        116.4074,
+        latitude=39.9042,
+        name="测试样本",
+        birth_place="北京",
+        use_true_solar_time=True,
+    ).calculate(hide=hide)
+    text = generate_full_report(result, hide=hide)
+
+    zi_time = result["ziTimeAnalysis"]
+    assert zi_time["timeZhi"] == "子"
+    assert zi_time["zwzShift"] is True
+    assert zi_time["dayPillarNormal"] != zi_time["dayPillarZwz"]
+    assert result["fourPillars"]["day"]["fullName"] == zi_time["dayPillarZwz"]
+    assert "| 子时判定 | 时支子 |" in text
+    for diagnostic in ["早晚子规则触发", "日柱常规", "日柱早晚子", "启用早晚子时后"]:
+        assert diagnostic not in text
 
 
 def test_report_uniqueness_gate_detects_injected_duplicates():
