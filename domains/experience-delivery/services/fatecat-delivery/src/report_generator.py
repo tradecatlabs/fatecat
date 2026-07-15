@@ -672,13 +672,12 @@ def generate_relations_section(result: dict[str, Any]) -> str:
                     completeness,
                     item.get("element", ""),
                     item.get("text", ""),
-                    item.get("source", ""),
                 ]
             )
         if rows:
             lines.append("#### 地支关系")
             lines.append("")
-            lines.extend(_render_table(["柱位", "地支", "关系", "方向", "完整度", "五行", "依据", "规则源"], rows))
+            lines.extend(_render_table(["柱位", "地支", "关系", "方向", "完整度", "五行", "依据"], rows))
 
     lines.append("")
     return "\n".join(lines)
@@ -713,10 +712,6 @@ def generate_bingyao_section(result: dict[str, Any]) -> str:
         if ji:
             rows.append(["调候忌神", "，".join([str(x) for x in ji if x])])
     if isinstance(ys, dict):
-        if ys.get("basisSource"):
-            rows.append(["调候依据来源", ys.get("basisSource")])
-        if ys.get("tiaohouRaw"):
-            rows.append(["调候编码", ys.get("tiaohouRaw")])
         basis = str(ys.get("basis", ""))
         match = re.search(r"调候：(.+?)(?:大运：|备注：|$)", basis)
         if match and match.group(1).strip():

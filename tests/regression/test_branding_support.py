@@ -302,8 +302,10 @@ def test_comprehensive_bazi_report_has_unique_headings_and_business_tables():
 
     climate_section = section("### 五行停匀与寒湿燥热（调候依据）", "### 干支取象（原文）")
     assert "温湿度分数" in climate_section
-    assert "调候依据来源" in climate_section
-    assert "调候编码" in climate_section
+    assert "调候依据来源" not in climate_section
+    assert "调候编码" not in climate_section
+    assert result["yongShen"]["basisSource"]
+    assert result["yongShen"]["tiaohouRaw"]
 
     fortune_section = section("### 运势分析", "## 第三卷：民俗与建议（生活应用）")
     assert "空亡（展开）" not in fortune_section
@@ -311,6 +313,12 @@ def test_comprehensive_bazi_report_has_unique_headings_and_business_tables():
 
     jieqi_section = section("### 节气司令", "### 干支关系")
     assert "人元司令" in jieqi_section
+
+    branch_relation_section = section("#### 地支关系", "## 第二卷：后天运路（动态趋势）")
+    assert "依据" in branch_relation_section
+    assert "规则源" not in branch_relation_section
+    assert "bazi-1.zhi_atts" not in branch_relation_section
+    assert any(item.get("source") == "bazi-1.zhi_atts" for item in result["branchRelations"]["canonical"])
 
 
 def test_bazi_report_keeps_zi_boundary_diagnostics_in_structured_data_only():
