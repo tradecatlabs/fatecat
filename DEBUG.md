@@ -68,6 +68,38 @@
 - 决定：不新增独立审计案例，新增项目任务级 lesson 并强化现有称骨回归。
 - 原因：这是项目私有民俗数据范围和展示契约问题；男女全覆盖、男命独有七两二钱、女命止于七两一钱、当前计算上界和中文输出均已形成机械断言，新增一套案例对象不会提供额外阻断能力。
 
+## 2026-07-15 Telegram 外部初始化阻塞 HF Space 启动
+
+### Bug
+
+HF Space 已完成新镜像构建，但新容器长期停留在 `RUNNING_APP_STARTING`，公开端点继续由旧容器提供服务。
+
+### Observations
+
+- HF 仓库提交 `41e17c5` 对应 GitHub `25661e6`，构建日志显示镜像成功推送。
+- 运行日志只有 Application Startup 标记，没有 FastAPI 就绪日志。
+- `TelegramWebhookRuntime.start_managed()` 在 FastAPI lifespan 中同步等待 Telegram 初始化、命令配置和 `setWebhook`；外部调用没有运行时级总超时。
+- 线上 `/health` 仍可访问但实际报告保留旧版称骨输出，证明流量尚未切换到新容器。
+
+### Root Cause
+
+“Telegram 故障不阻断 Web/API”的设计只处理了明确抛出的异常，没有约束永不返回的外部 await；因此 Telegram 外部网络可以无限占用 FastAPI 启动生命周期。
+
+### Fix
+
+- 使用 `asyncio.wait_for` 为首次启动和每次后台重试统一增加 15 秒硬超时。
+- 超时后记录 `TimeoutError` 降级状态并进入既有后台指数退避，Web/API 不再等待 Telegram 就绪。
+- 在 HF、local 和 production 环境入口登记 `FATE_TELEGRAM_WEBHOOK_STARTUP_TIMEOUT_SECONDS=15`。
+
+### Regression Evidence
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 .venv/bin/pytest -q tests/regression/test_telegram_webhook.py
+```
+
+- 新增“Telegram initialize 永不返回”回归，验证 lifespan 在有界时间内继续启动且状态明确降级。
+- Telegram Webhook 专项结果：`17 passed`。
+
 ## 2026-07-13 紫微并发计算污染进程 stdout
 
 ### Bug

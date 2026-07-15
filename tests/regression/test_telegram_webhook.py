@@ -64,6 +64,7 @@ class FakeApplication:
 def _config(
     *,
     queue_size: int = 2,
+    startup_timeout_seconds: int = 15,
     retry_seconds: int = 30,
     retry_max_seconds: int = 900,
     retry_jitter_percent: int = 20,
@@ -76,6 +77,7 @@ def _config(
         queue_size=queue_size,
         dedupe_size=2,
         max_connections=4,
+        startup_timeout_seconds=startup_timeout_seconds,
         retry_seconds=retry_seconds,
         retry_max_seconds=retry_max_seconds,
         retry_jitter_percent=retry_jitter_percent,
@@ -234,6 +236,32 @@ async def test_telegram_webhook_managed_start_retries_without_blocking_api():
     assert runtime.ready is True
     assert runtime.status()["startFailureTotal"] == 1
     assert runtime.status()["lastStartError"] == ""
+    await runtime.stop()
+
+
+@pytest.mark.asyncio
+async def test_telegram_webhook_hanging_start_is_bounded_and_degraded():
+    class HangingApplication(FakeApplication):
+        async def initialize(self) -> None:
+            await asyncio.Event().wait()
+
+    def factory(_token: str, update_queue: asyncio.Queue[object]) -> FakeApplication:
+        return HangingApplication(update_queue)
+
+    async def configure_commands(_application: FakeApplication) -> None:
+        return None
+
+    runtime = TelegramWebhookRuntime(
+        _config(startup_timeout_seconds=1),
+        application_factory=factory,
+        command_configurer=configure_commands,
+    )
+
+    await asyncio.wait_for(runtime.start_managed(), timeout=1.5)
+
+    assert runtime.ready is False
+    assert runtime.status()["startFailureTotal"] == 1
+    assert runtime.status()["lastStartError"] == "TimeoutError"
     await runtime.stop()
 
 

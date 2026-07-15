@@ -55,6 +55,7 @@ class TelegramWebhookConfig:
     queue_size: int = 20
     dedupe_size: int = 2048
     max_connections: int = 4
+    startup_timeout_seconds: int = 15
     retry_seconds: int = 30
     retry_max_seconds: int = 900
     retry_jitter_percent: int = 20
@@ -75,6 +76,11 @@ class TelegramWebhookConfig:
             queue_size=env_int("FATE_TELEGRAM_WEBHOOK_QUEUE_SIZE", 20, minimum=1),
             dedupe_size=env_int("FATE_TELEGRAM_WEBHOOK_DEDUPE_SIZE", 2048, minimum=1),
             max_connections=env_int("FATE_TELEGRAM_WEBHOOK_MAX_CONNECTIONS", 4, minimum=1),
+            startup_timeout_seconds=env_int(
+                "FATE_TELEGRAM_WEBHOOK_STARTUP_TIMEOUT_SECONDS",
+                15,
+                minimum=1,
+            ),
             retry_seconds=env_int("FATE_TELEGRAM_WEBHOOK_RETRY_SECONDS", 30, minimum=5),
             retry_max_seconds=env_int("FATE_TELEGRAM_WEBHOOK_RETRY_MAX_SECONDS", 900, minimum=5),
             retry_jitter_percent=env_int("FATE_TELEGRAM_WEBHOOK_RETRY_JITTER_PERCENT", 20, minimum=0),
@@ -94,6 +100,8 @@ class TelegramWebhookConfig:
             raise RuntimeError(f"FATE_TELEGRAM_WEBHOOK_URL 必须是 HTTPS 地址且路径为 {TELEGRAM_DELIVERY_PATH}")
         if self.max_connections > 100:
             raise RuntimeError("FATE_TELEGRAM_WEBHOOK_MAX_CONNECTIONS 不能超过 100")
+        if self.startup_timeout_seconds > 300:
+            raise RuntimeError("FATE_TELEGRAM_WEBHOOK_STARTUP_TIMEOUT_SECONDS 不能超过 300")
         if self.retry_max_seconds < self.retry_seconds:
             raise RuntimeError("FATE_TELEGRAM_WEBHOOK_RETRY_MAX_SECONDS 不能小于基础重试间隔")
         if self.retry_jitter_percent > 100:
@@ -198,10 +206,13 @@ class TelegramWebhookRuntime:
         if not self.enabled:
             return
         try:
-            await self.start()
+            await self._start_with_timeout()
         except Exception as exc:
             self._record_start_failure(exc)
             self._retry_task = asyncio.create_task(self._retry_until_ready(), name="telegram-webhook-retry")
+
+    async def _start_with_timeout(self) -> None:
+        await asyncio.wait_for(self.start(), timeout=self.config.startup_timeout_seconds)
 
     def _record_start_failure(self, exc: Exception) -> None:
         error_name = type(exc).__name__
@@ -235,7 +246,7 @@ class TelegramWebhookRuntime:
             if self._stopping:
                 return
             try:
-                await self.start()
+                await self._start_with_timeout()
             except asyncio.CancelledError:
                 raise
             except Exception as exc:
