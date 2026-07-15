@@ -1,5 +1,29 @@
 # DEBUG.md - FateCat 调试证据
 
+## 2026-07-15 神煞兼容字段导致报告重复渲染
+
+### Bug
+
+综合八字报告连续输出“神煞断语”和“简表神煞（字段展开）”，两张表及两组释义内容完全重复。
+
+### Root Cause
+
+核心结果中的 `spirits` 与 `spiritsFull` 是同一份全量神煞数据，`spiritsExplain` 又是 `spiritsFull.descriptions` 的兼容别名；报告生成器误把“结构化字段不丢失”解释成“所有兼容字段都必须展示”，README 和快照测试随后把重复块固化为标准结构。
+
+### Fix
+
+- Markdown 只渲染 canonical `spiritsFull.byPillar` 与 `spiritsFull.descriptions`。
+- `spirits` 和 `spiritsExplain` 继续保留在结构化结果中，不破坏既有 API 调用方。
+- README 删除“简表神煞（字段展开）”，回归测试逐条断言每条神煞释义只出现一次。
+
+### Regression Evidence
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 .venv/bin/pytest -q tests/regression/test_branding_support.py tests/regression/test_web_html.py
+```
+
+- 结果：`24 passed`。
+
 ## 2026-07-15 称骨浮点、非法输入与版本边界错误
 
 ### Bug

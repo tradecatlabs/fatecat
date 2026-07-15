@@ -165,7 +165,6 @@ def test_full_report_default_heading_contract_matches_standard_blocks():
         "#### 地支入库（依据）",
         "### 地支关系",
         "## 神煞断语",
-        "### 简表神煞（字段展开）",
         "## 日主概览",
         "## 五行喜忌（调候与平衡）",
         "### 五行比例",
@@ -188,6 +187,11 @@ def test_full_report_default_heading_contract_matches_standard_blocks():
     for section in ["### 建除十二神", "## 紫微斗数", "## 紫微基础"]:
         assert section not in headings
     assert "analysisEvidence" not in text
+    assert "简表神煞" not in text
+    assert "简表神煞释义" not in text
+    assert text.count("**神煞释义**") == 1
+    for name, description in result["spiritsFull"]["descriptions"].items():
+        assert text.count(f"- {name}：{description}") == 1
     assert "男命歌诀：" in text
     assert "* 评语：" in text
     assert "男女共用" not in text

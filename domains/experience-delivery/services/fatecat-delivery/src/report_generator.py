@@ -620,27 +620,6 @@ def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None)
         for k, v in descs.items():
             lines.append(f"- {k}：{v}")
 
-    # 兼容字段：spirits / spiritsExplain（不丢字段；与 spiritsFull 可能重复）
-    sp = result.get("spirits", {})
-    sp_by = sp.get("byPillar", {}) if isinstance(sp, dict) else {}
-    if isinstance(sp_by, dict) and sp_by:
-        lines.append("")
-        lines.append("### 简表神煞（字段展开）")
-        lines.append("")
-        rows = []
-        for pillar, pname in [("year", "年柱"), ("month", "月柱"), ("day", "日柱"), ("hour", "时柱")]:
-            slist = sp_by.get(pillar, [])
-            if not slist:
-                continue
-            rows.append([pname, "、".join([str(x) for x in slist if str(x).strip()])])
-        if rows:
-            lines.extend(_render_table(["柱", "神煞"], rows))
-    sp_ex = result.get("spiritsExplain", {})
-    if isinstance(sp_ex, dict) and sp_ex:
-        lines.append("")
-        lines.append("**简表神煞释义（字段展开）**")
-        for k, v in sp_ex.items():
-            lines.append(f"- {k}：{v}")
     lines.append("")
 
     return _normalize_present_text("\n".join(lines))
