@@ -59,7 +59,7 @@
     "allowedMetadataLabels": [
       "姓名", "出生日期", "出生时间", "农历", "造", "性别", "出生地区", "经度", "纬度", "真太阳时", "前节气", "后节气", "子时判定",
       "天干", "地支", "十神（天干）", "十神（地支）", "藏干（含十神/强度）", "星运", "自坐", "空亡", "纳音", "干支", "胎元", "胎息", "命宫", "身宫",
-      "拱神", "口径说明", "温湿度分数", "调候原文", "1", "2"
+      "拱神", "空亡命中", "口径说明", "温湿度分数", "调候原文", "1", "2"
     ],
     "machineOnlyResultPaths": [
       "analysisEvidence", "ziTimeAnalysis.zwzShift", "ziTimeAnalysis.dayPillarNormal", "ziTimeAnalysis.dayPillarZwz",

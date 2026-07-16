@@ -69,6 +69,26 @@ def test_public_reports_match_allowlist_and_keep_machine_evidence_structured() -
     assert "analysisEvidence" not in reports["bazi"]
 
 
+def test_bazi_public_report_allows_void_branch_matches() -> None:
+    result = BaziCalculator(
+        datetime(2098, 10, 20, 10),
+        "male",
+        116.5029,
+        latitude=39.95462,
+        name="测试用户",
+        birth_place="北京市朝阳区",
+        use_true_solar_time=True,
+    ).calculate(hide=build_report_hide("bazi"))
+    markdown = generate_full_report(
+        result,
+        hide=build_report_hide("bazi"),
+        report_system="bazi",
+    )
+
+    assert "| 空亡命中 |" in markdown
+    assert validate_public_markdown(markdown, "bazi") == markdown
+
+
 @pytest.mark.parametrize(
     ("markdown", "message"),
     [
