@@ -802,6 +802,7 @@ def _capability_item_payload(item: Any, markdown_enabled_ids: set[str]) -> dict[
         "capabilityId": item.capability_id,
         "name": item.name,
         "tradition": item.tradition,
+        "availability": item.availability,
         "status": item.status,
         "defaultVisibility": item.default_visibility,
         "maturity": {
@@ -816,10 +817,10 @@ def _capability_item_payload(item: Any, markdown_enabled_ids: set[str]) -> dict[
         },
         "reportProfile": item.report_profile,
         "markdownDefault": item.markdown_default,
-        "capabilityApiEnabled": item.status == "production",
+        "capabilityApiEnabled": item.availability == "available",
         "markdownReportEnabled": markdown_report_enabled,
         "surfaces": {
-            "capabilityApi": item.status == "production",
+            "capabilityApi": item.availability == "available",
             "markdownReport": markdown_report_enabled,
             "webForm": markdown_report_enabled,
         },
@@ -831,7 +832,7 @@ def _capability_item_payload(item: Any, markdown_enabled_ids: set[str]) -> dict[
 
 
 def _capability_provider_payload(item: Any) -> dict[str, Any]:
-    if item.status != "production":
+    if item.availability != "available":
         return {
             "providerId": item.provider,
             "engineVersion": item.engine_version,
@@ -866,7 +867,7 @@ def _capability_schema_refs() -> dict[str, str]:
 def _capability_resource_payload(item: Any) -> dict[str, Any]:
     markdown_enabled_ids = set(enabled_report_system_ids())
     payload = _capability_item_payload(item, markdown_enabled_ids)
-    executable = item.status == "production"
+    executable = item.availability == "available"
     payload.update(
         {
             "resourceType": "Capability",
@@ -897,7 +898,11 @@ def _capability_resource_payload(item: Any) -> dict[str, Any]:
             },
             "admission": {
                 "executable": executable,
-                "reason": "production capability" if executable else "能力尚未生产化，当前只允许发现和审计",
+                "reason": (
+                    "能力可执行（availability=available）"
+                    if executable
+                    else f"能力当前不可执行（availability={item.availability}），只允许发现和审计"
+                ),
             },
         }
     )
@@ -916,10 +921,11 @@ def _public_about_capabilities_payload() -> list[dict[str, Any]]:
         {
             "capabilityId": item.capability_id,
             "name": item.name,
+            "availability": item.availability,
             "status": item.status,
             "maturity": {"level": item.maturity_level},
             "surfaces": {
-                "capabilityApi": item.status == "production",
+                "capabilityApi": item.availability == "available",
                 "markdownReport": item.capability_id in markdown_enabled_ids,
                 "webForm": item.capability_id in markdown_enabled_ids,
             },
@@ -941,7 +947,12 @@ def _public_capability_guide_payload(capability_id: str) -> dict[str, Any] | Non
     if capability_id not in PUBLIC_CAPABILITY_GUIDES or capability_id not in set(enabled_report_system_ids()):
         return None
     item = _public_capability_contracts().get(capability_id)
-    if not item or item.get("status") != "production" or item.get("maturity", {}).get("level") != "L4":
+    if (
+        not item
+        or item.get("availability") != "available"
+        or item.get("maturity", {}).get("status") != "production"
+        or item.get("maturity", {}).get("level") != "L4"
+    ):
         return None
     return item
 
@@ -1574,6 +1585,21 @@ def ready():
     )
 
 
+def _append_prometheus_histogram(
+    lines: list[str],
+    *,
+    name: str,
+    help_text: str,
+    snapshot: dict[str, Any],
+) -> None:
+    lines.extend([f"# HELP {name} {help_text}", f"# TYPE {name} histogram"])
+    for bucket, count in snapshot["buckets"]:
+        lines.append(f'{name}_bucket{{le="{_format_bucket(float(bucket))}"}} {count}')
+    lines.append(f'{name}_bucket{{le="+Inf"}} {snapshot["count"]}')
+    lines.append(f"{name}_count {snapshot['count']}")
+    lines.append(f"{name}_sum {float(snapshot['sum']):.6f}")
+
+
 @app.get("/metrics", response_class=PlainTextResponse)
 def metrics():
     lines = [
@@ -1590,6 +1616,7 @@ def metrics():
         calculation_slots_in_use = _calculation_slots_in_use
     bot_queue_status = get_queue_status()
     report_job_status = report_job_manager.stats()
+    report_job_metrics = report_job_manager.metrics_snapshot()
     telegram_webhook_status = telegram_webhook_runtime.status()
 
     for (method, route, status_code), count in sorted(counts.items()):
@@ -1660,6 +1687,35 @@ def metrics():
             f'fatecat_report_jobs{{status="expired"}} {report_job_status["expired"]}',
             f'fatecat_report_jobs{{status="cancelled"}} {report_job_status["cancelled"]}',
         ]
+    )
+    lines.extend(
+        [
+            "# HELP fatecat_report_jobs_total Cumulative report job terminal transitions by status.",
+            "# TYPE fatecat_report_jobs_total counter",
+            *[
+                f'fatecat_report_jobs_total{{status="{status}"}} {count}'
+                for status, count in sorted(report_job_metrics["terminalCounts"].items())
+            ],
+        ]
+    )
+    histograms = report_job_metrics["histograms"]
+    _append_prometheus_histogram(
+        lines,
+        name="fatecat_report_job_queue_wait_seconds",
+        help_text="Report job time from submission to execution start.",
+        snapshot=histograms["queue_wait_seconds"],
+    )
+    _append_prometheus_histogram(
+        lines,
+        name="fatecat_report_job_execution_duration_seconds",
+        help_text="Report job time from execution start to terminal state.",
+        snapshot=histograms["execution_duration_seconds"],
+    )
+    _append_prometheus_histogram(
+        lines,
+        name="fatecat_report_job_result_size_bytes",
+        help_text="Serialized successful report job result size.",
+        snapshot=histograms["result_size_bytes"],
     )
     lines.extend(
         [
@@ -1894,6 +1950,7 @@ def _capability_execution_payload(capability_id: str, payload: dict[str, Any]) -
     return {
         "success": True,
         "capabilityId": result.capability_id,
+        "availability": result.availability,
         "status": result.status,
         "reportProfile": result.report_profile,
         "data": result.data,

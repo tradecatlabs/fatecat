@@ -7,6 +7,7 @@
     "id",
     "name",
     "runType",
+    "evidenceClass",
     "gateType",
     "datasetIds",
     "commands",
@@ -23,8 +24,29 @@
     "externalConnectivity",
     "risk"
   ],
-  "allowedRunType": ["unit_regression", "golden_regression", "offline_benchmark", "release_gate", "external_eval"],
-  "allowedGateType": ["required", "optional", "manual", "external_connectivity"],
+  "allowedRunType": [
+    "unit_regression",
+    "golden_regression",
+    "offline_benchmark",
+    "release_gate",
+    "external_eval",
+    "external_review_intake",
+    "external_review_template"
+  ],
+  "allowedEvidenceClass": [
+    "internal_regression",
+    "independent_reference",
+    "external_benchmark",
+    "human_attestation"
+  ],
+  "allowedGateType": [
+    "required",
+    "optional",
+    "manual",
+    "external_connectivity",
+    "required_for_100_percent_claim",
+    "operator_preparation"
+  ],
   "allowedLastKnownStatusPolicy": [
     "not_embedded",
     "tracked_by_task_evidence",
@@ -46,6 +68,9 @@
     "releaseRequired=true 的运行必须能在本地或 CI 无外部凭证执行",
     "external_eval 必须标记 externalConnectivity=外部连通验证待执行，除非有真实 CI 或日志链接",
     "offline_benchmark 不得调用外部模型 API，除非命令和凭证边界单独声明",
+    "internal_regression 运行不得被解释为独立准确性、专家验收或第三方认证",
+    "human_attestation 只声明证据入口；缺少真实人工证据时必须保持 pending 或 blocked",
+    "independent_reference 与 external_benchmark 必须引用对应 evidenceClass 的 Dataset",
     "EvaluationRun 必须通过 datasetIds 指向 registry 中存在的 Dataset",
     "本地 runner 必须白名单执行 registry.commands，禁止 shell=True、旧路径 fallback 和真实 secret 注入"
   ]

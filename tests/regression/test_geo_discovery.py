@@ -274,5 +274,7 @@ def test_geo_audit_checks_redirect_and_capability_lifecycle_sets():
     audit_source = (ROOT / "scripts" / "geo-audit.py").read_text(encoding="utf-8")
 
     assert 'Check("root.permanent_redirect"' in audit_source
-    assert '"capabilities.production_set"' in audit_source
+    assert '"capabilities.available_set"' in audit_source
+    assert '"capabilities.production_maturity_set"' in audit_source
+    assert '"capabilities.validated_maturity_set"' in audit_source
     assert '"capabilities.planned_set"' in audit_source

@@ -1,0 +1,135 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-16T08:54:05+08:00",
+  "task": {
+    "task_id": "0161",
+    "slug": "measurement-infrastructure-hardening-phase-two",
+    "task_dir": "governance/tasks/0161-measurement-infrastructure-hardening-phase-two",
+    "detected_phase": "closeout",
+    "overall_status": "Done"
+  },
+  "source_refs": {
+    "task_context_packet": null,
+    "task_package_set": null,
+    "git_delivery_evidence": null,
+    "audit_case_sampling_decision": "governance/tasks/0161-measurement-infrastructure-hardening-phase-two/AUDIT_CASE_SAMPLING.md"
+  },
+  "closeout_gate": {
+    "ready": true,
+    "failures": []
+  },
+  "summary": {
+    "leaf_total": 8,
+    "leaf_done": 8,
+    "todo_total": 8,
+    "todo_checked": 8,
+    "blocker_count": 0
+  },
+  "leaves": [
+    {
+      "id": "TP-01",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "公开报告 allowlist 与 7 个回归测试通过",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-02",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "完整 98 年/1176 月等价测试与性能 smoke 通过",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-03",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "evidenceClass 契约、独立来源和人工待审边界通过",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-04",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "availability/maturity 迁移及控制面 219 checks 通过",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-05",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "计算与渲染 helper 拆分，行为回归通过",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-06",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "异步队列/执行/大小/终态指标回归通过",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-07",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "clean-room wheel/sdist 安装与 HTTP fixture smoke 通过",
+      "blocker": "-",
+      "unblock_needed": "-"
+    },
+    {
+      "id": "TP-08",
+      "todo_checked": true,
+      "status": "Done",
+      "ready": false,
+      "recent_evidence": "Quick CI 513 tests passed，审查与治理收口",
+      "blocker": "-",
+      "unblock_needed": "-"
+    }
+  ],
+  "git_delivery": null,
+  "audit_case_sampling": {
+    "ok": true,
+    "file": "governance/tasks/0161-measurement-infrastructure-hardening-phase-two/AUDIT_CASE_SAMPLING.md",
+    "summary": {
+      "decision": "case-updated",
+      "source": "governance/tasks/0161-measurement-infrastructure-hardening-phase-two",
+      "case_id": "CASE-9001",
+      "case_path": "governance/evidence/audit-cases/cases/CASE-9001-canonical-field-and-compatibility-projection-double-consumption/CASE.md",
+      "root_cause_class": "canonical_field_and_compatibility_projection_double_consumption",
+      "has_no_case_reason": true,
+      "has_trigger_signals": true,
+      "has_evidence": true
+    },
+    "issues": [],
+    "required": true,
+    "loaded": true
+  },
+  "recommended_asset_handoff": {
+    "source_refs": [
+      "governance/tasks/0161-measurement-infrastructure-hardening-phase-two/AUDIT_CASE_SAMPLING.md"
+    ],
+    "artifacts": [
+      "audit-case-sampling-decision",
+      "task-closeout-packet.json"
+    ]
+  },
+  "upstream_packets": {
+    "task_context_packet_loaded": false,
+    "task_package_set_loaded": false,
+    "git_delivery_evidence_loaded": false,
+    "audit_case_sampling_loaded": true
+  }
+}

@@ -118,6 +118,10 @@
         "fatecat_report_job_store_backend_info",
         "fatecat_report_job_workers",
         "fatecat_report_jobs",
+        "fatecat_report_jobs_total",
+        "fatecat_report_job_queue_wait_seconds",
+        "fatecat_report_job_execution_duration_seconds",
+        "fatecat_report_job_result_size_bytes",
         "fatecat_bot_queue_size",
         "fatecat_bot_queue_scope_info",
         "fatecat_bot_queue_max_size",
@@ -127,7 +131,7 @@
         "fatecat_bot_user_daily_limit"
       ],
       "localVerification": ["curl -sS http://127.0.0.1:8001/metrics"],
-      "privacyBoundary": "队列指标只暴露数量、容量、backend、scope 和限制配置，不暴露用户 ID、chat ID、报告内容或出生信息。",
+      "privacyBoundary": "任务与队列指标只暴露固定状态、数量、容量、backend、scope、耗时、结果字节数和限制配置；不得以任务 ID、用户 ID、chat ID、姓名、出生地或报告内容作为标签或字段。",
       "externalConnectivity": "not_required",
       "links": {
         "self": "/observability/signal.job_and_queue_metrics",
@@ -136,10 +140,10 @@
       },
       "metadata": {
         "owner": "domains/experience-delivery/services/fatecat-delivery/src/main.py",
-        "verificationScope": "同步计算槽、异步报告 job、Telegram Bot 队列和限流配置",
-        "storage": "in-memory counters and report job store stats",
-        "runtimeImpact": "reads local queue state when /metrics is requested",
-        "risk": "memory/sqlite 后端只覆盖单副本本地任务状态；分布式队列和生产告警待后续实现。"
+        "verificationScope": "同步计算槽、异步报告 job 的排队/执行/结果大小/终态、Telegram Bot 队列和限流配置",
+        "storage": "process-local cumulative counters and histograms plus report job store gauges",
+        "runtimeImpact": "任务状态迁移时执行固定桶计数，/metrics 读取本地累计值与队列状态",
+        "risk": "累计 counter/histogram 随进程重启清零；memory/sqlite 后端只覆盖单副本本地任务状态，生产聚合与告警仍需外部 Prometheus 或等价 collector。"
       }
     },
     {

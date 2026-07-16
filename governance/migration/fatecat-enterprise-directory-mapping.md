@@ -1,10 +1,10 @@
 ---
 id: MIG-FATECAT-DIRECTORY-MAPPING
 type: migration-mapping
-status: active
+status: current
 owner: engineering
 created: 2026-06-06
-last_reviewed: 2026-06-15
+last_reviewed: 2026-07-16
 review_cycle: P30D
 ---
 
@@ -51,22 +51,22 @@ fatecat/
 | --- | --- | --- | --- |
 | `scripts/project/modules/fate_core/` | `domains/fate-analysis/services/fate-core/src/` | 领域服务迁移 | active catalog 已指向 canonical service root；旧路径仅保留历史证据/负例语境 |
 | `scripts/project/modules/telegram/` | `domains/experience-delivery/services/fatecat-delivery/src/` | 交付服务迁移 | active catalog 已指向 canonical service root；旧路径仅保留历史证据/负例语境 |
-| `scripts/project/assets/fate/` | `contracts/fate/` | capability/profile/evidence/risk 契约迁移 | 已复制到 canonical contract root；旧路径为兼容源 |
-| `scripts/project/assets/data/` | `domains/fate-analysis/data-products/` 与 `contracts/datasets/` | 静态数据与 golden 数据分层迁移 | 已复制轻量数据产品；`classics/raw` 与 `calendar/solar_terms/raw` 未进入 canonical root |
+| `scripts/project/assets/fate/` | `contracts/fate/` | capability/profile/evidence/risk 契约迁移 | canonical contract root 已接管；旧路径已退役 |
+| `scripts/project/assets/data/` | `domains/fate-analysis/data-products/` 与 `contracts/datasets/` | 静态数据与 golden 数据分层迁移 | 轻量数据产品已迁入；`classics/raw` 与 `calendar/solar_terms/raw` 按治理边界不进入 canonical root |
 | `scripts/project/assets/database/` | `infra/databases/` | schema 和 migration 迁移 | 已复制 schema；真实 `.db` 不迁移、不提交 |
 | `scripts/project/assets/config/` | `infra/environments/` | env template 与 branding 配置迁移 | 已复制 `.env.example`、`agent.env.example`、`branding.json`；真实 `.env` 禁止提交 |
-| `scripts/project/assets/deploy/` | `infra/runtime/` 或 `tools/bootstrap/` | 运行与自举脚本归位 | 待迁移 |
-| `scripts/project/assets/docs/` | `docs/` 与 `governance/evidence/` | 人类文档和治理证据分流 | 待迁移 |
-| `scripts/project/assets/tasks/` | `governance/tasks/` | 任务包迁移 | 待迁移 |
+| `scripts/project/assets/deploy/` | `infra/` 与 `scripts/` | 运行期望状态与可执行入口分流 | canonical infra 与根脚本已接管；旧路径已退役 |
+| `scripts/project/assets/docs/` | `docs/` 与 `governance/evidence/` | 人类文档和治理证据分流 | canonical 文档与治理根已接管；旧路径已退役 |
+| `scripts/project/assets/tasks/` | `governance/tasks/` | 任务包迁移 | canonical 任务根已接管；旧路径已退役 |
 | `scripts/project/assets/vendor/` | `tools/reference-repos/` 或 `platform/supply-chain/vendor-snapshots/` | vendor 快照登记迁移，禁止改源码 | 已复制到 `tools/reference-repos/`；`node_modules` 不进入 canonical vendor |
 | `scripts/project/runtime/` | `infra/runtime/local-state/` 或 ignored runtime root | 运行态骨架迁移 | 已建立本地运行态骨架；真实 `bazi.db` 留在旧 runtime/忽略运行态，不迁移 |
 | `scripts/project/tests/` | `tests/` 或服务内 tests | 仓库级与服务级测试分流 | 已复制到 `tests/regression/`；service tests 位于 `domains/*/services/*/tests/` |
 | `scripts/project/pyproject.toml` | `pyproject.toml` | Python 项目配置提升到企业仓库根 | root `pyproject.toml` 已成为 active Python 工程入口 |
-| `scripts/project/README.md` | `docs/README.md` 或根 README 分段 | 产品说明迁移 | 待迁移 |
-| `SKILL.md` | `ai/skills/fatecat/SKILL.md` 或保留根导出入口 | Agent 入口归位 | 待设计 |
-| `references/` | `docs/references/` 或 `governance/context/` | skill 参考文档分流 | 待迁移 |
-| `.github/workflows/acceptance.yml` | `.github/workflows/acceptance.yml` | 保留位置，改为复用新本地入口 | 待更新 |
-| `scripts/*.sh` | `scripts/*.sh` | 保留本地执行入口，改为 enterprise runtime root | `resolve_runtime_root` 默认返回企业根；legacy root 只作为显式兼容 fallback |
+| `scripts/project/README.md` | 根 `README.md` 与 `docs/` | 产品说明迁移 | canonical 文档入口已接管；旧路径已退役 |
+| `SKILL.md` | 根 `SKILL.md` | 保留标准 skill 导出入口 | 根入口继续作为公开安装契约，AI 治理资产归 `ai/` |
+| `references/` | 根 `references/` | 保留长文档与执行参考入口 | 已纳入企业根 canonical roots |
+| `.github/workflows/acceptance.yml` | `.github/workflows/acceptance.yml` | 保留位置并复用根脚本 | 已调用 canonical `scripts/acceptance.sh` |
+| `scripts/*.sh` | `scripts/*.sh` | 保留本地可重复执行入口 | 已从企业根解析；不存在 legacy source/runtime fallback |
 
 ## 当前 canonical 资产根
 

@@ -118,7 +118,7 @@ def _span_events(log_text: str) -> list[dict[str, Any]]:
 def _capture_provider_spans(sample_payloads: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
     CapabilityExecutor, CapabilityInput, list_capabilities, _list_providers = _load_runtime()
     executor = CapabilityExecutor()
-    production_capabilities = [item for item in list_capabilities() if item.status == "production"]
+    available_capabilities = [item for item in list_capabilities() if item.availability == "available"]
 
     log_stream = io.StringIO()
     handler = logging.StreamHandler(log_stream)
@@ -128,7 +128,7 @@ def _capture_provider_spans(sample_payloads: dict[str, dict[str, Any]]) -> list[
     trace_logger.setLevel(logging.INFO)
 
     try:
-        for capability in production_capabilities:
+        for capability in available_capabilities:
             payload = sample_payloads.get(capability.capability_id)
             if payload is None:
                 continue
@@ -441,10 +441,10 @@ def run_scanner() -> dict[str, Any]:
     )
     _append_check(checks, findings, "provider_span_count", len(spans) >= 8, str(len(spans)))
 
-    production_capabilities = [item for item in list_capabilities() if item.status == "production"]
+    available_capabilities = [item for item in list_capabilities() if item.availability == "available"]
     providers = [provider.metadata().as_dict() for provider in list_providers()]
     capability_by_provider: dict[str, list[Any]] = {}
-    for capability in production_capabilities:
+    for capability in available_capabilities:
         capability_by_provider.setdefault(capability.provider, []).append(capability)
     dependency_by_capability = {
         item["capabilityId"]: item for item in dependency_summary.get("providers", []) if isinstance(item, dict)
@@ -469,7 +469,7 @@ def run_scanner() -> dict[str, Any]:
         "kind": "fatecat.provider_drift_report",
         "status": status,
         "providerCount": len(providers),
-        "capabilityCount": len(production_capabilities),
+        "capabilityCount": len(available_capabilities),
         "spanCount": len(spans),
         "findingCount": len(findings),
         "providers": provider_reports,

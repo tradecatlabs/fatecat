@@ -111,14 +111,14 @@ def run_gate() -> dict[str, Any]:
     vendor_index = _vendor_index()
     checks: list[dict[str, Any]] = []
 
-    production_capabilities = [item for item in list_capabilities() if item.status == "production"]
+    available_capabilities = [item for item in list_capabilities() if item.availability == "available"]
     providers = list_providers()
     provider_resources = [_resource_for_provider(provider) for provider in providers]
     providers_by_id = {item["providerId"]: item for item in provider_resources}
 
     _check(
-        set(providers_by_id) == {item.provider for item in production_capabilities},
-        "production_provider_coverage",
+        set(providers_by_id) == {item.provider for item in available_capabilities},
+        "available_provider_coverage",
         f"providers={sorted(providers_by_id)}",
         checks,
     )

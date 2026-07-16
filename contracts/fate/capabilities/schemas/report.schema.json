@@ -44,6 +44,14 @@
     "headingCount",
     "headings"
   ],
+  "requiredPublicMarkdownProfileFields": [
+    "headingPrefixes",
+    "allowedHeadings",
+    "allowedTableHeaders",
+    "allowedMetadataLabels",
+    "machineOnlyResultPaths",
+    "forbiddenRenderedTerms"
+  ],
   "allowedPolicyGateStatus": ["pass", "fail"],
   "allowedSnapshotGateStatus": ["pass", "fail"],
   "allowedFormats": ["json", "markdown"],
@@ -55,6 +63,7 @@
     "policyGate 必须排除 risk.forbiddenClaims，避免风险清单自触发",
     "capability Report envelope policyGate 只覆盖摘要字段",
     "Markdown report policyGate 必须扫描用户可见 Markdown 正文",
-    "snapshotGate 锁定 Markdown 必备标题、唯一 H1、层级增量、已知章节层级与标准顺序；完整正文 golden diff 属后续发布门禁"
+    "snapshotGate 锁定 Markdown 必备标题、唯一 H1、层级增量、已知章节层级与标准顺序；完整正文 golden diff 属后续发布门禁",
+    "publicMarkdown profile 以允许标题、表头和元数据标签定义公开投影；machineOnlyResultPaths 只能保留在结构化结果，不能进入 Markdown"
   ]
 }

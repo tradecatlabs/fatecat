@@ -218,6 +218,7 @@ def _run_capabilities(args: argparse.Namespace) -> int:
             "capabilityId": item.capability_id,
             "name": item.name,
             "tradition": item.tradition,
+            "availability": item.availability,
             "status": item.status,
             "defaultVisibility": item.default_visibility,
             "maturity": {
@@ -269,6 +270,7 @@ def _run_capability_execute(args: argparse.Namespace) -> int:
             {
                 "success": True,
                 "capabilityId": result.capability_id,
+                "availability": result.availability,
                 "status": result.status,
                 "reportProfile": result.report_profile,
                 "data": result.data,

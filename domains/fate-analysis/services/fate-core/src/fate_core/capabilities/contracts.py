@@ -6,7 +6,8 @@ from typing import Any, Literal
 # Ponytail existence: capability contracts are consumed by registry, executor, and tests.
 # Owner: tradecatlabs/fate-core. Verification: test_capability_protocol.py.
 
-CapabilityStatus = Literal["planned", "experimental", "production"]
+CapabilityAvailability = Literal["available", "unavailable", "planned"]
+CapabilityMaturityStatus = Literal["registered", "experimental", "validated", "production"]
 Visibility = Literal["default", "optional", "standalone", "hidden"]
 RiskLevel = Literal["folk_reference", "entertainment", "requires_disclaimer"]
 MaturityLevel = Literal["L0", "L1", "L2", "L3", "L4"]
@@ -19,10 +20,10 @@ class Capability:
     capability_id: str
     name: str
     tradition: str
-    status: CapabilityStatus
+    availability: CapabilityAvailability
     default_visibility: Visibility
     maturity_level: MaturityLevel
-    maturity_status: str
+    maturity_status: CapabilityMaturityStatus
     maturity_summary: str
     input_required: tuple[str, ...]
     input_optional: tuple[str, ...]
@@ -39,6 +40,12 @@ class Capability:
     forbidden_claims: tuple[str, ...]
     description: str = ""
 
+    @property
+    def status(self) -> CapabilityMaturityStatus:
+        """兼容旧消费者的成熟度投影；执行准入必须读取 availability。"""
+
+        return self.maturity_status
+
 
 @dataclass(frozen=True)
 class CapabilityInput:
@@ -53,7 +60,8 @@ class CapabilityResult:
     """统一能力执行输出。"""
 
     capability_id: str
-    status: CapabilityStatus
+    availability: CapabilityAvailability
+    status: CapabilityMaturityStatus
     report_profile: str
     data: dict[str, Any]
     evidence: dict[str, Any]

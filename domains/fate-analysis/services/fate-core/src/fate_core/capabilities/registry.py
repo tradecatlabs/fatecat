@@ -2,18 +2,26 @@ from __future__ import annotations
 
 import json
 from functools import cache
-from typing import Any
+from typing import Any, cast
 
-from fate_core.capabilities.contracts import Capability
+from fate_core.capabilities.contracts import (
+    Capability,
+    CapabilityAvailability,
+    CapabilityMaturityStatus,
+    MaturityLevel,
+    RiskLevel,
+    Visibility,
+)
 from fate_core.support.paths import FATE_CAPABILITY_DIR
 
 # Ponytail existence: registry loader is the single reader for capability JSON contracts.
 # Owner: tradecatlabs/fate-core. Verification: test_capability_protocol.py.
 
-VALID_STATUSES = {"planned", "experimental", "production"}
+VALID_AVAILABILITIES = {"available", "unavailable", "planned"}
 VALID_VISIBILITIES = {"default", "optional", "standalone", "hidden"}
 VALID_RISK_LEVELS = {"folk_reference", "entertainment", "requires_disclaimer"}
 VALID_MATURITY_LEVELS = {"L0", "L1", "L2", "L3", "L4"}
+VALID_MATURITY_STATUSES = {"registered", "experimental", "validated", "production"}
 REQUIRED_EVIDENCE_POLICY_FIELDS = (
     "ruleIdRequired",
     "sourceRequired",
@@ -37,9 +45,9 @@ def _parse_capability(raw: dict[str, Any]) -> Capability:
     if not capability_id:
         raise ValueError("capabilityId 不能为空")
 
-    status = str(raw.get("status", "")).strip()
-    if status not in VALID_STATUSES:
-        raise ValueError(f"{capability_id}.status 非法: {status}")
+    availability = str(raw.get("availability", "")).strip()
+    if availability not in VALID_AVAILABILITIES:
+        raise ValueError(f"{capability_id}.availability 非法: {availability}")
 
     visibility = str(raw.get("defaultVisibility", "")).strip()
     if visibility not in VALID_VISIBILITIES:
@@ -89,8 +97,8 @@ def _parse_capability(raw: dict[str, Any]) -> Capability:
     if maturity_level not in VALID_MATURITY_LEVELS:
         raise ValueError(f"{capability_id}.maturity.level 非法: {maturity_level}")
     maturity_status = str(maturity.get("status", "")).strip()
-    if not maturity_status:
-        raise ValueError(f"{capability_id}.maturity.status 不能为空")
+    if maturity_status not in VALID_MATURITY_STATUSES:
+        raise ValueError(f"{capability_id}.maturity.status 非法: {maturity_status}")
     maturity_summary = str(maturity.get("summary", "")).strip()
     if not maturity_summary:
         raise ValueError(f"{capability_id}.maturity.summary 不能为空")
@@ -103,10 +111,10 @@ def _parse_capability(raw: dict[str, Any]) -> Capability:
         capability_id=capability_id,
         name=str(raw.get("name", "")).strip() or capability_id,
         tradition=str(raw.get("tradition", "")).strip(),
-        status=status,  # type: ignore[arg-type]
-        default_visibility=visibility,  # type: ignore[arg-type]
-        maturity_level=maturity_level,  # type: ignore[arg-type]
-        maturity_status=maturity_status,
+        availability=cast(CapabilityAvailability, availability),
+        default_visibility=cast(Visibility, visibility),
+        maturity_level=cast(MaturityLevel, maturity_level),
+        maturity_status=cast(CapabilityMaturityStatus, maturity_status),
         maturity_summary=maturity_summary,
         input_required=_as_tuple(raw.get("inputRequired", []), "inputRequired", capability_id),
         input_optional=_as_tuple(raw.get("inputOptional", []), "inputOptional", capability_id),
@@ -118,7 +126,7 @@ def _parse_capability(raw: dict[str, Any]) -> Capability:
         evidence_required=bool(evidence.get("required", True)),
         evidence_policy=evidence_policy,
         test_gate=test_gate,
-        risk_level=risk_level,  # type: ignore[arg-type]
+        risk_level=cast(RiskLevel, risk_level),
         disclaimer_required=bool(risk_policy.get("disclaimerRequired", True)),
         forbidden_claims=_as_tuple(risk_policy.get("forbiddenClaims", []), "riskPolicy.forbiddenClaims", capability_id),
         description=str(raw.get("description", "")).strip(),
@@ -144,22 +152,30 @@ def _validate_capability_admission(capability: Capability) -> None:
     if capability.markdown_default and capability.default_visibility != "default":
         raise ValueError(f"{capability_id}.markdownDefault=true 时 defaultVisibility 必须是 default")
 
-    if capability.status == "production":
+    if capability.availability == "available":
         if capability.maturity_level not in PRODUCTION_MATURITY_LEVELS:
-            raise ValueError(f"{capability_id}.production 能力成熟度必须至少为 L3")
+            raise ValueError(f"{capability_id}.available 能力成熟度必须至少为 L3")
+        expected_maturity_status = "production" if capability.maturity_level == "L4" else "validated"
+        if capability.maturity_status != expected_maturity_status:
+            raise ValueError(
+                f"{capability_id}.maturity.status 必须与 level 对齐: "
+                f"{capability.maturity_level} -> {expected_maturity_status}"
+            )
         if test_gate_status != "passing":
-            raise ValueError(f"{capability_id}.production 能力必须声明 testGate.status=passing")
+            raise ValueError(f"{capability_id}.available 能力必须声明 testGate.status=passing")
         if not commands:
-            raise ValueError(f"{capability_id}.production 能力必须声明至少一个 testGate.commands")
+            raise ValueError(f"{capability_id}.available 能力必须声明至少一个 testGate.commands")
         if capability.provider.startswith("planned."):
-            raise ValueError(f"{capability_id}.production 能力不能使用 planned.* provider")
+            raise ValueError(f"{capability_id}.available 能力不能使用 planned.* provider")
         if capability.engine_version == "planned-v0":
-            raise ValueError(f"{capability_id}.production 能力不能使用 planned-v0 engineVersion")
+            raise ValueError(f"{capability_id}.available 能力不能使用 planned-v0 engineVersion")
         return
 
-    if capability.status == "planned":
+    if capability.availability == "planned":
         if capability.maturity_level != "L0":
             raise ValueError(f"{capability_id}.planned 能力成熟度必须是 L0")
+        if capability.maturity_status != "registered":
+            raise ValueError(f"{capability_id}.planned 能力 maturity.status 必须是 registered")
         if test_gate_status != "blocked":
             raise ValueError(f"{capability_id}.planned 能力必须声明 testGate.status=blocked")
         if commands:
@@ -168,6 +184,12 @@ def _validate_capability_admission(capability: Capability) -> None:
             raise ValueError(f"{capability_id}.planned 能力必须使用 planned.* provider")
         if capability.engine_version != "planned-v0":
             raise ValueError(f"{capability_id}.planned 能力必须使用 planned-v0 engineVersion")
+        return
+
+    if capability.maturity_level not in {"L1", "L2"} or capability.maturity_status != "experimental":
+        raise ValueError(f"{capability_id}.unavailable 能力必须是 L1/L2 experimental")
+    if test_gate_status == "passing":
+        raise ValueError(f"{capability_id}.unavailable 能力不得声明 testGate.status=passing")
 
 
 @cache

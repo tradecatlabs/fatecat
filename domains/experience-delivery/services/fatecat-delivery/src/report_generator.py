@@ -28,6 +28,7 @@ from report_markdown import (
 from report_markdown import (
     render_markdown_table as _render_table,
 )
+from report_visibility import validate_public_markdown
 
 
 def public_birth_place(value: str | None) -> str:
@@ -63,6 +64,111 @@ DEFAULT_HIDE: dict[str, bool] = {
 }
 
 
+def _generate_basic_info_lines(result: dict[str, Any], hide: dict[str, bool], name: str) -> list[str]:
+    """渲染出生资料与可选空亡依据，不参与命理计算。"""
+    lines = ["### 基本资料（含真太阳时、节气）", ""]
+    inp = result.get("input", {})
+    bi = result.get("birthInfo", {})
+    meta = result.get("meta", {})
+    jq = result.get("jieqiDetail", {})
+
+    lunar_str = bi.get("lunar") or bi.get("lunarCn") or bi.get("lunarDate", "")
+    if not lunar_str:
+        lunar_str = f"{bi.get('lunarYear', '')}年{bi.get('lunarMonth', '')}月{bi.get('lunarDay', '')}日"
+
+    gender_cn = meta.get("genderCn") or inp.get("gender", "")
+    true_solar_time = meta.get("trueSolarTime") or result.get("trueSolarTime", "")
+    prev_jq = jq.get("prevJieQi", {})
+    next_jq = jq.get("nextJieQi", {})
+    lng = inp.get("longitude", "")
+    lat = inp.get("latitude", "")
+    vi = result.get("voidInfo", {})
+    zi_time = result.get("ziTimeAnalysis", {})
+
+    lines.extend(["", "#### 基本资料", ""])
+    rows: list[list[object]] = [["姓名", name or "-"]]
+    if inp.get("birthDate", ""):
+        rows.append(["出生日期", inp.get("birthDate", "")])
+    if inp.get("birthTime", ""):
+        rows.append(["出生时间", inp.get("birthTime", "")])
+    if lunar_str:
+        rows.append(["农历", lunar_str])
+
+    gender_text = (gender_cn or inp.get("gender", "") or "").strip()
+    gender_match = re.match(r"^(乾造|坤造)\((男|女)\)$", gender_text)
+    if gender_match:
+        rows.append(["造", gender_match.group(1)])
+        rows.append(["性别", gender_match.group(2)])
+    else:
+        rows.append(["性别", gender_text])
+
+    if inp.get("birthPlace", ""):
+        rows.append(["出生地区", inp.get("birthPlace", "")])
+    if lng != "":
+        rows.append(["经度", f"{lng}°"])
+    if lat != "":
+        rows.append(["纬度", f"{lat}°"])
+    if true_solar_time:
+        rows.append(["真太阳时", true_solar_time])
+    if prev_jq:
+        rows.append(
+            ["前节气", f"{prev_jq.get('name', '')} {prev_jq.get('date', '')} 已过{prev_jq.get('daysAfter', '')}天"]
+        )
+    if next_jq:
+        rows.append(
+            ["后节气", f"{next_jq.get('name', '')} {next_jq.get('date', '')} 还有{next_jq.get('daysBefore', '')}天"]
+        )
+    if isinstance(zi_time, dict) and zi_time.get("timeZhi", ""):
+        rows.append(["子时判定", f"时支{zi_time.get('timeZhi', '')}"])
+    lines.extend(_render_table(["项目", "内容"], rows))
+
+    if not hide.get("void_detail", True) and isinstance(vi, dict) and vi:
+        name_map = {"year": "年柱", "month": "月柱", "day": "日柱", "hour": "时柱"}
+        order = ["year", "month", "day", "hour"]
+        has_any = any(
+            isinstance(vi.get(key), dict) and (vi.get(key).get("xun") or vi.get(key).get("kong")) for key in order
+        )
+        if has_any:
+            lines.extend(["#### 空亡信息（依据）", ""])
+            for key in order:
+                item = vi.get(key, {})
+                if not isinstance(item, dict):
+                    continue
+                xun = item.get("xun", "")
+                kong = item.get("kong", "")
+                if xun or kong:
+                    lines.append(f"* {name_map.get(key, key)}：")
+                    if xun:
+                        lines.append(f"  - 旬：{xun}")
+                    if kong:
+                        lines.append(f"  - 空亡：{kong}")
+            lines.append("")
+    return lines
+
+
+def _generate_spirit_lines(result: dict[str, Any]) -> list[str]:
+    """渲染已合并去重的神煞数据，不维护第二套简表。"""
+    full_sp = result.get("spiritsFull", {})
+    full_by = full_sp.get("byPillar", {})
+    lines = ["### 神煞断语", ""]
+    if not isinstance(full_by, dict):
+        raise RuntimeError("神煞数据缺失: spiritsFull.byPillar 不是 dict")
+    rows: list[list[object]] = []
+    for pillar, pillar_name in [("year", "年柱"), ("month", "月柱"), ("day", "日柱"), ("hour", "时柱")]:
+        spirits = full_by.get(pillar, [])
+        if spirits:
+            rows.append([pillar_name, "、".join(str(item) for item in spirits if str(item).strip())])
+    if rows:
+        lines.extend(_render_table(["柱", "神煞（合并去重）"], rows))
+    descriptions = full_sp.get("descriptions", {})
+    if descriptions:
+        lines.extend(["", "**神煞释义**"])
+        for spirit, description in descriptions.items():
+            lines.append(f"- {spirit}：{description}")
+    lines.append("")
+    return lines
+
+
 def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None) -> str:
     """生成Markdown格式报告（主干部分）。
 
@@ -78,105 +184,13 @@ def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None)
     lines.append("## 第一卷：先天命格（静态分析）")
     lines.append("")
 
-    # 基本信息
-    lines.append("### 基本资料（含真太阳时、节气）")
-    lines.append("")
-    bi = result.get("birthInfo", {})
-    meta = result.get("meta", {})
-    jq = result.get("jieqiDetail", {})
-
-    # 农历日期
-    lunar_str = bi.get("lunar") or bi.get("lunarCn") or bi.get("lunarDate", "")
-    if not lunar_str:
-        # 尝试从其他字段构建
-        lunar_str = f"{bi.get('lunarYear', '')}年{bi.get('lunarMonth', '')}月{bi.get('lunarDay', '')}日"
-
-    gender_cn = meta.get("genderCn") or inp.get("gender", "")
-    true_solar_time = meta.get("trueSolarTime") or result.get("trueSolarTime", "")
-
-    # 不在这里输出“阳历/农历/性别”的合并行，统一放到“基本信息（展开）”中逐条输出
-
-    # 出生节气
-    prev_jq = jq.get("prevJieQi", {})
-    next_jq = jq.get("nextJieQi", {})
-    lng = inp.get("longitude", "")
-    lat = inp.get("latitude", "")
-    lnglat = f"{lng}° / {lat}°" if (lng or lat) else ""
-
+    lines.extend(_generate_basic_info_lines(result, hide, name))
     sp = result.get("specialPalaces", {})
     ty = sp.get("taiYuan", {})
     tx = sp.get("taiXi", {})
     mg = sp.get("mingGong", {})
     sg = sp.get("shenGong", {})
     vi = result.get("voidInfo", {})
-    zi_time = result.get("ziTimeAnalysis", {})
-    lines.append("")
-
-    # 基本信息展开（避免表格中信息被认为“缩写”）
-    lines.append("#### 基本资料")
-    lines.append("")
-    rows = []
-    rows.append(["姓名", name or "-"])
-    if inp.get("birthDate", ""):
-        rows.append(["出生日期", inp.get("birthDate", "")])
-    if inp.get("birthTime", ""):
-        rows.append(["出生时间", inp.get("birthTime", "")])
-    if lunar_str:
-        rows.append(["农历", lunar_str])
-    # 性别字段可能是“乾造(男)/坤造(女)”这种合并口径，拆开输出
-    g_txt = (gender_cn or inp.get("gender", "") or "").strip()
-    m = re.match(r"^(乾造|坤造)\((男|女)\)$", g_txt)
-    if m:
-        rows.append(["造", m.group(1)])
-        rows.append(["性别", m.group(2)])
-    else:
-        rows.append(["性别", g_txt])
-    if inp.get("birthPlace", ""):
-        rows.append(["出生地区", inp.get("birthPlace", "")])
-    if lnglat:
-        if lng != "":
-            rows.append(["经度", f"{lng}°"])
-        if lat != "":
-            rows.append(["纬度", f"{lat}°"])
-    if true_solar_time:
-        rows.append(["真太阳时", true_solar_time])
-    if prev_jq:
-        rows.append(
-            ["前节气", f"{prev_jq.get('name', '')} {prev_jq.get('date', '')} 已过{prev_jq.get('daysAfter', '')}天"]
-        )
-    if next_jq:
-        rows.append(
-            ["后节气", f"{next_jq.get('name', '')} {next_jq.get('date', '')} 还有{next_jq.get('daysBefore', '')}天"]
-        )
-    if isinstance(zi_time, dict) and zi_time.get("timeZhi", ""):
-        rows.append(["子时判定", f"时支{zi_time.get('timeZhi', '')}"])
-    lines.extend(_render_table(["项目", "内容"], rows))
-
-    # 空亡信息明细：已在“四柱信息表”中给出（旬/空亡），这里默认不再重复输出
-    # 如需单独展开，可通过 hide["void_detail"]=False 打开。
-    if not hide.get("void_detail", True):
-        if isinstance(vi, dict) and vi:
-            name_map = {"year": "年柱", "month": "月柱", "day": "日柱", "hour": "时柱"}
-            order = ["year", "month", "day", "hour"]
-            has_any = any(
-                isinstance(vi.get(k), dict) and (vi.get(k).get("xun") or vi.get(k).get("kong")) for k in order
-            )
-            if has_any:
-                lines.append("#### 空亡信息（依据）")
-                lines.append("")
-                for k in order:
-                    item = vi.get(k, {})
-                    if not isinstance(item, dict):
-                        continue
-                    xun = item.get("xun", "")
-                    kong = item.get("kong", "")
-                    if xun or kong:
-                        lines.append(f"* {name_map.get(k, k)}：")
-                        if xun:
-                            lines.append(f"  - 旬：{xun}")
-                        if kong:
-                            lines.append(f"  - 空亡：{kong}")
-                lines.append("")
 
     # 八字排盘详情
     lines.append("### 八字排盘详情")
@@ -293,29 +307,7 @@ def generate_report(result: dict[str, Any], hide: dict[str, bool] | None = None)
         lines.append("")
         lines.extend(_render_table(["项目", "干支", "纳音"], special_palace_rows))
 
-    # 神煞（默认输出合并后的全量列表；禁止回退到简表口径）
-    full_sp = result.get("spiritsFull", {})
-    full_by = full_sp.get("byPillar", {})
-    lines.append("### 神煞断语")
-    lines.append("")
-    if not isinstance(full_by, dict):
-        raise RuntimeError("神煞数据缺失: spiritsFull.byPillar 不是 dict")
-    srows: list[list[object]] = []
-    for pillar, pname in [("year", "年柱"), ("month", "月柱"), ("day", "日柱"), ("hour", "时柱")]:
-        slist = full_by.get(pillar, [])
-        if not slist:
-            continue
-        srows.append([pname, "、".join([str(x) for x in slist if str(x).strip()])])
-    if srows:
-        lines.extend(_render_table(["柱", "神煞（合并去重）"], srows))
-    descs = full_sp.get("descriptions", {})
-    if descs:
-        lines.append("")
-        lines.append("**神煞释义**")
-        for k, v in descs.items():
-            lines.append(f"- {k}：{v}")
-
-    lines.append("")
+    lines.extend(_generate_spirit_lines(result))
 
     return _normalize_present_text("\n".join(lines))
 
@@ -941,9 +933,11 @@ def generate_full_report(
     """
     system = _normalize_report_system(report_system)
     if system == "bazi":
-        return generate_bazi_standard_report(result, hide=hide)
+        markdown = generate_bazi_standard_report(result, hide=hide)
+        return validate_public_markdown(markdown, system)
     if system == "ziwei":
-        return generate_ziwei_report(result)
+        markdown = generate_ziwei_report(result)
+        return validate_public_markdown(markdown, system)
     raise AssertionError(f"未处理的报告体系: {system}")
 
 

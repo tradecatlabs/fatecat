@@ -12,6 +12,7 @@ developer/
 ├── api-changelog.json
 ├── developer-portal.json
 ├── developer-platform.json
+├── public-client-distribution.json
 ├── sandbox-access-gateway.json
 ├── sandbox-output-snapshot.json
 ├── sandbox-token-contract.json
@@ -24,6 +25,7 @@ developer/
 - `developer-platform.json`：登记开发者平台 baseline、SDK/package 状态、sandbox、API changelog 和 validation gate；它不声明 PyPI/npm SDK 已发布。
 - `developer-portal.json`：登记本地 developer portal release baseline、人类入口、机器契约和外部未上线边界；它不声明公网门户已上线。
 - `sdk-release-baseline.json`：登记 SDK release-readiness package candidates、smoke commands、未发布边界和未来 registry publish 证据要求。
+- `public-client-distribution.json`：公开 Python HTTP 客户端与受限服务端运行时的分发边界、归档 allowlist 和 clean-room 门禁。
 - `sandbox-access-gateway.json`：登记本地可执行 sandbox gateway 的 scope、端点、限流、审计和门禁口径；它不声明公网 token issuer、revocation service 或生产 API key 服务已上线。
 - `sandbox-output-snapshot.json`：登记 sandbox fixture 的脱敏固定输出 hash 和结构断言；只保存摘要，不保存完整响应正文。
 - `api-changelog.json`：机器可读 API changelog 与兼容策略；breaking change 必须在这里登记迁移与兼容窗口。

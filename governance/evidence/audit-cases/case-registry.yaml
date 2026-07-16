@@ -15,3 +15,5 @@ cases:
       - deprecated as source
       - consumer migration
       - report ownership
+      - availability maturity migration
+      - stale lifecycle consumer

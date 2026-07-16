@@ -1,0 +1,268 @@
+{
+  "schema_version": "1.0.0",
+  "overall_status": "Done",
+  "nodes": [
+    {
+      "id": "TP-01",
+      "title": "建立公开报告字段允许契约",
+      "priority": "P0",
+      "type": "Contract",
+      "objective": "明确公开 Markdown 与机器证据的字段边界，并建立多样本防泄露门禁",
+      "parent": null,
+      "depends_on": [],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "公开报告契约测试与多样本回归通过",
+      "gate": "公开输出只含允许字段，结构化证据无损",
+      "outputs": [
+        "公开字段契约",
+        "投影/验证薄层",
+        "泄露回归测试"
+      ],
+      "acceptance": [
+        "机器标识不出现在 Markdown",
+        "用户字段不被误删",
+        "结构化 evidence 保留"
+      ],
+      "status": "Done",
+      "evidence": "公开报告 allowlist 与 6 个回归测试通过",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-02",
+      "title": "优化完整八字冷启动热路径",
+      "priority": "P0",
+      "type": "Performance",
+      "objective": "消除逐月重复父级计算，保持完整输出和历法结果不变",
+      "parent": null,
+      "depends_on": [
+        "TP-01"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "冷/热 benchmark 与结果等价测试",
+      "gate": "月份数量和语义完全一致，冷启动获得稳定收益",
+      "outputs": [
+        "热路径优化",
+        "benchmark",
+        "等价回归"
+      ],
+      "acceptance": [
+        "不减少数据范围",
+        "不手写新的历法算法",
+        "性能证据可重复"
+      ],
+      "status": "Done",
+      "evidence": "完整 98 年/1176 月等价测试与性能 smoke 通过",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-03",
+      "title": "建立独立准确性评测入口",
+      "priority": "P0",
+      "type": "Quality",
+      "objective": "把外部 fixture、来源和容差与引擎自生成 golden 分离，并保留专家待审状态",
+      "parent": null,
+      "depends_on": [
+        "TP-01"
+      ],
+      "parallelizable": true,
+      "debug_required": true,
+      "verify": "独立 runner schema/source/failure tests",
+      "gate": "不能用自产 fixture 通过独立门禁，缺专家证据时状态明确 pending",
+      "outputs": [
+        "独立评测 runner",
+        "fixture manifest",
+        "可选 acceptance gate"
+      ],
+      "acceptance": [
+        "来源和 hash 可追溯",
+        "失败退出码可靠",
+        "不宣称专家认证"
+      ],
+      "status": "Done",
+      "evidence": "evidenceClass 契约、独立来源和人工待审边界通过",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-04",
+      "title": "统一 capability 生命周期语义",
+      "priority": "P0",
+      "type": "Contract",
+      "objective": "让可执行状态、生命周期和成熟度在 registry/schema/executor/API 中含义一致",
+      "parent": null,
+      "depends_on": [
+        "TP-01"
+      ],
+      "parallelizable": true,
+      "debug_required": false,
+      "verify": "registry schema 与 executor/API 契约测试",
+      "gate": "planned 拒绝执行，validated 不再被误报 production",
+      "outputs": [
+        "统一 registry 字段",
+        "迁移契约",
+        "一致性测试"
+      ],
+      "acceptance": [
+        "无永久双状态真相源",
+        "公共兼容边界明确"
+      ],
+      "status": "Done",
+      "evidence": "availability/maturity 迁移及控制面 219 checks 通过",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-05",
+      "title": "收敛核心与报告职责复杂度",
+      "priority": "P1",
+      "type": "Refactor",
+      "objective": "拆分超长计算与渲染职责，不改变结果和公共接口",
+      "parent": null,
+      "depends_on": [
+        "TP-02",
+        "TP-04"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "行为快照、复杂度检查和定向回归",
+      "gate": "职责边界清晰，未新增无消费者抽象",
+      "outputs": [
+        "小职责 helper/模块",
+        "行为保持测试",
+        "AGENTS/module context 同步"
+      ],
+      "acceptance": [
+        "超长函数显著收缩",
+        "无双轨计算",
+        "输出一致"
+      ],
+      "status": "Done",
+      "evidence": "计算与渲染 helper 拆分，行为回归通过",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-06",
+      "title": "补齐异步报告端到端指标",
+      "priority": "P0",
+      "type": "Observability",
+      "objective": "记录排队、执行、结果大小、终态和过期，不采集用户输入标签",
+      "parent": null,
+      "depends_on": [
+        "TP-04"
+      ],
+      "parallelizable": true,
+      "debug_required": false,
+      "verify": "report job lifecycle metrics tests 与 /metrics smoke",
+      "gate": "固定低基数标签覆盖全部终态",
+      "outputs": [
+        "job metrics",
+        "observability contract",
+        "回归测试"
+      ],
+      "acceptance": [
+        "可计算 queue/runtime p95",
+        "失败/过期可见",
+        "无 PII 标签"
+      ],
+      "status": "Done",
+      "evidence": "异步队列/执行/大小/终态指标回归通过",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-07",
+      "title": "建立许可证安全的公开客户端闭包",
+      "priority": "P0",
+      "type": "Packaging",
+      "objective": "公开包只含客户端、契约和文档，受限计算资产继续留在服务端并由门禁阻断",
+      "parent": null,
+      "depends_on": [
+        "TP-04"
+      ],
+      "parallelizable": true,
+      "debug_required": false,
+      "verify": "clean-room install/smoke + archive content inspection + restricted gate negative test",
+      "gate": "公开闭包无未知许可证资产且仍可调用生产 API",
+      "outputs": [
+        "公开客户端包",
+        "distribution manifest",
+        "许可证门禁测试"
+      ],
+      "acceptance": [
+        "unknown license 不被改写",
+        "客户端无服务端隐式 import",
+        "可独立安装"
+      ],
+      "status": "Done",
+      "evidence": "clean-room wheel/sdist 安装与 HTTP fixture smoke 通过",
+      "blocker": "-",
+      "unblock": "-"
+    },
+    {
+      "id": "TP-08",
+      "title": "全量验证、审查与仓库卫生收口",
+      "priority": "P0",
+      "type": "Verification",
+      "objective": "统一验证所有切片，更新治理真相源，形成语义提交并恢复干净工作树",
+      "parent": null,
+      "depends_on": [
+        "TP-05",
+        "TP-03",
+        "TP-06",
+        "TP-07"
+      ],
+      "parallelizable": false,
+      "debug_required": false,
+      "verify": "quick CI + governance/task strict + auto-review + git status",
+      "gate": "无 BLOCK、无未解释失败、无未提交文件",
+      "outputs": [
+        "REVIEW",
+        "closeout packet",
+        "语义提交",
+        "干净工作树"
+      ],
+      "acceptance": [
+        "第 1 项保持外部待审",
+        "本地证据完整",
+        "文档与实现一致"
+      ],
+      "status": "Done",
+      "evidence": "Quick CI 513 tests passed，审查与治理收口",
+      "blocker": "-",
+      "unblock": "-"
+    }
+  ],
+  "document_blocks": {
+    "in_scope": "- 为公开 Markdown 建立明确字段允许清单，并保证机器证据继续保留在结构化结果中\n- 在不减少 98 年和 1176 月完整输出的前提下优化八字冷启动计算热路径\n- 建立与引擎自生成样本分离的独立准确性评测入口，人工专家结论继续标记待执行\n- 统一 capability 可执行状态、生命周期和成熟度语义\n- 拆分八字核心计算与报告生成中的超长职责，保持行为和公共契约不变\n- 为异步报告任务补充排队、执行、结果大小和状态指标\n- 在未知许可证资产继续受限的前提下形成可公开分发的客户端闭包\n- 完成全量验证、审查、治理同步、语义提交和干净工作树",
+    "out_of_scope": "- 修改神煞、格局、用神或其他专业断语内容；该项等待人类命理专家处理\n- 缩短完整报告的年份或月份范围\n- 把本地自洽测试伪装成第三方准确性认证\n- 把 bazi-1、sxwnl 或其他未知许可证资产声明为可公开分发\n- 新增预测体系或改变 Web 视觉设计",
+    "requirement_alignment": "- 目标: 完成测算基础设施第二阶段加固：公开字段契约、冷启动性能、独立评测、成熟度语义、复杂度、异步指标、分发许可与仓库卫生\n- approved plan 顶层步骤数: 8\n- 编译后节点总数: 8\n- 编译后叶子节点数: 8\n- 对齐项: 用户明确要求处理审查问题 2 到 9，第 1 项交由人类专家处理\n- 对齐项: 此前明确要求保持每次完整计算 98 年和全部流月，不引入近期报告降级\n- 对齐项: FateCat 的定位是面向 Agent 与应用开发者的测算基础设施\n- 计划摘要: 先锁公开投影和 capability 语义，再优化确定性热路径并接入独立评测；随后拆分职责、补异步观测和公开分发闭包，最后执行隔离审查与仓库卫生收口。",
+    "repo_evidence": "- 当前八字冷进程实测约 4.4 至 4.7 秒，热进程约 0.32 至 0.36 秒；主要热点在逐月 LiuYue.getGanZhi 调用\n- report_generator.py 与 bazi_calculator.py 含超长函数，公开渲染与内部结果选择仍存在局部耦合\n- capability registry 中 almanac/meihua 顶层 production 与 L3 validated 成熟度表达不一致\n- HTTP request latency 不能代表异步 report job 的排队与计算时长\n- bazi-1 与 sxwnl 许可证状态未知，完整运行时不满足无条件公开分发\n- 任务 0159 已独立提交为 942b965，本任务从干净基线开始",
+    "constraints_matrix": "- Target end state: 计算、证据、公开投影、执行状态、观测和分发边界各有单一机器真相源\n- Real constraints: 公共 API、完整报告输出、未知许可证、人工专家证据、HF 生产环境和当前用户承诺\n- Inertia constraints: 旧 status 命名、超长函数形状、内部字段直接拼接和全运行时打包习惯不能决定终态\n- Wrong concept / wrong boundary: 可执行不等于生产成熟；内部结果不等于公开字段；HTTP 延迟不等于异步计算耗时\n- Kill list: 隐式公开字段、重复逐月父级计算、成熟度双重语义、超长多职责函数、无任务级异步指标、受限资产混入公开包\n- Proof point: 多样本泄露门禁、字节/语义等价性能回归、独立 fixture 来源校验、registry 一致性、metrics 测试与 clean-room 客户端 smoke 全部通过\n- Falsifier: 优化改变任一柱/运/月结果，字段契约无法兼容，或客户端不能在无受限资产环境运行\n- Migration slice: 先固化契约和测试，再逐项替换热路径与边界，最后统一验证和提交\n- Rejected short-term patches: 不追加散落字符串 denylist、不用全局缓存掩盖重复计算、不把 unknown license 改成 allowed、不保留永久双 status\n- Existence check: 八项均对应已复现风险或交付阻断，必须存在；通用报告框架、新队列服务和新预测体系不应存在\n- Selected ladder rung: 现有项目契约、标准库、lunar-python、Prometheus 与打包工具优先；只增加薄投影、runner 和指标适配\n- Skipped scope: 专业断语、人类评审、外部生产 live、新体系和视觉重构\n- Ceiling / upgrade path: 当任务量跨进程或多副本时再把内存 job manager 升级为外部队列与共享 metrics\n- Do-not-simplify: 隐私、完整输出、确定性、许可证阻断、错误状态和审计来源不可删除\n- Minimal runnable check: quick CI 加各切片定向回归与 clean-room smoke\n- Complexity review owner: auto-review ponytail-complexity 与 future-optimal-drift lenses",
+    "change_boundary": "- 允许修改 fate-core、delivery、contracts、metrics、packaging、scripts、tests 与对应 AGENTS/governance 文档\n- 禁止修改专业断语文本和第一项专家内容\n- 禁止减少完整报告的数据范围或弱化许可证门禁",
+    "risk_matrix": "- 热路径优化可能改变节气或流月边界，必须以现有输出和独立 golden 双重约束\n- status 字段属于公开契约，迁移必须版本化且有明确弃用边界\n- 报告 allowlist 过窄会误删用户需要字段，过宽会继续泄露内部元数据\n- metrics 标签若包含用户输入会造成隐私泄露和高基数，标签只允许固定枚举\n- 公开客户端若隐式 import 服务端模块会在 clean-room 中失效",
+    "assumptions_and_falsification": "- lunar-python 的公开对象可在不手写历法规则的情况下复用或缓存父级确定性结果\n- 当前公开客户端以调用已部署 API 为主要能力，不需要携带受限计算 vendor\n- 人类专家评审材料可以后续接入同一独立评测 schema",
+    "critical_ambiguities": "- 公开 status 兼容边界需以现有 schema 和调用方扫描为准，若已对外暴露则保留单个有期限的 deprecated projection\n- 独立准确性只证明 fixture 对照，不代表专业解释层已由专家认可",
+    "debug_evidence_contract": "- 调试模式: Required\n- 若任务属于 bugfix / regression / flaky / crash / CI-only failure，必须切到 `Required`\n- `Required` 时必须在当前任务目录创建并维护 `DEBUG.md`\n- `DEBUG.md` 必须覆盖复现、观察、假设、实验、根因、修复、回归证据\n- 调试关注点: LiuYue.getGanZhi 冷启动重复父级计算\n- 调试关注点: 公开 Markdown 与结构化证据字段边界\n- 调试关注点: capability status/maturity 双重语义\n- 调试关注点: 异步任务生命周期指标完整性\n- 强制调试叶子节点: TP-03",
+    "runtime_workflow_contract": "- workflow artifact 必须存入任务目录，而不是只留在聊天上下文。\n- worker 只能消费当前 packet 的最小上下文、允许工具、禁止动作、证据要求和停止条件。\n- verifier / 自审必须独立挑战关键发现，不能把 worker 自评当作验收。\n- integrator / closeout 必须报告 verified、rejected、unresolved、failed、not-covered。",
+    "runtime_verification_gate": "- [ ] 每个 tool/action 结果都有可回指证据或明确未执行原因。\n- [ ] 高风险动作没有由 worker/agent 自我批准；审批状态可追踪。\n- [ ] compaction / resume 后目标、计划、修改文件、审批状态和验证项未丢失。\n- [ ] verifier / 自审已检查关键发现是否有证据支持。\n- [ ] closeout 明确 coverage gaps、failed packets 和 unresolved questions。\n- [ ] TP-01: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-02: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-03: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-04: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-05: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-06: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-07: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据\n- [ ] TP-08: 输出格式 `按 outputs/acceptance 汇报`；证据要求：默认可复核证据",
+    "runtime_state": "- Active workflow state: 以 `TASK_PACKAGE_SET.json` / `TASK_EXECUTION_WAVE_PACKET.json` 为准。\n- Approval state: 未记录即视为未授权。\n- Resume rule: 继续任务前重新读取当前 packet、Recent Evidence、Blockers、Runtime State。\n- TP-01: status=Done; verifier_context=自审\n- TP-02: status=Done; verifier_context=自审\n- TP-03: status=Done; verifier_context=自审\n- TP-04: status=Done; verifier_context=自审\n- TP-05: status=Done; verifier_context=自审\n- TP-06: status=Done; verifier_context=自审\n- TP-07: status=Done; verifier_context=自审\n- TP-08: status=Done; verifier_context=自审",
+    "task_level_acceptance": "- 公开报告只包含允许字段，机器规则 ID、provider/source 编码和内部调试元数据不能泄露，但结构化证据仍可查询\n- 冷启动 benchmark 有可重复命令，完整报告语义和输出规模不变，性能相对基线获得可测收益\n- 独立 fixture/benchmark 与引擎自生成 golden 明确分级，缺少外部专家签字时不能输出已认证结论\n- capability registry、schema、executor 和 API 对成熟度与可执行性的判断一致\n- 异步任务 metrics 能区分排队、执行、成功、失败、过期和结果大小\n- 公开客户端包不包含受限运行时资产，受限服务端包继续被 release gate 阻止\n- quick CI、定向性能/契约测试、治理 strict、任务 closeout 和最终 review 通过，工作树干净\n- approved plan 已成功编译为递归任务树\n- 叶子节点数量: 8\n- 当前可立即执行叶子节点: 无",
+    "validation_plan": "- 多样本公开 Markdown 泄露扫描和结构化证据保留测试\n- 冷进程与热进程 benchmark、输出语义等价和完整月份计数测试\n- 独立准确性 runner 的 schema、来源、重复执行和失败门禁测试\n- capability registry/schema/executor/API 契约测试\n- 异步任务状态与 Prometheus metrics 测试\n- 公开客户端 clean-room install/smoke 和受限资产缺失证明\n- bash scripts/local-ci.sh --profile quick 与治理/任务 strict 校验\n- bugfix / regression / flaky 任务必须把 DEBUG.md 的回归证据串到 Recent Evidence\n- TP-01 | Verify: 公开报告契约测试与多样本回归通过 | Gate: 公开输出只含允许字段，结构化证据无损\n- TP-02 | Verify: 冷/热 benchmark 与结果等价测试 | Gate: 月份数量和语义完全一致，冷启动获得稳定收益\n- TP-03 | Verify: 独立 runner schema/source/failure tests | Gate: 不能用自产 fixture 通过独立门禁，缺专家证据时状态明确 pending\n- TP-04 | Verify: registry schema 与 executor/API 契约测试 | Gate: planned 拒绝执行，validated 不再被误报 production\n- TP-05 | Verify: 行为快照、复杂度检查和定向回归 | Gate: 职责边界清晰，未新增无消费者抽象\n- TP-06 | Verify: report job lifecycle metrics tests 与 /metrics smoke | Gate: 固定低基数标签覆盖全部终态\n- TP-07 | Verify: clean-room install/smoke + archive content inspection + restricted gate negative test | Gate: 公开闭包无未知许可证资产且仍可调用生产 API\n- TP-08 | Verify: quick CI + governance/task strict + auto-review + git status | Gate: 无 BLOCK、无未解释失败、无未提交文件",
+    "review_gate": "- 不触碰第 1 项专业断语\n- 完整报告输出范围不变且核心结果无差异\n- 所有公开字段、生命周期、指标和分发边界具有机器契约\n- 没有以兼容焦虑保留永久双轨或以自洽测试冒充独立证明",
+    "ship_readiness": "- 所有本地门禁和任务 closeout 通过后形成语义提交\n- 远端 CI/生产部署若未由用户要求则不伪造完成状态\n- 人类专家和外部 live 继续列为待执行",
+    "global_acceptance_standards": "- [ ] 所有结论来自真实命令和文件证据，不伪造外部专家、生产或许可证结论\n- [ ] 公共 API 兼容性、完整报告输出、隐私边界和确定性计算不能因优化退化\n- [ ] 新增模块必须有单一职责和直接消费者，不建立通用框架或双轨真相源\n- [ ] 性能结论必须区分冷启动、热路径和渲染耗时，并记录硬件与样本",
+    "package_context_blocks": "## TP-01\n- Step Key: `public-report-contract`\n- 标题: 建立公开报告字段允许契约\n- 类型: `Contract`\n- 目标: 明确公开 Markdown 与机器证据的字段边界，并建立多样本防泄露门禁\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: 无\n- 依赖节点 ID: 无\n- 输入: 无\n- 输出: 公开字段契约；投影/验证薄层；泄露回归测试\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n## TP-02\n- Step Key: `cold-start-performance`\n- 标题: 优化完整八字冷启动热路径\n- 类型: `Performance`\n- 目标: 消除逐月重复父级计算，保持完整输出和历法结果不变\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: public-report-contract\n- 依赖节点 ID: TP-01\n- 输入: 无\n- 输出: 热路径优化；benchmark；等价回归\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n## TP-03\n- Step Key: `independent-accuracy`\n- 标题: 建立独立准确性评测入口\n- 类型: `Quality`\n- 目标: 把外部 fixture、来源和容差与引擎自生成 golden 分离，并保留专家待审状态\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: public-report-contract\n- 依赖节点 ID: TP-01\n- 输入: 无\n- 输出: 独立评测 runner；fixture manifest；可选 acceptance gate\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n## TP-04\n- Step Key: `capability-lifecycle`\n- 标题: 统一 capability 生命周期语义\n- 类型: `Contract`\n- 目标: 让可执行状态、生命周期和成熟度在 registry/schema/executor/API 中含义一致\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: public-report-contract\n- 依赖节点 ID: TP-01\n- 输入: 无\n- 输出: 统一 registry 字段；迁移契约；一致性测试\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n## TP-05\n- Step Key: `core-complexity`\n- 标题: 收敛核心与报告职责复杂度\n- 类型: `Refactor`\n- 目标: 拆分超长计算与渲染职责，不改变结果和公共接口\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: cold-start-performance, capability-lifecycle\n- 依赖节点 ID: TP-02, TP-04\n- 输入: 无\n- 输出: 小职责 helper/模块；行为保持测试；AGENTS/module context 同步\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n## TP-06\n- Step Key: `async-job-metrics`\n- 标题: 补齐异步报告端到端指标\n- 类型: `Observability`\n- 目标: 记录排队、执行、结果大小、终态和过期，不采集用户输入标签\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: capability-lifecycle\n- 依赖节点 ID: TP-04\n- 输入: 无\n- 输出: job metrics；observability contract；回归测试\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n## TP-07\n- Step Key: `public-distribution`\n- 标题: 建立许可证安全的公开客户端闭包\n- 类型: `Packaging`\n- 目标: 公开包只含客户端、契约和文档，受限计算资产继续留在服务端并由门禁阻断\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: capability-lifecycle\n- 依赖节点 ID: TP-04\n- 输入: 无\n- 输出: 公开客户端包；distribution manifest；许可证门禁测试\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无\n\n## TP-08\n- Step Key: `quality-closeout`\n- 标题: 全量验证、审查与仓库卫生收口\n- 类型: `Verification`\n- 目标: 统一验证所有切片，更新治理真相源，形成语义提交并恢复干净工作树\n- 父节点: `ROOT`\n- 子节点: 无\n- 依赖步骤 Key: core-complexity, independent-accuracy, async-job-metrics, public-distribution\n- 依赖节点 ID: TP-05, TP-03, TP-06, TP-07\n- 输入: 无\n- 输出: REVIEW；closeout packet；语义提交；干净工作树\n- 允许工具: 默认遵循当前环境与任务范围\n- 禁止动作: 无未声明授权的高风险动作\n- 证据要求: 命令输出、文件 diff、日志或审查结论\n- 停止条件: 越界、缺审批、验证失败或上下文不足时暂停\n- 风险: 无\n- 备注: 无",
+    "package_acceptance_blocks": "## TP-01\n- 标题: 建立公开报告字段允许契约\n- 验收标准:\n  - 机器标识不出现在 Markdown\n  - 用户字段不被误删\n  - 结构化 evidence 保留\n- Verify: 公开报告契约测试与多样本回归通过\n- Gate: 公开输出只含允许字段，结构化证据无损\n- 输出物: 公开字段契约；投影/验证薄层；泄露回归测试\n\n## TP-02\n- 标题: 优化完整八字冷启动热路径\n- 验收标准:\n  - 不减少数据范围\n  - 不手写新的历法算法\n  - 性能证据可重复\n- Verify: 冷/热 benchmark 与结果等价测试\n- Gate: 月份数量和语义完全一致，冷启动获得稳定收益\n- 输出物: 热路径优化；benchmark；等价回归\n\n## TP-03\n- 标题: 建立独立准确性评测入口\n- 验收标准:\n  - 来源和 hash 可追溯\n  - 失败退出码可靠\n  - 不宣称专家认证\n- Verify: 独立 runner schema/source/failure tests\n- Gate: 不能用自产 fixture 通过独立门禁，缺专家证据时状态明确 pending\n- 输出物: 独立评测 runner；fixture manifest；可选 acceptance gate\n\n## TP-04\n- 标题: 统一 capability 生命周期语义\n- 验收标准:\n  - 无永久双状态真相源\n  - 公共兼容边界明确\n- Verify: registry schema 与 executor/API 契约测试\n- Gate: planned 拒绝执行，validated 不再被误报 production\n- 输出物: 统一 registry 字段；迁移契约；一致性测试\n\n## TP-05\n- 标题: 收敛核心与报告职责复杂度\n- 验收标准:\n  - 超长函数显著收缩\n  - 无双轨计算\n  - 输出一致\n- Verify: 行为快照、复杂度检查和定向回归\n- Gate: 职责边界清晰，未新增无消费者抽象\n- 输出物: 小职责 helper/模块；行为保持测试；AGENTS/module context 同步\n\n## TP-06\n- 标题: 补齐异步报告端到端指标\n- 验收标准:\n  - 可计算 queue/runtime p95\n  - 失败/过期可见\n  - 无 PII 标签\n- Verify: report job lifecycle metrics tests 与 /metrics smoke\n- Gate: 固定低基数标签覆盖全部终态\n- 输出物: job metrics；observability contract；回归测试\n\n## TP-07\n- 标题: 建立许可证安全的公开客户端闭包\n- 验收标准:\n  - unknown license 不被改写\n  - 客户端无服务端隐式 import\n  - 可独立安装\n- Verify: clean-room install/smoke + archive content inspection + restricted gate negative test\n- Gate: 公开闭包无未知许可证资产且仍可调用生产 API\n- 输出物: 公开客户端包；distribution manifest；许可证门禁测试\n\n## TP-08\n- 标题: 全量验证、审查与仓库卫生收口\n- 验收标准:\n  - 第 1 项保持外部待审\n  - 本地证据完整\n  - 文档与实现一致\n- Verify: quick CI + governance/task strict + auto-review + git status\n- Gate: 无 BLOCK、无未解释失败、无未提交文件\n- 输出物: REVIEW；closeout packet；语义提交；干净工作树",
+    "package_acceptance_checklists": "## TP-01\n- 标题: 建立公开报告字段允许契约\n- 验收项:\n  - [ ] 机器标识不出现在 Markdown\n  - [ ] 用户字段不被误删\n  - [ ] 结构化 evidence 保留\n- Verify: 公开报告契约测试与多样本回归通过\n- Gate: 公开输出只含允许字段，结构化证据无损\n- 输出物:\n  - [ ] 公开字段契约\n  - [ ] 投影/验证薄层\n  - [ ] 泄露回归测试\n- 标准清单:\n  - [ ] Verify: 公开报告契约测试与多样本回归通过\n  - [ ] Gate: 公开输出只含允许字段，结构化证据无损\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-02\n- 标题: 优化完整八字冷启动热路径\n- 验收项:\n  - [ ] 不减少数据范围\n  - [ ] 不手写新的历法算法\n  - [ ] 性能证据可重复\n- Verify: 冷/热 benchmark 与结果等价测试\n- Gate: 月份数量和语义完全一致，冷启动获得稳定收益\n- 输出物:\n  - [ ] 热路径优化\n  - [ ] benchmark\n  - [ ] 等价回归\n- 标准清单:\n  - [ ] Verify: 冷/热 benchmark 与结果等价测试\n  - [ ] Gate: 月份数量和语义完全一致，冷启动获得稳定收益\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-03\n- 标题: 建立独立准确性评测入口\n- 验收项:\n  - [ ] 来源和 hash 可追溯\n  - [ ] 失败退出码可靠\n  - [ ] 不宣称专家认证\n- Verify: 独立 runner schema/source/failure tests\n- Gate: 不能用自产 fixture 通过独立门禁，缺专家证据时状态明确 pending\n- 输出物:\n  - [ ] 独立评测 runner\n  - [ ] fixture manifest\n  - [ ] 可选 acceptance gate\n- 标准清单:\n  - [ ] Verify: 独立 runner schema/source/failure tests\n  - [ ] Gate: 不能用自产 fixture 通过独立门禁，缺专家证据时状态明确 pending\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n  - [ ] 维护 `DEBUG.md` 并保留回归证据\n\n## TP-04\n- 标题: 统一 capability 生命周期语义\n- 验收项:\n  - [ ] 无永久双状态真相源\n  - [ ] 公共兼容边界明确\n- Verify: registry schema 与 executor/API 契约测试\n- Gate: planned 拒绝执行，validated 不再被误报 production\n- 输出物:\n  - [ ] 统一 registry 字段\n  - [ ] 迁移契约\n  - [ ] 一致性测试\n- 标准清单:\n  - [ ] Verify: registry schema 与 executor/API 契约测试\n  - [ ] Gate: planned 拒绝执行，validated 不再被误报 production\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-05\n- 标题: 收敛核心与报告职责复杂度\n- 验收项:\n  - [ ] 超长函数显著收缩\n  - [ ] 无双轨计算\n  - [ ] 输出一致\n- Verify: 行为快照、复杂度检查和定向回归\n- Gate: 职责边界清晰，未新增无消费者抽象\n- 输出物:\n  - [ ] 小职责 helper/模块\n  - [ ] 行为保持测试\n  - [ ] AGENTS/module context 同步\n- 标准清单:\n  - [ ] Verify: 行为快照、复杂度检查和定向回归\n  - [ ] Gate: 职责边界清晰，未新增无消费者抽象\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-06\n- 标题: 补齐异步报告端到端指标\n- 验收项:\n  - [ ] 可计算 queue/runtime p95\n  - [ ] 失败/过期可见\n  - [ ] 无 PII 标签\n- Verify: report job lifecycle metrics tests 与 /metrics smoke\n- Gate: 固定低基数标签覆盖全部终态\n- 输出物:\n  - [ ] job metrics\n  - [ ] observability contract\n  - [ ] 回归测试\n- 标准清单:\n  - [ ] Verify: report job lifecycle metrics tests 与 /metrics smoke\n  - [ ] Gate: 固定低基数标签覆盖全部终态\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-07\n- 标题: 建立许可证安全的公开客户端闭包\n- 验收项:\n  - [ ] unknown license 不被改写\n  - [ ] 客户端无服务端隐式 import\n  - [ ] 可独立安装\n- Verify: clean-room install/smoke + archive content inspection + restricted gate negative test\n- Gate: 公开闭包无未知许可证资产且仍可调用生产 API\n- 输出物:\n  - [ ] 公开客户端包\n  - [ ] distribution manifest\n  - [ ] 许可证门禁测试\n- 标准清单:\n  - [ ] Verify: clean-room install/smoke + archive content inspection + restricted gate negative test\n  - [ ] Gate: 公开闭包无未知许可证资产且仍可调用生产 API\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检\n\n## TP-08\n- 标题: 全量验证、审查与仓库卫生收口\n- 验收项:\n  - [ ] 第 1 项保持外部待审\n  - [ ] 本地证据完整\n  - [ ] 文档与实现一致\n- Verify: quick CI + governance/task strict + auto-review + git status\n- Gate: 无 BLOCK、无未解释失败、无未提交文件\n- 输出物:\n  - [ ] REVIEW\n  - [ ] closeout packet\n  - [ ] 语义提交\n  - [ ] 干净工作树\n- 标准清单:\n  - [ ] Verify: quick CI + governance/task strict + auto-review + git status\n  - [ ] Gate: 无 BLOCK、无未解释失败、无未提交文件\n  - [ ] 完成后更新 `STATUS.md` 的 `Recent Evidence`\n  - [ ] 交付前完成 REVIEW / SHIP 自检",
+    "planning_summary": "先锁公开投影和 capability 语义，再优化确定性热路径并接入独立评测；随后拆分职责、补异步观测和公开分发闭包，最后执行隔离审查与仓库卫生收口。\n- 编译节点总数: 8\n- 叶子执行项: 8\n- 执行波次数: 4\n- 当前任务必须遵守 `SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP`",
+    "lifecycle_gates": "- 所有阶段必须按 SPEC -> PLAN -> BUILD -> TEST -> REVIEW -> SHIP 顺序闭合，不得跳过 gate\n- SPEC: 八项问题、排除项、真实约束、终态和回滚边界已记录\n- PLAN: 每项拥有输入、输出、验证、证据和依赖\n- BUILD: 先建立失败测试或基线，再实施最小行为变更\n- TEST: 定向回归、benchmark、clean-room smoke 和 quick CI 通过\n- REVIEW: correctness/reliability/performance/architecture/license/document drift 无 BLOCK\n- SHIP: 文档、任务、提交和工作树状态一致",
+    "simplest_path": "复用现有 renderer、CapabilityExecutor、lunar-python、Prometheus、wheel/skill 导出和 release gate，只增加能被测试直接证明必要的薄层。",
+    "split_strategy": "按独立失败边界拆成八个纵向切片；公开字段和成熟度契约先行，性能/评测/复杂度/观测/分发可在契约稳定后推进，最终统一 closeout。",
+    "blockers": "- 专业断语与完整专家评审待人类专家执行，不阻断本任务 2 到 9 的工程闭环"
+  }
+}

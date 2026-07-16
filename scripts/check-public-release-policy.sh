@@ -64,6 +64,10 @@ assert_contains "docs/deployment/huggingface-space.md" "GitHub + HF 云端自部
 assert_contains "README.md" "FateCat 不会自动把排盘输入或报告发送给 Gemini" "README 必须说明 Gemini 隐私边界"
 assert_contains "domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py" "默认仍使用单进程内存队列" "报告任务队列必须明确默认单进程边界"
 assert_contains "domains/experience-delivery/services/fatecat-delivery/src/report_jobs.py" "SQLite backend 不是分布式队列" "SQLite job store 必须明确非分布式边界"
+assert_contains "pyproject.toml" 'artifact-class = "restricted_server_runtime"' "根包必须声明受限服务端运行时边界"
+assert_contains "pyproject.toml" "public-registry-publish = false" "根包必须阻止公开 registry 发布"
+assert_contains "contracts/fate/developer/public-client-distribution.json" '"distributionAllowed": true' "公开客户端必须显式声明允许分发"
+assert_contains "contracts/fate/developer/public-client-distribution.json" '"publicRegistryPublishAllowed": false' "受限服务端运行时不得伪装成公开客户端"
 
 if [[ -s "${failures_file}" ]]; then
   echo "public release policy failed:" >&2

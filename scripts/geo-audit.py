@@ -207,17 +207,28 @@ def run_audit(base_url: str, *, timeout: float) -> dict[str, Any]:
     try:
         capability_payload = json.loads(resources["capabilities"].body)
         capability_items = capability_payload["data"]["capabilities"]
-        status_by_id = {item["capabilityId"]: item["status"] for item in capability_items}
+        availability_by_id = {item["capabilityId"]: item["availability"] for item in capability_items}
+        maturity_by_id = {item["capabilityId"]: item["status"] for item in capability_items}
     except (json.JSONDecodeError, KeyError, TypeError) as exc:
         checks.append(Check("capabilities.lifecycle_parseable", False, type(exc).__name__))
     else:
-        production_ids = {capability_id for capability_id, status in status_by_id.items() if status == "production"}
-        planned_ids = {capability_id for capability_id, status in status_by_id.items() if status == "planned"}
+        available_ids = {
+            capability_id for capability_id, availability in availability_by_id.items() if availability == "available"
+        }
+        planned_ids = {
+            capability_id for capability_id, availability in availability_by_id.items() if availability == "planned"
+        }
+        production_maturity_ids = {
+            capability_id for capability_id, maturity in maturity_by_id.items() if maturity == "production"
+        }
+        validated_maturity_ids = {
+            capability_id for capability_id, maturity in maturity_by_id.items() if maturity == "validated"
+        }
         checks.append(
             Check(
-                "capabilities.production_set",
-                production_ids == {"bazi", "ziwei", "almanac", "meihua"},
-                ",".join(sorted(production_ids)),
+                "capabilities.available_set",
+                available_ids == {"bazi", "ziwei", "almanac", "meihua"},
+                ",".join(sorted(available_ids)),
             )
         )
         checks.append(
@@ -225,6 +236,20 @@ def run_audit(base_url: str, *, timeout: float) -> dict[str, Any]:
                 "capabilities.planned_set",
                 planned_ids == {"liuyao", "qimen", "daliuren", "fengshui_nine_stars", "name_marriage"},
                 ",".join(sorted(planned_ids)),
+            )
+        )
+        checks.append(
+            Check(
+                "capabilities.production_maturity_set",
+                production_maturity_ids == {"bazi", "ziwei"},
+                ",".join(sorted(production_maturity_ids)),
+            )
+        )
+        checks.append(
+            Check(
+                "capabilities.validated_maturity_set",
+                validated_maturity_ids == {"almanac", "meihua"},
+                ",".join(sorted(validated_maturity_ids)),
             )
         )
 

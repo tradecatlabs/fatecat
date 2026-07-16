@@ -8,6 +8,17 @@
   "packageRegistryStatus": "not_published",
   "version": "0.1.0-local",
   "privacyBoundary": "SDK release baseline files must not include real tokens, secrets, production URLs, real user data, non-Beijing real places or report bodies.",
+  "publicClientPackage": {
+    "candidateName": "fatecat-client",
+    "status": "local_build_verified",
+    "sourcePath": "apps/developer-clients/python",
+    "distributionContract": "contracts/fate/developer/public-client-distribution.json",
+    "packageManager": "pip",
+    "version": "0.1.0",
+    "runtimeDependencies": [],
+    "registryStatus": "not_published",
+    "smokeCommand": ".venv/bin/python scripts/public-client-package-smoke.py"
+  },
   "packageCandidates": [
     {
       "language": "python",
@@ -70,12 +81,14 @@
       "sandbox token live service or explicit no-token local mode",
       "current commit CI evidence"
     ],
-    "localGateCommand": "bash scripts/developer-portal-gate.sh"
+    "localGateCommand": "bash scripts/developer-portal-gate.sh",
+    "publicClientGateCommand": ".venv/bin/python scripts/public-client-package-smoke.py"
   },
   "limitations": [
     "This is local release baseline evidence only.",
     "No PyPI package is claimed.",
     "No npm package is claimed.",
+    "The server runtime package is not authorized for public registry publication by this baseline.",
     "No public sandbox token is issued by this repository."
   ]
 }

@@ -88,6 +88,12 @@ include = [
   "/pyproject.toml",
 ]
 
+[tool.fatecat.distribution]
+artifact-class = "restricted_server_runtime"
+public-registry-publish = false
+public-client-project = "apps/developer-clients/python/pyproject.toml"
+distribution-manifest = "contracts/fate/developer/public-client-distribution.json"
+
 [tool.ruff]
 target-version = "py312"
 line-length = 120

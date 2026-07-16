@@ -124,6 +124,8 @@ def _stable_shape(response_body: dict[str, Any]) -> dict[str, Any]:
     shape: dict[str, Any] = {
         "success": response_body.get("success"),
         "capabilityId": response_body.get("capabilityId"),
+        "availability": response_body.get("availability"),
+        "status": response_body.get("status"),
         "reportProfile": response_body.get("reportProfile"),
     }
     if isinstance(data, dict):

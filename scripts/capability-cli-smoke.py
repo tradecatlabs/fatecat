@@ -17,7 +17,7 @@ DEFAULT_OUTPUT_JSON = (
     REPO_ROOT / "infra" / "runtime" / "local-state" / "exports" / "delivery" / "capability-cli-smoke.json"
 )
 
-PRODUCTION_FIXTURES: dict[str, dict[str, Any]] = {
+AVAILABLE_FIXTURES: dict[str, dict[str, Any]] = {
     "bazi": {
         "birthDateTime": "1990-01-01 08:00:00",
         "gender": "male",
@@ -54,6 +54,13 @@ EXPECTED_DATA_KEYS: dict[str, tuple[str, ...]] = {
     "ziwei": ("ziweiChart", "analysisEvidence", "ziweiGoldenGuards"),
     "almanac": ("days", "recommendations", "analysisEvidence"),
     "meihua": ("hexagrams", "bodyUse", "analysisEvidence"),
+}
+
+EXPECTED_MATURITY_STATUS = {
+    "bazi": "production",
+    "ziwei": "production",
+    "almanac": "validated",
+    "meihua": "validated",
 }
 
 PLANNED_FIXTURE: dict[str, Any] = {
@@ -116,7 +123,11 @@ def _summarize_success(capability_id: str, payload: dict[str, Any], raw: bytes, 
 
     _assert(payload.get("success") is True, f"{capability_id} success 不是 true")
     _assert(payload.get("capabilityId") == capability_id, f"{capability_id} capabilityId 不一致")
-    _assert(payload.get("status") == "production", f"{capability_id} status 不是 production")
+    _assert(payload.get("availability") == "available", f"{capability_id} availability 不是 available")
+    _assert(
+        payload.get("status") == EXPECTED_MATURITY_STATUS[capability_id],
+        f"{capability_id} maturity status 不一致",
+    )
     _assert(payload.get("reportProfile") == capability_id, f"{capability_id} reportProfile 不一致")
     _assert(isinstance(data, dict), f"{capability_id} data 不是对象")
     _assert(isinstance(evidence, dict), f"{capability_id} evidence 不是对象")
@@ -128,6 +139,7 @@ def _summarize_success(capability_id: str, payload: dict[str, Any], raw: bytes, 
     return {
         "capabilityId": capability_id,
         "success": True,
+        "availability": payload["availability"],
         "status": payload["status"],
         "reportProfile": payload["reportProfile"],
         "durationMs": round(duration_ms, 3),
@@ -203,7 +215,7 @@ def run_smoke() -> dict[str, Any]:
         work_dir = Path(tmp)
         results = [
             _execute_capability(capability_id, fixture, work_dir)
-            for capability_id, fixture in PRODUCTION_FIXTURES.items()
+            for capability_id, fixture in AVAILABLE_FIXTURES.items()
         ]
         planned_rejection = _execute_planned_rejection()
 

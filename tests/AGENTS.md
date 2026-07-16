@@ -68,6 +68,8 @@ tests/
 - `regression/test_core_quality_corpus_gate.py`：八字/紫微 core quality corpus 合同；验证 evaluation manifest、紫微匿名样本数量、覆盖标签、summary-only report diff 策略、registry 接线和隐私边界。
 - `regression/test_core_quality_human_review_bundle_template.py`：八字/紫微 core quality 人审 evidence bundle 模板合同；验证模板契约、rubric dimension skeleton、hash/no-leak/operator checklist、CLI 输出、local-ci/registry/AGENTS 接线，并证明模板直接喂给 intake gate 会被拒绝。
 - `regression/test_core_quality_human_review_gate.py`：八字/紫微外部专家评审 intake 合同；验证默认 pending、脱敏专家评审/benchmark/no-leak bundle accepted、raw URL/敏感片段/commit mismatch/缺 rubric dimension 拒绝，以及 local-ci、registry、certification、AGENTS 和 roadmap 接线。
+- `regression/test_public_report_visibility.py`：公开 Markdown 标题、表头和元数据字段白名单，以及机器证据只保留在结构化结果的隔离门禁。
+- `regression/test_public_client_distribution.py`：公开 Python HTTP 客户端与受限服务端运行时的许可证边界、归档 allowlist 和零服务端 import 门禁。
 - `regression/test_mingli_bench_gate.py`：MingLi-Bench 离线 predictions evaluator smoke 与 FateCat scored baseline 产物合同；准确率只作为评测输出，不宣称模型已专业。
 - `regression/test_multi_surface_semantic_diff.py`：多交付面语义一致性 gate 合同；验证 API/Web/Bot dry-run normalized hash 同源、CLI capability smoke、Skill 命令链证据、证据不保存报告正文、registry/local-ci/AGENTS wiring 和 capability 引擎接线。
 - `regression/test_capability_cli_smoke.py`：capability CLI 交付面合同；验证根级 CLI wrapper、production capability smoke、planned capability 拒绝、delivery registry 和 local-ci/AGENTS 接线。

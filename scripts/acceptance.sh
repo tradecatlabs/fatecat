@@ -123,6 +123,10 @@ bash "${script_dir}/check-source-hygiene.sh"
 echo "[acceptance] package distribution smoke"
 bash "${script_dir}/package-distribution-smoke.sh" "${output_dir}/package-distribution-smoke"
 
+echo "[acceptance] public client package smoke"
+"${python_bin}" "${script_dir}/public-client-package-smoke.py" \
+  --output "${output_dir}/public-client-package-smoke"
+
 echo "[acceptance] structure gate"
 bash "${script_dir}/check-structure.sh"
 

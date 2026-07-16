@@ -88,10 +88,10 @@ def run_smoke() -> dict[str, Any]:
     checks: list[dict[str, Any]] = []
     provider_results: list[dict[str, Any]] = []
 
-    production_capabilities = [item for item in list_capabilities() if item.status == "production"]
-    _check(checks, "production_capability_count", bool(production_capabilities), str(len(production_capabilities)))
+    available_capabilities = [item for item in list_capabilities() if item.availability == "available"]
+    _check(checks, "available_capability_count", bool(available_capabilities), str(len(available_capabilities)))
 
-    for capability in production_capabilities:
+    for capability in available_capabilities:
         capability_id = capability.capability_id
         payload = SAMPLE_PAYLOADS.get(capability_id)
         _check(checks, f"{capability_id}:fixture_exists", payload is not None, "脱敏固定样例存在")
@@ -112,7 +112,18 @@ def run_smoke() -> dict[str, Any]:
 
         data = result.data
         evidence = result.evidence
-        _check(checks, f"{capability_id}:status_production", result.status == "production", result.status)
+        _check(
+            checks,
+            f"{capability_id}:availability_available",
+            result.availability == "available",
+            result.availability,
+        )
+        _check(
+            checks,
+            f"{capability_id}:maturity_consistent",
+            result.status == capability.maturity_status,
+            result.status,
+        )
         _check(checks, f"{capability_id}:data_is_dict", isinstance(data, dict), type(data).__name__)
         _check(checks, f"{capability_id}:evidence_is_dict", isinstance(evidence, dict), type(evidence).__name__)
         for key in EXPECTED_DATA_KEYS.get(capability_id, ()):
@@ -137,7 +148,7 @@ def run_smoke() -> dict[str, Any]:
         "status": "passed",
         "smokeScope": "local_dependency_fixture_execution",
         "externalConnectivity": "外部连通验证待执行",
-        "capabilityCount": len(production_capabilities),
+        "capabilityCount": len(available_capabilities),
         "providerCount": len({item["providerId"] for item in provider_results}),
         "providers": provider_results,
         "checks": checks,
@@ -153,7 +164,9 @@ def write_summary(summary: dict[str, Any], output_json: Path) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="执行 production provider dependency smoke，并输出机器可读 JSON。")
+    parser = argparse.ArgumentParser(
+        description="执行 available capability provider dependency smoke，并输出机器可读 JSON。"
+    )
     parser.add_argument("--output-json", type=Path, default=DEFAULT_OUTPUT_JSON, help="smoke summary JSON 输出路径。")
     return parser
 

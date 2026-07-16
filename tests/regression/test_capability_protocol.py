@@ -35,30 +35,35 @@ def _load_json(path: Path) -> dict:
         return json.load(fh)
 
 
-def test_capability_registry_keeps_bazi_as_only_default_production_entry():
+def test_capability_registry_separates_availability_from_maturity():
     capabilities = list_capabilities()
     by_id = {item.capability_id: item for item in capabilities}
 
     assert by_id["bazi"].status == "production"
+    assert by_id["bazi"].availability == "available"
     assert by_id["bazi"].default_visibility == "default"
     assert by_id["bazi"].maturity_level == "L4"
     assert by_id["bazi"].engine_version == "fate-core-bazi-v1"
     assert by_id["bazi"].deterministic is True
     assert by_id["bazi"].evidence_policy["ruleIdRequired"] is True
     assert by_id["bazi"].test_gate["status"] == "passing"
-    assert by_id["almanac"].status == "production"
+    assert by_id["almanac"].status == "validated"
+    assert by_id["almanac"].availability == "available"
     assert by_id["almanac"].default_visibility == "standalone"
     assert by_id["almanac"].maturity_level == "L3"
     assert by_id["ziwei"].status == "production"
+    assert by_id["ziwei"].availability == "available"
     assert by_id["ziwei"].default_visibility == "standalone"
     assert by_id["ziwei"].maturity_level == "L4"
     assert by_id["ziwei"].engine_version == "fate-core-ziwei-v1"
-    assert by_id["meihua"].status == "production"
+    assert by_id["meihua"].status == "validated"
+    assert by_id["meihua"].availability == "available"
     assert by_id["meihua"].default_visibility == "standalone"
     assert by_id["meihua"].maturity_level == "L3"
     assert [item.capability_id for item in capabilities if item.default_visibility == "default"] == ["bazi"]
     for capability_id in ["liuyao", "qimen", "daliuren", "fengshui_nine_stars", "name_marriage"]:
-        assert by_id[capability_id].status == "planned"
+        assert by_id[capability_id].status == "registered"
+        assert by_id[capability_id].availability == "planned"
         assert by_id[capability_id].default_visibility == "standalone"
         assert by_id[capability_id].maturity_level == "L0"
         assert by_id[capability_id].engine_version == "planned-v0"
@@ -92,25 +97,27 @@ def test_capability_schemas_define_required_protocol_boundaries():
     error_catalog = _load_json(CAPABILITY_DIR / "errors.json")
 
     assert "capabilityId" in schema["requiredCapabilityFields"]
+    assert "availability" in schema["requiredCapabilityFields"]
     assert "maturity" in schema["requiredCapabilityFields"]
     assert "evidencePolicy" in schema["requiredCapabilityFields"]
     assert "testGate" in schema["requiredCapabilityFields"]
-    assert schema["allowedStatus"] == ["planned", "experimental", "production"]
+    assert schema["allowedAvailability"] == ["available", "unavailable", "planned"]
     assert schema["allowedMaturityLevel"] == ["L0", "L1", "L2", "L3", "L4"]
     assert "engineVersion" in schema["requiredEngineFields"]
     assert "defaultVisibility=default 必须且只能用于 bazi" in schema["invariants"]
     assert (
-        "production 能力必须 testGate.status=passing 且 testGate.commands 至少包含一个本地回归入口"
+        "available 能力必须 maturity.level=L3/L4、testGate.status=passing 且 testGate.commands 至少包含一个本地回归入口"
         in schema["invariants"]
     )
     assert (
-        "planned 能力必须 maturity.level=L0、testGate.status=blocked、provider=planned.*、engineVersion=planned-v0"
+        "planned 能力必须 maturity.level=L0、maturity.status=registered、testGate.status=blocked、provider=planned.*、engineVersion=planned-v0"
         in schema["invariants"]
     )
     assert "Capability" in resource_schema["resourceTypes"]
     assert "Provider" in resource_schema["resourceTypes"]
     assert "CalculationJob" in resource_schema["resourceTypes"]
     assert "schemas" in resource_schema["capabilityResourceFields"]
+    assert "availability" in resource_schema["capabilityResourceFields"]
     assert "admission" in resource_schema["capabilityResourceFields"]
     assert "provider" in resource_schema["capabilityResourceFields"]
     assert "providerId" in resource_schema["providerResourceFields"]
@@ -232,6 +239,7 @@ def test_evaluation_resource_schemas_define_dataset_and_run_boundaries():
         "name",
         "domain",
         "datasetType",
+        "evidenceClass",
         "usageRole",
         "status",
         "localAvailability",
@@ -243,14 +251,21 @@ def test_evaluation_resource_schemas_define_dataset_and_run_boundaries():
         "metadata",
     ]
     assert "evaluation_only" in dataset_schema["allowedUsageRole"]
+    assert dataset_schema["allowedEvidenceClass"] == [
+        "internal_regression",
+        "independent_reference",
+        "external_benchmark",
+    ]
     assert "requires_reference_repo" in dataset_schema["allowedLocalAvailability"]
     assert "benchmark Dataset 不得把标准答案注入生产推理路径" in dataset_schema["invariants"]
 
     assert "datasetIds" in run_schema["requiredEvaluationRunFields"]
+    assert "evidenceClass" in run_schema["requiredEvaluationRunFields"]
     assert "releaseRequired" in run_schema["requiredEvaluationRunFields"]
     assert "lastKnownStatusPolicy" in run_schema["requiredEvaluationRunFields"]
     assert "offline_benchmark" in run_schema["allowedRunType"]
     assert "tracked_by_task_evidence" in run_schema["allowedLastKnownStatusPolicy"]
+    assert "human_attestation" in run_schema["allowedEvidenceClass"]
     assert run_schema["runnerSummaryFields"] == [
         "schemaVersion",
         "generatedAt",
@@ -276,6 +291,8 @@ def test_evaluation_resource_schemas_define_dataset_and_run_boundaries():
 
 def test_evaluation_registry_resources_are_traceable_and_do_not_pollute_production_inputs():
     registry = _load_json(EVALUATION_DIR / "registry.json")
+    dataset_schema = _load_json(EVALUATION_DIR / "schemas" / "dataset.schema.json")
+    run_schema = _load_json(EVALUATION_DIR / "schemas" / "evaluation-run.schema.json")
     resources = {item["id"]: item for item in registry["resources"]}
 
     assert registry["schemas"]["dataset"] == "contracts/fate/evaluations/schemas/dataset.schema.json"
@@ -305,6 +322,7 @@ def test_evaluation_registry_resources_are_traceable_and_do_not_pollute_producti
         assert item["links"]["collection"] == "/evaluations"
         assert item["metadata"]["externalConnectivity"]
         if item["resourceType"] == "Dataset":
+            assert item["evidenceClass"] in dataset_schema["allowedEvidenceClass"]
             assert item["usageRole"] == "evaluation_only"
             assert item["commands"]
             assert item["paths"]
@@ -314,6 +332,7 @@ def test_evaluation_registry_resources_are_traceable_and_do_not_pollute_producti
             continue
 
         assert item["resourceType"] == "EvaluationRun"
+        assert item["evidenceClass"] in run_schema["allowedEvidenceClass"]
         assert set(item["datasetIds"]) <= dataset_ids
         assert item["commands"]
         assert item["lastKnownStatusPolicy"] in {
@@ -328,6 +347,17 @@ def test_evaluation_registry_resources_are_traceable_and_do_not_pollute_producti
     assert mingli_dataset["localAvailability"] == "requires_reference_repo"
     assert mingli_dataset["metadata"]["releaseGate"] == "optional"
     assert "标准答案不得进入 production provider" in mingli_dataset["metadata"]["risk"]
+    assert mingli_dataset["evidenceClass"] == "external_benchmark"
+
+    assert resources["dataset.solar_terms_1900_2030"]["evidenceClass"] == "independent_reference"
+    assert resources["dataset.bazi_golden_matrix"]["evidenceClass"] == "internal_regression"
+    assert resources["dataset.ziwei_golden_cases"]["evidenceClass"] == "internal_regression"
+    assert resources["run.solar_terms_golden"]["evidenceClass"] == "independent_reference"
+    assert resources["run.core_quality_human_review_gate"]["evidenceClass"] == "human_attestation"
+    assert resources["run.core_quality_human_review_gate"]["metadata"]["externalConnectivity"] == (
+        "operator_or_human_evidence_required"
+    )
+    assert "blocked" in resources["run.core_quality_human_review_gate"]["metadata"]["verificationScope"]
 
     local_ci = resources["run.local_ci_quick"]
     assert local_ci["releaseRequired"] is True
@@ -778,7 +808,7 @@ def test_capability_registry_enforces_infrastructure_admission_rules():
         }
         assert isinstance(item.evidence_policy["ruleIdRequired"], bool)
 
-        if item.status == "production":
+        if item.availability == "available":
             assert item.test_gate["status"] == "passing"
             assert item.test_gate["commands"]
             assert item.maturity_level in {"L3", "L4"}
@@ -786,7 +816,7 @@ def test_capability_registry_enforces_infrastructure_admission_rules():
             assert item.engine_version != "planned-v0"
             continue
 
-        if item.status == "planned":
+        if item.availability == "planned":
             assert item.maturity_level == "L0"
             assert item.test_gate["status"] == "blocked"
             assert item.test_gate["commands"] == []
@@ -946,14 +976,14 @@ def test_markdown_snapshot_gate_rejects_invalid_heading_trees(markdown: str, vio
     assert violation_code in {item["code"] for item in gate["structureViolations"]}
 
 
-def test_provider_registry_covers_all_production_capabilities_and_excludes_planned():
+def test_provider_registry_covers_all_available_capabilities_and_excludes_planned():
     providers = {provider.metadata().provider_id: provider for provider in list_providers()}
-    production_capabilities = [item for item in list_capabilities() if item.status == "production"]
+    available_capabilities = [item for item in list_capabilities() if item.availability == "available"]
 
-    assert set(providers) == {item.provider for item in production_capabilities}
+    assert set(providers) == {item.provider for item in available_capabilities}
     assert "planned.liuyao" not in providers
 
-    for capability in production_capabilities:
+    for capability in available_capabilities:
         provider = get_provider_for_capability(capability)
         metadata = provider.metadata()
         health = provider.health()
@@ -974,7 +1004,7 @@ def test_provider_registry_covers_all_production_capabilities_and_excludes_plann
         assert health.checks["scope"] == "in-process"
 
 
-def test_capability_registry_rejects_production_capability_without_passing_gate():
+def test_capability_registry_rejects_available_capability_without_passing_gate():
     bazi = get_capability("bazi")
     broken = replace(bazi, test_gate={**bazi.test_gate, "status": "blocked"})
 
@@ -990,8 +1020,8 @@ def test_capability_registry_rejects_planned_capability_with_real_provider():
         capability_registry._validate_capability_admission(broken)
 
 
-def test_planned_capability_cannot_execute_as_production():
-    with pytest.raises(ValueError, match="尚未生产化"):
+def test_planned_capability_cannot_execute_as_available():
+    with pytest.raises(ValueError, match="不可执行"):
         CapabilityExecutor().execute(
             CapabilityInput(
                 capability_id="liuyao",
@@ -1017,7 +1047,8 @@ def test_almanac_capability_executes_as_standalone_production():
     )
 
     assert result.capability_id == "almanac"
-    assert result.status == "production"
+    assert result.availability == "available"
+    assert result.status == "validated"
     assert result.report_profile == "almanac"
     assert result.data["capabilityId"] == "almanac"
     assert result.data["dateRange"]["days"] == 3
@@ -1073,7 +1104,8 @@ def test_meihua_capability_executes_number_cast_as_standalone_production():
     )
 
     assert result.capability_id == "meihua"
-    assert result.status == "production"
+    assert result.availability == "available"
+    assert result.status == "validated"
     assert result.report_profile == "meihua"
     assert result.data["capabilityId"] == "meihua"
     assert result.data["castMethod"] == "数字起卦"
@@ -1105,6 +1137,7 @@ def test_ziwei_capability_delegates_to_ziwei_usecase(monkeypatch):
     )
 
     assert result.capability_id == "ziwei"
+    assert result.availability == "available"
     assert result.status == "production"
     assert result.report_profile == "ziwei"
     assert result.data == expected_data
@@ -1196,6 +1229,7 @@ def test_bazi_capability_delegates_to_pure_analysis(monkeypatch):
     )
 
     assert result.capability_id == "bazi"
+    assert result.availability == "available"
     assert result.status == "production"
     assert result.report_profile == get_capability("bazi").report_profile
     assert result.data == expected_data

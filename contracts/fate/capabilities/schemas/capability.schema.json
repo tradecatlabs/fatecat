@@ -5,7 +5,7 @@
     "capabilityId",
     "name",
     "tradition",
-    "status",
+    "availability",
     "defaultVisibility",
     "maturity",
     "inputRequired",
@@ -17,9 +17,10 @@
     "testGate",
     "riskPolicy"
   ],
-  "allowedStatus": ["planned", "experimental", "production"],
+  "allowedAvailability": ["available", "unavailable", "planned"],
   "allowedVisibility": ["default", "optional", "standalone", "hidden"],
   "allowedMaturityLevel": ["L0", "L1", "L2", "L3", "L4"],
+  "allowedMaturityStatus": ["registered", "experimental", "validated", "production"],
   "allowedRiskLevel": ["folk_reference", "entertainment", "requires_disclaimer"],
   "requiredEngineFields": ["provider", "engineVersion", "deterministic"],
   "requiredMaturityFields": ["level", "status", "summary"],
@@ -32,10 +33,11 @@
   "requiredTestGateFields": ["status", "commands", "releaseRequired"],
   "invariants": [
     "defaultVisibility=default 必须且只能用于 bazi",
-    "planned / experimental 能力不得由 executor 生产执行",
-    "production 能力必须 testGate.status=passing 且 testGate.commands 至少包含一个本地回归入口",
-    "production 能力不得使用 planned.* provider 或 planned-v0 engineVersion",
-    "planned 能力必须 maturity.level=L0、testGate.status=blocked、provider=planned.*、engineVersion=planned-v0",
+    "availability 只表示是否可执行；maturity 只表示成熟度，executor 不得用 maturity.status 做准入",
+    "available 能力必须 maturity.level=L3/L4、testGate.status=passing 且 testGate.commands 至少包含一个本地回归入口",
+    "available 能力不得使用 planned.* provider 或 planned-v0 engineVersion",
+    "planned 能力必须 maturity.level=L0、maturity.status=registered、testGate.status=blocked、provider=planned.*、engineVersion=planned-v0",
+    "unavailable 能力必须 maturity.level=L1/L2、maturity.status=experimental 且不得声明 passing gate",
     "所有能力必须声明 maturity、engineVersion、evidence、evidencePolicy、testGate 与 riskPolicy",
     "markdownDefault=true 必须且只能用于 bazi，新增能力不得混入综合八字默认 Markdown"
   ]

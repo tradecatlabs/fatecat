@@ -17,6 +17,7 @@ control-plane/
 ## 职责边界
 
 - `registry.json`：控制面资源注册表；只登记已有资源的来源、期望状态、准入策略、验证命令和当前状态口径。
+- Capability 对账必须分别统计 `availability` 与 `maturity.status`；前者决定执行资格，后者只表达成熟度。
 - `schemas/control-plane.schema.json`：控制面资源的机器契约；要求每个资源具备 `spec`、`status`、`links` 和 `metadata`。
 - 控制面只做发现、对账和 drift 防护，不替代各资源自己的深度 gate。
 - Provider 的供应链、license、trace 和 lifecycle 深度校验仍由 `scripts/provider-lifecycle-gate.sh` 负责。

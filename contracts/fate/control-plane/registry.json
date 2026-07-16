@@ -24,7 +24,9 @@
         "owner": "contracts/fate/capabilities",
         "desiredState": {
           "totalCapabilities": 9,
-          "productionCapabilities": 4,
+          "availableCapabilities": 4,
+          "productionMaturityCapabilities": 2,
+          "validatedMaturityCapabilities": 2,
           "plannedCapabilities": 5,
           "defaultCapabilityId": "bazi",
           "productionRequiresPassingTestGate": true,
@@ -32,8 +34,8 @@
         },
         "admission": {
           "executable": true,
-          "reason": "production capabilities are executable through CapabilityExecutor; planned capabilities remain discoverable but blocked",
-          "promotion": "status can move to production only after testGate.status=passing, provider lifecycle metadata exists, and profile remains standalone unless bazi",
+          "reason": "available capabilities are executable through CapabilityExecutor; planned capabilities remain discoverable but blocked",
+          "promotion": "availability can move to available only after testGate.status=passing and provider lifecycle metadata exists; maturity.status is governed independently by maturity.level",
           "deprecation": "capabilities must be removed through registry/profile/test updates, not hidden by front-end filtering"
         },
         "gate": {
@@ -47,8 +49,8 @@
         "lastKnownStatePolicy": "computed_by_control_plane_gate",
         "reconciliation": {
           "status": "in_sync",
-          "summary": "Control-plane gate recomputes capability counts and default/planned/production admission rules from source registry.",
-          "driftPolicy": "fail if counts, default capability, production test gates, planned engine/provider or markdown default drift"
+        "summary": "Control-plane gate recomputes capability availability and maturity counts plus default/planned admission rules from source registry.",
+        "driftPolicy": "fail if availability or maturity counts, default capability, available test gates, planned engine/provider or markdown default drift"
         }
       },
       "links": {
@@ -74,14 +76,14 @@
         },
         "owner": "domains/fate-analysis/services/fate-core/src/fate_core/capabilities",
         "desiredState": {
-          "productionProviderCount": 4,
-          "coverage": "one production provider for each production capability provider id",
+          "executableProviderCount": 4,
+          "coverage": "one executable provider for each available capability provider id",
           "lifecycleGate": "scripts/provider-lifecycle-gate.sh"
         },
         "admission": {
           "executable": true,
-          "reason": "providers are executable only when their owning production capability is executable",
-          "promotion": "provider lifecycle gate must pass before a provider can support production capability promotion",
+          "reason": "providers are executable only when their owning capability has availability=available",
+          "promotion": "provider lifecycle gate must pass before a provider can support capability availability promotion",
           "deprecation": "provider deprecation requires replacementProvider or removalNotBefore in provider metadata"
         },
         "gate": {
@@ -95,7 +97,7 @@
         "lastKnownStatePolicy": "computed_by_control_plane_gate",
         "reconciliation": {
           "status": "in_sync",
-          "summary": "Control-plane gate compares runtime providers with production capabilities and delegates depth checks to provider lifecycle gate.",
+          "summary": "Control-plane gate compares runtime providers with available capabilities and delegates depth checks to provider lifecycle gate.",
           "driftPolicy": "fail if provider count, provider id coverage or provider lifecycle gate drifts"
         }
       },

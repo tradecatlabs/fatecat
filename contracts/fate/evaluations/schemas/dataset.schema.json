@@ -8,6 +8,7 @@
     "name",
     "domain",
     "datasetType",
+    "evidenceClass",
     "usageRole",
     "status",
     "localAvailability",
@@ -36,6 +37,11 @@
     "rule_registry",
     "supply_chain"
   ],
+  "allowedEvidenceClass": [
+    "internal_regression",
+    "independent_reference",
+    "external_benchmark"
+  ],
   "allowedUsageRole": ["production_input", "evaluation_only", "research_reference"],
   "allowedStatus": ["available", "requires_reference_repo", "requires_private_raw", "blocked"],
   "allowedLocalAvailability": [
@@ -49,6 +55,9 @@
     "Dataset resource 只登记数据资产，不复制大文件内容",
     "evaluation_only Dataset 不得被 production provider 读取作为业务输入",
     "benchmark Dataset 不得把标准答案注入生产推理路径",
+    "internal_regression 只能证明工程回归一致性，不得满足独立准确性或专家认证声明",
+    "independent_reference 必须具有独立于生产 provider 的来源、oracle 或可追溯原始表，并明确覆盖范围",
+    "external_benchmark 必须保持 evaluation_only，且不得把标准答案注入生产路径",
     "requires_reference_repo 或 requires_private_raw 不能声明为默认 release 必跑门禁",
     "所有 Dataset 必须说明本地可验证性、隐私边界和外部连通状态"
   ]

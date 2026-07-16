@@ -53,13 +53,15 @@ def test_control_plane_registry_defines_core_resource_envelopes():
     capabilities = resources["control.capabilities"]
     assert capabilities["resourceType"] == "Capability"
     assert capabilities["spec"]["desiredState"]["defaultCapabilityId"] == "bazi"
-    assert capabilities["spec"]["desiredState"]["productionCapabilities"] == 4
+    assert capabilities["spec"]["desiredState"]["availableCapabilities"] == 4
+    assert capabilities["spec"]["desiredState"]["productionMaturityCapabilities"] == 2
+    assert capabilities["spec"]["desiredState"]["validatedMaturityCapabilities"] == 2
     assert capabilities["spec"]["desiredState"]["plannedCapabilities"] == 5
     assert capabilities["status"]["reconciliation"]["status"] == "in_sync"
 
     providers = resources["control.providers"]
     assert providers["resourceType"] == "Provider"
-    assert providers["spec"]["desiredState"]["productionProviderCount"] == 4
+    assert providers["spec"]["desiredState"]["executableProviderCount"] == 4
     assert providers["spec"]["gate"]["command"] == "bash scripts/provider-lifecycle-gate.sh"
 
     release_gate = resources["control.release_gate"]
@@ -86,8 +88,14 @@ def test_control_plane_gate_reconciles_existing_registries(tmp_path):
     assert stored["kind"] == "fatecat.control_plane_gate"
     assert stored["status"] == "passed"
     assert stored["resourceCount"] == 4
-    assert stored["observed"]["capabilities"] == {"total": 9, "production": 4, "planned": 5}
-    assert stored["observed"]["providers"] == {"productionProviders": 4}
+    assert stored["observed"]["capabilities"] == {
+        "total": 9,
+        "available": 4,
+        "planned": 5,
+        "productionMaturity": 2,
+        "validatedMaturity": 2,
+    }
+    assert stored["observed"]["providers"] == {"executableProviders": 4}
     assert stored["observed"]["releaseGate"]["requiredEvidence"] == 10
     assert stored["observed"]["evaluationRuns"] == {"datasets": 5, "evaluationRuns": 7}
     assert "token" in stored["privacyBoundary"]

@@ -12,6 +12,20 @@
   "humanGuide": "docs/reference-materials/developer/API_CHANGELOG.md",
   "entries": [
     {
+      "id": "api-changelog.0161.public-client-distribution",
+      "date": "2026-07-16",
+      "apiVersion": "v1",
+      "changeType": "client_distribution_baseline",
+      "summary": "Added a dependency-free Python HTTP client package and a machine-enforced boundary that keeps the server runtime and unknown-license assets out of public client archives.",
+      "compatibility": "backward_compatible",
+      "migrationRequired": false,
+      "evidence": [
+        "apps/developer-clients/python",
+        "contracts/fate/developer/public-client-distribution.json",
+        "scripts/public-client-package-smoke.py"
+      ]
+    },
+    {
       "id": "api-changelog.0029.developer-openapi-sandbox",
       "date": "2026-07-02",
       "apiVersion": "v1",

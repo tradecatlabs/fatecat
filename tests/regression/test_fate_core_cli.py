@@ -166,9 +166,15 @@ def test_main_capabilities_lists_registry(capsys):
     assert "bazi" in capability_ids
     assert "liuyao" in capability_ids
     assert next(item for item in result["capabilities"] if item["capabilityId"] == "bazi")["status"] == "production"
-    assert next(item for item in result["capabilities"] if item["capabilityId"] == "almanac")["status"] == "production"
+    assert (
+        next(item for item in result["capabilities"] if item["capabilityId"] == "bazi")["availability"] == "available"
+    )
+    assert next(item for item in result["capabilities"] if item["capabilityId"] == "almanac")["status"] == "validated"
     assert next(item for item in result["capabilities"] if item["capabilityId"] == "ziwei")["status"] == "production"
-    assert next(item for item in result["capabilities"] if item["capabilityId"] == "meihua")["status"] == "production"
+    assert next(item for item in result["capabilities"] if item["capabilityId"] == "meihua")["status"] == "validated"
+    assert (
+        next(item for item in result["capabilities"] if item["capabilityId"] == "liuyao")["availability"] == "planned"
+    )
 
 
 def test_main_capability_rejects_planned_system(capsys):
@@ -193,7 +199,8 @@ def test_main_capability_rejects_planned_system(capsys):
 
     assert exit_code == 1
     assert result["success"] is False
-    assert "尚未生产化" in result["error"]
+    assert "不可执行" in result["error"]
+    assert "availability=planned" in result["error"]
 
 
 def test_main_capability_executes_bazi_via_executor(monkeypatch, capsys):
@@ -204,6 +211,7 @@ def test_main_capability_executes_bazi_via_executor(monkeypatch, capsys):
                 (),
                 {
                     "capability_id": request.capability_id,
+                    "availability": "available",
                     "status": "production",
                     "report_profile": "bazi",
                     "data": {"ok": True},
@@ -237,6 +245,7 @@ def test_main_capability_executes_bazi_via_executor(monkeypatch, capsys):
     assert exit_code == 0
     assert result["success"] is True
     assert result["capabilityId"] == "bazi"
+    assert result["availability"] == "available"
     assert result["reportProfile"] == "bazi"
     assert result["data"] == {"ok": True}
 

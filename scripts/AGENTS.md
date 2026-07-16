@@ -222,19 +222,20 @@ scripts/
 - `developer-docs-smoke.sh` / `developer-docs-smoke.py`：执行开发者 OpenAPI、sandbox fixture 和 SDK 示例 smoke；只保存检查摘要，不保存报告正文或真实凭证。
 - `developer-platform-gate.sh` / `developer-platform-gate.py`：校验 developer platform contract、SDK/package baseline、sandbox token contract 与 API changelog；只证明本地契约和示例自洽，不证明 PyPI/npm SDK 发布或公网 token 服务上线。
 - `developer-portal-gate.sh` / `developer-portal-gate.py`：校验 developer portal、SDK release baseline、sandbox fixed output snapshot、API changelog 和 no-overclaim 边界；只证明本地 release-readiness baseline，不证明公网门户、PyPI/npm 发布或公网 sandbox token 服务上线。
+- `public-client-package-smoke.py`：构建、逐成员审计并 clean-room 安装公开 Python HTTP 客户端，证明归档不携带受限服务端资产；不声明 PyPI 已发布或公网 API 已连通。
 - `sandbox-access-gateway-gate.sh` / `sandbox-access-gateway-gate.py`：校验本地 sandbox access gateway 的 token scope enforcement、缺 token/错 scope 拒绝、限流、OpenAPI path 和 audit 脱敏；使用环境变量临时 smoke token，不证明公网 token issuer、revocation service 或生产 API gateway 已上线。
 - `check-public-release-policy.sh`：检查公开 Web 工作台发布策略，防止 GitHub 自动验收回潮、HF 免费 Space 误开记录存储或 Telegram Webhook、container workflow 丢失 registry digest/attestation verify，以及文档口径缺失。
 - `live-bot-smoke.sh`：使用真实 Telegram 凭证执行 Bot 连通验证；Webhook 模式额外核对 Telegram 已登记的固定 URL，不打印 token 或 secret。
 - `production-readiness.sh`：校验生产环境、API、Bot、Webhook、CORS 与本地 CI 证据；Webhook 启用时强制要求合法 secret、HTTPS 固定路径、有界队列和单副本部署。
 - `hf-space-deploy.sh`：生成 Hugging Face Docker Space 分发包，使用 `hf` CLI 校验身份，再通过官方 `HfApi` 查询、按需创建并上传指定 Space；`--no-create` 不调用创建 API；默认目标 `tradecatlabs/fatecat`，默认拒绝非 `tradecatlabs` 认证。
 - `local-ci.sh`：本地 CI/CD 调度入口；只编排本仓脚本，不调用 GitHub Actions；成功或失败都会写 `summary.txt` 与机器可读 `summary.json`，其中 `summary.json` 是 live release gate 的 `evidence.local_ci_quick` 输入。
-- `core-performance-smoke.sh` / `core-performance-smoke.py`：使用固定北京样本记录八字/紫微单进程暖态延迟和输出字段数量；只提供回归预算，不冒充生产 p95/p99。
+- `core-performance-smoke.sh` / `core-performance-smoke.py`：使用固定北京样本记录八字/紫微单进程首次执行、暖态延迟和输出字段数量；不包含进程启动，也不冒充生产 p95/p99。
 - `live-release-gate.sh` / `live-release-gate.py` 是 live release evidence gate；聚合 local CI、远端 CI、生产 API、HF Space、Telegram Bot、container digest、SBOM/provenance、rollback drill 和 clean git state，输出机器可读 JSON。默认只做本地合同检查并标注外部连通验证待执行；`--local-ci-summary` 必须指向 `kind=fatecat.local_ci_summary`、`profile=quick`、`status=passed` 且 commit 匹配当前 HEAD 的 JSON；`--require-live` 才要求真实外部证据全部通过。
 - `measurement-infrastructure-certification.sh` / `measurement-infrastructure-certification.py` 是 100% 测算基础设施 certification dry-run 聚合器；默认消费 local-ci 产物目录中已有 gate summary，包括 external validation closure、tracker import package、tracker issue evidence template 和 tracker issue evidence gate，也可通过 sidecar 显式接收当前 HEAD 的 `live-release-gate.json`、`current-release-proof.json` 与 `current-audit-bundle.json`；sidecar 只覆盖对应逻辑证据文件，不跨文件覆盖 release proof、audit bundle 或外部 live 证据。输出分域 passed/blocked/pending/in-progress 结论；本地证据齐全但外部 live 或 release/audit gate 未闭合时应输出 `blocked`，不声明 100% 完成。
 - `bazi-ziwei-l4-golden-smoke.sh` / `bazi-ziwei-l4-golden-smoke.py` 是八字/紫微 L4 golden evidence 本地 smoke；`quick` 跑代表样本并进入本地 quick CI，`full` 跑当前 fixture 全量样本，不访问真实用户或外部账号。
 - `evidence-coverage-trend-gate.sh` / `evidence-coverage-trend-gate.py` 是八字/紫微 evidence coverage trend 门禁；聚合 `rule_depth_registry.json`、`classics_rule_index.json`、CapabilityExecutor 输出和 capability Report `evidenceRefs`，拒绝规则引用断链、analysisEvidence trace 缺字段、冲突解释/反证字段回退或 tracked baseline 覆盖率下降；不保存完整报告正文或真实用户资料。
 - `capability-cli.sh` 是根级 capability CLI 入口；只转发到 `fate_core.cli capability`，测算逻辑必须继续由 `CapabilityExecutor` 和 provider registry 执行。
-- `capability-cli-smoke.sh` / `capability-cli-smoke.py` 是 capability CLI 交付面本地 smoke；验证 bazi/ziwei/almanac/meihua production capability 可执行、planned capability 拒绝执行，并只保存 hash、字节数、字段名和状态。
+- `capability-cli-smoke.sh` / `capability-cli-smoke.py` 是 capability CLI 交付面本地 smoke；验证 bazi/ziwei/almanac/meihua 的 `availability=available` capability 可执行、planned capability 拒绝执行，并只保存 hash、字节数、字段名和状态。
 - `core-quality-corpus-gate.sh` / `core-quality-corpus-gate.py` 是八字/紫微核心质量语料门禁；校验 evaluation manifest、report diff policy、匿名 fixture 数量、紫微覆盖标签、summary-only 报告结构 diff 策略、北京测试样本和 registry 链接，不读取真实用户或生产数据。
 - `core-quality-human-review-gate.sh` / `core-quality-human-review-gate.py` 是八字/紫微外部专家评审与 benchmark intake 门禁；默认无脱敏 bundle 时输出 blocked gate，具备 bundle 时只校验 commit、rubric dimensions、artifact hash、benchmark 聚合统计、no-leak signoff 和隐私边界，不保存专家身份、真实命例、题目答案、逐题结果或完整报告正文。
 - `observability-smoke.sh` / `observability-smoke.py` 是本地观测 smoke；用 TestClient 验证 health、ready、metrics、request-id、结构化日志和 observability registry metadata。

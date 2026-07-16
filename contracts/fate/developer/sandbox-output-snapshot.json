@@ -16,9 +16,11 @@
       "capabilityId": "almanac",
       "method": "POST",
       "endpoint": "/capabilities/almanac/calculate",
-      "responseSha256": "0218fd40ffc7b4e350e35d7143af3b7f5086c0e64d765420bf2a6de6abecde72",
+      "responseSha256": "77f725a70ad63cf3acc8cd86d1ed1978ba8466d7b2f314049e3cb04ae0903ffb",
       "stableShape": {
         "success": true,
+        "availability": "available",
+        "status": "validated",
         "reportProfile": "almanac",
         "dateRangeDays": 1,
         "dayCount": 1,
@@ -30,9 +32,11 @@
       "capabilityId": "meihua",
       "method": "POST",
       "endpoint": "/capabilities/meihua/calculate",
-      "responseSha256": "1207ce66289ef490fb430a1e6c0297e2503b2e285e737268d331f23078c0020c",
+      "responseSha256": "68bae09274f3e5bc623331d618211a2df7c927c5711942dd086af3a7644bdef3",
       "stableShape": {
         "success": true,
+        "availability": "available",
+        "status": "validated",
         "reportProfile": "meihua",
         "hexagramKeys": ["changed", "movingLine", "mutual", "original"]
       }

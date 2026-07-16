@@ -13,7 +13,7 @@ import secrets
 import sqlite3
 import time
 from collections.abc import Callable
-from dataclasses import asdict, dataclass, is_dataclass, replace
+from dataclasses import asdict, dataclass, field, is_dataclass, replace
 from datetime import datetime, timedelta
 from hashlib import sha256
 from pathlib import Path
@@ -30,6 +30,12 @@ logger = logging.getLogger(__name__)
 ReportJobStatus = Literal["queued", "running", "succeeded", "failed", "expired", "cancelled"]
 ReportJobWebhookOutboxStatus = Literal["pending", "succeeded", "failed"]
 REPORT_JOB_WEBHOOK_EVENT_TYPE = "report_job.terminal"
+REPORT_JOB_METRIC_BUCKETS: dict[str, tuple[float, ...]] = {
+    "queue_wait_seconds": (0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
+    "execution_duration_seconds": (0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0),
+    "result_size_bytes": (1024.0, 10240.0, 102400.0, 524288.0, 1048576.0, 5242880.0),
+}
+REPORT_JOB_TERMINAL_STATUSES = ("succeeded", "failed", "expired", "cancelled")
 
 
 class ReportJobQueueFull(RuntimeError):
@@ -159,6 +165,8 @@ class _ReportJob:
     retry_backoff_seconds: float = 0.0
     non_retryable_exceptions: tuple[type[BaseException], ...] = (ReportJobNonRetryableError,)
     task_payload: dict[str, Any] | None = None
+    metric_recorded_statuses: set[str] = field(default_factory=set, repr=False)
+    metric_started_recorded: bool = field(default=False, repr=False)
 
 
 class ReportJobStore:
@@ -1557,6 +1565,15 @@ class ReportJobManager:
         self._lock = Lock()
         self._started = False
         self._recovered_requeued_count = 0
+        self._metric_terminal_counts = dict.fromkeys(REPORT_JOB_TERMINAL_STATUSES, 0)
+        self._metric_histograms = {
+            name: {
+                "count": 0,
+                "sum": 0.0,
+                "buckets": dict.fromkeys(buckets, 0),
+            }
+            for name, buckets in REPORT_JOB_METRIC_BUCKETS.items()
+        }
         self._load_persisted_jobs()
         self._schedule_webhook_outbox_redelivery()
         if self._recovered_requeued_count:
@@ -1677,6 +1694,7 @@ class ReportJobManager:
             job.result = None
             job.error = None
             job.finished_at = now_cn().isoformat()
+            self._record_terminal_metrics_locked(job)
             self._persist_locked(job)
             self._release_job_execution_lease_locked(job.job_id)
             self._append_event_locked(job, "job.cancelled", "报告任务已取消")
@@ -1696,6 +1714,23 @@ class ReportJobManager:
             counts["worker_max"] = self.max_workers
             counts["ttl_seconds"] = self.ttl_seconds
             return counts
+
+    def metrics_snapshot(self) -> dict[str, Any]:
+        """返回低基数累计指标；不包含任务 ID、输入或报告正文。"""
+        self.cleanup_expired()
+        with self._lock:
+            histograms = {
+                name: {
+                    "count": int(state["count"]),
+                    "sum": float(state["sum"]),
+                    "buckets": [(float(bucket), int(count)) for bucket, count in state["buckets"].items()],
+                }
+                for name, state in self._metric_histograms.items()
+            }
+            return {
+                "terminalCounts": dict(self._metric_terminal_counts),
+                "histograms": histograms,
+            }
 
     def cleanup_expired(self) -> None:
         with self._lock:
@@ -1763,6 +1798,7 @@ class ReportJobManager:
         job.status = "failed"
         job.error = job.error or "任务执行器已重启，未完成任务已终止"
         job.finished_at = job.finished_at or now_cn().isoformat()
+        self._record_terminal_metrics_locked(job)
         self.store.save_job(job)
         self._append_event_locked(
             job,
@@ -2045,6 +2081,7 @@ class ReportJobManager:
             job.max_attempts = claimed_job.max_attempts
             job.attempt_timeout_seconds = claimed_job.attempt_timeout_seconds
             job.retry_backoff_seconds = claimed_job.retry_backoff_seconds
+            self._record_started_metrics_locked(job)
             self._persist_locked(job)
             self._append_event_locked(job, "job.running", "报告任务开始执行")
 
@@ -2121,6 +2158,7 @@ class ReportJobManager:
             job.result = result
             job.finished_at = now_cn().isoformat()
             job.task = None
+            self._record_terminal_metrics_locked(job)
             self._persist_locked(job)
             self._release_job_execution_lease_locked(job_id)
             self._append_event_locked(job, "job.succeeded", "报告任务执行成功", {"attempt": job.attempts})
@@ -2189,6 +2227,7 @@ class ReportJobManager:
             job.error = str(error) or error_type
             job.finished_at = now_cn().isoformat()
             job.task = None
+            self._record_terminal_metrics_locked(job)
             self._persist_locked(job)
             self._release_job_execution_lease_locked(job_id)
             self._append_event_locked(
@@ -2217,8 +2256,38 @@ class ReportJobManager:
             job.status = "expired"
             job.task = None
             job.result = None
+            job.finished_at = job.finished_at or now_cn().isoformat()
+            self._record_terminal_metrics_locked(job)
             self._persist_locked(job)
             self._append_event_locked(job, "job.expired", "报告任务已过期")
+
+    def _record_started_metrics_locked(self, job: _ReportJob) -> None:
+        if job.metric_started_recorded or not job.started_at:
+            return
+        job.metric_started_recorded = True
+        self._observe_metric_locked("queue_wait_seconds", _iso_duration_seconds(job.created_at, job.started_at))
+
+    def _record_terminal_metrics_locked(self, job: _ReportJob) -> None:
+        if job.status not in self._metric_terminal_counts or job.status in job.metric_recorded_statuses:
+            return
+        job.metric_recorded_statuses.add(job.status)
+        self._metric_terminal_counts[job.status] += 1
+        if job.started_at and job.finished_at and job.status in {"succeeded", "failed", "cancelled"}:
+            self._observe_metric_locked(
+                "execution_duration_seconds",
+                _iso_duration_seconds(job.started_at, job.finished_at),
+            )
+        if job.status == "succeeded":
+            self._observe_metric_locked("result_size_bytes", float(len(_json_dumps(job.result).encode("utf-8"))))
+
+    def _observe_metric_locked(self, name: str, value: float) -> None:
+        state = self._metric_histograms[name]
+        observed = max(0.0, float(value))
+        state["count"] += 1
+        state["sum"] += observed
+        for bucket in state["buckets"]:
+            if observed <= bucket:
+                state["buckets"][bucket] += 1
 
     def _snapshot_locked(self, job: _ReportJob) -> ReportJobSnapshot:
         return ReportJobSnapshot(
@@ -2505,6 +2574,13 @@ def _expires_monotonic(expires_at: str) -> float:
         return time.monotonic() + max(0.0, (expires - now).total_seconds())
     except ValueError:
         return time.monotonic()
+
+
+def _iso_duration_seconds(started_at: str, finished_at: str) -> float:
+    try:
+        return max(0.0, (datetime.fromisoformat(finished_at) - datetime.fromisoformat(started_at)).total_seconds())
+    except ValueError:
+        return 0.0
 
 
 def _json_dumps(value: Any) -> str:

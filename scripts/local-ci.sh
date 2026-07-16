@@ -171,6 +171,8 @@ run_quick() {
     --output-json "${output_dir}/capability-cli-smoke.json"
   run_step "package distribution smoke" bash "${script_dir}/package-distribution-smoke.sh" \
     "${output_dir}/package-distribution-smoke"
+  run_step "public client package smoke" "${python_bin}" "${script_dir}/public-client-package-smoke.py" \
+    --output "${output_dir}/public-client-package-smoke"
   run_step "control plane gate" bash "${script_dir}/control-plane-gate.sh" \
     --output-json "${output_dir}/control-plane-gate.json"
   run_step "multi-surface semantic diff" bash "${script_dir}/multi-surface-semantic-diff.sh" \
@@ -417,7 +419,11 @@ run_quick() {
       tests/regression/test_developer_portal_gate.py \
       tests/regression/test_sandbox_access_gateway_gate.py \
       tests/regression/test_capability_cli_smoke.py \
+      tests/regression/test_capability_protocol.py \
+      tests/regression/test_monthly_performance_equivalence.py \
       tests/regression/test_multi_surface_semantic_diff.py \
+      tests/regression/test_public_client_distribution.py \
+      tests/regression/test_public_report_visibility.py \
       tests/regression/test_retention_cleanup.py \
       tests/regression/test_retention_production_cleanup_gate.py \
       tests/regression/test_evaluation_dashboard.py \

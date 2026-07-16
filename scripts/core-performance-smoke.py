@@ -29,12 +29,20 @@ def percentile(values: list[float], ratio: float) -> float:
     return ordered[index]
 
 
-def benchmark(capability_id: str, *, samples: int, budget_ms: float) -> dict[str, Any]:
+def benchmark(
+    capability_id: str,
+    *,
+    samples: int,
+    warm_budget_ms: float,
+    first_execution_budget_ms: float,
+) -> dict[str, Any]:
     executor = CapabilityExecutor()
     request = CapabilityInput(capability_id=capability_id, payload=dict(SAMPLE_PAYLOAD))
-    executor.execute(request)
+    first_started = time.perf_counter()
+    first_result = executor.execute(request)
+    first_execution_ms = (time.perf_counter() - first_started) * 1000
     durations: list[float] = []
-    output_fields: list[str] = []
+    output_fields: list[str] = sorted(first_result.data)
     for _ in range(samples):
         started = time.perf_counter()
         result = executor.execute(request)
@@ -44,11 +52,15 @@ def benchmark(capability_id: str, *, samples: int, budget_ms: float) -> dict[str
     return {
         "capabilityId": capability_id,
         "samples": samples,
+        "firstExecutionMs": round(first_execution_ms, 3),
+        "firstExecutionBudgetMs": first_execution_budget_ms,
         "meanMs": round(statistics.fmean(durations), 3),
         "p95Ms": round(p95_ms, 3),
         "maxMs": round(max(durations), 3),
-        "budgetMs": budget_ms,
-        "status": "passed" if p95_ms <= budget_ms else "failed",
+        "budgetMs": warm_budget_ms,
+        "status": (
+            "passed" if p95_ms <= warm_budget_ms and first_execution_ms <= first_execution_budget_ms else "failed"
+        ),
         "outputFieldCount": len(output_fields),
         "outputFields": output_fields,
     }
@@ -66,11 +78,23 @@ def main() -> int:
     if args.samples < 1 or args.samples > 20:
         raise SystemExit("--samples 必须在 1-20 之间")
     budgets = {
-        "bazi": float(os.getenv("FATECAT_BAZI_WARM_P95_BUDGET_MS", "2000")),
-        "ziwei": float(os.getenv("FATECAT_ZIWEI_WARM_P95_BUDGET_MS", "2000")),
+        "bazi": (
+            float(os.getenv("FATECAT_BAZI_WARM_P95_BUDGET_MS", "2000")),
+            float(os.getenv("FATECAT_BAZI_FIRST_EXECUTION_BUDGET_MS", "2500")),
+        ),
+        "ziwei": (
+            float(os.getenv("FATECAT_ZIWEI_WARM_P95_BUDGET_MS", "2000")),
+            float(os.getenv("FATECAT_ZIWEI_FIRST_EXECUTION_BUDGET_MS", "2500")),
+        ),
     }
     results = [
-        benchmark(capability_id, samples=args.samples, budget_ms=budget) for capability_id, budget in budgets.items()
+        benchmark(
+            capability_id,
+            samples=args.samples,
+            warm_budget_ms=budget[0],
+            first_execution_budget_ms=budget[1],
+        )
+        for capability_id, budget in budgets.items()
     ]
     status = "passed" if all(item["status"] == "passed" for item in results) else "failed"
     payload = {
@@ -78,7 +102,7 @@ def main() -> int:
         "kind": "fatecat.core_performance_smoke",
         "generatedAt": datetime.now(UTC).isoformat(),
         "status": status,
-        "measurement": "single-process warm wall-clock; not production p95/p99 evidence",
+        "measurement": "single-process first-execution and warm wall-clock; not process startup or production p95/p99 evidence",
         "results": results,
         "privacyBoundary": "Uses only the fixed Beijing performance fixture; no user input or report body is stored.",
     }

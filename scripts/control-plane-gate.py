@@ -127,39 +127,55 @@ def _validate_registry_shape(
 def _validate_capabilities(resource: dict[str, Any], checks: list[dict[str, Any]]) -> dict[str, int]:
     registry = _load_json(CAPABILITY_REGISTRY)
     capabilities = registry["capabilities"]
-    counts = Counter(item["status"] for item in capabilities)
+    availability_counts = Counter(item["availability"] for item in capabilities)
+    maturity_counts = Counter(item["maturity"]["status"] for item in capabilities)
     desired = resource["spec"]["desiredState"]
     default_ids = [item["capabilityId"] for item in capabilities if item["defaultVisibility"] == "default"]
 
     _check(len(capabilities) == desired["totalCapabilities"], "capability.count.total", str(len(capabilities)), checks)
     _check(
-        counts["production"] == desired["productionCapabilities"],
-        "capability.count.production",
-        str(counts["production"]),
+        availability_counts["available"] == desired["availableCapabilities"],
+        "capability.count.available",
+        str(availability_counts["available"]),
         checks,
     )
     _check(
-        counts["planned"] == desired["plannedCapabilities"], "capability.count.planned", str(counts["planned"]), checks
+        maturity_counts["production"] == desired["productionMaturityCapabilities"],
+        "capability.count.maturity.production",
+        str(maturity_counts["production"]),
+        checks,
+    )
+    _check(
+        maturity_counts["validated"] == desired["validatedMaturityCapabilities"],
+        "capability.count.maturity.validated",
+        str(maturity_counts["validated"]),
+        checks,
+    )
+    _check(
+        availability_counts["planned"] == desired["plannedCapabilities"],
+        "capability.count.planned",
+        str(availability_counts["planned"]),
+        checks,
     )
     _check(default_ids == [desired["defaultCapabilityId"]], "capability.default.only", ",".join(default_ids), checks)
 
     for item in capabilities:
         capability_id = item["capabilityId"]
-        if item["status"] == "production":
-            _check(item["testGate"]["status"] == "passing", f"{capability_id}.production.test_gate", "passing", checks)
+        if item["availability"] == "available":
+            _check(item["testGate"]["status"] == "passing", f"{capability_id}.available.test_gate", "passing", checks)
             _check(
                 not item["engine"]["provider"].startswith("planned."),
-                f"{capability_id}.production.provider",
+                f"{capability_id}.available.provider",
                 item["engine"]["provider"],
                 checks,
             )
             _check(
                 item["engine"]["engineVersion"] != "planned-v0",
-                f"{capability_id}.production.engine",
+                f"{capability_id}.available.engine",
                 item["engine"]["engineVersion"],
                 checks,
             )
-        if item["status"] == "planned":
+        if item["availability"] == "planned":
             _check(
                 item["maturity"]["level"] == "L0",
                 f"{capability_id}.planned.maturity",
@@ -187,24 +203,30 @@ def _validate_capabilities(resource: dict[str, Any], checks: list[dict[str, Any]
             _check(
                 item["report"]["markdownDefault"] is False, f"{capability_id}.planned.markdown_default", "false", checks
             )
-    return {"total": len(capabilities), "production": counts["production"], "planned": counts["planned"]}
+    return {
+        "total": len(capabilities),
+        "available": availability_counts["available"],
+        "planned": availability_counts["planned"],
+        "productionMaturity": maturity_counts["production"],
+        "validatedMaturity": maturity_counts["validated"],
+    }
 
 
 def _validate_providers(resource: dict[str, Any], checks: list[dict[str, Any]]) -> dict[str, int]:
     list_capabilities, list_providers = _load_runtime()
-    production_provider_ids = {item.provider for item in list_capabilities() if item.status == "production"}
+    executable_provider_ids = {item.provider for item in list_capabilities() if item.availability == "available"}
     runtime_provider_ids = {provider.metadata().provider_id for provider in list_providers()}
     desired = resource["spec"]["desiredState"]
 
     _check(
-        len(runtime_provider_ids) == desired["productionProviderCount"],
-        "provider.count.production",
+        len(runtime_provider_ids) == desired["executableProviderCount"],
+        "provider.count.executable",
         str(len(runtime_provider_ids)),
         checks,
     )
     _check(
-        runtime_provider_ids == production_provider_ids,
-        "provider.coverage.production",
+        runtime_provider_ids == executable_provider_ids,
+        "provider.coverage.available",
         ",".join(sorted(runtime_provider_ids)),
         checks,
     )
@@ -212,12 +234,12 @@ def _validate_providers(resource: dict[str, Any], checks: list[dict[str, Any]]) 
     lifecycle_gate = _load_provider_lifecycle_gate().run_gate()
     _check(lifecycle_gate["status"] == "passed", "provider.lifecycle_gate", lifecycle_gate["status"], checks)
     _check(
-        lifecycle_gate["providerCount"] == desired["productionProviderCount"],
+        lifecycle_gate["providerCount"] == desired["executableProviderCount"],
         "provider.lifecycle_gate.count",
         str(lifecycle_gate["providerCount"]),
         checks,
     )
-    return {"productionProviders": len(runtime_provider_ids)}
+    return {"executableProviders": len(runtime_provider_ids)}
 
 
 def _validate_release_gate(resource: dict[str, Any], checks: list[dict[str, Any]]) -> dict[str, Any]:

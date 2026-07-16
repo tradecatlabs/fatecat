@@ -277,6 +277,10 @@
 
 | 0157 | fatecat-geo-citation-authority | In Progress | P1 | 建立 FateCat 可引用主题页、实体证据页、GitHub 元数据与第二阶段 GEO 机械门禁 | 0157-fatecat-geo-citation-authority/ |
 
+| 0158 | fatecat-geo-capability-authority | Done | P1 | 为综合八字与紫微斗数建立独立可引用权威页，并建立可重复的 AI 问答采样基线。 | 0158-fatecat-geo-capability-authority/ |
+
 | 0159 | suanzhun-content-corpus-crawl | Done | P0 | 完整抓取算准网基础与典籍栏目，交付可追溯、可增量、可重复执行的结构化语料与媒体资产 | 0159-suanzhun-content-corpus-crawl/ |
 
 | 0160 | comprehensive-bazi-report-deduplication-and-relation-canonicalization | Done | P0 | 修复综合八字报告重复渲染、地支关系自关联与双向重复，并收敛结构化结果和报告章节的单一事实源，建立全报告唯一性与关系正确性回归门禁。 | 0160-comprehensive-bazi-report-deduplication-and-relation-canonicalization/ |
+
+| 0161 | measurement-infrastructure-hardening-phase-two | Done | P0 | 完成测算基础设施第二阶段加固：公开字段契约、冷启动性能、独立评测、成熟度语义、复杂度、异步指标、分发许可与仓库卫生 | 0161-measurement-infrastructure-hardening-phase-two/ |

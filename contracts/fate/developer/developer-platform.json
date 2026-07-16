@@ -64,6 +64,12 @@
     "packageRegistryStatus": "not_published",
     "smokeCommand": "bash scripts/developer-portal-gate.sh"
   },
+  "publicClientDistribution": {
+    "machineContract": "contracts/fate/developer/public-client-distribution.json",
+    "status": "local_build_verified",
+    "packageRegistryStatus": "not_published",
+    "smokeCommand": ".venv/bin/python scripts/public-client-package-smoke.py"
+  },
   "developerPortal": {
     "machineContract": "contracts/fate/developer/developer-portal.json",
     "humanGuide": "docs/reference-materials/developer/PORTAL.md",
@@ -87,6 +93,7 @@
   "validation": {
     "gateCommand": "bash scripts/developer-platform-gate.sh",
     "portalGateCommand": "bash scripts/developer-portal-gate.sh",
+    "publicClientPackageCommand": ".venv/bin/python scripts/public-client-package-smoke.py",
     "sandboxGatewayGateCommand": "bash scripts/sandbox-access-gateway-gate.sh",
     "docsSmokeCommand": "bash scripts/developer-docs-smoke.sh",
     "openapiExportCommand": "bash scripts/export-openapi.sh --output infra/runtime/local-state/exports/developer/openapi.json",

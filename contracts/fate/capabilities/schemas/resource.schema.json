@@ -20,6 +20,7 @@
   "requiredResourceFields": ["resourceType", "apiVersion", "id", "links", "metadata"],
   "capabilityResourceFields": [
     "capabilityId",
+    "availability",
     "status",
     "defaultVisibility",
     "maturity",
@@ -65,6 +66,7 @@
     "name",
     "domain",
     "datasetType",
+    "evidenceClass",
     "usageRole",
     "status",
     "localAvailability",
@@ -76,6 +78,7 @@
   "evaluationRunResourceFields": [
     "name",
     "runType",
+    "evidenceClass",
     "gateType",
     "datasetIds",
     "commands",

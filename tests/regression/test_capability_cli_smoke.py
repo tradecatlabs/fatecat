@@ -34,6 +34,14 @@ def test_capability_cli_smoke_writes_safe_summary(tmp_path):
     assert stored["plannedCapabilityRejection"]["capabilityId"] == "liuyao"
     assert stored["plannedCapabilityRejection"]["actualExitCode"] == 1
     assert "尚未生产化" in stored["plannedCapabilityRejection"]["errorContains"]
+    assert all(item["availability"] == "available" for item in stored["capabilities"])
+    maturity = {item["capabilityId"]: item["status"] for item in stored["capabilities"]}
+    assert maturity == {
+        "almanac": "validated",
+        "bazi": "production",
+        "meihua": "validated",
+        "ziwei": "production",
+    }
     assert all(item["stdoutSha256"] and item["stdoutBytes"] > 0 for item in stored["capabilities"])
 
     serialized = json.dumps(stored, ensure_ascii=False)

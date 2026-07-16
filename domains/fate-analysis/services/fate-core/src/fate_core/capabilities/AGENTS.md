@@ -23,7 +23,7 @@ capabilities/
 - `registry.py`：加载并校验 `contracts/fate/capabilities/registry.json`，确保默认能力只能是 `bazi`。
 - `providers.py`：定义 `ProviderProtocol`、provider registry、metadata、本地 health、versionLock、lifecycle、source/license/resource manifest、promotionGate 和 deprecation；只包装现有 production usecase，不承载算法；provider 本地依赖执行由 `scripts/provider-dependency-smoke.sh` 验证。
 - `report_policy.py`：定义 Report policy gate 的最小禁止性断语扫描器；只扫描调用方传入的生成内容摘要，不能扫描风险清单自身。
-- `executor.py`：先按 registry 做 admission，再通过 provider registry 执行生产化 capability；planned / experimental 能力必须拒绝执行，避免伪装成生产能力；执行时通过 `fate_core.observability.trace_span` 发出本地 capability/provider span，不记录输入 payload。
+- `executor.py`：先按 registry 的 `availability` 做 admission，再通过 provider registry 执行可用 capability；planned / unavailable 能力必须拒绝执行，成熟度不得替代可执行性；执行时通过 `fate_core.observability.trace_span` 发出本地 capability/provider span，不记录输入 payload。
 - `__init__.py`：对外暴露稳定导入入口。
 
 ## 依赖方向

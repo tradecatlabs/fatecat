@@ -71,11 +71,24 @@ from sizi import summarys as sizi_summarys  # noqa: E402
 
 try:
     from lunar_python import Solar  # noqa: E402
+    from lunar_python.eightchar import LiuYue  # noqa: E402
     from lunar_python.util.LunarUtil import LunarUtil  # noqa: E402
 except ModuleNotFoundError:
     sys.path.insert(0, str(LUNAR_PYTHON_DIR))
     from lunar_python import Solar  # type: ignore[no-redef]  # noqa: E402
+    from lunar_python.eightchar import LiuYue  # type: ignore[no-redef]  # noqa: E402
     from lunar_python.util.LunarUtil import LunarUtil  # type: ignore[no-redef]  # noqa: E402
+
+
+class _CachedAnnualGanZhi:
+    """向 lunar-python `LiuYue` 提供一次计算后的流年干支。"""
+
+    def __init__(self, gan_zhi: str) -> None:
+        self._gan_zhi = gan_zhi
+
+    def getGanZhi(self) -> str:
+        return self._gan_zhi
+
 
 # 五行映射 (全部使用中文)
 STEM_ELEM = {
@@ -348,6 +361,121 @@ class BaziCalculator:
         self.lunar = self.solar.getLunar()
         self.ec = self.lunar.getEightChar()
 
+    def _calc_base_chart_context(self, ec: Any) -> dict[str, Any]:
+        """集中组装四柱基础数据，避免主流程同时承担字段适配职责。"""
+        four_pillars = {
+            pillar: self._pillar(
+                getattr(ec, f"get{pillar.title()}")(),
+                getattr(ec, f"get{pillar.title()}Gan")(),
+                getattr(ec, f"get{pillar.title()}Zhi")(),
+            )
+            for pillar in ["year", "month", "day"]
+        }
+        four_pillars["hour"] = self._pillar(ec.getTime(), ec.getTimeGan(), ec.getTimeZhi())
+
+        hidden_stems = {pillar: getattr(ec, f"get{pillar.title()}HideGan")() for pillar in ["year", "month", "day"]}
+        hidden_stems["hour"] = ec.getTimeHideGan()
+
+        ten_gods = {
+            pillar: {
+                "stem": getattr(ec, f"get{pillar.title()}ShiShenGan")(),
+                "branch": getattr(ec, f"get{pillar.title()}ShiShenZhi")(),
+            }
+            for pillar in ["year", "month", "day"]
+        }
+        ten_gods["hour"] = {"stem": ec.getTimeShiShenGan(), "branch": ec.getTimeShiShenZhi()}
+
+        twelve_growth = {pillar: getattr(ec, f"get{pillar.title()}DiShi")() for pillar in ["year", "month", "day"]}
+        twelve_growth["hour"] = ec.getTimeDiShi()
+
+        five_elements = self._calc_elements(four_pillars, hidden_stems)
+        element_aliases = {"木": "wood", "火": "fire", "土": "earth", "金": "metal", "水": "water"}
+        aliased_five_elements = dict(five_elements)
+        for chinese, english in element_aliases.items():
+            if chinese in five_elements and english not in five_elements:
+                aliased_five_elements[english] = five_elements[chinese]
+            if english in five_elements and chinese not in five_elements:
+                aliased_five_elements[chinese] = five_elements[english]
+
+        special_palaces = {
+            "taiYuan": {"pillar": ec.getTaiYuan(), "nayin": ec.getTaiYuanNaYin()},
+            "taiXi": {"pillar": ec.getTaiXi(), "nayin": ec.getTaiXiNaYin()},
+            "mingGong": {"pillar": ec.getMingGong(), "nayin": ec.getMingGongNaYin()},
+            "shenGong": {"pillar": ec.getShenGong(), "nayin": ec.getShenGongNaYin()},
+        }
+        void_info = {
+            "year": {"xun": ec.getYearXun(), "kong": ec.getYearXunKong()},
+            "month": {"xun": ec.getMonthXun(), "kong": ec.getMonthXunKong()},
+            "day": {"xun": ec.getDayXun(), "kong": ec.getDayXunKong()},
+            "hour": {"xun": ec.getTimeXun(), "kong": ec.getTimeXunKong()},
+        }
+        return {
+            "fourPillars": four_pillars,
+            "hiddenStems": hidden_stems,
+            "tenGods": ten_gods,
+            "twelveGrowth": twelve_growth,
+            "fiveElements": aliased_five_elements,
+            "specialPalaces": special_palaces,
+            "voidInfo": void_info,
+        }
+
+    def _calc_fortune_spirit_maps(
+        self,
+        ec: Any,
+        major_fortune: dict[str, Any],
+        annual_fortune: list[dict[str, Any]],
+        monthly_fortune: list[dict[str, Any]],
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+        """为动态运势建立神煞映射，保持主流程只负责编排。"""
+        base_args = (ec.getDayGan(), ec.getDayZhi(), ec.getMonthZhi(), ec.getYearZhi())
+        major_spirits: list[dict[str, Any]] = []
+        for fortune in major_fortune.get("pillars", []):
+            if not isinstance(fortune, dict):
+                continue
+            gan_zhi = fortune.get("ganZhi") or fortune.get("fullName", "") or ""
+            if len(gan_zhi) < 2:
+                continue
+            gan, zhi = gan_zhi[0], gan_zhi[1]
+            major_spirits.append(
+                {
+                    "startYear": fortune.get("startYear"),
+                    "ganZhi": gan_zhi,
+                    "spirits": self._calc_spirits_for_ganzhi(gan, zhi, *base_args),
+                    "wuxingContribution": self._calc_wuxing_contrib(gan, zhi),
+                }
+            )
+
+        annual_spirits: list[dict[str, Any]] = []
+        for fortune in annual_fortune:
+            if not isinstance(fortune, dict):
+                continue
+            gan_zhi = fortune.get("ganZhi") or fortune.get("fullName", "") or ""
+            if len(gan_zhi) >= 2:
+                annual_spirits.append(
+                    {
+                        "year": fortune.get("year"),
+                        "ganZhi": gan_zhi,
+                        "spirits": self._calc_spirits_for_ganzhi(gan_zhi[0], gan_zhi[1], *base_args),
+                    }
+                )
+
+        monthly_spirits: list[dict[str, Any]] = []
+        for fortune in monthly_fortune:
+            if not isinstance(fortune, dict):
+                continue
+            gan_zhi = fortune.get("ganZhi", "") or ""
+            if len(gan_zhi) >= 2:
+                monthly_spirits.append(
+                    {
+                        "year": fortune.get("year", ""),
+                        "month": fortune.get("month", fortune.get("monthCn", "")),
+                        "monthCn": fortune.get("monthCn", ""),
+                        "ganZhi": gan_zhi,
+                        "spirits": self._calc_spirits_for_ganzhi(gan_zhi[0], gan_zhi[1], *base_args),
+                    }
+                )
+        return major_spirits, annual_spirits, monthly_spirits
+
     def calculate(self, hide: dict[str, bool] | None = None) -> dict[str, Any]:
         if not self.ec:
             raise RuntimeError("lunar-python初始化失败")
@@ -356,67 +484,14 @@ class BaziCalculator:
         hide = hide or {}
         calc_now = now_cn()
 
-        # 四柱
-        four_pillars = {
-            p: self._pillar(
-                getattr(ec, f"get{p.title()}")(),
-                getattr(ec, f"get{p.title()}Gan")(),
-                getattr(ec, f"get{p.title()}Zhi")(),
-            )
-            for p in ["year", "month", "day"]
-        }
-        four_pillars["hour"] = self._pillar(ec.getTime(), ec.getTimeGan(), ec.getTimeZhi())
-
-        # 藏干
-        hidden = {p: getattr(ec, f"get{p.title()}HideGan")() for p in ["year", "month", "day"]}
-        hidden["hour"] = ec.getTimeHideGan()
-
-        # 十神
-        ten_gods = {
-            p: {
-                "stem": getattr(ec, f"get{p.title()}ShiShenGan")(),
-                "branch": getattr(ec, f"get{p.title()}ShiShenZhi")(),
-            }
-            for p in ["year", "month", "day"]
-        }
-        ten_gods["hour"] = {"stem": ec.getTimeShiShenGan(), "branch": ec.getTimeShiShenZhi()}
-
-        # 十二长生
-        twelve = {p: getattr(ec, f"get{p.title()}DiShi")() for p in ["year", "month", "day"]}
-        twelve["hour"] = ec.getTimeDiShi()
-
-        # 五行
-        five_elem = self._calc_elements(four_pillars, hidden)
-
-        # 补齐中英双键，兼容测试与展示
-        def _alias_five_elements(fe: dict) -> dict:
-            map_cn = {"木": "wood", "火": "fire", "土": "earth", "金": "metal", "水": "water"}
-            res = dict(fe)
-            # 若只有中文键，补英文；若只有英文，补中文
-            for cn, en in map_cn.items():
-                if cn in fe and en not in fe:
-                    res[en] = fe[cn]
-                if en in fe and cn not in fe:
-                    res[cn] = fe[en]
-            return res
-
-        five_elem = _alias_five_elements(five_elem)
-
-        # 特殊宫位
-        palaces = {
-            "taiYuan": {"pillar": ec.getTaiYuan(), "nayin": ec.getTaiYuanNaYin()},
-            "taiXi": {"pillar": ec.getTaiXi(), "nayin": ec.getTaiXiNaYin()},
-            "mingGong": {"pillar": ec.getMingGong(), "nayin": ec.getMingGongNaYin()},
-            "shenGong": {"pillar": ec.getShenGong(), "nayin": ec.getShenGongNaYin()},
-        }
-
-        # 空亡
-        void = {
-            "year": {"xun": ec.getYearXun(), "kong": ec.getYearXunKong()},
-            "month": {"xun": ec.getMonthXun(), "kong": ec.getMonthXunKong()},
-            "day": {"xun": ec.getDayXun(), "kong": ec.getDayXunKong()},
-            "hour": {"xun": ec.getTimeXun(), "kong": ec.getTimeXunKong()},
-        }
+        base_chart = self._calc_base_chart_context(ec)
+        four_pillars = base_chart["fourPillars"]
+        hidden = base_chart["hiddenStems"]
+        ten_gods = base_chart["tenGods"]
+        twelve = base_chart["twelveGrowth"]
+        five_elem = base_chart["fiveElements"]
+        palaces = base_chart["specialPalaces"]
+        void = base_chart["voidInfo"]
 
         # 大运
         yun = ec.getYun(1 if self.gender == "male" else 0)
@@ -767,59 +842,12 @@ class BaziCalculator:
         fiveGrids = {}
         strokeAnalysis = {}
 
-        # ====== 大运 / 流年 神煞 ======
-        base_day_gan = ec.getDayGan()
-        base_day_zhi = ec.getDayZhi()
-        base_month_zhi = ec.getMonthZhi()
-        base_year_zhi = ec.getYearZhi()
-        major_spirits = []
-        for dy in major_with_shishen.get("pillars", []):
-            if not isinstance(dy, dict):
-                continue
-            gz = dy.get("ganZhi") or dy.get("fullName", "") or ""
-            if len(gz) >= 2:
-                gan, zhi = gz[0], gz[1]
-                s_list = self._calc_spirits_for_ganzhi(
-                    gan, zhi, base_day_gan, base_day_zhi, base_month_zhi, base_year_zhi
-                )
-                major_spirits.append(
-                    {
-                        "startYear": dy.get("startYear"),
-                        "ganZhi": gz,
-                        "spirits": s_list,
-                        "wuxingContribution": self._calc_wuxing_contrib(gan, zhi),
-                    }
-                )
-        annual_spirits = []
-        for an in annual_with_shishen:
-            if not isinstance(an, dict):
-                continue
-            gz = an.get("ganZhi") or an.get("fullName", "") or ""
-            if len(gz) >= 2:
-                gan, zhi = gz[0], gz[1]
-                s_list = self._calc_spirits_for_ganzhi(
-                    gan, zhi, base_day_gan, base_day_zhi, base_month_zhi, base_year_zhi
-                )
-                annual_spirits.append({"year": an.get("year"), "ganZhi": gz, "spirits": s_list})
-        monthly_spirits = []
-        for mo in monthly:
-            if not isinstance(mo, dict):
-                continue
-            gz = mo.get("ganZhi", "") or ""
-            if len(gz) >= 2:
-                gan, zhi = gz[0], gz[1]
-                s_list = self._calc_spirits_for_ganzhi(
-                    gan, zhi, base_day_gan, base_day_zhi, base_month_zhi, base_year_zhi
-                )
-                monthly_spirits.append(
-                    {
-                        "year": mo.get("year", ""),
-                        "month": mo.get("month", mo.get("monthCn", "")),
-                        "monthCn": mo.get("monthCn", ""),
-                        "ganZhi": gz,
-                        "spirits": s_list,
-                    }
-                )
+        major_spirits, annual_spirits, monthly_spirits = self._calc_fortune_spirit_maps(
+            ec,
+            major_with_shishen,
+            annual_with_shishen,
+            monthly,
+        )
 
         # 构建结果
         sizi_summary = self._calc_sizi_summary(four_pillars)
@@ -1191,13 +1219,15 @@ class BaziCalculator:
         for dy in da_yuns:
             for ln in dy.getLiuNian():
                 year = ln.getYear()
+                annual_gan_zhi = _CachedAnnualGanZhi(ln.getGanZhi())
                 for ly in ln.getLiuYue():
                     month_idx = ly.getIndex() + 1
                     key = (year, month_idx)
                     if key in seen:
                         continue
                     seen.add(key)
-                    gan_zhi = ly.getGanZhi()
+                    # 继续复用 lunar-python 的五虎遁实现，只避免同一流年被 12 个月重复计算。
+                    gan_zhi = LiuYue(annual_gan_zhi, ly.getIndex()).getGanZhi()
                     result.append(
                         {
                             "year": year,

@@ -17,7 +17,7 @@ def _load_smoke_module():
     return module
 
 
-def test_provider_dependency_smoke_executes_production_capabilities(tmp_path):
+def test_provider_dependency_smoke_executes_available_capabilities(tmp_path):
     smoke = _load_smoke_module()
     output_json = tmp_path / "provider-dependency-smoke.json"
 

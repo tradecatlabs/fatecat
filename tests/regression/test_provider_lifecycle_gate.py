@@ -29,7 +29,7 @@ def test_provider_lifecycle_gate_checks_registered_providers(tmp_path):
     assert stored["status"] == "passed"
     assert stored["providerCount"] == 4
     checks = {item["name"]: item for item in stored["checks"]}
-    assert checks["production_provider_coverage"]["ok"] is True
+    assert checks["available_provider_coverage"]["ok"] is True
     assert checks["supply_chain_production_allowed:lunar-python"]["ok"] is True
     assert checks["supply_chain_production_allowed:iztro"]["ok"] is True
     assert "token" in stored["privacyBoundary"]

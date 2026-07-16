@@ -54,7 +54,7 @@
 - Hypothesis：H1
 - Change：不修改代码；运行只读分类、原始响应解析和 SQLite 计数探针。
 - Expected：若 H1 成立，原始响应存在续页 token，但分类为 `ignore`、解析目标为 0、frontier 为 0。
-- Result：三类续页均为 `ignore`；`RAW_CONTINUATION_TOKENS=6`、`PARSED_CONTINUATIONS=0`、`FRONTIER_CONTINUATIONS=0`。
+- Result：三类续页均为 `ignore`；原始续页 token 数为 6，已解析续页数和 frontier 续页数均为 0。
 - Verdict：confirmed
 - Revert：无变更，无需回滚。
 

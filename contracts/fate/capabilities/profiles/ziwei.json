@@ -20,5 +20,46 @@
     "ziweiHoroscope",
     "evidence"
   ],
-  "markdownDefault": false
+  "markdownDefault": false,
+  "publicMarkdown": {
+    "headingPrefixes": ["# 紫微斗数报告："],
+    "allowedHeadings": [
+      "## 紫微斗数",
+      "### 入盘依据",
+      "### 命宫与身宫",
+      "### 十二宫",
+      "## 紫微结构解读（依据版）",
+      "### 命宫/身宫断语",
+      "### 主星组合",
+      "### 三方四正",
+      "### 四化落宫",
+      "### 大限/流年联动",
+      "### 紫微斗数规则摘要",
+      "## 紫微运限四化（大限/流年/流月/流日/流时）",
+      "### 大限",
+      "### 流年",
+      "### 流月",
+      "### 流日",
+      "### 流时"
+    ],
+    "allowedTableHeaders": [
+      ["项目", "内容"],
+      ["标记", "宫位", "宫干支", "大限", "主星"],
+      ["宫位", "序", "干支", "标记", "大限", "小限年龄", "长生", "博士", "将前", "岁前", "主星", "辅星", "杂曜"],
+      ["标记", "宫位", "宫干支", "主星", "结构说明"],
+      ["宫位", "主星组合", "辅星", "杂曜"],
+      ["对象", "位置", "宫位", "地支", "主星", "四化命中"],
+      ["四化", "星曜", "宫位", "作用域"],
+      ["层级", "干支", "四化", "宫位顺序"],
+      ["宫位", "流耀"]
+    ],
+    "allowedMetadataLabels": [
+      "原始时间", "真太阳时", "入盘时间", "农历", "干支", "时辰", "时支", "命宫地支", "身宫地支", "生年四化", "闰月口径",
+      "标记", "宫位", "命主", "身主", "命局", "十二宫顺序", "序号", "当前年龄（虚岁）", "运限类型", "运限日期", "运限阳历", "运限农历", "运限干支", "时段", "四化"
+    ],
+    "machineOnlyResultPaths": [
+      "analysisEvidence", "ziweiAnalysisEvidence", "ziwei.source", "ziwei.ruleIds", "ziweiInterpretation.ruleIds"
+    ],
+    "forbiddenRenderedTerms": ["analysisEvidence", "ziweiAnalysisEvidence", "ruleIds", "providerId", "engineVersion"]
+  }
 }

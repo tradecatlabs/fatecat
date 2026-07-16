@@ -81,6 +81,8 @@ fi
 
 run_step "GEO query set gate" "${python_bin}" "${script_dir}/geo-query-set-gate.py"
 run_step "public release policy" bash "${script_dir}/check-public-release-policy.sh"
+run_step "public client package smoke" "${python_bin}" "${script_dir}/public-client-package-smoke.py" \
+  --output "${output_dir}/public-client-package-smoke"
 
 public_skill_parent="${output_dir}/public-skill"
 run_step "public skill export" bash "${script_dir}/export-runtime.sh" \

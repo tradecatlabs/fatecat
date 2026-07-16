@@ -15,8 +15,12 @@ class CapabilityExecutor:
         capability = get_capability(request.capability_id)
         with trace_span("capability.execute", attributes={"capabilityId": capability.capability_id}):
             self._validate_required_inputs(capability.input_required, request.payload, capability.capability_id)
-            if capability.status != "production":
-                raise ValueError(f"capability 尚未生产化: {capability.capability_id} ({capability.status})")
+            if capability.availability != "available":
+                availability_reason = "尚未生产化" if capability.availability == "planned" else "当前不可用"
+                raise ValueError(
+                    f"capability 不可执行（{availability_reason}）: {capability.capability_id} "
+                    f"(availability={capability.availability}, maturity={capability.maturity_status})"
+                )
             provider = get_provider_for_capability(capability)
             attributes = {"capabilityId": capability.capability_id, "providerId": provider.provider_id}
             with trace_span("provider.validate", attributes=attributes):
@@ -26,6 +30,7 @@ class CapabilityExecutor:
             evidence = data.get("analysisEvidence", {}) if isinstance(data.get("analysisEvidence"), dict) else {}
             return CapabilityResult(
                 capability_id=capability.capability_id,
+                availability=capability.availability,
                 status=capability.status,
                 report_profile=capability.report_profile,
                 data=data,

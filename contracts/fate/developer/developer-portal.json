@@ -10,6 +10,7 @@
   "machineContracts": {
     "developerPlatform": "contracts/fate/developer/developer-platform.json",
     "sdkReleaseBaseline": "contracts/fate/developer/sdk-release-baseline.json",
+    "publicClientDistribution": "contracts/fate/developer/public-client-distribution.json",
     "sandboxFixtures": "contracts/fate/developer/sandbox.json",
     "sandboxTokenContract": "contracts/fate/developer/sandbox-token-contract.json",
     "sandboxAccessGateway": "contracts/fate/developer/sandbox-access-gateway.json",

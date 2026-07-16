@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.public_client_distribution",
+  "status": "local_build_verified",
+  "packageRegistryStatus": "not_published",
+  "description": "Public distribution boundary for the dependency-free FateCat Python HTTP client. This contract does not authorize distribution of the server runtime or unknown-license reference assets.",
+  "publicClient": {
+    "packageName": "fatecat-client",
+    "version": "0.1.0",
+    "language": "python",
+    "sourceRoot": "apps/developer-clients/python",
+    "projectFile": "apps/developer-clients/python/pyproject.toml",
+    "importName": "fatecat_client",
+    "license": "MIT",
+    "distributionAllowed": true,
+    "runtimeDependencies": [],
+    "executionModel": "remote_http_api_only",
+    "serverImportsAllowed": false,
+    "liveServiceEvidence": "not_claimed"
+  },
+  "archivePolicy": {
+    "allowedMembers": [
+      "LICENSE",
+      ".gitignore",
+      "README.md",
+      "pyproject.toml",
+      "PKG-INFO",
+      "src/fatecat_client/**",
+      "fatecat_client/**",
+      "fatecat_client-*.dist-info/**"
+    ],
+    "requiredWheelMembers": [
+      "fatecat_client/__init__.py",
+      "fatecat_client/client.py",
+      "fatecat_client/py.typed"
+    ],
+    "requiredSdistMembers": [
+      "LICENSE",
+      "README.md",
+      "pyproject.toml",
+      "src/fatecat_client/__init__.py",
+      "src/fatecat_client/client.py",
+      "src/fatecat_client/py.typed"
+    ],
+    "forbiddenFragments": [
+      "fate_core",
+      "fatecat-delivery",
+      "bazi-1",
+      "sxwnl",
+      "reference-repos",
+      "classics_rule_index",
+      "data-products",
+      "infra/environments",
+      "governance"
+    ]
+  },
+  "restrictedServerRuntime": {
+    "projectFile": "pyproject.toml",
+    "artifactClass": "restricted_server_runtime",
+    "publicRegistryPublishAllowed": false,
+    "reason": "The server/runtime closure has source and license boundaries that are not equivalent to the MIT-only public client closure.",
+    "unknownLicenseAssets": [
+      {
+        "id": "bazi-1",
+        "license": "NOASSERTION",
+        "licenseStatus": "missing_upstream_license",
+        "distributionAllowed": false,
+        "usageRole": "reference_only"
+      },
+      {
+        "id": "sxwnl",
+        "license": "NOASSERTION",
+        "licenseStatus": "missing_upstream_license",
+        "distributionAllowed": false,
+        "usageRole": "oracle_only"
+      }
+    ]
+  },
+  "validation": {
+    "command": ".venv/bin/python scripts/public-client-package-smoke.py",
+    "checks": [
+      "build wheel and sdist without network isolation changes",
+      "inspect every archive member against the allowlist",
+      "reject server and unknown-license asset fragments",
+      "install wheel with --no-deps in a clean virtual environment",
+      "call a local HTTP fixture through the installed client"
+    ]
+  },
+  "limitations": [
+    "This contract proves a local clean-room build only; it does not claim PyPI publication.",
+    "It does not prove the external FateCat API is reachable.",
+    "It does not change or resolve upstream license status for bazi-1 or sxwnl."
+  ]
+}

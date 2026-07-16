@@ -261,11 +261,71 @@ def test_ready_and_metrics_endpoints_are_available():
     assert "fatecat_report_job_queue_size" in metrics_response.text
     assert "fatecat_report_job_queue_max" in metrics_response.text
     assert "fatecat_report_jobs" in metrics_response.text
+    assert "fatecat_report_jobs_total" in metrics_response.text
+    assert "fatecat_report_job_queue_wait_seconds" in metrics_response.text
+    assert "fatecat_report_job_execution_duration_seconds" in metrics_response.text
+    assert "fatecat_report_job_result_size_bytes" in metrics_response.text
     assert 'fatecat_report_job_store_backend_info{backend="memory"} 1' in metrics_response.text
     assert "fatecat_bot_queue_size" in metrics_response.text
     assert 'fatecat_bot_queue_scope_info{backend="memory",scope="single_process"} 1' in metrics_response.text
     assert "fatecat_bot_queue_max_size" in metrics_response.text
     assert "fatecat_bot_concurrent_requests" in metrics_response.text
+
+
+def test_report_job_metrics_cover_the_full_terminal_lifecycle_without_payloads():
+    started = Event()
+    release = Event()
+
+    def fail_task():
+        raise RuntimeError("private failure detail")
+
+    def blocking_task():
+        started.set()
+        release.wait(timeout=2)
+        return {"markdown": "discarded private report"}
+
+    manager = ReportJobManager(max_workers=1, queue_size=4, ttl_seconds=120)
+    succeeded = manager.submit(
+        kind="markdown",
+        report_system="bazi",
+        input_summary={"name": "private name", "birthPlace": "private place"},
+        task=lambda: {"markdown": "private report body"},
+    )
+    assert _wait_for_manager_job(manager, succeeded.job_id).status == "succeeded"
+
+    failed = manager.submit(kind="markdown", report_system="bazi", task=fail_task)
+    assert _wait_for_manager_job(manager, failed.job_id).status == "failed"
+
+    cancelled = manager.submit(kind="markdown", report_system="bazi", task=blocking_task)
+    assert started.wait(timeout=2)
+    assert manager.cancel(cancelled.job_id).status == "cancelled"
+    release.set()
+
+    with manager._lock:
+        manager._jobs[succeeded.job_id].expires_monotonic = 0.0
+    manager.cleanup_expired()
+
+    snapshot = manager.metrics_snapshot()
+    assert snapshot["terminalCounts"] == {
+        "succeeded": 1,
+        "failed": 1,
+        "expired": 1,
+        "cancelled": 1,
+    }
+    assert snapshot["histograms"]["queue_wait_seconds"]["count"] == 3
+    assert snapshot["histograms"]["execution_duration_seconds"]["count"] == 3
+    assert snapshot["histograms"]["result_size_bytes"]["count"] == 1
+    assert snapshot["histograms"]["result_size_bytes"]["sum"] > 0
+
+    serialized = json.dumps(snapshot, ensure_ascii=False)
+    for private_value in (
+        succeeded.job_id,
+        "private name",
+        "private place",
+        "private report body",
+        "private failure detail",
+    ):
+        assert private_value not in serialized
 
 
 def test_business_error_logs_include_request_id(monkeypatch, caplog):
@@ -2158,7 +2218,8 @@ def test_capabilities_api_lists_almanac_as_standalone_production():
     assert capabilities["bazi"]["provider"]["health"]["status"] == "ready"
     assert capabilities["bazi"]["evidencePolicy"]["ruleIdRequired"] is True
     assert capabilities["bazi"]["testGate"]["status"] == "passing"
-    assert capabilities["almanac"]["status"] == "production"
+    assert capabilities["almanac"]["availability"] == "available"
+    assert capabilities["almanac"]["status"] == "validated"
     assert capabilities["almanac"]["defaultVisibility"] == "standalone"
     assert capabilities["almanac"]["maturity"]["level"] == "L3"
     assert capabilities["almanac"]["capabilityApiEnabled"] is True
@@ -2169,17 +2230,21 @@ def test_capabilities_api_lists_almanac_as_standalone_production():
         "webForm": False,
     }
     assert capabilities["ziwei"]["status"] == "production"
+    assert capabilities["ziwei"]["availability"] == "available"
     assert capabilities["ziwei"]["defaultVisibility"] == "standalone"
     assert capabilities["ziwei"]["maturity"]["level"] == "L4"
     assert capabilities["ziwei"]["engine"]["engineVersion"] == "fate-core-ziwei-v1"
     assert capabilities["ziwei"]["capabilityApiEnabled"] is True
     assert capabilities["ziwei"]["markdownReportEnabled"] is True
-    assert capabilities["meihua"]["status"] == "production"
+    assert capabilities["meihua"]["availability"] == "available"
+    assert capabilities["meihua"]["status"] == "validated"
     assert capabilities["meihua"]["defaultVisibility"] == "standalone"
     assert capabilities["meihua"]["maturity"]["level"] == "L3"
     assert capabilities["meihua"]["capabilityApiEnabled"] is True
     assert capabilities["meihua"]["markdownReportEnabled"] is False
     assert capabilities["liuyao"]["maturity"]["level"] == "L0"
+    assert capabilities["liuyao"]["availability"] == "planned"
+    assert capabilities["liuyao"]["status"] == "registered"
     assert capabilities["liuyao"]["testGate"]["status"] == "blocked"
     assert capabilities["liuyao"]["provider"]["health"]["status"] == "blocked"
 
@@ -2342,7 +2407,9 @@ def test_measurement_capability_detail_exposes_resource_contract():
     assert data["apiVersion"] == "fatecat.tradecatlabs/v1"
     assert data["id"] == "bazi"
     assert data["capabilityId"] == "bazi"
-    assert data["admission"] == {"executable": True, "reason": "production capability"}
+    assert data["availability"] == "available"
+    assert data["status"] == "production"
+    assert data["admission"] == {"executable": True, "reason": "能力可执行（availability=available）"}
     assert data["input"]["required"] == ["birthDateTime", "gender", "longitude", "latitude"]
     assert data["links"]["self"] == "/capabilities/bazi"
     assert data["links"]["calculate"] == "/capabilities/bazi/calculate"
@@ -2366,9 +2433,10 @@ def test_planned_capability_detail_is_discoverable_but_not_executable():
     data = response.json()["data"]
     assert data["resourceType"] == "Capability"
     assert data["capabilityId"] == "liuyao"
-    assert data["status"] == "planned"
+    assert data["availability"] == "planned"
+    assert data["status"] == "registered"
     assert data["admission"]["executable"] is False
-    assert data["admission"]["reason"] == "能力尚未生产化，当前只允许发现和审计"
+    assert data["admission"]["reason"] == "能力当前不可执行（availability=planned），只允许发现和审计"
     assert data["engine"]["provider"] == "planned.liuyao"
     assert data["provider"]["providerId"] == "planned.liuyao"
     assert data["provider"]["health"]["status"] == "blocked"

@@ -6,7 +6,7 @@
       "capabilityId": "bazi",
       "name": "综合八字",
       "tradition": "chinese",
-      "status": "production",
+      "availability": "available",
       "defaultVisibility": "default",
       "maturity": {
         "level": "L4",
@@ -54,7 +54,7 @@
       "capabilityId": "almanac",
       "name": "黄历择日",
       "tradition": "chinese",
-      "status": "production",
+      "availability": "available",
       "defaultVisibility": "standalone",
       "maturity": {
         "level": "L3",
@@ -98,7 +98,7 @@
       "capabilityId": "ziwei",
       "name": "紫微斗数",
       "tradition": "chinese",
-      "status": "production",
+      "availability": "available",
       "defaultVisibility": "standalone",
       "maturity": {
         "level": "L4",
@@ -142,7 +142,7 @@
       "capabilityId": "liuyao",
       "name": "六爻占卜",
       "tradition": "chinese",
-      "status": "planned",
+      "availability": "planned",
       "defaultVisibility": "standalone",
       "maturity": {
         "level": "L0",
@@ -186,7 +186,7 @@
       "capabilityId": "meihua",
       "name": "梅花易数",
       "tradition": "chinese",
-      "status": "production",
+      "availability": "available",
       "defaultVisibility": "standalone",
       "maturity": {
         "level": "L3",
@@ -230,7 +230,7 @@
       "capabilityId": "qimen",
       "name": "奇门遁甲",
       "tradition": "chinese",
-      "status": "planned",
+      "availability": "planned",
       "defaultVisibility": "standalone",
       "maturity": {
         "level": "L0",
@@ -274,7 +274,7 @@
       "capabilityId": "daliuren",
       "name": "大六壬",
       "tradition": "chinese",
-      "status": "planned",
+      "availability": "planned",
       "defaultVisibility": "standalone",
       "maturity": {
         "level": "L0",
@@ -318,7 +318,7 @@
       "capabilityId": "fengshui_nine_stars",
       "name": "风水九星",
       "tradition": "chinese",
-      "status": "planned",
+      "availability": "planned",
       "defaultVisibility": "standalone",
       "maturity": {
         "level": "L0",
@@ -362,7 +362,7 @@
       "capabilityId": "name_marriage",
       "name": "姓名合婚",
       "tradition": "chinese",
-      "status": "planned",
+      "availability": "planned",
       "defaultVisibility": "standalone",
       "maturity": {
         "level": "L0",
