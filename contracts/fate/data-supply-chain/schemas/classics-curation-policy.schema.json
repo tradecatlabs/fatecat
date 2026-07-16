@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "contractId": "fatecat.classics-curation-policy.v1",
+  "description": "命理典籍正文选择与书目整理策略契约。策略绑定 canonical source hash，只描述派生数据如何选择正文和生成复核项，不修改原文、不完成版权或权威书目认证。",
+  "requiredPolicyFields": [
+    "schemaVersion",
+    "policyId",
+    "description",
+    "ruleSets",
+    "documents",
+    "invariants"
+  ],
+  "requiredDocumentFields": [
+    "sourcePath",
+    "sourceSha256",
+    "familyId",
+    "documentRole",
+    "roleStatus",
+    "bibliography",
+    "completeness",
+    "selection",
+    "reviewItems"
+  ],
+  "allowedDocumentRole": [
+    "source_text",
+    "source_with_commentary",
+    "commentary",
+    "annotated_source",
+    "treatise",
+    "compendium",
+    "mixed_notes"
+  ],
+  "allowedRoleStatus": [
+    "curator_assigned"
+  ],
+  "allowedCompletenessStatus": [
+    "partial",
+    "unknown"
+  ],
+  "allowedSelectionMode": [
+    "all",
+    "include_line_ranges"
+  ],
+  "allowedRuleAction": [
+    "exclude",
+    "extract_and_exclude"
+  ],
+  "allowedMatchType": [
+    "exact",
+    "prefix"
+  ],
+  "allowedExtractMode": [
+    "suffix",
+    "after_label"
+  ],
+  "allowedReviewStatus": [
+    "review_required"
+  ],
+  "allowedReviewSeverity": [
+    "high",
+    "medium",
+    "low"
+  ],
+  "invariants": [
+    "documents 必须覆盖全部且仅覆盖 canonical classics TXT。",
+    "每个 sourcePath 必须唯一，sourceSha256 必须匹配 source_manifest.tsv 和磁盘文件。",
+    "include_line_ranges 必须显式给出不重叠、升序且不越界的闭区间。",
+    "规则只允许 exact/prefix、exclude/extract_and_exclude 和显式 suffix/after_label 提取，不允许正则、模糊模型或未审计脚本表达式。",
+    "被排除的非空行必须输出 source line、text hash、rule id 和 reason，不得静默丢弃。",
+    "bibliography.reviewed 必须保持 null，直到独立人工书目复核任务提供证据。",
+    "completeness=unknown 不得被解释为完整；partial 不得进入完整语料声明。",
+    "策略不得放宽 canonical copyright_review.tsv 的版权、训练、生产或分发边界。"
+  ]
+}

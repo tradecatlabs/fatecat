@@ -1,13 +1,14 @@
 {
-  "schemaVersion": 1,
-  "contractId": "fatecat.classics-clean-dataset.v1",
-  "description": "命理典籍内部清洗派生数据集契约。该数据集只用于检索、规则提炼与人工复核，不改变 canonical 原文，不授予训练、生产或公开分发权限。",
+  "schemaVersion": 2,
+  "contractId": "fatecat.classics-clean-dataset.v2",
+  "description": "命理典籍内部清洗与整理派生数据集契约。该数据集只用于检索、规则提炼与人工复核；正文选择受 source-hash 绑定 policy 控制，不改变 canonical 原文，不授予训练、生产或公开分发权限。",
   "input": {
     "encoding": "UTF-8 (strict)",
     "requiredFiles": [
       "*.txt",
       "source_manifest.tsv",
-      "copyright_review.tsv"
+      "copyright_review.tsv",
+      "curation_policy.json"
     ],
     "requiredSourceManifestColumns": [
       "system",
@@ -27,7 +28,7 @@
     ]
   },
   "normalization": {
-    "profile": "classics-clean-v1",
+    "profile": "classics-clean-v2",
     "unicodeForm": "NFC",
     "removeCharacters": [
       "U+FEFF",
@@ -56,6 +57,8 @@
       "paragraphs.ndjson",
       "passages.ndjson",
       "duplicates.ndjson",
+      "exclusions.ndjson",
+      "review-queue.ndjson",
       "quality-report.json",
       "manifest.json",
       "files.sha256"
@@ -64,7 +67,9 @@
       "documents.ndjson": "document",
       "paragraphs.ndjson": "paragraph",
       "passages.ndjson": "passage",
-      "duplicates.ndjson": "exact_paragraph_group | exact_passage_group | document_overlap"
+      "duplicates.ndjson": "exact_paragraph_group | exact_passage_group | document_overlap",
+      "exclusions.ndjson": "excluded_source_line",
+      "review-queue.ndjson": "curation_review_item"
     }
   },
   "requiredDocumentFields": [
@@ -89,7 +94,15 @@
     "normalizedCharCount",
     "paragraphCount",
     "passageCount",
-    "qualityFlags"
+    "qualityFlags",
+    "familyId",
+    "documentRole",
+    "roleStatus",
+    "bibliography",
+    "completeness",
+    "curationPolicyId",
+    "curationMetadata",
+    "excludedSourceLineCount"
   ],
   "requiredParagraphFields": [
     "schemaVersion",
@@ -128,6 +141,34 @@
     "productionUseAllowed",
     "trainingUseAllowed"
   ],
+  "requiredExclusionFields": [
+    "schemaVersion",
+    "kind",
+    "exclusionId",
+    "documentId",
+    "sourcePath",
+    "sourceSha256",
+    "sourceLine",
+    "textSha256",
+    "charCount",
+    "ruleId",
+    "classification",
+    "reason"
+  ],
+  "requiredReviewItemFields": [
+    "schemaVersion",
+    "kind",
+    "reviewId",
+    "policyItemId",
+    "documentId",
+    "sourcePath",
+    "issueType",
+    "severity",
+    "summary",
+    "evidence",
+    "blocks",
+    "status"
+  ],
   "rightsBoundary": {
     "distributionAllowed": false,
     "productionUseAllowed": false,
@@ -143,9 +184,12 @@
     "canonical TXT 的 bytes 与 sha256 必须匹配 source_manifest.tsv。",
     "每个 canonical TXT 必须在 copyright_review.tsv 中登记且状态保持 review_required。",
     "清洗不得改写输入文件，输入目录与输出目录不得互相包含。",
+    "curation policy 必须 14/14 覆盖并绑定 source hash；策略缺失、漂移或行范围越界必须失败。",
     "document、paragraph、passage ID 和所有输出排序必须可复现。",
     "每个 passage 必须可追溯到 document、sourcePath、sourceSha256、paragraph 和 source line range。",
-    "重复检测只生成标记，不得自动删除、合并或覆盖正文。",
+    "被排除的非空源行必须写入 exclusions 血缘证据；不得静默丢弃。",
+    "书目 observed/reviewed、文本角色和完整性状态必须分离；reviewed 未经人工证据必须为 null。",
+    "重复检测和文献家族只生成标记，不得自动删除、合并或覆盖正文。",
     "派生数据不得声明可公开分发、可生产运行或可训练使用。"
   ]
 }

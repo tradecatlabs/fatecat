@@ -19,6 +19,10 @@ DATA_PRODUCTS_ROOT = REPO_ROOT / "domains" / "fate-analysis" / "data-products"
 CLASSICS_DIR = DATA_PRODUCTS_ROOT / "classics"
 CLASSICS_SOURCE_MANIFEST = CLASSICS_DIR / "source_manifest.tsv"
 CLASSICS_COPYRIGHT_REVIEW = CLASSICS_DIR / "copyright_review.tsv"
+CLASSICS_CURATION_POLICY = CLASSICS_DIR / "curation_policy.json"
+CLASSICS_CURATION_SCHEMA = (
+    REPO_ROOT / "contracts" / "fate" / "data-supply-chain" / "schemas" / "classics-curation-policy.schema.json"
+)
 SOLAR_TERMS_SOURCE_MANIFEST = DATA_PRODUCTS_ROOT / "calendar" / "solar_terms" / "source_manifest.tsv"
 VENDOR_MANIFEST = REPO_ROOT / "tools" / "reference-repos" / "vendor_sources.json"
 DEFAULT_OUTPUT_JSON = (
@@ -258,6 +262,127 @@ def _validate_classics(checks: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _validate_classics_curation(checks: list[dict[str, Any]]) -> dict[str, Any]:
+    policy = _load_json(CLASSICS_CURATION_POLICY)
+    schema = _load_json(CLASSICS_CURATION_SCHEMA)
+    source_rows = _read_tsv(CLASSICS_SOURCE_MANIFEST)
+    source_by_path = {row["relative_path"]: row for row in source_rows}
+    classic_paths = {f"classics/{path.name}" for path in CLASSICS_DIR.glob("*.txt")}
+    documents = policy.get("documents", [])
+    document_paths = [item.get("sourcePath") for item in documents]
+
+    _check(
+        checks,
+        "classics_curation:required_policy_fields",
+        not (set(schema["requiredPolicyFields"]) - set(policy)),
+        str(sorted(set(schema["requiredPolicyFields"]) - set(policy))),
+    )
+    _check(checks, "classics_curation:document_count", len(documents) == len(classic_paths), str(len(documents)))
+    _check(
+        checks,
+        "classics_curation:unique_source_paths",
+        len(document_paths) == len(set(document_paths)),
+        "unique",
+    )
+    _check(
+        checks,
+        "classics_curation:canonical_coverage",
+        set(document_paths) == classic_paths,
+        f"missing={sorted(classic_paths - set(document_paths))} extra={sorted(set(document_paths) - classic_paths)}",
+    )
+
+    allowed_roles = set(schema["allowedDocumentRole"])
+    allowed_completeness = set(schema["allowedCompletenessStatus"])
+    allowed_actions = set(schema["allowedRuleAction"])
+    allowed_matches = set(schema["allowedMatchType"])
+    allowed_extract_modes = set(schema["allowedExtractMode"])
+    rule_sets = policy.get("ruleSets", {})
+    review_items = 0
+    partial_documents = 0
+    for document in documents:
+        source_path = str(document.get("sourcePath", "<missing>"))
+        missing = sorted(set(schema["requiredDocumentFields"]) - set(document))
+        _check(checks, f"classics_curation:{source_path}:required_fields", not missing, str(missing))
+        source_row = source_by_path.get(source_path)
+        _check(checks, f"classics_curation:{source_path}:source_manifest", source_row is not None, source_path)
+        _check(
+            checks,
+            f"classics_curation:{source_path}:source_hash",
+            source_row is not None and document["sourceSha256"] == source_row["sha256"],
+            document["sourceSha256"],
+        )
+        _check(
+            checks,
+            f"classics_curation:{source_path}:document_role",
+            document["documentRole"] in allowed_roles and document["roleStatus"] == "curator_assigned",
+            f"{document['documentRole']} {document['roleStatus']}",
+        )
+        bibliography = document["bibliography"]
+        _check(
+            checks,
+            f"classics_curation:{source_path}:bibliography_boundary",
+            bibliography.get("reviewed") is None and bibliography.get("reviewStatus") == "review_required",
+            str(bibliography.get("reviewStatus")),
+        )
+        completeness = document["completeness"]["status"]
+        _check(
+            checks,
+            f"classics_curation:{source_path}:completeness",
+            completeness in allowed_completeness,
+            completeness,
+        )
+        partial_documents += completeness == "partial"
+        selection = document["selection"]
+        mode = selection.get("mode")
+        ranges = selection.get("includeLineRanges", [])
+        _check(
+            checks,
+            f"classics_curation:{source_path}:selection_mode",
+            mode in set(schema["allowedSelectionMode"]) and bool(ranges) == (mode == "include_line_ranges"),
+            str(mode),
+        )
+        references = selection.get("ruleSetRefs", [])
+        _check(
+            checks,
+            f"classics_curation:{source_path}:rule_set_refs",
+            all(reference in rule_sets for reference in references),
+            str(references),
+        )
+        rules = [rule for reference in references for rule in rule_sets[reference]] + selection.get("lineRules", [])
+        rule_ids = [rule.get("id") for rule in rules]
+        _check(
+            checks,
+            f"classics_curation:{source_path}:rule_ids",
+            len(rule_ids) == len(set(rule_ids)),
+            str(rule_ids),
+        )
+        _check(
+            checks,
+            f"classics_curation:{source_path}:rule_contract",
+            all(
+                rule.get("action") in allowed_actions
+                and rule.get("match", {}).get("type") in allowed_matches
+                and bool(rule.get("match", {}).get("value"))
+                and bool(rule.get("reason"))
+                and (
+                    rule.get("action") != "extract_and_exclude"
+                    or (bool(rule.get("target")) and rule.get("extractMode") in allowed_extract_modes)
+                )
+                for rule in rules
+            ),
+            str(len(rules)),
+        )
+        review_items += len(document["reviewItems"])
+
+    return {
+        "policyId": policy["policyId"],
+        "documentCount": len(documents),
+        "familyCount": len({item["familyId"] for item in documents}),
+        "partialDocumentCount": partial_documents,
+        "reviewItemCount": review_items,
+    }
+
+
 def _validate_solar_terms_manifest(checks: list[dict[str, Any]]) -> dict[str, Any]:
     rows = _read_tsv(SOLAR_TERMS_SOURCE_MANIFEST)
     missing_columns = sorted({"system", "media_type", "relative_path", "bytes", "sha256", "source_name"} - set(rows[0]))
@@ -309,6 +434,7 @@ def run_gate() -> dict[str, Any]:
 
     registry_summary = _validate_registry(registry=registry, schema=schema, checks=checks)
     classics_summary = _validate_classics(checks)
+    classics_curation_summary = _validate_classics_curation(checks)
     solar_terms_summary = _validate_solar_terms_manifest(checks)
     vendor_summary = _validate_vendor_manifest(checks)
 
@@ -321,6 +447,7 @@ def run_gate() -> dict[str, Any]:
         "summary": {
             "registry": registry_summary,
             "classics": classics_summary,
+            "classicsCuration": classics_curation_summary,
             "solarTerms": solar_terms_summary,
             "vendor": vendor_summary,
         },

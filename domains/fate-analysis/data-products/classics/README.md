@@ -8,7 +8,8 @@
 | --- | --- | --- |
 | 整理语料 | `*.txt` | 已进入仓库的轻量文本，可用于检索、切片、规则提炼与人工复核 |
 | 原始资料 | `raw/` | 本地 PDF、原始 TXT、讲义、OCR 材料和外部分发包，不进入 Git 与导出包 |
-| 内部派生数据集 | `infra/runtime/local-state/exports/datasets/classics-clean-v1/` | 从 canonical TXT 确定性生成的文档、段落、切片、重复标记和质量报告；不进入 Git |
+| 整理策略 | `curation_policy.json` | 绑定 source hash 的正文选择、文献家族、文本角色、完整性和人工复核队列策略 |
+| 内部派生数据集 | `infra/runtime/local-state/exports/datasets/classics-clean-v2/` | 从 canonical TXT 确定性生成的文档、段落、切片、排除血缘、复核队列、重复标记和质量报告；不进入 Git |
 | 清单 | `source_manifest.tsv` | raw 资料索引，记录体系、文件名、大小、哈希与来源路径 |
 | 版权分级 | `copyright_review.tsv` | 外部分发包、典籍、案例、知识图谱和脚本的可用性分级 |
 
@@ -29,4 +30,6 @@
 bash scripts/data-supply-chain-gate.sh
 ```
 
-清洗采用严格 UTF-8、Unicode NFC、允许的不可见字符清理、行内空白规范化和最多 1200 字符的可追溯切片。重复段落、重复切片和跨书重叠只写入 `duplicates.ndjson`，不自动删除或合并；原文、评注、命例和短干支行全部保留。派生数据继承 `review_required`，并固定 `distributionAllowed=false`、`productionUseAllowed=false`、`trainingUseAllowed=false`。
+清洗采用严格 UTF-8、Unicode NFC、允许的不可见字符清理、行内空白规范化和最多 1200 字符的可追溯切片。`curation_policy.json` 只排除明确的现代推广包装、项目整理说明和来源 URL；每条非空排除行必须在 `exclusions.ndjson` 保留行号、hash、规则和原因。重复段落、原本/评注关系和跨书重叠只写入证据，不自动删除或合并；古籍正文、评注、命例和短干支行全部保留。书目异常、缺卷、截断和底本待审进入 `review-queue.ndjson`。派生数据继承 `review_required`，并固定 `distributionAllowed=false`、`productionUseAllowed=false`、`trainingUseAllowed=false`。
+
+当前明确边界：`三命通会` 与 `五行精纪` 标记为 partial；其余 `unknown` 不等于完整。`bibliography.reviewed` 在独立人工核验前必须保持 `null`。

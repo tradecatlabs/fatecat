@@ -286,3 +286,5 @@
 | 0161 | measurement-infrastructure-hardening-phase-two | Done | P0 | 完成测算基础设施第二阶段加固：公开字段契约、冷启动性能、独立评测、成熟度语义、复杂度、异步指标、分发许可与仓库卫生 | 0161-measurement-infrastructure-hardening-phase-two/ |
 
 | 0162 | classics-dataset-cleaning | Done | P0 | 建立不覆盖原典、可复现、可追溯、版权边界明确的命理典籍清洗与结构化数据集一期 | 0162-classics-dataset-cleaning/ |
+
+| 0163 | classics-curation-policy | Done | P0 | 建立源哈希绑定的典籍正文选择、书目角色、完整性问题和人工复核队列，清除派生数据中的来源说明与推广噪声 | 0163-classics-curation-policy/ |

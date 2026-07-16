@@ -1,0 +1,390 @@
+{
+  "schemaVersion": 1,
+  "policyId": "classics-curation-v1",
+  "description": "FateCat 14 本 canonical 命理典籍的正文选择、文献家族、文本角色、完整性和人工复核策略。所有规则绑定当前 source sha256；候选书目不等于权威核验。",
+  "ruleSets": {
+    "ctext-envelope-v1": [
+      {
+        "id": "ctext-author",
+        "action": "extract_and_exclude",
+        "target": "embeddedAuthor",
+        "extractMode": "suffix",
+        "match": {
+          "type": "prefix",
+          "value": "作者："
+        },
+        "classification": "source_metadata",
+        "reason": "项目整理时写入的作者字段，应进入文档元数据而非检索正文。"
+      },
+      {
+        "id": "ctext-curation-note",
+        "action": "extract_and_exclude",
+        "target": "curationNote",
+        "extractMode": "suffix",
+        "match": {
+          "type": "prefix",
+          "value": "整理说明："
+        },
+        "classification": "source_metadata",
+        "reason": "项目整理说明不是古籍正文。"
+      },
+      {
+        "id": "ctext-source-url",
+        "action": "extract_and_exclude",
+        "target": "embeddedSourceUrl",
+        "extractMode": "after_label",
+        "match": {
+          "type": "prefix",
+          "value": "来源：https://ctext.org/"
+        },
+        "classification": "source_metadata",
+        "reason": "电子来源 URL 应进入血缘元数据而非检索正文。"
+      },
+      {
+        "id": "ctext-crawl-scope",
+        "action": "extract_and_exclude",
+        "target": "crawlScope",
+        "extractMode": "suffix",
+        "match": {
+          "type": "prefix",
+          "value": "抓取范围："
+        },
+        "classification": "source_metadata",
+        "reason": "抓取范围是数据治理元数据，不是古籍正文。"
+      },
+      {
+        "id": "ctext-chapter-url",
+        "action": "extract_and_exclude",
+        "target": "chapterSourceUrls",
+        "extractMode": "after_label",
+        "match": {
+          "type": "prefix",
+          "value": "来源章节：https://ctext.org/"
+        },
+        "classification": "source_metadata",
+        "reason": "章节来源 URL 应保留为列表元数据，不进入检索正文。"
+      }
+    ]
+  },
+  "documents": [
+    {
+      "sourcePath": "classics/三命通会 - 万明英.txt",
+      "sourceSha256": "fcee79b6a2222605ad1495bf8f71e6d8d6e2795fdcff9eba7635d7768636d58e",
+      "familyId": "sanming-tonghui",
+      "documentRole": "compendium",
+      "roleStatus": "curator_assigned",
+      "bibliography": {
+        "observedTitle": "三命通会",
+        "observedAttribution": "万明英",
+        "reviewed": null,
+        "reviewStatus": "review_required"
+      },
+      "completeness": {
+        "status": "partial",
+        "evidence": [
+          "文件尾部明确标记卷十、卷十一、卷十二缺失。"
+        ]
+      },
+      "selection": {
+        "mode": "all",
+        "includeLineRanges": [],
+        "ruleSetRefs": [],
+        "lineRules": [
+          {
+            "id": "sanming-missing-volume-10",
+            "action": "exclude",
+            "match": {"type": "exact", "value": "卷十（缺）"},
+            "classification": "completeness_marker",
+            "reason": "缺卷标记进入完整性元数据，不作为古籍正文。"
+          },
+          {
+            "id": "sanming-missing-volume-11",
+            "action": "exclude",
+            "match": {"type": "exact", "value": "卷十一（缺）"},
+            "classification": "completeness_marker",
+            "reason": "缺卷标记进入完整性元数据，不作为古籍正文。"
+          },
+          {
+            "id": "sanming-missing-volume-12",
+            "action": "exclude",
+            "match": {"type": "exact", "value": "卷十二（缺）"},
+            "classification": "completeness_marker",
+            "reason": "缺卷标记进入完整性元数据，不作为古籍正文。"
+          },
+          {
+            "id": "sanming-editorial-end",
+            "action": "exclude",
+            "match": {"type": "exact", "value": "(完)"},
+            "classification": "editorial_marker",
+            "reason": "现代整理结束标记不是古籍正文。"
+          }
+        ]
+      },
+      "reviewItems": [
+        {
+          "id": "sanming-attribution-spelling",
+          "issueType": "bibliography_attribution",
+          "severity": "high",
+          "summary": "文件名作者写作万明英，需与权威书目名称建立规范化映射。",
+          "evidence": ["filename", "source manifest"],
+          "blocks": ["reviewed_bibliography", "public_corpus_claim"]
+        },
+        {
+          "id": "sanming-missing-volumes",
+          "issueType": "incomplete_text",
+          "severity": "high",
+          "summary": "当前文本缺卷十至卷十二。",
+          "evidence": ["source tail markers"],
+          "blocks": ["complete_corpus_claim"]
+        }
+      ]
+    },
+    {
+      "sourcePath": "classics/五行精纪 - 廖中.txt",
+      "sourceSha256": "41b8688e803481a65c4fde7df7333e47fd9a5fce0e19a478e87e2661659fe302",
+      "familyId": "wuxing-jingji",
+      "documentRole": "compendium",
+      "roleStatus": "curator_assigned",
+      "bibliography": {
+        "observedTitle": "五行精纪",
+        "observedAttribution": "廖中",
+        "reviewed": null,
+        "reviewStatus": "review_required"
+      },
+      "completeness": {
+        "status": "partial",
+        "evidence": [
+          "整理说明标记 ctext 当前目录未暴露第二十卷与第三十卷。",
+          "当前文件尾行在句中结束，存在截断。"
+        ]
+      },
+      "selection": {
+        "mode": "all",
+        "includeLineRanges": [],
+        "ruleSetRefs": ["ctext-envelope-v1"],
+        "lineRules": [
+          {
+            "id": "wuxing-ctext-missing-volume-note",
+            "action": "exclude",
+            "match": {
+              "type": "exact",
+              "value": "ctext 当前目录未暴露第二十卷与第三十卷链接；本文件按当前资源页可见章节整理。"
+            },
+            "classification": "completeness_marker",
+            "reason": "缺卷说明进入完整性元数据，不作为古籍正文。"
+          }
+        ]
+      },
+      "reviewItems": [
+        {
+          "id": "wuxing-missing-volumes",
+          "issueType": "incomplete_text",
+          "severity": "high",
+          "summary": "第二十卷与第三十卷未进入当前文本。",
+          "evidence": ["embedded ctext curation note"],
+          "blocks": ["complete_corpus_claim"]
+        },
+        {
+          "id": "wuxing-truncated-tail",
+          "issueType": "truncated_text",
+          "severity": "high",
+          "summary": "尾行在句中结束，需重新获取或人工校补。",
+          "evidence": ["last source line"],
+          "blocks": ["complete_corpus_claim", "rule_extraction_from_tail"]
+        },
+        {
+          "id": "wuxing-base-edition",
+          "issueType": "base_edition_unverified",
+          "severity": "medium",
+          "summary": "ctext 电子资源底本尚未在项目内独立核验。",
+          "evidence": ["source URL", "copyright review"],
+          "blocks": ["reviewed_bibliography"]
+        }
+      ]
+    },
+    {
+      "sourcePath": "classics/八字知识.txt",
+      "sourceSha256": "60b61df9de9bccbb0006757b8fe44e47d2196e06a791381870d9706f8f852d75",
+      "familyId": "bazi-mixed-notes",
+      "documentRole": "mixed_notes",
+      "roleStatus": "curator_assigned",
+      "bibliography": {
+        "observedTitle": "八字知识",
+        "observedAttribution": null,
+        "reviewed": null,
+        "reviewStatus": "review_required"
+      },
+      "completeness": {"status": "unknown", "evidence": []},
+      "selection": {"mode": "all", "includeLineRanges": [], "ruleSetRefs": [], "lineRules": []},
+      "reviewItems": [
+        {
+          "id": "bazi-notes-provenance",
+          "issueType": "mixed_provenance",
+          "severity": "high",
+          "summary": "混合知识笔记包含现代解释与古籍摘录，缺少逐段来源和授权。",
+          "evidence": ["copyright_review.tsv group=mixed_notes"],
+          "blocks": ["public_distribution", "training_use", "direct_rule_import"]
+        }
+      ]
+    },
+    {
+      "sourcePath": "classics/兰台妙选 - 西窗老人.txt",
+      "sourceSha256": "7fb0461ca4a2d1460b8cfd0bf72ba901e6cce44c5d52e6eed0a30fd3170a36ea",
+      "familyId": "lantai-miaoxuan",
+      "documentRole": "treatise",
+      "roleStatus": "curator_assigned",
+      "bibliography": {"observedTitle": "兰台妙选", "observedAttribution": "西窗老人", "reviewed": null, "reviewStatus": "review_required"},
+      "completeness": {"status": "unknown", "evidence": []},
+      "selection": {"mode": "all", "includeLineRanges": [], "ruleSetRefs": ["ctext-envelope-v1"], "lineRules": []},
+      "reviewItems": [
+        {"id": "lantai-base-edition", "issueType": "base_edition_unverified", "severity": "medium", "summary": "ctext 电子资源底本尚未在项目内独立核验。", "evidence": ["source URL"], "blocks": ["reviewed_bibliography"]}
+      ]
+    },
+    {
+      "sourcePath": "classics/千里命稿 - 韦千里.txt",
+      "sourceSha256": "5b465f09146d79bf5599e0030af38b5621212094bf87fe00855fc54cda03311d",
+      "familyId": "qianli-minggao",
+      "documentRole": "treatise",
+      "roleStatus": "curator_assigned",
+      "bibliography": {"observedTitle": "千里命稿", "observedAttribution": "韦千里", "reviewed": null, "reviewStatus": "review_required"},
+      "completeness": {"status": "unknown", "evidence": ["文件存在千里命稿终标记，但未与权威底本校勘。"]},
+      "selection": {"mode": "all", "includeLineRanges": [], "ruleSetRefs": [], "lineRules": []},
+      "reviewItems": [
+        {"id": "qianli-rights", "issueType": "rights_review", "severity": "high", "summary": "近现代文本的版权和版本状态未完成复核。", "evidence": ["copyright_review.tsv group=modern_text_candidate"], "blocks": ["public_distribution", "training_use"]}
+      ]
+    },
+    {
+      "sourcePath": "classics/子平真诠原本 - 沈孝瞻.txt",
+      "sourceSha256": "989fb280d40ab7b9b43512ce83a62f0f1d8484e0b156de1390ccf8751af6013e",
+      "familyId": "ziping-zhenquan",
+      "documentRole": "source_text",
+      "roleStatus": "curator_assigned",
+      "bibliography": {"observedTitle": "子平真诠原本", "observedAttribution": "沈孝瞻", "reviewed": null, "reviewStatus": "review_required"},
+      "completeness": {"status": "unknown", "evidence": []},
+      "selection": {"mode": "all", "includeLineRanges": [], "ruleSetRefs": [], "lineRules": []},
+      "reviewItems": []
+    },
+    {
+      "sourcePath": "classics/子平真诠评注 - 沈孝瞻.txt",
+      "sourceSha256": "75bef03fe3d279901cf32e25e1012a3ca4eaaa519c8d1a6eedbbdee785db1977",
+      "familyId": "ziping-zhenquan",
+      "documentRole": "commentary",
+      "roleStatus": "curator_assigned",
+      "bibliography": {"observedTitle": "子平真诠评注", "observedAttribution": "沈孝瞻", "reviewed": null, "reviewStatus": "review_required"},
+      "completeness": {"status": "unknown", "evidence": []},
+      "selection": {"mode": "all", "includeLineRanges": [], "ruleSetRefs": ["ctext-envelope-v1"], "lineRules": []},
+      "reviewItems": [
+        {"id": "ziping-commentator", "issueType": "contributor_role_unverified", "severity": "high", "summary": "当前作者字段只标原著者，评注者身份和版本关系尚未在项目内核实。", "evidence": ["filename", "embedded author", "ctext source"], "blocks": ["reviewed_bibliography"]},
+        {"id": "ziping-base-edition", "issueType": "base_edition_unverified", "severity": "medium", "summary": "ctext 电子资源底本尚未在项目内独立核验。", "evidence": ["source URL"], "blocks": ["reviewed_bibliography"]}
+      ]
+    },
+    {
+      "sourcePath": "classics/李虚中命书 - 李虚中.txt",
+      "sourceSha256": "9c7d2ecc79bfe27d3eee183e18999f03401c770d73aa21f6a2b30789e58fdeac",
+      "familyId": "lixuzhong-mingshu",
+      "documentRole": "annotated_source",
+      "roleStatus": "curator_assigned",
+      "bibliography": {"observedTitle": "李虚中命书", "observedAttribution": "李虚中", "reviewed": null, "reviewStatus": "review_required"},
+      "completeness": {"status": "unknown", "evidence": []},
+      "selection": {"mode": "all", "includeLineRanges": [], "ruleSetRefs": [], "lineRules": []},
+      "reviewItems": [
+        {"id": "lixuzhong-contributor-role", "issueType": "contributor_role_unverified", "severity": "medium", "summary": "正文题头含注者角色，作者、注者与现行版本关系需权威书目复核。", "evidence": ["source heading"], "blocks": ["reviewed_bibliography"]}
+      ]
+    },
+    {
+      "sourcePath": "classics/渊海子平 - 徐子平.txt",
+      "sourceSha256": "63195adeaec7a1ea24ef47a9c0e4abaeb7f6668e7ad3a6ed9ea667954f4b0def",
+      "familyId": "yuanhai-ziping",
+      "documentRole": "compendium",
+      "roleStatus": "curator_assigned",
+      "bibliography": {"observedTitle": "渊海子平", "observedAttribution": "徐子平", "reviewed": null, "reviewStatus": "review_required"},
+      "completeness": {"status": "unknown", "evidence": []},
+      "selection": {
+        "mode": "include_line_ranges",
+        "includeLineRanges": [[65, 4663]],
+        "ruleSetRefs": [],
+        "lineRules": []
+      },
+      "reviewItems": [
+        {"id": "yuanhai-promotional-wrapper", "issueType": "non_content_wrapper", "severity": "high", "summary": "源文件首尾含公众号、QQ、下载站和书单推广包装，派生正文只选择 65-4663 行。", "evidence": ["source lines 1-64", "source lines 4664-4713"], "blocks": ["unfiltered_corpus_use"]},
+        {"id": "yuanhai-attribution", "issueType": "bibliography_attribution", "severity": "high", "summary": "文件名、简介和传统托名关系不一致，编者/原法来源需权威书目复核。", "evidence": ["filename", "source introduction"], "blocks": ["reviewed_bibliography"]},
+        {"id": "yuanhai-provenance", "issueType": "source_provenance", "severity": "high", "summary": "当前 canonical 来源只登记本地文件名，缺权威电子底本锁定。", "evidence": ["source_manifest.tsv source_name"], "blocks": ["reviewed_bibliography", "public_distribution"]}
+      ]
+    },
+    {
+      "sourcePath": "classics/滴天髓原文 - 刘基.txt",
+      "sourceSha256": "25e7b5aebee192775a1c1e28fe960e4771e028b39c4d1a3bc766db2142943a09",
+      "familyId": "ditiansui",
+      "documentRole": "source_with_commentary",
+      "roleStatus": "curator_assigned",
+      "bibliography": {"observedTitle": "滴天髓原文", "observedAttribution": "刘基", "reviewed": null, "reviewStatus": "review_required"},
+      "completeness": {"status": "unknown", "evidence": []},
+      "selection": {"mode": "all", "includeLineRanges": [], "ruleSetRefs": [], "lineRules": []},
+      "reviewItems": [
+        {"id": "ditiansui-original-role", "issueType": "title_role_conflict", "severity": "high", "summary": "文件名标为原文，但正文题头为滴天髓阐微且包含简介与原注，不应作为纯原文数据集使用。", "evidence": ["source heading", "source paragraph labels"], "blocks": ["pure_source_text_claim", "automatic_original_commentary_alignment"]},
+        {"id": "ditiansui-attribution", "issueType": "bibliography_attribution", "severity": "high", "summary": "正文同时记录京图撰、刘基注等传统归属，需分离原作者、注者和托名状态。", "evidence": ["source introduction"], "blocks": ["reviewed_bibliography"]}
+      ]
+    },
+    {
+      "sourcePath": "classics/滴天髓阐微 - 任铁樵.txt",
+      "sourceSha256": "9a76ef28c1d743fd886004c2f39b8b9e6c5296fdea0d0ded00307be8703be713",
+      "familyId": "ditiansui",
+      "documentRole": "commentary",
+      "roleStatus": "curator_assigned",
+      "bibliography": {"observedTitle": "滴天髓阐微", "observedAttribution": "任铁樵", "reviewed": null, "reviewStatus": "review_required"},
+      "completeness": {"status": "unknown", "evidence": ["文件存在全文终标记，但未与权威底本校勘。"]},
+      "selection": {"mode": "all", "includeLineRanges": [], "ruleSetRefs": ["ctext-envelope-v1"], "lineRules": []},
+      "reviewItems": [
+        {"id": "ditiansui-base-edition", "issueType": "base_edition_unverified", "severity": "medium", "summary": "ctext 电子资源底本尚未在项目内独立核验。", "evidence": ["source URL"], "blocks": ["reviewed_bibliography"]}
+      ]
+    },
+    {
+      "sourcePath": "classics/珞琭子三命消息赋注 - 珞琭子.txt",
+      "sourceSha256": "1c13cfc7a504a5b593dd503937ca415e19fdeed5e167aefc0809ca0d0c076b0b",
+      "familyId": "luoluzi-sanming-xiaoxifu",
+      "documentRole": "annotated_source",
+      "roleStatus": "curator_assigned",
+      "bibliography": {"observedTitle": "珞琭子三命消息赋注", "observedAttribution": "珞琭子", "reviewed": null, "reviewStatus": "review_required"},
+      "completeness": {"status": "unknown", "evidence": []},
+      "selection": {"mode": "all", "includeLineRanges": [], "ruleSetRefs": ["ctext-envelope-v1"], "lineRules": []},
+      "reviewItems": [
+        {"id": "luoluzi-contributors", "issueType": "contributor_role_unverified", "severity": "high", "summary": "embedded 作者字段列出珞琭子、徐子平注、释昙莹注，文件名未表达多层贡献者关系。", "evidence": ["embedded author line", "source introduction"], "blocks": ["reviewed_bibliography"]},
+        {"id": "luoluzi-base-edition", "issueType": "base_edition_unverified", "severity": "medium", "summary": "ctext 电子资源底本尚未在项目内独立核验。", "evidence": ["source URL"], "blocks": ["reviewed_bibliography"]}
+      ]
+    },
+    {
+      "sourcePath": "classics/神峰通考 - 张楠.txt",
+      "sourceSha256": "e36cccb8590ad8d0258aaccbee12438356e70f14404ef5fbfdb9db2d0c60d55d",
+      "familyId": "shenfeng-tongkao",
+      "documentRole": "compendium",
+      "roleStatus": "curator_assigned",
+      "bibliography": {"observedTitle": "神峰通考", "observedAttribution": "张楠", "reviewed": null, "reviewStatus": "review_required"},
+      "completeness": {"status": "unknown", "evidence": []},
+      "selection": {"mode": "all", "includeLineRanges": [], "ruleSetRefs": ["ctext-envelope-v1"], "lineRules": []},
+      "reviewItems": [
+        {"id": "shenfeng-base-edition", "issueType": "base_edition_unverified", "severity": "medium", "summary": "ctext 电子资源底本尚未在项目内独立核验。", "evidence": ["source URL"], "blocks": ["reviewed_bibliography"]}
+      ]
+    },
+    {
+      "sourcePath": "classics/穷通宝鉴 - 佚名.txt",
+      "sourceSha256": "7826d7e02da7c66136c901597119b76f00d83d27261d43a862d14dde493ad9ec",
+      "familyId": "qiongtong-baojian",
+      "documentRole": "treatise",
+      "roleStatus": "curator_assigned",
+      "bibliography": {"observedTitle": "穷通宝鉴", "observedAttribution": "佚名", "reviewed": null, "reviewStatus": "review_required"},
+      "completeness": {"status": "unknown", "evidence": []},
+      "selection": {"mode": "all", "includeLineRanges": [], "ruleSetRefs": [], "lineRules": []},
+      "reviewItems": [
+        {"id": "qiongtong-bibliography", "issueType": "bibliography_attribution", "severity": "medium", "summary": "当前以佚名登记，编纂、增订和版本关系尚未核实。", "evidence": ["filename", "source manifest"], "blocks": ["reviewed_bibliography"]}
+      ]
+    }
+  ],
+  "invariants": [
+    "canonical TXT remains immutable",
+    "source hash drift fails closed",
+    "excluded lines retain line number and text hash evidence",
+    "reviewed bibliography remains null until independent human review",
+    "document families never imply automatic deduplication",
+    "rights and production boundaries remain inherited and closed"
+  ]
+}

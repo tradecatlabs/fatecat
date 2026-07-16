@@ -412,6 +412,7 @@ run_quick() {
       tests/regression/test_branding_support.py \
       tests/regression/test_core_quality_corpus_gate.py \
       tests/regression/test_data_supply_chain_gate.py \
+      tests/regression/test_classics_dataset_clean.py \
       tests/regression/test_location.py \
       tests/regression/test_location_catalog.py \
       tests/regression/test_developer_docs_smoke.py \
