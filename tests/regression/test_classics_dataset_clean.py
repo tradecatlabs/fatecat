@@ -76,6 +76,7 @@ def _write_fixture_corpus(base: Path, files: dict[str, bytes] | None = None) -> 
                     "reviewStatus": "review_required",
                 },
                 "completeness": {"status": "unknown", "evidence": []},
+                "structure": {"navigationLineRanges": [[2, 2]] if is_second else []},
                 "selection": {
                     "mode": "include_line_ranges" if is_second else "all",
                     "includeLineRanges": [[2, 4]] if is_second else [],
@@ -99,8 +100,8 @@ def _write_fixture_corpus(base: Path, files: dict[str, bytes] | None = None) -> 
             }
         )
     policy = {
-        "schemaVersion": 1,
-        "policyId": "fixture-curation-v1",
+        "schemaVersion": 2,
+        "policyId": "fixture-curation-v2",
         "description": "测试整理策略",
         "ruleSets": {
             "fixture-envelope": [
@@ -218,6 +219,12 @@ def test_cleaner_is_deterministic_traceable_and_keeps_rights_closed(tmp_path):
     assert all(1 <= passage["sourceLineStart"] <= passage["sourceLineEnd"] for passage in passages)
     assert all(passage["charCount"] <= 120 for passage in passages)
     assert all(paragraph["text"] for paragraph in paragraphs)
+    assert all(
+        paragraph["paragraphType"] in {"document_title", "heading", "navigation", "body"} for paragraph in paragraphs
+    )
+    assert all(paragraph["sourceLineCount"] == len(paragraph["sourceLineNumbers"]) for paragraph in paragraphs)
+    assert any(paragraph["paragraphType"] == "navigation" and paragraph["text"] == "序" for paragraph in paragraphs)
+    assert all("序" not in passage["text"] for passage in passages)
     assert len(exclusions) == 4
     assert all("text" not in record for record in exclusions)
     assert len(review_queue) == 1
@@ -229,7 +236,36 @@ def test_cleaner_is_deterministic_traceable_and_keeps_rights_closed(tmp_path):
     quality = json.loads((output_a / "quality-report.json").read_text(encoding="utf-8"))
     assert manifest["status"] == "passed"
     assert quality["summary"]["lineageErrorCount"] == 0
+    assert quality["summary"]["semanticReplayErrorCount"] == 0
+    assert quality["summary"]["passageHeadingBoundaryViolationCount"] == 0
+    assert quality["summary"]["navigationPassageCount"] == 0
     assert quality["summary"]["invalidUtf8Count"] == 0
+
+
+def test_semantic_paragraphs_join_wrapped_lines_and_passages_stay_inside_headings(tmp_path):
+    cleaner = _load_module()
+    payload = (
+        "语义书\n第一卷\n论甲\n这是被排版拆开的\n一句正文。\nASCII word\nboundary test.\n论乙\n乙段正文。\n"
+    ).encode()
+    source = _write_fixture_corpus(tmp_path / "source", {"语义书 - 测试作者.txt": payload})
+    output = tmp_path / "output"
+
+    _build_dataset(cleaner, source, output, min_passage_chars=20, max_passage_chars=120)
+
+    paragraphs = _read_ndjson(output / "paragraphs.ndjson")
+    passages = _read_ndjson(output / "passages.ndjson")
+    assert any(paragraph["text"] == "这是被排版拆开的一句正文。" for paragraph in paragraphs)
+    assert any(paragraph["text"] == "ASCII word boundary test." for paragraph in paragraphs)
+    assert [paragraph["paragraphType"] for paragraph in paragraphs[:3]] == [
+        "document_title",
+        "heading",
+        "heading",
+    ]
+    assert {tuple(passage["headingPath"]) for passage in passages} == {
+        ("第一卷", "论甲"),
+        ("第一卷", "论乙"),
+    }
+    assert all("论甲" not in passage["text"] and "论乙" not in passage["text"] for passage in passages)
 
 
 def test_normalization_removes_only_allowed_noise_and_preserves_duplicate_paragraphs(tmp_path):
@@ -255,6 +291,12 @@ def test_normalization_removes_only_allowed_noise_and_preserves_duplicate_paragr
     duplicate_records = _read_ndjson(output / "duplicates.ndjson")
     exact_groups = [record for record in duplicate_records if record["kind"] == "exact_paragraph_group"]
     assert any(record["occurrenceCount"] == 2 for record in exact_groups)
+    paragraph_by_id = {record["paragraphId"]: record for record in paragraphs}
+    assert all(
+        paragraph_by_id[paragraph_id]["paragraphType"] == "body"
+        for record in exact_groups
+        for paragraph_id in record["paragraphIds"]
+    )
     assert all("text" not in record for record in duplicate_records)
 
 
@@ -302,6 +344,14 @@ def test_cleaner_fails_closed_on_policy_hash_drift_and_out_of_range_selection(tm
     policy_path.write_text(json.dumps(policy, ensure_ascii=False), encoding="utf-8")
     with pytest.raises(cleaner.ClassicsDatasetError, match="越界"):
         _build_dataset(cleaner, source, tmp_path / "range-error")
+
+    source = _write_fixture_corpus(tmp_path / "navigation-range-source")
+    policy_path = source / "curation_policy.json"
+    policy = json.loads(policy_path.read_text(encoding="utf-8"))
+    policy["documents"][0]["structure"]["navigationLineRanges"] = [[1, 999]]
+    policy_path.write_text(json.dumps(policy, ensure_ascii=False), encoding="utf-8")
+    with pytest.raises(cleaner.ClassicsDatasetError, match="navigationLineRanges 越界"):
+        _build_dataset(cleaner, source, tmp_path / "navigation-range-error")
 
 
 def test_cleaner_rejects_unreviewed_bibliography_being_marked_as_reviewed(tmp_path):
@@ -360,24 +410,61 @@ def test_validator_rejects_self_consistent_hashes_when_passage_content_breaks_li
     _write_ndjson(output / "passages.ndjson", passages)
     _refresh_integrity_metadata(output)
 
-    with pytest.raises(cleaner.ClassicsDatasetError, match="passage 与 paragraph 内容不一致"):
+    with pytest.raises(cleaner.ClassicsDatasetError, match="passage 与 body paragraph 内容不一致"):
+        _validate_dataset(cleaner, source, output)
+
+
+def test_validator_rejects_navigation_or_heading_paragraph_in_passage(tmp_path):
+    cleaner = _load_module()
+    source = _write_fixture_corpus(tmp_path / "source")
+    output = tmp_path / "output"
+    _build_dataset(cleaner, source, output, min_passage_chars=40, max_passage_chars=120)
+
+    paragraphs = _read_ndjson(output / "paragraphs.ndjson")
+    passages = _read_ndjson(output / "passages.ndjson")
+    navigation = next(paragraph for paragraph in paragraphs if paragraph["paragraphType"] == "navigation")
+    passage = next(item for item in passages if item["documentId"] == navigation["documentId"])
+    passage["paragraphIds"].append(navigation["paragraphId"])
+    passage["paragraphStart"] = min(passage["paragraphStart"], navigation["sequence"])
+    passage["paragraphEnd"] = max(passage["paragraphEnd"], navigation["sequence"])
+    passage["sourceLineStart"] = min(passage["sourceLineStart"], navigation["sourceLineStart"])
+    passage["sourceLineEnd"] = max(passage["sourceLineEnd"], navigation["sourceLineEnd"])
+    _write_ndjson(output / "passages.ndjson", passages)
+    _refresh_integrity_metadata(output)
+
+    with pytest.raises(cleaner.ClassicsDatasetError, match="跨标题边界或消费了非正文"):
+        _validate_dataset(cleaner, source, output)
+
+
+def test_validator_rejects_self_consistent_schema_version_drift(tmp_path):
+    cleaner = _load_module()
+    source = _write_fixture_corpus(tmp_path / "source")
+    output = tmp_path / "output"
+    _build_dataset(cleaner, source, output, min_passage_chars=40, max_passage_chars=120)
+
+    paragraphs = _read_ndjson(output / "paragraphs.ndjson")
+    paragraphs[0]["schemaVersion"] = "classics-clean-dataset.v2"
+    _write_ndjson(output / "paragraphs.ndjson", paragraphs)
+    _refresh_integrity_metadata(output)
+
+    with pytest.raises(cleaner.ClassicsDatasetError, match="paragraph schemaVersion 错误"):
         _validate_dataset(cleaner, source, output)
 
 
 def test_real_canonical_policy_removes_known_noncontent_and_preserves_sources(tmp_path):
     cleaner = _load_module()
     source = ROOT / "domains" / "fate-analysis" / "data-products" / "classics"
-    output = tmp_path / "classics-clean-v2"
+    output = tmp_path / "classics-clean-v3"
     source_hashes_before = {path.name: _sha256(path.read_bytes()) for path in source.glob("*.txt")}
 
     result = _build_dataset(cleaner, source, output)
 
     assert result["counts"] == {
         "documentCount": 14,
-        "paragraphCount": 32931,
-        "passageCount": 943,
-        "duplicateRecordCount": 535,
-        "exclusionRecordCount": 124,
+        "paragraphCount": 16079,
+        "passageCount": 1430,
+        "duplicateRecordCount": 484,
+        "exclusionRecordCount": 146,
         "reviewItemCount": 21,
     }
     searchable_text = (output / "paragraphs.ndjson").read_text(encoding="utf-8") + (
@@ -390,6 +477,9 @@ def test_real_canonical_policy_removes_known_noncontent_and_preserves_sources(tm
         "整理说明：本文件基于",
         "来源章节：https://ctext.org/",
         "抓取范围：",
+        "千里命稿终",
+        "滴天髓全文终",
+        '"text":"---"',
     ):
         assert marker not in searchable_text
 
@@ -402,6 +492,16 @@ def test_real_canonical_policy_removes_known_noncontent_and_preserves_sources(tm
         for document in ctext_documents
     )
     assert all(document["bibliography"]["reviewed"] is None for document in documents)
+    quality = json.loads((output / "quality-report.json").read_text(encoding="utf-8"))
+    assert quality["summary"]["semanticReplayErrorCount"] == 0
+    assert quality["summary"]["passageHeadingBoundaryViolationCount"] == 0
+    assert quality["summary"]["navigationPassageCount"] == 0
+    assert quality["summary"]["paragraphTypeCounts"] == {
+        "body": 14727,
+        "document_title": 29,
+        "heading": 865,
+        "navigation": 458,
+    }
     assert source_hashes_before == {path.name: _sha256(path.read_bytes()) for path in source.glob("*.txt")}
 
 
@@ -428,4 +528,4 @@ def test_contract_registry_and_documentation_wire_the_internal_dataset():
         encoding="utf-8"
     )
     classics_readme = ROOT / "domains" / "fate-analysis" / "data-products" / "classics" / "README.md"
-    assert "classics-clean-v2" in classics_readme.read_text(encoding="utf-8")
+    assert "classics-clean-v3" in classics_readme.read_text(encoding="utf-8")

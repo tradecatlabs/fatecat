@@ -288,3 +288,5 @@
 | 0162 | classics-dataset-cleaning | Done | P0 | 建立不覆盖原典、可复现、可追溯、版权边界明确的命理典籍清洗与结构化数据集一期 | 0162-classics-dataset-cleaning/ |
 
 | 0163 | classics-curation-policy | Done | P0 | 建立源哈希绑定的典籍正文选择、书目角色、完整性问题和人工复核队列，清除派生数据中的来源说明与推广噪声 | 0163-classics-curation-policy/ |
+
+| 0164 | classics-semantic-segmentation | Done | P0 | 将 14 本 canonical 命理典籍从物理换行重建为可追溯语义段落，分离目录导航并确保检索切片不跨章节边界 | 0164-classics-semantic-segmentation/ |

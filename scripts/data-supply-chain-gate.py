@@ -70,6 +70,25 @@ def _schema_allowed(schema: dict[str, Any], key: str) -> set[str]:
     return {str(value) for value in schema.get(key, [])}
 
 
+def _valid_closed_ranges(ranges: Any, *, max_line: int) -> bool:
+    if not isinstance(ranges, list):
+        return False
+    previous_end = 0
+    for item in ranges:
+        if (
+            not isinstance(item, list)
+            or len(item) != 2
+            or not all(isinstance(value, int) for value in item)
+            or item[0] < 1
+            or item[0] > item[1]
+            or item[0] <= previous_end
+            or item[1] > max_line
+        ):
+            return False
+        previous_end = item[1]
+    return True
+
+
 def _iter_vendor_entries(payload: dict[str, Any]):
     for scope in ("required", "optionalFutureFeatures", "legacyUnreviewedSnapshots"):
         for item in payload.get(scope, []):
@@ -277,6 +296,15 @@ def _validate_classics_curation(checks: list[dict[str, Any]]) -> dict[str, Any]:
         not (set(schema["requiredPolicyFields"]) - set(policy)),
         str(sorted(set(schema["requiredPolicyFields"]) - set(policy))),
     )
+    _check(
+        checks,
+        "classics_curation:contract_version",
+        schema.get("schemaVersion") == 2
+        and schema.get("contractId") == "fatecat.classics-curation-policy.v2"
+        and policy.get("schemaVersion") == 2
+        and policy.get("policyId") == "classics-curation-v2",
+        f"schema={schema.get('schemaVersion')} policy={policy.get('schemaVersion')}",
+    )
     _check(checks, "classics_curation:document_count", len(documents) == len(classic_paths), str(len(documents)))
     _check(
         checks,
@@ -299,6 +327,8 @@ def _validate_classics_curation(checks: list[dict[str, Any]]) -> dict[str, Any]:
     rule_sets = policy.get("ruleSets", {})
     review_items = 0
     partial_documents = 0
+    navigation_documents = 0
+    navigation_source_lines = 0
     for document in documents:
         source_path = str(document.get("sourcePath", "<missing>"))
         missing = sorted(set(schema["requiredDocumentFields"]) - set(document))
@@ -332,6 +362,21 @@ def _validate_classics_curation(checks: list[dict[str, Any]]) -> dict[str, Any]:
             completeness,
         )
         partial_documents += completeness == "partial"
+        structure = document.get("structure", {})
+        navigation_ranges = structure.get("navigationLineRanges", []) if isinstance(structure, dict) else None
+        source_file = CLASSICS_DIR / Path(source_path).name
+        source_line_count = len(source_file.read_text(encoding="utf-8").splitlines()) if source_file.is_file() else 0
+        _check(
+            checks,
+            f"classics_curation:{source_path}:structure_contract",
+            isinstance(structure, dict)
+            and not (set(structure) - set(schema["optionalStructureFields"]))
+            and _valid_closed_ranges(navigation_ranges, max_line=source_line_count),
+            str(structure),
+        )
+        if navigation_ranges:
+            navigation_documents += 1
+            navigation_source_lines += sum(end - start + 1 for start, end in navigation_ranges)
         selection = document["selection"]
         mode = selection.get("mode")
         ranges = selection.get("includeLineRanges", [])
@@ -380,6 +425,8 @@ def _validate_classics_curation(checks: list[dict[str, Any]]) -> dict[str, Any]:
         "familyCount": len({item["familyId"] for item in documents}),
         "partialDocumentCount": partial_documents,
         "reviewItemCount": review_items,
+        "navigationDocumentCount": navigation_documents,
+        "navigationSourceLineCount": navigation_source_lines,
     }
 
 

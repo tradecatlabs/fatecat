@@ -215,14 +215,14 @@
       "verification": {
         "commands": [
           ".venv/bin/python -m pytest -q tests/regression/test_classics_dataset_clean.py",
-          ".venv/bin/python scripts/classics-dataset-clean.py --validate-only --output infra/runtime/local-state/exports/datasets/classics-clean-v2",
+          ".venv/bin/python scripts/classics-dataset-clean.py --validate-only --output infra/runtime/local-state/exports/datasets/classics-clean-v3",
           "bash scripts/data-supply-chain-gate.sh"
         ],
         "externalConnectivity": "not_required"
       },
       "metadata": {
         "owner": "domains/fate-analysis/data-products/classics",
-        "runtimeOutput": "infra/runtime/local-state/exports/datasets/classics-clean-v2",
+        "runtimeOutput": "infra/runtime/local-state/exports/datasets/classics-clean-v3",
         "risk": "清洗与正文选择只提高机器可读性，不完成版本校勘、版权确认、权威书目认证、专业规则标注或训练许可授权。"
       }
     },

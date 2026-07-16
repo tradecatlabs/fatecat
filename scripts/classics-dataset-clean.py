@@ -12,31 +12,36 @@ import re
 import shutil
 import tempfile
 import unicodedata
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import Iterable, Sequence
 from pathlib import Path
 from typing import Any, Final
 
 REPO_ROOT: Final = Path(__file__).resolve().parents[1]
 DEFAULT_INPUT: Final = REPO_ROOT / "domains" / "fate-analysis" / "data-products" / "classics"
-DEFAULT_OUTPUT: Final = REPO_ROOT / "infra" / "runtime" / "local-state" / "exports" / "datasets" / "classics-clean-v2"
+DEFAULT_OUTPUT: Final = REPO_ROOT / "infra" / "runtime" / "local-state" / "exports" / "datasets" / "classics-clean-v3"
 DEFAULT_CONTRACT: Final = (
     REPO_ROOT / "contracts" / "fate" / "data-supply-chain" / "schemas" / "classics-clean-dataset.schema.json"
 )
 DEFAULT_CURATION_POLICY: Final = DEFAULT_INPUT / "curation_policy.json"
-SCHEMA_VERSION: Final = "classics-clean-dataset.v2"
-NORMALIZATION_PROFILE: Final = "classics-clean-v2"
+SCHEMA_VERSION: Final = "classics-clean-dataset.v3"
+NORMALIZATION_PROFILE: Final = "classics-clean-v3"
 BUILDER_PATH: Final = "scripts/classics-dataset-clean.py"
 SOURCE_MANIFEST_NAME: Final = "source_manifest.tsv"
 COPYRIGHT_REVIEW_NAME: Final = "copyright_review.tsv"
 REMOVE_CHARACTERS: Final = frozenset({"\ufeff", "\u200b", "\u200c", "\u200d", "\u2060"})
 SENTENCE_ENDINGS: Final = frozenset("。！？；：.!?;")
+PARAGRAPH_ENDINGS: Final = frozenset("。！？；.!?;")
+CLOSING_PUNCTUATION: Final = "”’」』）》】〉〕）)]}"
+HEADING_MARKER_PATTERN: Final = re.compile(r"^[○△●◆◇□■※◎☆★]+\s*")
 HEADING_PATTERN: Final = re.compile(
     r"^(?:"
     r"#{1,6}\s*.+|"
     r"第?[一二三四五六七八九十百千万零〇两0-9]+[卷章节篇部集回](?:\s*.+)?|"
-    r"[卷章节篇部集][一二三四五六七八九十百千万零〇两0-9]+(?:\s*.+)?|"
+    r"[卷章节篇部集][一二三四五六七八九十百千万零〇两0-9上中下]+(?:\s*.+)?|"
     r"(?:序|序言|自序|凡例|目录|总目录|总论|提要|跋|后序|附录)|"
+    r"[一二三四五六七八九十百千万零〇两]+[、．.]\s*[^，。！？；]{1,32}|"
+    r"[\u4e00-\u9fff]{1,12}(?:论|篇|章)|"
     r"(?:论|释|解)[^，。！？；]{1,24}"
     r")[：:]?$"
 )
@@ -62,6 +67,7 @@ ALLOWED_DOCUMENT_ROLES: Final = frozenset(
 )
 ALLOWED_COMPLETENESS_STATUS: Final = frozenset({"partial", "unknown"})
 ALLOWED_REVIEW_SEVERITY: Final = frozenset({"high", "medium", "low"})
+ALLOWED_PARAGRAPH_TYPES: Final = frozenset({"document_title", "heading", "navigation", "body"})
 
 
 class ClassicsDatasetError(RuntimeError):
@@ -125,6 +131,8 @@ def _load_curation_policy(path: Path, source_paths: set[str]) -> tuple[dict[str,
     missing_policy_fields = sorted(required_policy_fields - set(policy))
     if missing_policy_fields:
         raise ClassicsDatasetError(f"curation policy 缺少字段：{missing_policy_fields}")
+    if policy["schemaVersion"] != 2 or not isinstance(policy["policyId"], str) or not policy["policyId"]:
+        raise ClassicsDatasetError("curation policy 必须使用 v2 且提供 policyId")
     if not isinstance(policy["ruleSets"], dict) or not isinstance(policy["documents"], list):
         raise ClassicsDatasetError("curation policy 的 ruleSets/documents 类型错误")
 
@@ -182,6 +190,23 @@ def _load_curation_policy(path: Path, source_paths: set[str]) -> tuple[dict[str,
     return policy, documents
 
 
+def _validate_closed_ranges(ranges: Any, *, source_path: str, field_name: str) -> None:
+    if not isinstance(ranges, list):
+        raise ClassicsDatasetError(f"{field_name} 必须是列表：{source_path}")
+    previous_end = 0
+    for item in ranges:
+        if (
+            not isinstance(item, list)
+            or len(item) != 2
+            or not all(isinstance(value, int) for value in item)
+            or item[0] < 1
+            or item[0] > item[1]
+            or item[0] <= previous_end
+        ):
+            raise ClassicsDatasetError(f"{field_name} 非升序闭区间：{source_path}: {item}")
+        previous_end = item[1]
+
+
 def _validate_selection_policy(document: dict[str, Any], policy: dict[str, Any]) -> None:
     source_path = str(document["sourcePath"])
     selection = document["selection"]
@@ -195,18 +220,15 @@ def _validate_selection_policy(document: dict[str, Any], policy: dict[str, Any])
         raise ClassicsDatasetError(f"include_line_ranges 缺少范围：{source_path}")
     if selection["mode"] == "all" and ranges:
         raise ClassicsDatasetError(f"mode=all 不得声明 includeLineRanges：{source_path}")
-    previous_end = 0
-    for item in ranges:
-        if (
-            not isinstance(item, list)
-            or len(item) != 2
-            or not all(isinstance(value, int) for value in item)
-            or item[0] < 1
-            or item[0] > item[1]
-            or item[0] <= previous_end
-        ):
-            raise ClassicsDatasetError(f"includeLineRanges 非升序闭区间：{source_path}: {item}")
-        previous_end = item[1]
+    _validate_closed_ranges(ranges, source_path=source_path, field_name="includeLineRanges")
+    structure = document.get("structure", {})
+    if not isinstance(structure, dict) or set(structure) - {"navigationLineRanges"}:
+        raise ClassicsDatasetError(f"curation structure 字段非法：{source_path}")
+    _validate_closed_ranges(
+        structure.get("navigationLineRanges", []),
+        source_path=source_path,
+        field_name="navigationLineRanges",
+    )
     for reference in selection["ruleSetRefs"]:
         if reference not in policy["ruleSets"]:
             raise ClassicsDatasetError(f"curation ruleSetRef 不存在：{source_path}: {reference}")
@@ -404,12 +426,158 @@ def _document_id(source_path: str) -> str:
     return f"doc-{_sha256_text(source_path)[:20]}"
 
 
-def _is_heading(text: str) -> bool:
-    return len(text) <= 48 and bool(HEADING_PATTERN.fullmatch(text))
+def _heading_candidate(text: str) -> tuple[str, bool]:
+    value = text.strip()
+    if value.startswith(">"):
+        value = value[1:].strip()
+    marker_match = HEADING_MARKER_PATTERN.match(value)
+    has_marker = marker_match is not None
+    if marker_match:
+        value = value[marker_match.end() :].strip()
+    return value, has_marker
+
+
+def _heading_level(text: str, *, markdown_base: int = 1) -> int | None:
+    candidate, has_marker = _heading_candidate(text)
+    if not candidate or len(candidate) > 64:
+        return None
+    if any(character in "。！？；!?;" for character in candidate.rstrip("：:")):
+        return None
+    if text.startswith("#"):
+        depth = len(text) - len(text.lstrip("#"))
+        return min(max(1, depth - markdown_base + 1), 3)
+    if has_marker:
+        return 2
+    if not HEADING_PATTERN.fullmatch(candidate):
+        return None
+    if re.fullmatch(
+        r"(?:第?[一二三四五六七八九十百千万零〇两0-9]+卷(?:\s*.+)?|卷[一二三四五六七八九十百千万零〇两0-9上中下]+(?:\s*.+)?|序|序言|自序|凡例|目录|总目录|总论|提要|跋|后序|附录|[\u4e00-\u9fff]{1,12}(?:论|篇|章))[：:]?",
+        candidate,
+    ):
+        return 1
+    return 2
 
 
 def _heading_text(text: str) -> str:
-    return re.sub(r"^#{1,6}\s*", "", text).rstrip("：:").strip()
+    value = re.sub(r"^#{1,6}\s*", "", text)
+    value, _ = _heading_candidate(value)
+    value = value.rstrip("：:").strip()
+    emphasis = re.fullmatch(r"\*{1,3}(.+?)\*{1,3}", value)
+    return emphasis.group(1).strip() if emphasis else value
+
+
+def _is_document_title(text: str, title: str) -> bool:
+    def title_key(value: str) -> str:
+        cleaned = re.sub(r"^#{1,6}\s*", "", value).strip().strip("《》〈〉")
+        return _semantic_fingerprint(cleaned)
+
+    return title_key(text) == title_key(title)
+
+
+def _ends_semantic_paragraph(text: str) -> bool:
+    candidate = text.rstrip().rstrip(CLOSING_PUNCTUATION)
+    return bool(candidate) and candidate[-1] in PARAGRAPH_ENDINGS
+
+
+def _physical_line_separator(left: str, right: str) -> str:
+    return " " if left[-1:].isascii() and left[-1:].isalnum() and right[:1].isascii() and right[:1].isalnum() else ""
+
+
+def _join_physical_lines(lines: Sequence[str]) -> str:
+    if not lines:
+        return ""
+    result = lines[0]
+    for line in lines[1:]:
+        separator = _physical_line_separator(result, line)
+        result = f"{result}{separator}{line}"
+    return result
+
+
+def _update_heading_path(current: Sequence[str], level: int, heading: str) -> list[str]:
+    prefix = list(current[: max(0, level - 1)])
+    return [*prefix, heading]
+
+
+def _build_semantic_paragraphs(
+    *,
+    document_id: str,
+    title: str,
+    selected_lines: Sequence[tuple[int, str]],
+    navigation_ranges: Sequence[Sequence[int]],
+    max_chars: int,
+) -> list[dict[str, Any]]:
+    paragraphs: list[dict[str, Any]] = []
+    heading_path: list[str] = []
+    body_lines: list[tuple[int, str]] = []
+    body_char_count = 0
+    markdown_depths = [
+        len(normalized) - len(normalized.lstrip("#"))
+        for line_number, raw_line in selected_lines
+        if (normalized := _normalize_line(raw_line)).startswith("#")
+        and not _line_in_ranges(line_number, navigation_ranges)
+    ]
+    markdown_base = min(markdown_depths, default=1)
+
+    def emit(lines: Sequence[tuple[int, str]], paragraph_type: str, path: Sequence[str]) -> None:
+        if not lines:
+            return
+        line_numbers = [line_number for line_number, _ in lines]
+        text = _join_physical_lines([line for _, line in lines])
+        sequence = len(paragraphs) + 1
+        paragraphs.append(
+            {
+                "schemaVersion": SCHEMA_VERSION,
+                "kind": "paragraph",
+                "paragraphId": f"{document_id}:p{sequence:06d}",
+                "documentId": document_id,
+                "sequence": sequence,
+                "sourceLineStart": line_numbers[0],
+                "sourceLineEnd": line_numbers[-1],
+                "sourceLineNumbers": line_numbers,
+                "sourceLineCount": len(line_numbers),
+                "paragraphType": paragraph_type,
+                "headingPath": list(path),
+                "text": text,
+                "textSha256": _sha256_text(text),
+                "charCount": len(text),
+            }
+        )
+
+    def flush_body() -> None:
+        nonlocal body_lines, body_char_count
+        emit(body_lines, "body", heading_path)
+        body_lines = []
+        body_char_count = 0
+
+    for source_line_number, raw_line in selected_lines:
+        normalized_line = _normalize_line(raw_line)
+        if not normalized_line:
+            continue
+        if _line_in_ranges(source_line_number, navigation_ranges):
+            flush_body()
+            emit([(source_line_number, normalized_line)], "navigation", [])
+            continue
+        if _is_document_title(normalized_line, title):
+            flush_body()
+            emit([(source_line_number, normalized_line)], "document_title", [])
+            continue
+        level = _heading_level(normalized_line, markdown_base=markdown_base)
+        if level is not None:
+            flush_body()
+            heading_path = _update_heading_path(heading_path, level, _heading_text(normalized_line))
+            emit([(source_line_number, normalized_line)], "heading", heading_path)
+            continue
+        separator = _physical_line_separator(body_lines[-1][1], normalized_line) if body_lines else ""
+        extra_chars = len(separator) + len(normalized_line)
+        if body_lines and body_char_count + extra_chars > max_chars:
+            flush_body()
+            extra_chars = len(normalized_line)
+        body_lines.append((source_line_number, normalized_line))
+        body_char_count += extra_chars
+        if _ends_semantic_paragraph(normalized_line):
+            flush_body()
+    flush_body()
+    return paragraphs
 
 
 def _split_oversized_text(text: str, max_chars: int) -> list[str]:
@@ -471,29 +639,24 @@ def _build_passages(
 ) -> list[dict[str, Any]]:
     fragments: list[dict[str, Any]] = []
     for paragraph in paragraphs:
+        if paragraph["paragraphType"] != "body":
+            continue
         for text in _split_oversized_text(str(paragraph["text"]), max_chars):
             fragments.append({"paragraph": paragraph, "text": text})
 
     passages: list[dict[str, Any]] = []
     current: list[dict[str, Any]] = []
     current_chars = 0
+    current_heading_path: list[str] = []
 
     def flush() -> None:
-        nonlocal current, current_chars
+        nonlocal current, current_chars, current_heading_path
         if not current:
             return
         text = "\n".join(str(fragment["text"]) for fragment in current)
         paragraph_ids = list(dict.fromkeys(str(fragment["paragraph"]["paragraphId"]) for fragment in current))
         paragraph_sequences = [int(fragment["paragraph"]["sequence"]) for fragment in current]
         source_lines = [int(fragment["paragraph"]["sourceLineStart"]) for fragment in current]
-        heading_path = next(
-            (
-                list(fragment["paragraph"]["headingPath"])
-                for fragment in current
-                if fragment["paragraph"]["headingPath"]
-            ),
-            [],
-        )
         sequence = len(passages) + 1
         passages.append(
             {
@@ -507,7 +670,7 @@ def _build_passages(
                 "paragraphEnd": max(paragraph_sequences),
                 "sourceLineStart": min(source_lines),
                 "sourceLineEnd": max(int(fragment["paragraph"]["sourceLineEnd"]) for fragment in current),
-                "headingPath": heading_path,
+                "headingPath": list(current_heading_path),
                 "text": text,
                 "textSha256": _sha256_text(text),
                 "charCount": len(text),
@@ -523,11 +686,17 @@ def _build_passages(
         )
         current = []
         current_chars = 0
+        current_heading_path = []
 
     for fragment in fragments:
+        fragment_heading_path = list(fragment["paragraph"]["headingPath"])
+        if current and fragment_heading_path != current_heading_path:
+            flush()
         extra = len(str(fragment["text"])) + (1 if current else 0)
         if current and current_chars + extra > max_chars:
             flush()
+        if not current:
+            current_heading_path = fragment_heading_path
         current.append(fragment)
         current_chars += len(str(fragment["text"])) + (1 if len(current) > 1 else 0)
     flush()
@@ -542,7 +711,7 @@ def _duplicate_records(
     document_hashes: dict[str, set[str]] = defaultdict(set)
 
     for paragraph in paragraphs:
-        if int(paragraph["charCount"]) >= 12:
+        if paragraph["paragraphType"] == "body" and int(paragraph["charCount"]) >= 12:
             text_hash = str(paragraph["textSha256"])
             paragraph_groups[text_hash].append(paragraph)
             document_hashes[str(paragraph["documentId"])].add(text_hash)
@@ -657,6 +826,7 @@ def _prepare_records(
     exclusions: list[dict[str, Any]] = []
     review_queue: list[dict[str, Any]] = []
     quality_documents: list[dict[str, Any]] = []
+    max_semantic_paragraph_chars = int(contract["paragraphing"]["defaultMaxParagraphChars"])
 
     for text_path in text_files:
         if text_path.is_symlink() or not text_path.is_file():
@@ -698,35 +868,23 @@ def _prepare_records(
             document_policy=document_policy,
             policy=policy,
         )
-        document_paragraphs: list[dict[str, Any]] = []
-        current_heading: list[str] = []
+        title, author = _parse_title_author(text_path.name)
+        navigation_ranges = document_policy.get("structure", {}).get("navigationLineRanges", [])
+        if navigation_ranges and int(navigation_ranges[-1][1]) > len(raw_lines):
+            raise ClassicsDatasetError(
+                f"curation navigationLineRanges 越界：{relative_path}: {navigation_ranges[-1][1]}>{len(raw_lines)}"
+            )
         blank_line_count = sum(not _normalize_line(line) for line in raw_lines)
-        selected_blank_line_count = 0
+        selected_blank_line_count = sum(not _normalize_line(raw_line) for _, raw_line in selected_lines)
         removed_invisible_count = sum(raw_text.count(character) for character in REMOVE_CHARACTERS)
         normalized_space_count = raw_text.count("\u00a0")
-
-        for source_line_number, raw_line in selected_lines:
-            normalized_line = _normalize_line(raw_line)
-            if not normalized_line:
-                selected_blank_line_count += 1
-                continue
-            if _is_heading(normalized_line):
-                current_heading = [_heading_text(normalized_line)]
-            sequence = len(document_paragraphs) + 1
-            paragraph = {
-                "schemaVersion": SCHEMA_VERSION,
-                "kind": "paragraph",
-                "paragraphId": f"{document_id}:p{sequence:06d}",
-                "documentId": document_id,
-                "sequence": sequence,
-                "sourceLineStart": source_line_number,
-                "sourceLineEnd": source_line_number,
-                "headingPath": list(current_heading),
-                "text": normalized_line,
-                "textSha256": _sha256_text(normalized_line),
-                "charCount": len(normalized_line),
-            }
-            document_paragraphs.append(paragraph)
+        document_paragraphs = _build_semantic_paragraphs(
+            document_id=document_id,
+            title=title,
+            selected_lines=selected_lines,
+            navigation_ranges=navigation_ranges,
+            max_chars=max_semantic_paragraph_chars,
+        )
 
         if not document_paragraphs:
             raise ClassicsDatasetError(f"canonical TXT 清洗后为空：{relative_path}")
@@ -734,6 +892,12 @@ def _prepare_records(
         selected_raw_text = "\n".join(raw_line for _, raw_line in selected_lines)
         if _semantic_fingerprint(selected_raw_text) != _semantic_fingerprint(normalized_text):
             raise ClassicsDatasetError(f"清洗前后非空白内容不一致：{relative_path}")
+        expected_source_lines = [line_number for line_number, raw_line in selected_lines if _normalize_line(raw_line)]
+        actual_source_lines = [
+            int(line_number) for paragraph in document_paragraphs for line_number in paragraph["sourceLineNumbers"]
+        ]
+        if actual_source_lines != expected_source_lines:
+            raise ClassicsDatasetError(f"语义段落源行血缘无法精确回放：{relative_path}")
 
         document_passages = _build_passages(
             document_id=document_id,
@@ -743,7 +907,10 @@ def _prepare_records(
             rights=rights,
             max_chars=max_passage_chars,
         )
-        title, author = _parse_title_author(text_path.name)
+        paragraph_type_counts = Counter(str(item["paragraphType"]) for item in document_paragraphs)
+        merged_source_line_count = sum(
+            max(0, int(item["sourceLineCount"]) - 1) for item in document_paragraphs if item["paragraphType"] == "body"
+        )
         quality_flags = ["rights_review_required"]
         if rights["group"] in {"mixed_notes", "modern_text_candidate"}:
             quality_flags.append(f"source_group_{rights['group']}")
@@ -784,6 +951,8 @@ def _prepare_records(
             "curationPolicyId": policy["policyId"],
             "curationMetadata": curation_metadata,
             "excludedSourceLineCount": len(document_exclusions),
+            "paragraphTypeCounts": dict(sorted(paragraph_type_counts.items())),
+            "mergedSourceLineCount": merged_source_line_count,
         }
         documents.append(document)
         paragraphs.extend(document_paragraphs)
@@ -816,6 +985,13 @@ def _prepare_records(
                 "selectedSourceLineCount": len(selected_lines),
                 "excludedSourceLineCount": len(document_exclusions),
                 "paragraphCount": len(document_paragraphs),
+                "paragraphTypeCounts": dict(sorted(paragraph_type_counts.items())),
+                "mergedSourceLineCount": merged_source_line_count,
+                "navigationSourceLineCount": sum(
+                    int(item["sourceLineCount"])
+                    for item in document_paragraphs
+                    if item["paragraphType"] == "navigation"
+                ),
                 "passageCount": len(document_passages),
                 "normalizedCharCount": len(normalized_text),
                 "removedInvisibleCharacterCount": removed_invisible_count,
@@ -830,6 +1006,15 @@ def _prepare_records(
 
     duplicate_records, duplicate_summary = _duplicate_records(paragraphs, passages)
     short_passages = sum(int(item["charCount"]) < min_passage_chars for item in passages)
+    paragraph_by_id = {str(item["paragraphId"]): item for item in paragraphs}
+    passage_heading_boundary_violations = 0
+    navigation_passage_count = 0
+    for passage in passages:
+        passage_paragraphs = [paragraph_by_id[str(paragraph_id)] for paragraph_id in passage["paragraphIds"]]
+        heading_paths = {tuple(item["headingPath"]) for item in passage_paragraphs}
+        passage_heading_boundary_violations += len(heading_paths) != 1
+        navigation_passage_count += any(item["paragraphType"] == "navigation" for item in passage_paragraphs)
+    paragraph_type_counts = Counter(str(item["paragraphType"]) for item in paragraphs)
     quality_report = {
         "schemaVersion": SCHEMA_VERSION,
         "datasetId": NORMALIZATION_PROFILE,
@@ -842,11 +1027,16 @@ def _prepare_records(
             "normalizedChars": sum(int(item["normalizedCharCount"]) for item in documents),
             "shortPassageCount": short_passages,
             "lineageErrorCount": 0,
+            "semanticReplayErrorCount": 0,
+            "passageHeadingBoundaryViolationCount": passage_heading_boundary_violations,
+            "navigationPassageCount": navigation_passage_count,
             "invalidUtf8Count": 0,
             "excludedSourceLineCount": len(exclusions),
             "reviewItemCount": len(review_queue),
             "partialDocumentCount": sum(item["completeness"]["status"] == "partial" for item in documents),
             "familyCount": len({item["familyId"] for item in documents}),
+            "paragraphTypeCounts": dict(sorted(paragraph_type_counts.items())),
+            "mergedSourceLineCount": sum(int(item["mergedSourceLineCount"]) for item in documents),
             **duplicate_summary,
         },
         "documents": quality_documents,
@@ -902,6 +1092,7 @@ def _write_dataset(
             "builder": BUILDER_PATH,
             "normalizationProfile": NORMALIZATION_PROFILE,
             "parameters": {
+                "maxSemanticParagraphChars": int(contract["paragraphing"]["defaultMaxParagraphChars"]),
                 "minPassageChars": min_passage_chars,
                 "maxPassageChars": max_passage_chars,
             },
@@ -960,6 +1151,8 @@ def build_dataset(
     if min_passage_chars < 1 or max_passage_chars < min_passage_chars:
         raise ClassicsDatasetError("切片字符上限必须大于等于下限，且下限至少为 1")
     contract = _load_json(contract_path)
+    if contract.get("schemaVersion") != 3 or contract.get("contractId") != "fatecat.classics-clean-dataset.v3":
+        raise ClassicsDatasetError("数据集契约版本必须为 fatecat.classics-clean-dataset.v3")
     source_paths = {f"classics/{path.name}" for path in source.glob("*.txt")}
     policy, policy_documents = _load_curation_policy(curation_policy_path, source_paths)
     expected_max = int(contract["chunking"]["defaultMaxPassageChars"])
@@ -1032,6 +1225,8 @@ def validate_dataset(
 ) -> dict[str, Any]:
     target = output_dir.resolve()
     contract = _load_json(contract_path)
+    if contract.get("schemaVersion") != 3 or contract.get("contractId") != "fatecat.classics-clean-dataset.v3":
+        raise ClassicsDatasetError("数据集契约版本必须为 fatecat.classics-clean-dataset.v3")
     required_files = set(contract["output"]["requiredFiles"])
     missing_files = sorted(name for name in required_files if not (target / name).is_file())
     if missing_files:
@@ -1046,8 +1241,14 @@ def validate_dataset(
     review_queue = _read_ndjson(target / "review-queue.ndjson")
     quality = _load_json(target / "quality-report.json")
     manifest = _load_json(target / "manifest.json")
-    if manifest.get("status") != "passed" or manifest.get("contractId") != contract["contractId"]:
-        raise ClassicsDatasetError("manifest status 或 contractId 与清洗契约不一致")
+    if (
+        manifest.get("status") != "passed"
+        or manifest.get("schemaVersion") != SCHEMA_VERSION
+        or manifest.get("datasetId") != NORMALIZATION_PROFILE
+        or manifest.get("normalizationProfile") != NORMALIZATION_PROFILE
+        or manifest.get("contractId") != contract["contractId"]
+    ):
+        raise ClassicsDatasetError("manifest 版本、数据集或 contractId 与清洗契约不一致")
     if manifest.get("rightsBoundary") != contract["rightsBoundary"]:
         raise ClassicsDatasetError("manifest 权限边界与清洗契约不一致")
     if manifest.get("source", {}).get("curationPolicySha256") != _sha256_file(curation_policy_path):
@@ -1068,6 +1269,11 @@ def validate_dataset(
         document_id = str(document["documentId"])
         if document_id in document_by_id or document.get("kind") != "document":
             raise ClassicsDatasetError(f"document ID 重复或 kind 错误：{document_id}")
+        if (
+            document.get("schemaVersion") != SCHEMA_VERSION
+            or document.get("normalizationProfile") != NORMALIZATION_PROFILE
+        ):
+            raise ClassicsDatasetError(f"document schemaVersion 或 normalizationProfile 错误：{document_id}")
         if any(
             document.get(field) is not False
             for field in ("distributionAllowed", "productionUseAllowed", "trainingUseAllowed")
@@ -1100,9 +1306,24 @@ def validate_dataset(
         document_id = str(paragraph["documentId"])
         if paragraph_id in paragraph_by_id or document_id not in document_by_id or paragraph.get("kind") != "paragraph":
             raise ClassicsDatasetError(f"paragraph 引用、ID 或 kind 错误：{paragraph_id}")
+        if paragraph.get("schemaVersion") != SCHEMA_VERSION:
+            raise ClassicsDatasetError(f"paragraph schemaVersion 错误：{paragraph_id}")
         text = str(paragraph["text"])
         if not text or _sha256_text(text) != paragraph["textSha256"] or len(text) != paragraph["charCount"]:
             raise ClassicsDatasetError(f"paragraph 内容 hash 或长度错误：{paragraph_id}")
+        source_line_numbers = paragraph["sourceLineNumbers"]
+        if (
+            paragraph["paragraphType"] not in ALLOWED_PARAGRAPH_TYPES
+            or not isinstance(source_line_numbers, list)
+            or not source_line_numbers
+            or any(not isinstance(line_number, int) for line_number in source_line_numbers)
+            or source_line_numbers != sorted(set(source_line_numbers))
+            or paragraph["sourceLineStart"] != source_line_numbers[0]
+            or paragraph["sourceLineEnd"] != source_line_numbers[-1]
+            or paragraph["sourceLineCount"] != len(source_line_numbers)
+            or not isinstance(paragraph["headingPath"], list)
+        ):
+            raise ClassicsDatasetError(f"paragraph 类型、源行或标题血缘错误：{paragraph_id}")
         paragraph_by_id[paragraph_id] = paragraph
         paragraphs_by_document[document_id].append(paragraph)
 
@@ -1115,12 +1336,21 @@ def validate_dataset(
         document_id = str(passage["documentId"])
         if passage_id in seen_passage_ids or document_id not in document_by_id or passage.get("kind") != "passage":
             raise ClassicsDatasetError(f"passage 引用、ID 或 kind 错误：{passage_id}")
+        if passage.get("schemaVersion") != SCHEMA_VERSION:
+            raise ClassicsDatasetError(f"passage schemaVersion 错误：{passage_id}")
         seen_passage_ids.add(passage_id)
         if any(str(item) not in paragraph_by_id for item in passage["paragraphIds"]):
             raise ClassicsDatasetError(f"passage paragraphIds 断链：{passage_id}")
         referenced_paragraphs = [paragraph_by_id[str(item)] for item in passage["paragraphIds"]]
         if any(str(item["documentId"]) != document_id for item in referenced_paragraphs):
             raise ClassicsDatasetError(f"passage 引用了其他文档的 paragraph：{passage_id}")
+        heading_paths = {tuple(item["headingPath"]) for item in referenced_paragraphs}
+        if (
+            any(item["paragraphType"] != "body" for item in referenced_paragraphs)
+            or len(heading_paths) != 1
+            or list(next(iter(heading_paths))) != passage["headingPath"]
+        ):
+            raise ClassicsDatasetError(f"passage 跨标题边界或消费了非正文 paragraph：{passage_id}")
         text = str(passage["text"])
         if (
             not text
@@ -1169,6 +1399,7 @@ def validate_dataset(
             or (document_id, source_line) in seen_excluded_lines
             or document is None
             or exclusion.get("kind") != "excluded_source_line"
+            or exclusion.get("schemaVersion") != SCHEMA_VERSION
             or "text" in exclusion
         ):
             raise ClassicsDatasetError(f"exclusion ID、line、document 或隐私边界错误：{exclusion_id}")
@@ -1195,6 +1426,7 @@ def validate_dataset(
             review_id in seen_review_ids
             or document is None
             or review_item.get("kind") != "curation_review_item"
+            or review_item.get("schemaVersion") != SCHEMA_VERSION
             or review_item.get("status") != "pending_human_review"
             or review_item.get("severity") not in ALLOWED_REVIEW_SEVERITY
         ):
@@ -1223,12 +1455,22 @@ def validate_dataset(
             raise ClassicsDatasetError(f"document paragraph sequence 不连续：{document_id}")
         if [int(item["sequence"]) for item in document_passages] != list(range(1, len(document_passages) + 1)):
             raise ClassicsDatasetError(f"document passage sequence 不连续：{document_id}")
+        actual_paragraph_type_counts = Counter(str(item["paragraphType"]) for item in document_paragraphs)
+        actual_merged_source_lines = sum(
+            max(0, int(item["sourceLineCount"]) - 1) for item in document_paragraphs if item["paragraphType"] == "body"
+        )
+        if (
+            document["paragraphTypeCounts"] != dict(sorted(actual_paragraph_type_counts.items()))
+            or document["mergedSourceLineCount"] != actual_merged_source_lines
+        ):
+            raise ClassicsDatasetError(f"document paragraph 类型或合并计数不一致：{document_id}")
         normalized_text = "\n".join(str(item["text"]) for item in document_paragraphs)
         if _sha256_text(normalized_text) != document["normalizedSha256"]:
             raise ClassicsDatasetError(f"document normalizedSha256 不一致：{document_id}")
         passage_text = "\n".join(str(item["text"]) for item in document_passages)
-        if _semantic_fingerprint(passage_text) != _semantic_fingerprint(normalized_text):
-            raise ClassicsDatasetError(f"document passage 与 paragraph 内容不一致：{document_id}")
+        body_text = "\n".join(str(item["text"]) for item in document_paragraphs if item["paragraphType"] == "body")
+        if _semantic_fingerprint(passage_text) != _semantic_fingerprint(body_text):
+            raise ClassicsDatasetError(f"document passage 与 body paragraph 内容不一致：{document_id}")
         if len(exclusions_by_document[document_id]) != document["excludedSourceLineCount"]:
             raise ClassicsDatasetError(f"document exclusion 计数不一致：{document_id}")
         expected_review_count = len(policy_documents[str(document["sourcePath"])]["reviewItems"])
@@ -1236,7 +1478,10 @@ def validate_dataset(
             raise ClassicsDatasetError(f"document review queue 计数不一致：{document_id}")
 
     allowed_duplicate_kinds = {"exact_paragraph_group", "exact_passage_group", "document_overlap"}
-    if any(item.get("kind") not in allowed_duplicate_kinds or "text" in item for item in duplicates):
+    if any(
+        item.get("schemaVersion") != SCHEMA_VERSION or item.get("kind") not in allowed_duplicate_kinds or "text" in item
+        for item in duplicates
+    ):
         raise ClassicsDatasetError("duplicates.ndjson 含非法 kind 或复制了正文")
 
     if input_dir is not None:
@@ -1272,6 +1517,33 @@ def validate_dataset(
             )
             if _semantic_fingerprint(selected_raw_text) != _semantic_fingerprint(normalized_text):
                 raise ClassicsDatasetError(f"数据集正文选择与 paragraph 内容不一致：{document['sourcePath']}")
+            expected_source_lines = [line_number for line_number, line in selected_lines if _normalize_line(line)]
+            document_paragraphs = sorted(
+                paragraphs_by_document[str(document["documentId"])], key=lambda item: int(item["sequence"])
+            )
+            actual_source_lines = [
+                int(line_number) for paragraph in document_paragraphs for line_number in paragraph["sourceLineNumbers"]
+            ]
+            if actual_source_lines != expected_source_lines:
+                raise ClassicsDatasetError(f"数据集 paragraph 源行无法精确回放：{document['sourcePath']}")
+            navigation_ranges = (
+                policy_documents[str(document["sourcePath"])].get("structure", {}).get("navigationLineRanges", [])
+            )
+            if navigation_ranges and int(navigation_ranges[-1][1]) > len(raw_text.splitlines()):
+                raise ClassicsDatasetError(f"数据集 navigationLineRanges 越界：{document['sourcePath']}")
+            expected_navigation_lines = {
+                line_number
+                for line_number, line in selected_lines
+                if _normalize_line(line) and _line_in_ranges(line_number, navigation_ranges)
+            }
+            actual_navigation_lines = {
+                int(line_number)
+                for paragraph in document_paragraphs
+                if paragraph["paragraphType"] == "navigation"
+                for line_number in paragraph["sourceLineNumbers"]
+            }
+            if actual_navigation_lines != expected_navigation_lines:
+                raise ClassicsDatasetError(f"数据集 navigation paragraph 与 policy 不一致：{document['sourcePath']}")
 
     if manifest["source"]["sourceAggregateSha256"] != _source_aggregate_sha256(documents):
         raise ClassicsDatasetError("manifest sourceAggregateSha256 与 document 来源不一致")
@@ -1287,11 +1559,22 @@ def validate_dataset(
     if manifest.get("counts") != expected_counts:
         raise ClassicsDatasetError("manifest counts 与输出记录不一致")
     quality_summary = quality.get("summary", {})
+    actual_paragraph_type_counts = Counter(str(item["paragraphType"]) for item in paragraphs)
+    actual_merged_source_line_count = sum(int(item["mergedSourceLineCount"]) for item in documents)
     if (
         quality.get("status") != "passed"
+        or quality.get("schemaVersion") != SCHEMA_VERSION
+        or quality.get("datasetId") != NORMALIZATION_PROFILE
         or quality.get("rightsBoundary") != contract["rightsBoundary"]
         or quality_summary.get("documentCount") != len(documents)
+        or quality_summary.get("paragraphCount") != len(paragraphs)
+        or quality_summary.get("passageCount") != len(passages)
+        or quality_summary.get("paragraphTypeCounts") != dict(sorted(actual_paragraph_type_counts.items()))
+        or quality_summary.get("mergedSourceLineCount") != actual_merged_source_line_count
         or quality_summary.get("lineageErrorCount") != 0
+        or quality_summary.get("semanticReplayErrorCount") != 0
+        or quality_summary.get("passageHeadingBoundaryViolationCount") != 0
+        or quality_summary.get("navigationPassageCount") != 0
         or quality_summary.get("invalidUtf8Count") != 0
         or quality_summary.get("excludedSourceLineCount") != len(exclusions)
         or quality_summary.get("reviewItemCount") != len(review_queue)

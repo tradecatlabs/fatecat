@@ -204,7 +204,7 @@ scripts/
 - `container-smoke.sh`：启动临时容器并验证 `/health` 与真实排盘 API。
 - `container-release.sh`：构建、smoke，并在显式 `--push` 时推送 registry。
 - `data-supply-chain-gate.sh` / `data-supply-chain-gate.py` 是数据供应链门禁；校验 data supply chain registry、canonical classics source/copyright manifest、solar terms source manifest 和 vendor production dependency 许可边界。
-- `classics-dataset-clean.py` 是 canonical 命理典籍的确定性内部数据集构建器；严格校验 UTF-8、来源 hash、版权状态和 source-hash 绑定 curation policy，输出可追溯文档/段落/切片、排除血缘、人工复核队列、重复标记和质量报告到 ignored local-state，不改写原文、不自动去重，也不授予训练、生产或公开分发权限。
+- `classics-dataset-clean.py` 是 canonical 命理典籍的确定性内部数据集构建器；严格校验 UTF-8、来源 hash、版权状态和 source-hash 绑定 curation policy，将物理源行无损重建为带精确行血缘的语义段落，目录只留证据不入检索，passage 不跨 heading path；输出进入 ignored local-state，不改写原文、不自动去重，也不授予训练、生产或公开分发权限。
 - `build-location-catalog.py` 是全球出生地点 canonical 数据产品构建器；只接受 `sources.lock.json` 中固定 URL/version/hash 的行政区和 GeoNames 来源，输出确定性 gzip NDJSON 与 manifest，不生成或提交运行时 SQLite。
 - `suanzhun-corpus-crawl.py` 是算准网“基础/典籍”研究语料抓取器；按 robots、栏目递归和 sitemap 交叉发现，以 SQLite 同时保存物理详情页与逻辑文章，按 `1..N` 聚合详情续页，并用独立原始 href 扫描阻止发现规则与验证规则共因失明；输出只进入忽略的 `infra/runtime/local-state/exports/suanzhun-corpus/`，未经版权审查不得晋升为 canonical 数据产品。
 - `event-contract-gate.sh` / `event-contract-gate.py` 是异步事件 contract gate；校验 AsyncEvent registry、CloudEvents 必备字段、AsyncAPI 风格 channel/operation/message、producer path、required consumer、additive compatibility、replay/DLQ 策略、脱敏示例和 delivery/resource schema 链接，不连接真实 broker 或公网 webhook 接收端。

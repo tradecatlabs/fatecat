@@ -1,7 +1,7 @@
 {
-  "schemaVersion": 1,
-  "policyId": "classics-curation-v1",
-  "description": "FateCat 14 本 canonical 命理典籍的正文选择、文献家族、文本角色、完整性和人工复核策略。所有规则绑定当前 source sha256；候选书目不等于权威核验。",
+  "schemaVersion": 2,
+  "policyId": "classics-curation-v2",
+  "description": "FateCat 14 本 canonical 命理典籍的正文选择、结构导航、文献家族、文本角色、完整性和人工复核策略。所有规则绑定当前 source sha256；候选书目不等于权威核验。",
   "ruleSets": {
     "ctext-envelope-v1": [
       {
@@ -158,6 +158,9 @@
           "当前文件尾行在句中结束，存在截断。"
         ]
       },
+      "structure": {
+        "navigationLineRanges": [[22, 96]]
+      },
       "selection": {
         "mode": "all",
         "includeLineRanges": [],
@@ -215,7 +218,20 @@
         "reviewStatus": "review_required"
       },
       "completeness": {"status": "unknown", "evidence": []},
-      "selection": {"mode": "all", "includeLineRanges": [], "ruleSetRefs": [], "lineRules": []},
+      "selection": {
+        "mode": "all",
+        "includeLineRanges": [],
+        "ruleSetRefs": [],
+        "lineRules": [
+          {
+            "id": "bazi-notes-markdown-separator",
+            "action": "exclude",
+            "match": {"type": "exact", "value": "---"},
+            "classification": "formatting_marker",
+            "reason": "Markdown 水平分隔线是排版标记，不进入检索正文。"
+          }
+        ]
+      },
       "reviewItems": [
         {
           "id": "bazi-notes-provenance",
@@ -248,7 +264,21 @@
       "roleStatus": "curator_assigned",
       "bibliography": {"observedTitle": "千里命稿", "observedAttribution": "韦千里", "reviewed": null, "reviewStatus": "review_required"},
       "completeness": {"status": "unknown", "evidence": ["文件存在千里命稿终标记，但未与权威底本校勘。"]},
-      "selection": {"mode": "all", "includeLineRanges": [], "ruleSetRefs": [], "lineRules": []},
+      "structure": {"navigationLineRanges": [[3, 279]]},
+      "selection": {
+        "mode": "all",
+        "includeLineRanges": [],
+        "ruleSetRefs": [],
+        "lineRules": [
+          {
+            "id": "qianli-editorial-end",
+            "action": "exclude",
+            "match": {"type": "exact", "value": "千里命稿终"},
+            "classification": "editorial_marker",
+            "reason": "现代整理结束标记不是典籍正文。"
+          }
+        ]
+      },
       "reviewItems": [
         {"id": "qianli-rights", "issueType": "rights_review", "severity": "high", "summary": "近现代文本的版权和版本状态未完成复核。", "evidence": ["copyright_review.tsv group=modern_text_candidate"], "blocks": ["public_distribution", "training_use"]}
       ]
@@ -261,6 +291,7 @@
       "roleStatus": "curator_assigned",
       "bibliography": {"observedTitle": "子平真诠原本", "observedAttribution": "沈孝瞻", "reviewed": null, "reviewStatus": "review_required"},
       "completeness": {"status": "unknown", "evidence": []},
+      "structure": {"navigationLineRanges": [[3, 97]]},
       "selection": {"mode": "all", "includeLineRanges": [], "ruleSetRefs": [], "lineRules": []},
       "reviewItems": []
     },
@@ -272,6 +303,7 @@
       "roleStatus": "curator_assigned",
       "bibliography": {"observedTitle": "子平真诠评注", "observedAttribution": "沈孝瞻", "reviewed": null, "reviewStatus": "review_required"},
       "completeness": {"status": "unknown", "evidence": []},
+      "structure": {"navigationLineRanges": [[10, 59]]},
       "selection": {"mode": "all", "includeLineRanges": [], "ruleSetRefs": ["ctext-envelope-v1"], "lineRules": []},
       "reviewItems": [
         {"id": "ziping-commentator", "issueType": "contributor_role_unverified", "severity": "high", "summary": "当前作者字段只标原著者，评注者身份和版本关系尚未在项目内核实。", "evidence": ["filename", "embedded author", "ctext source"], "blocks": ["reviewed_bibliography"]},
@@ -286,6 +318,7 @@
       "roleStatus": "curator_assigned",
       "bibliography": {"observedTitle": "李虚中命书", "observedAttribution": "李虚中", "reviewed": null, "reviewStatus": "review_required"},
       "completeness": {"status": "unknown", "evidence": []},
+      "structure": {"navigationLineRanges": [[9, 35]]},
       "selection": {"mode": "all", "includeLineRanges": [], "ruleSetRefs": [], "lineRules": []},
       "reviewItems": [
         {"id": "lixuzhong-contributor-role", "issueType": "contributor_role_unverified", "severity": "medium", "summary": "正文题头含注者角色，作者、注者与现行版本关系需权威书目复核。", "evidence": ["source heading"], "blocks": ["reviewed_bibliography"]}
@@ -319,6 +352,7 @@
       "roleStatus": "curator_assigned",
       "bibliography": {"observedTitle": "滴天髓原文", "observedAttribution": "刘基", "reviewed": null, "reviewStatus": "review_required"},
       "completeness": {"status": "unknown", "evidence": []},
+      "structure": {"navigationLineRanges": [[17, 153]]},
       "selection": {"mode": "all", "includeLineRanges": [], "ruleSetRefs": [], "lineRules": []},
       "reviewItems": [
         {"id": "ditiansui-original-role", "issueType": "title_role_conflict", "severity": "high", "summary": "文件名标为原文，但正文题头为滴天髓阐微且包含简介与原注，不应作为纯原文数据集使用。", "evidence": ["source heading", "source paragraph labels"], "blocks": ["pure_source_text_claim", "automatic_original_commentary_alignment"]},
@@ -333,7 +367,21 @@
       "roleStatus": "curator_assigned",
       "bibliography": {"observedTitle": "滴天髓阐微", "observedAttribution": "任铁樵", "reviewed": null, "reviewStatus": "review_required"},
       "completeness": {"status": "unknown", "evidence": ["文件存在全文终标记，但未与权威底本校勘。"]},
-      "selection": {"mode": "all", "includeLineRanges": [], "ruleSetRefs": ["ctext-envelope-v1"], "lineRules": []},
+      "structure": {"navigationLineRanges": [[10, 74]]},
+      "selection": {
+        "mode": "all",
+        "includeLineRanges": [],
+        "ruleSetRefs": ["ctext-envelope-v1"],
+        "lineRules": [
+          {
+            "id": "ditiansui-commentary-editorial-end",
+            "action": "exclude",
+            "match": {"type": "exact", "value": "滴天髓全文终"},
+            "classification": "editorial_marker",
+            "reason": "现代整理结束标记不是典籍正文。"
+          }
+        ]
+      },
       "reviewItems": [
         {"id": "ditiansui-base-edition", "issueType": "base_edition_unverified", "severity": "medium", "summary": "ctext 电子资源底本尚未在项目内独立核验。", "evidence": ["source URL"], "blocks": ["reviewed_bibliography"]}
       ]

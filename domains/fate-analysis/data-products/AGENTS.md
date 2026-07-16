@@ -43,7 +43,7 @@ domains/fate-analysis/data-products/
 - `classics/*.txt`：已经整理到轻量文本层的古籍语料，可作为检索、切片与规则提炼输入。
 - `classics/copyright_review.tsv`：标记典籍、外部分发包、案例和知识图谱的版权/隐私/发布可用性。
 - `classics/curation_policy.json`：绑定 canonical source hash，显式登记正文选择、文献家族、文本角色、完整性问题和人工复核项；不得把候选书目包装成已核实事实。
-- `scripts/classics-dataset-clean.py`：从 `classics/*.txt` 确定性生成 ignored `classics-clean-v2` 内部派生数据集；正文选择、清洗、切片和重复检测不改变 canonical 原文或版权状态。
+- `scripts/classics-dataset-clean.py`：从 `classics/*.txt` 确定性生成 ignored `classics-clean-v3` 内部派生数据集；按 source-hash policy 分离目录、重建语义段落并在章节内切片，不改变 canonical 原文或版权状态。
 - `calendar/solar_terms/golden/`：从 raw 表提炼的轻量回归 fixture，用于锁定节气、月令、立春年界与起运边界。
 - `source_manifest.tsv`：记录来源文件名、大小、哈希、体系归属与来源路径，便于审计和后续清洗。
 - `contracts/fate/data-supply-chain/registry.json`：跨数据产品、vendor 和 benchmark 的供应链注册表；`scripts/data-supply-chain-gate.sh` 会校验 canonical TXT 是否同时具备 source manifest、copyright review 和 hash。

@@ -1,7 +1,7 @@
 {
-  "schemaVersion": 2,
-  "contractId": "fatecat.classics-clean-dataset.v2",
-  "description": "命理典籍内部清洗与整理派生数据集契约。该数据集只用于检索、规则提炼与人工复核；正文选择受 source-hash 绑定 policy 控制，不改变 canonical 原文，不授予训练、生产或公开分发权限。",
+  "schemaVersion": 3,
+  "contractId": "fatecat.classics-clean-dataset.v3",
+  "description": "命理典籍内部语义清洗与整理派生数据集契约。该数据集只用于检索、规则提炼与人工复核；正文选择和导航范围受 source-hash 绑定 policy 控制，不改变 canonical 原文，不授予训练、生产或公开分发权限。",
   "input": {
     "encoding": "UTF-8 (strict)",
     "requiredFiles": [
@@ -28,7 +28,7 @@
     ]
   },
   "normalization": {
-    "profile": "classics-clean-v2",
+    "profile": "classics-clean-v3",
     "unicodeForm": "NFC",
     "removeCharacters": [
       "U+FEFF",
@@ -40,16 +40,22 @@
     "replaceCharacters": {
       "U+00A0": "SPACE"
     },
-    "whitespacePolicy": "折叠行内空白，删除行首尾空白和空行；保留所有非空正文行的顺序。",
+    "whitespacePolicy": "折叠行内空白，删除行首尾空白；物理换行按确定性规则重建为语义段落，所有非空内容和源行顺序必须可回放。",
     "forbiddenPolicy": "严格拒绝解码错误、NUL 和未允许的控制字符。",
     "semanticInvariant": "归一化前后在 NFC、移除允许的不可见字符并忽略空白后必须逐字符一致。"
   },
+  "paragraphing": {
+    "unit": "semantic_paragraph",
+    "defaultMaxParagraphChars": 600,
+    "boundaryPolicy": "标题前后强制分段；正文遇强句末或字符上限分段；中文物理换行无空格拼接，ASCII 单词边界保留一个空格。",
+    "navigationPolicy": "只有 source-hash policy 明确登记的源行范围可标记为 navigation；navigation 保留血缘但不得进入 passage。"
+  },
   "chunking": {
-    "unit": "paragraph",
+    "unit": "semantic_paragraph",
     "defaultMinPassageChars": 200,
     "defaultMaxPassageChars": 1200,
     "oversizedParagraphPolicy": "优先按中文句末标点切分，无可用边界时按字符上限硬切；不得丢字。",
-    "headingPolicy": "只识别明确的 Markdown 标题、卷章节篇和常见序跋标题；标题路径是导航提示，不是学术篇章校勘结论。"
+    "headingPolicy": "保守识别明确的 Markdown 标题、卷章节篇、编号标题和常见序跋标题；heading path 变化前必须结束当前 passage；标题路径是导航提示，不是学术篇章校勘结论。"
   },
   "output": {
     "requiredFiles": [
@@ -102,7 +108,9 @@
     "completeness",
     "curationPolicyId",
     "curationMetadata",
-    "excludedSourceLineCount"
+    "excludedSourceLineCount",
+    "paragraphTypeCounts",
+    "mergedSourceLineCount"
   ],
   "requiredParagraphFields": [
     "schemaVersion",
@@ -112,6 +120,9 @@
     "sequence",
     "sourceLineStart",
     "sourceLineEnd",
+    "sourceLineNumbers",
+    "sourceLineCount",
+    "paragraphType",
     "headingPath",
     "text",
     "textSha256",
@@ -185,6 +196,9 @@
     "每个 canonical TXT 必须在 copyright_review.tsv 中登记且状态保持 review_required。",
     "清洗不得改写输入文件，输入目录与输出目录不得互相包含。",
     "curation policy 必须 14/14 覆盖并绑定 source hash；策略缺失、漂移或行范围越界必须失败。",
+    "semantic paragraph 必须精确记录 sourceLineNumbers，且按选择后的非空源行逐字回放成功。",
+    "navigation paragraph 必须保留在 paragraphs 中，但不得进入 passages。",
+    "每个 passage 只能包含同一 headingPath 下的可索引 paragraph，不得跨章节边界。",
     "document、paragraph、passage ID 和所有输出排序必须可复现。",
     "每个 passage 必须可追溯到 document、sourcePath、sourceSha256、paragraph 和 source line range。",
     "被排除的非空源行必须写入 exclusions 血缘证据；不得静默丢弃。",
