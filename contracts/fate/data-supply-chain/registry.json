@@ -4,6 +4,7 @@
   "description": "FateCat 数据供应链注册表。登记数据产品、典籍语料、vendor 快照、benchmark 与导出边界；不保存原始大文件、真实用户数据或运行态输出。",
   "schemas": {
     "dataSupplyChain": "contracts/fate/data-supply-chain/schemas/data-supply-chain.schema.json",
+    "classicsCleanDataset": "contracts/fate/data-supply-chain/schemas/classics-clean-dataset.schema.json",
     "dataset": "contracts/fate/evaluations/schemas/dataset.schema.json",
     "resource": "contracts/fate/capabilities/schemas/resource.schema.json"
   },
@@ -143,6 +144,73 @@
       "metadata": {
         "owner": "domains/fate-analysis/data-products/classics",
         "risk": "不得复制大段原文进报告，不得把 review_required 语料声明为生产依赖。"
+      }
+    },
+    {
+      "resourceType": "DataSupplyChainAsset",
+      "apiVersion": "fatecat.tradecatlabs/v1",
+      "id": "asset.classics.cleaned_internal",
+      "name": "命理典籍内部清洗派生数据集",
+      "assetType": "classics_corpus",
+      "domain": "bazi",
+      "lifecycleLayer": "derived",
+      "usageRole": "rule_index_seed",
+      "status": "review_required",
+      "privacyClass": "review_required",
+      "source": {
+        "type": "derived_from_canonical_text_corpus",
+        "owner": "domains/fate-analysis/data-products/classics",
+        "sourceManifest": "domains/fate-analysis/data-products/classics/source_manifest.tsv",
+        "copyrightReview": "domains/fate-analysis/data-products/classics/copyright_review.tsv"
+      },
+      "paths": [
+        {
+          "path": "contracts/fate/data-supply-chain/schemas/classics-clean-dataset.schema.json",
+          "role": "dataset_contract",
+          "required": true
+        },
+        {
+          "path": "scripts/classics-dataset-clean.py",
+          "role": "deterministic_builder",
+          "required": true
+        }
+      ],
+      "manifests": [
+        "domains/fate-analysis/data-products/classics/source_manifest.tsv",
+        "domains/fate-analysis/data-products/classics/copyright_review.tsv"
+      ],
+      "hashPolicy": "runtime_manifest_and_source_sha256",
+      "licensePolicy": {
+        "licenseStatus": "review_required",
+        "auditRequired": true,
+        "productionUseAllowed": false,
+        "distributionAllowed": false,
+        "evidencePaths": [
+          "domains/fate-analysis/data-products/classics/copyright_review.tsv",
+          "contracts/fate/data-supply-chain/schemas/classics-clean-dataset.schema.json"
+        ]
+      },
+      "exportPolicy": {
+        "status": "manifest_only",
+        "allowedInPublicExport": false,
+        "reason": "派生正文只保存在 ignored local-state；公开仓库只登记契约、构建器和来源边界。"
+      },
+      "productionEligibility": {
+        "status": "review_required",
+        "reason": "当前只允许内部检索、规则提炼和人工复核，不得直接作为生产断语、模型训练或公开语料。"
+      },
+      "verification": {
+        "commands": [
+          ".venv/bin/python -m pytest -q tests/regression/test_classics_dataset_clean.py",
+          ".venv/bin/python scripts/classics-dataset-clean.py --validate-only --output infra/runtime/local-state/exports/datasets/classics-clean-v1",
+          "bash scripts/data-supply-chain-gate.sh"
+        ],
+        "externalConnectivity": "not_required"
+      },
+      "metadata": {
+        "owner": "domains/fate-analysis/data-products/classics",
+        "runtimeOutput": "infra/runtime/local-state/exports/datasets/classics-clean-v1",
+        "risk": "清洗只提高机器可读性，不完成版本校勘、版权确认、专业规则标注或训练许可授权。"
       }
     },
     {

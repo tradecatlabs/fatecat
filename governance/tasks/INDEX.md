@@ -284,3 +284,5 @@
 | 0160 | comprehensive-bazi-report-deduplication-and-relation-canonicalization | Done | P0 | 修复综合八字报告重复渲染、地支关系自关联与双向重复，并收敛结构化结果和报告章节的单一事实源，建立全报告唯一性与关系正确性回归门禁。 | 0160-comprehensive-bazi-report-deduplication-and-relation-canonicalization/ |
 
 | 0161 | measurement-infrastructure-hardening-phase-two | Done | P0 | 完成测算基础设施第二阶段加固：公开字段契约、冷启动性能、独立评测、成熟度语义、复杂度、异步指标、分发许可与仓库卫生 | 0161-measurement-infrastructure-hardening-phase-two/ |
+
+| 0162 | classics-dataset-cleaning | Done | P0 | 建立不覆盖原典、可复现、可追溯、版权边界明确的命理典籍清洗与结构化数据集一期 | 0162-classics-dataset-cleaning/ |

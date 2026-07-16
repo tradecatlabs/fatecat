@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "contractId": "fatecat.classics-clean-dataset.v1",
+  "description": "命理典籍内部清洗派生数据集契约。该数据集只用于检索、规则提炼与人工复核，不改变 canonical 原文，不授予训练、生产或公开分发权限。",
+  "input": {
+    "encoding": "UTF-8 (strict)",
+    "requiredFiles": [
+      "*.txt",
+      "source_manifest.tsv",
+      "copyright_review.tsv"
+    ],
+    "requiredSourceManifestColumns": [
+      "system",
+      "media_type",
+      "relative_path",
+      "bytes",
+      "sha256",
+      "source_name"
+    ],
+    "requiredCopyrightColumns": [
+      "asset",
+      "group",
+      "status",
+      "allowed_use",
+      "release_policy",
+      "notes"
+    ]
+  },
+  "normalization": {
+    "profile": "classics-clean-v1",
+    "unicodeForm": "NFC",
+    "removeCharacters": [
+      "U+FEFF",
+      "U+200B",
+      "U+200C",
+      "U+200D",
+      "U+2060"
+    ],
+    "replaceCharacters": {
+      "U+00A0": "SPACE"
+    },
+    "whitespacePolicy": "折叠行内空白，删除行首尾空白和空行；保留所有非空正文行的顺序。",
+    "forbiddenPolicy": "严格拒绝解码错误、NUL 和未允许的控制字符。",
+    "semanticInvariant": "归一化前后在 NFC、移除允许的不可见字符并忽略空白后必须逐字符一致。"
+  },
+  "chunking": {
+    "unit": "paragraph",
+    "defaultMinPassageChars": 200,
+    "defaultMaxPassageChars": 1200,
+    "oversizedParagraphPolicy": "优先按中文句末标点切分，无可用边界时按字符上限硬切；不得丢字。",
+    "headingPolicy": "只识别明确的 Markdown 标题、卷章节篇和常见序跋标题；标题路径是导航提示，不是学术篇章校勘结论。"
+  },
+  "output": {
+    "requiredFiles": [
+      "documents.ndjson",
+      "paragraphs.ndjson",
+      "passages.ndjson",
+      "duplicates.ndjson",
+      "quality-report.json",
+      "manifest.json",
+      "files.sha256"
+    ],
+    "recordKinds": {
+      "documents.ndjson": "document",
+      "paragraphs.ndjson": "paragraph",
+      "passages.ndjson": "passage",
+      "duplicates.ndjson": "exact_paragraph_group | exact_passage_group | document_overlap"
+    }
+  },
+  "requiredDocumentFields": [
+    "schemaVersion",
+    "kind",
+    "documentId",
+    "system",
+    "title",
+    "author",
+    "sourcePath",
+    "sourceSha256",
+    "sourceBytes",
+    "sourceName",
+    "rightsStatus",
+    "allowedUse",
+    "releasePolicy",
+    "distributionAllowed",
+    "productionUseAllowed",
+    "trainingUseAllowed",
+    "normalizationProfile",
+    "normalizedSha256",
+    "normalizedCharCount",
+    "paragraphCount",
+    "passageCount",
+    "qualityFlags"
+  ],
+  "requiredParagraphFields": [
+    "schemaVersion",
+    "kind",
+    "paragraphId",
+    "documentId",
+    "sequence",
+    "sourceLineStart",
+    "sourceLineEnd",
+    "headingPath",
+    "text",
+    "textSha256",
+    "charCount"
+  ],
+  "requiredPassageFields": [
+    "schemaVersion",
+    "kind",
+    "passageId",
+    "documentId",
+    "sequence",
+    "paragraphIds",
+    "paragraphStart",
+    "paragraphEnd",
+    "sourceLineStart",
+    "sourceLineEnd",
+    "headingPath",
+    "text",
+    "textSha256",
+    "charCount",
+    "sourcePath",
+    "sourceSha256",
+    "rightsStatus",
+    "allowedUse",
+    "releasePolicy",
+    "distributionAllowed",
+    "productionUseAllowed",
+    "trainingUseAllowed"
+  ],
+  "rightsBoundary": {
+    "distributionAllowed": false,
+    "productionUseAllowed": false,
+    "trainingUseAllowed": false,
+    "requiredRightsStatus": "review_required",
+    "allowedPurposes": [
+      "internal_reference",
+      "rule_index_seed",
+      "human_review"
+    ]
+  },
+  "invariants": [
+    "canonical TXT 的 bytes 与 sha256 必须匹配 source_manifest.tsv。",
+    "每个 canonical TXT 必须在 copyright_review.tsv 中登记且状态保持 review_required。",
+    "清洗不得改写输入文件，输入目录与输出目录不得互相包含。",
+    "document、paragraph、passage ID 和所有输出排序必须可复现。",
+    "每个 passage 必须可追溯到 document、sourcePath、sourceSha256、paragraph 和 source line range。",
+    "重复检测只生成标记，不得自动删除、合并或覆盖正文。",
+    "派生数据不得声明可公开分发、可生产运行或可训练使用。"
+  ]
+}
