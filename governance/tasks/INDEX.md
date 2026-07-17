@@ -290,3 +290,5 @@
 | 0163 | classics-curation-policy | Done | P0 | 建立源哈希绑定的典籍正文选择、书目角色、完整性问题和人工复核队列，清除派生数据中的来源说明与推广噪声 | 0163-classics-curation-policy/ |
 
 | 0164 | classics-semantic-segmentation | Done | P0 | 将 14 本 canonical 命理典籍从物理换行重建为可追溯语义段落，分离目录导航并确保检索切片不跨章节边界 | 0164-classics-semantic-segmentation/ |
+
+| 0165 | classics-title-and-duplicate-curation | Done | P0 | 修正典籍重复书名记录类型，分类重复正文关系并生成可操作的人工复核统计，不自动删除或改写 canonical 正文 | 0165-classics-title-and-duplicate-curation/ |

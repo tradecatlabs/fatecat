@@ -240,6 +240,9 @@ def test_cleaner_is_deterministic_traceable_and_keeps_rights_closed(tmp_path):
     assert quality["summary"]["passageHeadingBoundaryViolationCount"] == 0
     assert quality["summary"]["navigationPassageCount"] == 0
     assert quality["summary"]["invalidUtf8Count"] == 0
+    assert quality["summary"]["reviewIssueTypeCounts"] == {"fixture_issue": 1}
+    assert quality["summary"]["reviewSeverityCounts"] == {"low": 1}
+    assert quality["summary"]["reviewBlockCounts"] == {"fixture_claim": 1}
 
 
 def test_semantic_paragraphs_join_wrapped_lines_and_passages_stay_inside_headings(tmp_path):
@@ -266,6 +269,67 @@ def test_semantic_paragraphs_join_wrapped_lines_and_passages_stay_inside_heading
         ("第一卷", "论乙"),
     }
     assert all("论甲" not in passage["text"] and "论乙" not in passage["text"] for passage in passages)
+
+
+def test_repeated_document_title_is_preserved_as_heading_boundary(tmp_path):
+    cleaner = _load_module()
+    payload = "语义书\n第一卷\n甲段正文。\n语义书\n重开正文。\n第二卷\n乙段正文。\n".encode()
+    source = _write_fixture_corpus(tmp_path / "source", {"语义书 - 测试作者.txt": payload})
+    output = tmp_path / "output"
+
+    _build_dataset(cleaner, source, output, min_passage_chars=10, max_passage_chars=120)
+
+    paragraphs = _read_ndjson(output / "paragraphs.ndjson")
+    passages = _read_ndjson(output / "passages.ndjson")
+    title_records = [item for item in paragraphs if item["paragraphType"] == "document_title"]
+    repeated_title = [item for item in paragraphs if item["text"] == "语义书"]
+    assert len(title_records) == 1
+    assert [item["paragraphType"] for item in repeated_title] == ["document_title", "heading"]
+    assert {tuple(item["headingPath"]) for item in passages} == {
+        ("第一卷",),
+        ("语义书",),
+        ("第二卷",),
+    }
+
+
+def test_duplicate_relationships_and_review_summaries_are_recomputable(tmp_path):
+    cleaner = _load_module()
+    shared_family = "同家族共享正文，不得自动删除。"
+    same_document = "同一文档重复正文，不得自动删除。"
+    cross_family = "跨家族共享正文，不得自动删除。"
+    source = _write_fixture_corpus(
+        tmp_path / "source",
+        {
+            "甲本 - 甲作者.txt": (
+                f"甲本\n{same_document}\n{same_document}\n{shared_family}\n{cross_family}\n"
+            ).encode(),
+            "同源本 - 乙作者.txt": f"同源本\n{shared_family}\n独立正文甲。\n".encode(),
+            "异源本 - 丙作者.txt": f"异源本\n{cross_family}\n独立正文乙。\n".encode(),
+        },
+    )
+    policy_path = source / "curation_policy.json"
+    policy = json.loads(policy_path.read_text(encoding="utf-8"))
+    for document in policy["documents"]:
+        if document["sourcePath"].endswith(("甲本 - 甲作者.txt", "同源本 - 乙作者.txt")):
+            document["familyId"] = "shared-family"
+    policy_path.write_text(json.dumps(policy, ensure_ascii=False), encoding="utf-8")
+    output = tmp_path / "output"
+
+    _build_dataset(cleaner, source, output, min_passage_chars=10, max_passage_chars=120)
+
+    duplicates = _read_ndjson(output / "duplicates.ndjson")
+    exact_groups = [item for item in duplicates if item["kind"] == "exact_paragraph_group"]
+    assert {item["relationship"] for item in exact_groups} == {
+        "same_document_repetition",
+        "same_family_shared_text",
+        "cross_family_shared_text",
+    }
+    quality = json.loads((output / "quality-report.json").read_text(encoding="utf-8"))
+    assert quality["summary"]["duplicateRelationshipCounts"] == {
+        relationship: sum(item["relationship"] == relationship for item in duplicates)
+        for relationship in sorted({item["relationship"] for item in duplicates})
+    }
+    assert quality["summary"]["multipleDocumentTitleDocumentCount"] == 0
 
 
 def test_normalization_removes_only_allowed_noise_and_preserves_duplicate_paragraphs(tmp_path):
@@ -451,6 +515,22 @@ def test_validator_rejects_self_consistent_schema_version_drift(tmp_path):
         _validate_dataset(cleaner, source, output)
 
 
+def test_validator_rejects_tampered_duplicate_relationship(tmp_path):
+    cleaner = _load_module()
+    source = _write_fixture_corpus(tmp_path / "source")
+    output = tmp_path / "output"
+    _build_dataset(cleaner, source, output, min_passage_chars=40, max_passage_chars=120)
+
+    duplicates_path = output / "duplicates.ndjson"
+    duplicates = _read_ndjson(duplicates_path)
+    duplicates[0]["relationship"] = "same_document_repetition"
+    _write_ndjson(duplicates_path, duplicates)
+    _refresh_integrity_metadata(output)
+
+    with pytest.raises(cleaner.ClassicsDatasetError, match="duplicate"):
+        _validate_dataset(cleaner, source, output)
+
+
 def test_real_canonical_policy_removes_known_noncontent_and_preserves_sources(tmp_path):
     cleaner = _load_module()
     source = ROOT / "domains" / "fate-analysis" / "data-products" / "classics"
@@ -462,7 +542,7 @@ def test_real_canonical_policy_removes_known_noncontent_and_preserves_sources(tm
     assert result["counts"] == {
         "documentCount": 14,
         "paragraphCount": 16079,
-        "passageCount": 1430,
+        "passageCount": 1437,
         "duplicateRecordCount": 484,
         "exclusionRecordCount": 146,
         "reviewItemCount": 21,
@@ -496,10 +576,18 @@ def test_real_canonical_policy_removes_known_noncontent_and_preserves_sources(tm
     assert quality["summary"]["semanticReplayErrorCount"] == 0
     assert quality["summary"]["passageHeadingBoundaryViolationCount"] == 0
     assert quality["summary"]["navigationPassageCount"] == 0
+    assert quality["summary"]["documentTitleRecordCount"] == 11
+    assert quality["summary"]["documentWithoutTitleRecordCount"] == 3
+    assert quality["summary"]["multipleDocumentTitleDocumentCount"] == 0
+    assert quality["summary"]["duplicateRelationshipCounts"] == {
+        "cross_family_shared_text": 31,
+        "same_document_repetition": 46,
+        "same_family_shared_text": 407,
+    }
     assert quality["summary"]["paragraphTypeCounts"] == {
         "body": 14727,
-        "document_title": 29,
-        "heading": 865,
+        "document_title": 11,
+        "heading": 883,
         "navigation": 458,
     }
     assert source_hashes_before == {path.name: _sha256(path.read_bytes()) for path in source.glob("*.txt")}

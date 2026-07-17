@@ -68,6 +68,9 @@ ALLOWED_DOCUMENT_ROLES: Final = frozenset(
 ALLOWED_COMPLETENESS_STATUS: Final = frozenset({"partial", "unknown"})
 ALLOWED_REVIEW_SEVERITY: Final = frozenset({"high", "medium", "low"})
 ALLOWED_PARAGRAPH_TYPES: Final = frozenset({"document_title", "heading", "navigation", "body"})
+ALLOWED_DUPLICATE_RELATIONSHIPS: Final = frozenset(
+    {"same_document_repetition", "same_family_shared_text", "cross_family_shared_text"}
+)
 
 
 class ClassicsDatasetError(RuntimeError):
@@ -510,6 +513,7 @@ def _build_semantic_paragraphs(
     heading_path: list[str] = []
     body_lines: list[tuple[int, str]] = []
     body_char_count = 0
+    document_title_seen = False
     markdown_depths = [
         len(normalized) - len(normalized.lstrip("#"))
         for line_number, raw_line in selected_lines
@@ -559,7 +563,12 @@ def _build_semantic_paragraphs(
             continue
         if _is_document_title(normalized_line, title):
             flush_body()
-            emit([(source_line_number, normalized_line)], "document_title", [])
+            if not document_title_seen:
+                document_title_seen = True
+                emit([(source_line_number, normalized_line)], "document_title", [])
+            else:
+                heading_path = _update_heading_path(heading_path, 1, _heading_text(normalized_line))
+                emit([(source_line_number, normalized_line)], "heading", heading_path)
             continue
         level = _heading_level(normalized_line, markdown_base=markdown_base)
         if level is not None:
@@ -703,9 +712,22 @@ def _build_passages(
     return passages
 
 
+def _duplicate_relationship(document_ids: Sequence[str], document_by_id: dict[str, dict[str, Any]]) -> str:
+    unique_document_ids = set(document_ids)
+    if len(unique_document_ids) == 1:
+        return "same_document_repetition"
+    family_ids = {str(document_by_id[document_id]["familyId"]) for document_id in unique_document_ids}
+    if len(family_ids) == 1:
+        return "same_family_shared_text"
+    return "cross_family_shared_text"
+
+
 def _duplicate_records(
-    paragraphs: Sequence[dict[str, Any]], passages: Sequence[dict[str, Any]]
-) -> tuple[list[dict[str, Any]], dict[str, int]]:
+    documents: Sequence[dict[str, Any]],
+    paragraphs: Sequence[dict[str, Any]],
+    passages: Sequence[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    document_by_id = {str(document["documentId"]): document for document in documents}
     paragraph_groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
     passage_groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
     document_hashes: dict[str, set[str]] = defaultdict(set)
@@ -722,6 +744,7 @@ def _duplicate_records(
     for text_hash, group in sorted(paragraph_groups.items()):
         if len(group) < 2:
             continue
+        document_ids = sorted({str(item["documentId"]) for item in group})
         records.append(
             {
                 "schemaVersion": SCHEMA_VERSION,
@@ -729,13 +752,15 @@ def _duplicate_records(
                 "textSha256": text_hash,
                 "occurrenceCount": len(group),
                 "paragraphIds": sorted(str(item["paragraphId"]) for item in group),
-                "documentIds": sorted({str(item["documentId"]) for item in group}),
+                "documentIds": document_ids,
+                "relationship": _duplicate_relationship(document_ids, document_by_id),
                 "action": "retain_and_review",
             }
         )
     for text_hash, group in sorted(passage_groups.items()):
         if len(group) < 2:
             continue
+        document_ids = sorted({str(item["documentId"]) for item in group})
         records.append(
             {
                 "schemaVersion": SCHEMA_VERSION,
@@ -743,7 +768,8 @@ def _duplicate_records(
                 "textSha256": text_hash,
                 "occurrenceCount": len(group),
                 "passageIds": sorted(str(item["passageId"]) for item in group),
-                "documentIds": sorted({str(item["documentId"]) for item in group}),
+                "documentIds": document_ids,
+                "relationship": _duplicate_relationship(document_ids, document_by_id),
                 "action": "retain_and_review",
             }
         )
@@ -767,6 +793,7 @@ def _duplicate_records(
                     "rightDocumentId": right_id,
                     "sharedParagraphHashCount": len(shared),
                     "containmentOnSmallerDocument": round(len(shared) / denominator, 6),
+                    "relationship": _duplicate_relationship([left_id, right_id], document_by_id),
                     "action": "retain_and_review",
                 }
             )
@@ -780,10 +807,12 @@ def _duplicate_records(
             str(item.get("rightDocumentId", "")),
         )
     )
+    relationship_counts = Counter(str(item["relationship"]) for item in records)
     return records, {
         "exactParagraphGroupCount": sum(item["kind"] == "exact_paragraph_group" for item in records),
         "exactPassageGroupCount": sum(item["kind"] == "exact_passage_group" for item in records),
         "documentOverlapPairCount": overlap_count,
+        "duplicateRelationshipCounts": dict(sorted(relationship_counts.items())),
     }
 
 
@@ -1004,7 +1033,7 @@ def _prepare_records(
             }
         )
 
-    duplicate_records, duplicate_summary = _duplicate_records(paragraphs, passages)
+    duplicate_records, duplicate_summary = _duplicate_records(documents, paragraphs, passages)
     short_passages = sum(int(item["charCount"]) < min_passage_chars for item in passages)
     paragraph_by_id = {str(item["paragraphId"]): item for item in paragraphs}
     passage_heading_boundary_violations = 0
@@ -1015,6 +1044,12 @@ def _prepare_records(
         passage_heading_boundary_violations += len(heading_paths) != 1
         navigation_passage_count += any(item["paragraphType"] == "navigation" for item in passage_paragraphs)
     paragraph_type_counts = Counter(str(item["paragraphType"]) for item in paragraphs)
+    document_title_counts = Counter(
+        str(item["documentId"]) for item in paragraphs if item["paragraphType"] == "document_title"
+    )
+    review_issue_type_counts = Counter(str(item["issueType"]) for item in review_queue)
+    review_severity_counts = Counter(str(item["severity"]) for item in review_queue)
+    review_block_counts = Counter(str(block) for item in review_queue for block in item["blocks"])
     quality_report = {
         "schemaVersion": SCHEMA_VERSION,
         "datasetId": NORMALIZATION_PROFILE,
@@ -1037,6 +1072,14 @@ def _prepare_records(
             "familyCount": len({item["familyId"] for item in documents}),
             "paragraphTypeCounts": dict(sorted(paragraph_type_counts.items())),
             "mergedSourceLineCount": sum(int(item["mergedSourceLineCount"]) for item in documents),
+            "documentTitleRecordCount": sum(document_title_counts.values()),
+            "documentWithoutTitleRecordCount": sum(
+                str(item["documentId"]) not in document_title_counts for item in documents
+            ),
+            "multipleDocumentTitleDocumentCount": sum(count > 1 for count in document_title_counts.values()),
+            "reviewIssueTypeCounts": dict(sorted(review_issue_type_counts.items())),
+            "reviewSeverityCounts": dict(sorted(review_severity_counts.items())),
+            "reviewBlockCounts": dict(sorted(review_block_counts.items())),
             **duplicate_summary,
         },
         "documents": quality_documents,
@@ -1153,6 +1196,8 @@ def build_dataset(
     contract = _load_json(contract_path)
     if contract.get("schemaVersion") != 3 or contract.get("contractId") != "fatecat.classics-clean-dataset.v3":
         raise ClassicsDatasetError("数据集契约版本必须为 fatecat.classics-clean-dataset.v3")
+    if set(contract.get("duplicateRelationships", [])) != ALLOWED_DUPLICATE_RELATIONSHIPS:
+        raise ClassicsDatasetError("数据集契约 duplicateRelationships 非法")
     source_paths = {f"classics/{path.name}" for path in source.glob("*.txt")}
     policy, policy_documents = _load_curation_policy(curation_policy_path, source_paths)
     expected_max = int(contract["chunking"]["defaultMaxPassageChars"])
@@ -1227,6 +1272,8 @@ def validate_dataset(
     contract = _load_json(contract_path)
     if contract.get("schemaVersion") != 3 or contract.get("contractId") != "fatecat.classics-clean-dataset.v3":
         raise ClassicsDatasetError("数据集契约版本必须为 fatecat.classics-clean-dataset.v3")
+    if set(contract.get("duplicateRelationships", [])) != ALLOWED_DUPLICATE_RELATIONSHIPS:
+        raise ClassicsDatasetError("数据集契约 duplicateRelationships 非法")
     required_files = set(contract["output"]["requiredFiles"])
     missing_files = sorted(name for name in required_files if not (target / name).is_file())
     if missing_files:
@@ -1456,6 +1503,8 @@ def validate_dataset(
         if [int(item["sequence"]) for item in document_passages] != list(range(1, len(document_passages) + 1)):
             raise ClassicsDatasetError(f"document passage sequence 不连续：{document_id}")
         actual_paragraph_type_counts = Counter(str(item["paragraphType"]) for item in document_paragraphs)
+        if actual_paragraph_type_counts.get("document_title", 0) > 1:
+            raise ClassicsDatasetError(f"document_title 数量超过 1：{document_id}")
         actual_merged_source_lines = sum(
             max(0, int(item["sourceLineCount"]) - 1) for item in document_paragraphs if item["paragraphType"] == "body"
         )
@@ -1477,12 +1526,18 @@ def validate_dataset(
         if len(review_by_document[document_id]) != expected_review_count:
             raise ClassicsDatasetError(f"document review queue 计数不一致：{document_id}")
 
-    allowed_duplicate_kinds = {"exact_paragraph_group", "exact_passage_group", "document_overlap"}
-    if any(
-        item.get("schemaVersion") != SCHEMA_VERSION or item.get("kind") not in allowed_duplicate_kinds or "text" in item
-        for item in duplicates
-    ):
-        raise ClassicsDatasetError("duplicates.ndjson 含非法 kind 或复制了正文")
+    expected_duplicates, expected_duplicate_summary = _duplicate_records(documents, paragraphs, passages)
+    for index, duplicate in enumerate(duplicates, start=1):
+        _require_fields(duplicate, contract["requiredDuplicateFields"], f"duplicate:{index}")
+        if (
+            duplicate.get("schemaVersion") != SCHEMA_VERSION
+            or duplicate.get("relationship") not in ALLOWED_DUPLICATE_RELATIONSHIPS
+            or duplicate.get("action") != "retain_and_review"
+            or "text" in duplicate
+        ):
+            raise ClassicsDatasetError(f"duplicate kind、relationship、action 或正文边界错误：{index}")
+    if duplicates != expected_duplicates:
+        raise ClassicsDatasetError("duplicate records 与 paragraph/passage/document 重算结果不一致")
 
     if input_dir is not None:
         source, _ = _validate_path_boundary(input_dir, target)
@@ -1561,6 +1616,12 @@ def validate_dataset(
     quality_summary = quality.get("summary", {})
     actual_paragraph_type_counts = Counter(str(item["paragraphType"]) for item in paragraphs)
     actual_merged_source_line_count = sum(int(item["mergedSourceLineCount"]) for item in documents)
+    document_title_counts = Counter(
+        str(item["documentId"]) for item in paragraphs if item["paragraphType"] == "document_title"
+    )
+    review_issue_type_counts = Counter(str(item["issueType"]) for item in review_queue)
+    review_severity_counts = Counter(str(item["severity"]) for item in review_queue)
+    review_block_counts = Counter(str(block) for item in review_queue for block in item["blocks"])
     if (
         quality.get("status") != "passed"
         or quality.get("schemaVersion") != SCHEMA_VERSION
@@ -1578,6 +1639,14 @@ def validate_dataset(
         or quality_summary.get("invalidUtf8Count") != 0
         or quality_summary.get("excludedSourceLineCount") != len(exclusions)
         or quality_summary.get("reviewItemCount") != len(review_queue)
+        or quality_summary.get("documentTitleRecordCount") != sum(document_title_counts.values())
+        or quality_summary.get("documentWithoutTitleRecordCount")
+        != sum(str(item["documentId"]) not in document_title_counts for item in documents)
+        or quality_summary.get("multipleDocumentTitleDocumentCount") != 0
+        or quality_summary.get("reviewIssueTypeCounts") != dict(sorted(review_issue_type_counts.items()))
+        or quality_summary.get("reviewSeverityCounts") != dict(sorted(review_severity_counts.items()))
+        or quality_summary.get("reviewBlockCounts") != dict(sorted(review_block_counts.items()))
+        or any(quality_summary.get(key) != value for key, value in expected_duplicate_summary.items())
     ):
         raise ClassicsDatasetError("quality-report 状态或文档计数错误")
     return {

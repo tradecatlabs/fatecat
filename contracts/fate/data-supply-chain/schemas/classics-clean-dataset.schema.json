@@ -180,6 +180,17 @@
     "blocks",
     "status"
   ],
+  "requiredDuplicateFields": [
+    "schemaVersion",
+    "kind",
+    "relationship",
+    "action"
+  ],
+  "duplicateRelationships": [
+    "same_document_repetition",
+    "same_family_shared_text",
+    "cross_family_shared_text"
+  ],
   "rightsBoundary": {
     "distributionAllowed": false,
     "productionUseAllowed": false,
@@ -199,11 +210,12 @@
     "semantic paragraph 必须精确记录 sourceLineNumbers，且按选择后的非空源行逐字回放成功。",
     "navigation paragraph 必须保留在 paragraphs 中，但不得进入 passages。",
     "每个 passage 只能包含同一 headingPath 下的可索引 paragraph，不得跨章节边界。",
+    "每个 document 最多只能有一个 document_title；后续重复书名必须作为 heading 边界保留。",
     "document、paragraph、passage ID 和所有输出排序必须可复现。",
     "每个 passage 必须可追溯到 document、sourcePath、sourceSha256、paragraph 和 source line range。",
     "被排除的非空源行必须写入 exclusions 血缘证据；不得静默丢弃。",
     "书目 observed/reviewed、文本角色和完整性状态必须分离；reviewed 未经人工证据必须为 null。",
-    "重复检测和文献家族只生成标记，不得自动删除、合并或覆盖正文。",
+    "重复检测必须区分同文档重复、同家族共享文本和跨家族共享文本；关系只生成标记，不得自动删除、合并或覆盖正文。",
     "派生数据不得声明可公开分发、可生产运行或可训练使用。"
   ]
 }
