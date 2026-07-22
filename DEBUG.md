@@ -1,5 +1,76 @@
 # DEBUG.md - FateCat 调试证据
 
+## 2026-07-23 空亡命中公开 Markdown 契约线上漂移
+
+### Bug
+
+HF Web 生成特定八字报告时失败，返回：`bazi 公开 Markdown 契约失败: 未允许元数据标签: 空亡命中`。
+
+### Environment
+
+- 本地 `main`：`0e9f26d`，包含修复提交 `8192e67`。
+- GitHub `origin/main`：`70012fb`，不包含 `8192e67`。
+- HF Space：`4eee20a`，线上 profile 不包含 `空亡命中`。
+
+### Reproduction
+
+1. 读取 HF Space 的 `contracts/fate/capabilities/profiles/bazi.json`。
+2. 检查 `publicMarkdown.allowedMetadataLabels`，线上没有 `空亡命中`。
+3. 使用包含空亡命中的命例生成报告，旧契约拒绝该公开表格行。
+
+### Observations
+
+- 本地 profile 已允许 `空亡命中`，本地专项测试 8 项全部通过。
+- `8192e67` 正是“补齐空亡命中公开报告契约”的修复提交。
+- `git merge-base --is-ancestor 8192e67 HEAD` 成功，但对 `origin/main` 失败。
+- HF raw profile 同样缺少该标签，排除浏览器缓存和单进程 `@cache` 是主因。
+
+### Hypotheses
+
+1. 本地 owner contract 遗漏标签。
+   - Conflicts：本地 profile 和回归测试都已包含该标签。
+2. HF 运行同一源码，但 `load_public_markdown_contract()` 缓存了旧文件。
+   - Conflicts：HF 仓库中的 raw profile 本身就是旧内容。
+3. （ROOT HYPOTHESIS）修复提交未 push，HF 部署源仍停在修复前。
+   - Supports：GitHub `main` 是 `70012fb`，其直接子提交 `8192e67` 只存在本地；HF 也未包含新标签。
+
+### Experiment
+
+- Change：只比较 `8192e67` 前后 profile，并检查本地、GitHub、HF 三方 commit/profile。
+- Expected：若 H3 成立，标签只出现在 `8192e67` 及其后代，不出现在 GitHub/HF 当前版本。
+- Result：完全一致。
+- Verdict：confirmed。
+
+### Root Cause
+
+修复代码与回归测试已经提交到本地，但提交没有进入 GitHub `main`，HF Space 因此持续从旧交付版本运行；这是交付状态漂移，不是报告算法或当前 owner contract 的新缺陷。
+
+### Fix
+
+- 只将现有修复提交 `8192e67` 快进到 GitHub `main`，不夹带其后的典籍整理提交。
+- 从 GitHub `main` 触发 HF Space 部署，确保运行包包含同一 profile 与回归修复。
+- 部署后验证 HF raw profile、Space 运行状态和真实空亡命中报告。
+
+### Regression Evidence
+
+- 本地：`tests/regression/test_public_report_visibility.py`，8 passed。
+- GitHub：`main` 已快进到 `8192e67`；HF 部署 workflow run `29956565780` 成功。
+- HF：Space commit `3a1462960f2b59b7d624f53803f3137288fb9c2e`，运行状态 `RUNNING`，raw profile 已包含 `空亡命中`。
+- 线上固定测试命例：2098-10-20 10:00、北京市朝阳区、男；job `Ye9Umdq6Xe4JpNC0eA6FdZHg` 成功，`policyGate=pass`、`snapshotGate=pass`、Markdown 包含 `| 空亡命中 |`。
+- Web 结果页返回 127,073 bytes，包含“任务状态：已完成”和“空亡命中”，不包含“公开 Markdown 契约失败”。
+- GitHub Quick CI run `29956554330`：514 passed；Ruff、format 和 71 个 source files 的 mypy 均通过。
+
+### Audit Case Sampling
+
+- Decision：no-case。
+- Reason：根因属于“本地修复未进入远端候选”的交付证据缺口，现有 completion-verification、Git Delivery Evidence、远端 CI 与 live proof 门禁已经覆盖该通用模式；本轮通过本地/远端/HF commit 三方对照和真实命例闭环，无需新增重复案例。
+
+### Reverification Required
+
+- GitHub `main` 必须包含 `8192e67`。
+- HF Space raw profile 必须包含 `空亡命中`。
+- 线上生成命中空亡的八字报告不得再返回公开 Markdown 契约错误。
+
 ## 2026-07-15 神煞兼容字段导致报告重复渲染
 
 ### Bug
