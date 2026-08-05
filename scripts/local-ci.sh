@@ -456,6 +456,7 @@ run_quick() {
       tests/regression/test_event_contract_gate.py \
       tests/regression/test_secret_scan.py \
       tests/regression/test_security_smoke.py \
+      tests/regression/test_sop_library.py \
       tests/regression/test_telegram_webhook.py \
       tests/regression/test_web_html.py \
       tests/regression/test_webhook_smoke.py \

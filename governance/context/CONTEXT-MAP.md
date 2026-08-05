@@ -22,6 +22,7 @@ review_cycle: P90D
 | Contracts | `contracts` | `context/module-contexts/contracts/CONTEXT.md` | `decisions/adr/INDEX.md` | contract/structure gates |
 | Infrastructure | `infra` | `context/module-contexts/infra/CONTEXT.md` | `decisions/adr/INDEX.md` | container/readiness/export gates |
 | Scripts | `scripts` | `context/module-contexts/scripts/CONTEXT.md` | `decisions/adr/INDEX.md` | local-ci/acceptance/release proof/研究语料离线回归与完整性校验 |
+| 标准作业程序 | `governance/processes/sops` | `processes/sops/AGENTS.md` | `decisions/adr/INDEX.md` | `tests/regression/test_sop_library.py` |
 | FateCat Web HTML 语义界面 | `domains/experience-delivery/services/fatecat-delivery/src/web_ui.py` | `context/module-contexts/domains-experience-delivery-services-fatecat-delivery-src-web-ui-py/CONTEXT.md` | `GATE-0001` | `bash scripts/local-ci.sh --profile quick` |
 
 ## 维护规则

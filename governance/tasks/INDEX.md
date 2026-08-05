@@ -292,3 +292,4 @@
 | 0164 | classics-semantic-segmentation | Done | P0 | 将 14 本 canonical 命理典籍从物理换行重建为可追溯语义段落，分离目录导航并确保检索切片不跨章节边界 | 0164-classics-semantic-segmentation/ |
 
 | 0165 | classics-title-and-duplicate-curation | Done | P0 | 修正典籍重复书名记录类型，分类重复正文关系并生成可操作的人工复核统计，不自动删除或改写 canonical 正文 | 0165-classics-title-and-duplicate-curation/ |
+| 0166 | sop-library-and-natural-language-routing | Done | P0 | 基于当前 capability、仓库工具链和历史成功任务，建立一任务一文档、可由自然语言唯一定位、可机械校验的标准作业程序库 | 0166-sop-library-and-natural-language-routing/ |

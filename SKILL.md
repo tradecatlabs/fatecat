@@ -131,7 +131,7 @@ bash scripts/production-readiness.sh --api-url https://your-domain.example --req
 ### 13. 校验当前 skill
 
 ```bash
-/home/lenovo/.codex/skills/auto-skill/scripts/validate-skill.sh /home/lenovo/.projects/fatecat --strict
+/home/lenovo/.codex/skills/auto-skill/scripts/validate-skill.sh /home/lenovo/.projects/cat/fatecat --strict
 ```
 
 ## Execution Logic
@@ -223,7 +223,7 @@ bash scripts/production-readiness.sh --api-url https://your-domain.example --req
   - `domains/experience-delivery/services/fatecat-delivery/src/web_ui.py`
   - `domains/experience-delivery/services/fatecat-delivery/src/main.py`
 - Quality gate:
-  - `/home/lenovo/.codex/skills/auto-skill/scripts/validate-skill.sh /home/lenovo/.projects/fatecat --strict`
+  - `/home/lenovo/.codex/skills/auto-skill/scripts/validate-skill.sh /home/lenovo/.projects/cat/fatecat --strict`
   - `bash scripts/preflight.sh --mode pure --bootstrap --pretty`
   - `bash scripts/acceptance.sh --with-dev`
 - Last updated: 2026-05-07

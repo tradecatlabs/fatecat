@@ -28,3 +28,4 @@ review_cycle: P90D
 | 架构变更 | 架构设计原则、ADR 索引、非功能性需求标准 | tech-debt | ADR 或 ADR 更新 |
 | Review | 代码评审标准、门禁与护栏 | lessons、agent-feedback | PASS/WARN/BLOCK finding |
 | 复盘 | 文档治理规则、门禁与护栏 | postmortems/INDEX.md | 防复发动作 |
+| 重复作业执行 | `processes/sops/INDEX.md` 与唯一命中的 SOP | 相关 module context、ADR、contract | SOP 规定的运行记录与验收证据 |
