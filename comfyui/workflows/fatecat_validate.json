@@ -1,0 +1,63 @@
+{
+  "last_node_id": 2,
+  "last_link_id": 1,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "FateCatValidate",
+      "pos": [0, 0],
+      "size": [420, 340],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {"name": "title", "type": "STRING", "links": null, "slot_index": 0},
+        {"name": "count", "type": "INT", "links": null, "slot_index": 1},
+        {"name": "valid", "type": "BOOLEAN", "links": null, "slot_index": 2},
+        {"name": "message", "type": "STRING", "links": [1], "slot_index": 3}
+      ],
+      "properties": {"Node name for S&R": "FateCatValidate"},
+      "widgets_values": ["1990-01-01", "08:00", "北京", "", "male", "bazi", "", "beijing_time", ""]
+    },
+    {
+      "id": 2,
+      "type": "SaveText",
+      "pos": [480, 0],
+      "size": [280, 140],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [{"name": "text", "type": "STRING", "link": 1}],
+      "outputs": [{"name": "text", "type": "STRING", "links": null, "slot_index": 0}],
+      "properties": {},
+      "widgets_values": ["validation_message", "txt"]
+    }
+  ],
+  "links": [[1, 1, 3, 2, 0, "STRING"]],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {"scale": 0.8, "offset": [0, 0]},
+    "linearMode": true,
+    "linearData": {
+      "inputs": [
+        [1, "birth_date"],
+        [1, "birth_time"],
+        [1, "birth_place"],
+        [1, "location_id"],
+        [1, "gender"],
+        [1, "report_system"],
+        [1, "name"],
+        [1, "time_basis"],
+        [1, "fold_choice"]
+      ],
+      "outputs": [2]
+    },
+    "node_versions": {
+      "comfy-core": "0.30.0",
+      "fatecat-comfyui": "0.1.0"
+    }
+  },
+  "version": 0.4
+}

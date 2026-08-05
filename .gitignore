@@ -52,4 +52,5 @@ infra/runtime/local-state/**/*.sqlite3
 infra/runtime/local-state/database/locations/
 infra/runtime/local-state/vendor-build/
 infra/runtime/local-state/exports/
+infra/runtime/local-state/comfyui/
 tools/reference-repos/**/node_modules/
