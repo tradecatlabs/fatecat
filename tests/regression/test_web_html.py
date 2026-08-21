@@ -44,7 +44,8 @@ def assert_zero_beauty_semantic_html(text: str) -> None:
         in text
     )
     assert '<div id="report-content">' in text
-    assert '#workspace[data-sidebar="expanded"] #report-content' in text
+    assert "padding-inline-start: calc(clamp(320px, 28vw, 440px) + 1rem)" in text
+    assert '#workspace[data-sidebar="expanded"] #report-content' not in text
     assert "z-index: 3" in text
     assert "z-index: 2" in text
     assert "z-index: 1" in text

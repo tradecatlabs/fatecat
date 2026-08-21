@@ -38,10 +38,10 @@ related_gates:
 允许的 `<style>` 规则只包括：
 
 - `html` / `body` / `#workspace` 的全屏、溢出和隔离设置。
-- `#top-layer`、`#sidebar-toggle`、`#control-plane`、`#data-plane` 的定位、层级、宽度、padding、overflow、display、box-sizing 和系统 `Canvas` 背景。
+- `#top-layer`、`#sidebar-toggle`、`#control-plane`、`#data-plane` 的定位、层级、宽度、padding（包括固定的控制面安全内边距）、overflow、display、box-sizing 和系统 `Canvas` 背景。
 - `#workspace[data-sidebar="collapsed"] #control-plane` 的显示切换。
-- `#report-content` 的最大宽度、居中、在控制面展开时向可见数据区偏移，以及内部 `pre` 的有界溢出。
-- 只把 `#control-plane` 在窄屏设为 `width: 100%`、并将报告内容恢复为窄屏全宽的 `@media` 规则。
+- `#report-content` 的最大宽度、居中、内部 `pre` 的有界溢出；报告内容必须使用与 `data-sidebar` 无关的固定安全内边距，不能因中间层切换而重排。
+- 只把 `#control-plane` 在窄屏设为 `width: 100%`、把 `#data-plane` 恢复为窄屏内边距的 `@media` 规则。
 
 不得把该例外扩展为主题、视觉设计系统、品牌组件或隐藏核心信息。关闭 CSS 后，页面必须按源代码顺序完整可读；关闭 JavaScript 后，原生表单和服务端报告入口仍必须可用。
 
