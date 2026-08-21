@@ -24,28 +24,31 @@ def assert_psql_row(text: str, *cells: str) -> None:
 
 
 def assert_zero_beauty_semantic_html(text: str) -> None:
-    assert "<style" not in text
+    """保留零美化内容规则，同时验证登记的三层结构例外。"""
+    assert "<style>" in text
     assert "style=" not in text
     assert 'rel="stylesheet"' not in text
     assert "class=" not in text
-    assert "<main>" not in text
-    assert "<section" not in text
-    assert "<div" not in text
+    assert '<div id="workspace" data-sidebar="expanded"' in text
     assert (
-        '<body>\n<header id="top-layer" data-layer="top" data-workbench-layer="top" aria-label="项目与页面说明">\n<h1>faetcat</h1>'
-        in text
+        '<div id="top-layer" data-layer="top" data-workbench-layer="top" aria-label="工作台交互层">\n'
+        '<button id="sidebar-toggle" type="button" aria-controls="control-plane" aria-expanded="true"' in text
     )
     assert (
-        '<fieldset id="control-plane" data-layer="middle" data-workbench-layer="middle" aria-labelledby="input-form">'
-        in text
+        '<aside id="control-plane" data-layer="middle" data-workbench-layer="middle" aria-label="项目说明与参数控制面">\n'
+        "<h1>faetcat</h1>" in text
     )
+    assert '<fieldset id="control-content" aria-labelledby="input-form">' in text
     assert (
-        '<article id="data-plane" data-layer="bottom" data-workbench-layer="bottom" aria-labelledby="production-report">'
+        '<main id="data-plane" data-layer="bottom" data-workbench-layer="bottom" aria-labelledby="production-report">'
         in text
     )
+    assert "z-index: 3" in text
+    assert "z-index: 2" in text
+    assert "z-index: 1" in text
+    assert "width: clamp(320px, 28vw, 440px)" in text
     assert '<form id="web-report-form" method="get" action="/web">' in text
     for forbidden in [
-        "@media",
         "box-shadow",
         "border-radius",
         "font-family",
@@ -88,9 +91,11 @@ def test_web_page_renders_semantic_form():
     assert '<meta name="author" content="TradeCat Labs">' in text
     assert '<script type="application/ld+json">' in text
     assert '<h2 id="project-brand">项目与页面信息</h2>' in text
-    assert '<header id="top-layer" data-layer="top" data-workbench-layer="top"' in text
-    assert '<fieldset id="control-plane" data-layer="middle" data-workbench-layer="middle"' in text
-    assert '<article id="data-plane" data-layer="bottom" data-workbench-layer="bottom"' in text
+    assert '<div id="workspace" data-sidebar="expanded"' in text
+    assert '<div id="top-layer" data-layer="top" data-workbench-layer="top"' in text
+    assert '<aside id="control-plane" data-layer="middle" data-workbench-layer="middle"' in text
+    assert '<main id="data-plane" data-layer="bottom" data-workbench-layer="bottom"' in text
+    assert '<button id="sidebar-toggle" type="button"' in text
     assert_psql_row(text, "项目归属", "交易猫实验室｜FateCat 测算基础设施")
     assert_psql_row(text, "项目定位", "FateCat 是面向 Agent 与应用开发者的测算基础设施。")
     assert_psql_row(text, "核心能力", "提供统一的能力协议、可复现计算核心、证据化解释层和多端交付接口。")
@@ -233,7 +238,7 @@ def test_web_page_uses_one_native_fuzzy_location_input():
         "WGS84 经纬度",
     ]:
         assert removed not in text
-    assert "<style" not in text
+    assert "<style>" in text
     assert "class=" not in text
 
 

@@ -233,7 +233,7 @@ bash scripts/local-ci.sh --profile full
 
 ## Web HTML
 
-Web 版遵循零美化语义界面：原生 HTML 表单、服务端直出、psql ASCII 字段表、Markdown 原文 `<pre><code>` 展示、复制按钮只做渐进增强。公开入口默认使用异步报告任务：浏览器提交后先拿到 `jobId`，后端有界队列生成报告，页面轮询完成后回到 `/web?jobId=...` 展示 Markdown。
+Web 版遵循零美化语义核心内容规范，并使用 GATE-0001 登记的原生三层工作台结构：`#top-layer` / `#control-plane` / `#data-plane`，z-index `3/2/1`，控制面宽度 `clamp(320px, 28vw, 440px)`。除结构几何、系统背景和功能性 Emoji 开关外不引入视觉美化；原生 HTML 表单、服务端直出、psql ASCII 字段表、Markdown 原文 `<pre><code>` 展示、复制按钮只做渐进增强。公开入口默认使用异步报告任务：浏览器提交后先拿到 `jobId`，后端有界队列生成报告，页面轮询完成后回到 `/web?jobId=...` 展示 Markdown。
 
 面向 AI、Agent 和抓取器的公开端点、Web 字段契约、地点解析、任务协议与风险边界集中在 [`llms.txt`](llms.txt)，线上入口为 `GET /llms.txt`；Web 顶部表格只保留人类需要的项目和使用摘要。
 

@@ -100,6 +100,7 @@ def _render_document(
         '<link rel="sitemap" type="application/xml" href="/sitemap.xml" title="FateCat sitemap">',
         '<link rel="alternate" type="application/json" href="/api/v1/capabilities" title="FateCat capabilities">',
         '<script type="application/ld+json">' + schema_org_json() + "</script>",
+        _render_workbench_style(),
         "<title>faetcat</title>",
         "</head>",
         "<body>",
@@ -132,15 +133,18 @@ def _render_semantic_page(
 ) -> str:
     return "\n".join(
         [
-            '<header id="top-layer" data-layer="top" data-workbench-layer="top" aria-label="项目与页面说明">',
+            '<div id="workspace" data-sidebar="expanded" aria-label="FateCat 工作台">',
+            '<div id="top-layer" data-layer="top" data-workbench-layer="top" aria-label="工作台交互层">',
+            '<button id="sidebar-toggle" type="button" aria-controls="control-plane" aria-expanded="true" aria-label="收起控制面" title="收起控制面">⬅️</button>',
+            "</div>",
+            '<aside id="control-plane" data-layer="middle" data-workbench-layer="middle" aria-label="项目说明与参数控制面">',
             "<h1>faetcat</h1>",
             _render_header_panel(
                 generated_at=generated_at,
                 has_result=result is not None,
                 has_errors=bool(errors),
             ),
-            "</header>",
-            '<fieldset id="control-plane" data-layer="middle" data-workbench-layer="middle" aria-labelledby="input-form">',
+            '<fieldset id="control-content" aria-labelledby="input-form">',
             "<legend>参数控制面</legend>",
             _render_input_panel(
                 form=form,
@@ -148,9 +152,11 @@ def _render_semantic_page(
                 errors=errors,
             ),
             "</fieldset>",
-            '<article id="data-plane" data-layer="bottom" data-workbench-layer="bottom" aria-labelledby="production-report">',
+            "</aside>",
+            '<main id="data-plane" data-layer="bottom" data-workbench-layer="bottom" aria-labelledby="production-report">',
             _render_report_panel(result=result, errors=errors, job=job),
-            "</article>",
+            "</main>",
+            "</div>",
         ]
     )
 
@@ -557,10 +563,40 @@ def _star_name_list(stars: object) -> list[str]:
     return names
 
 
+def _render_workbench_style() -> str:
+    return "\n".join(
+        [
+            "<style>",
+            "html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }",
+            "#workspace { position: relative; isolation: isolate; width: 100%; height: 100vh; overflow: hidden; }",
+            "#top-layer { position: absolute; inset: 0; z-index: 3; pointer-events: none; }",
+            "#sidebar-toggle { position: absolute; inset-block-start: 0; inset-inline-start: 0; z-index: 1; pointer-events: auto; appearance: none; border: 0; background: Canvas; padding: 0; margin: 4px; font: inherit; font-size: 32px; line-height: 1; cursor: pointer; }",
+            "#control-plane { position: absolute; inset-block: 0; inset-inline-start: 0; z-index: 2; width: clamp(320px, 28vw, 440px); min-width: 0; max-height: 100vh; overflow: auto; background: Canvas; padding: 4rem 1rem 2rem; box-sizing: border-box; }",
+            "#data-plane { position: relative; width: 100%; height: 100vh; min-height: 0; z-index: 1; overflow: auto; padding: 1rem; box-sizing: border-box; }",
+            '#workspace[data-sidebar="collapsed"] #control-plane { display: none; }',
+            "@media (max-width: 799px) { #control-plane { width: 100%; } }",
+            "</style>",
+        ]
+    )
+
+
 def _render_copy_script() -> str:
     return "\n".join(
         [
             "<script>",
+            "(() => {",
+            '  const workspace = document.getElementById("workspace");',
+            '  const toggle = document.getElementById("sidebar-toggle");',
+            "  if (!workspace || !toggle) { return; }",
+            '  toggle.addEventListener("click", () => {',
+            '    const expanded = workspace.dataset.sidebar !== "collapsed";',
+            '    workspace.dataset.sidebar = expanded ? "collapsed" : "expanded";',
+            '    toggle.setAttribute("aria-expanded", expanded ? "false" : "true");',
+            '    toggle.setAttribute("aria-label", expanded ? "展开控制面" : "收起控制面");',
+            '    toggle.setAttribute("title", expanded ? "展开控制面" : "收起控制面");',
+            '    toggle.textContent = expanded ? "➡️" : "⬅️";',
+            "  });",
+            "})();",
             "(() => {",
             '  const form = document.getElementById("web-report-form");',
             '  const reportState = document.getElementById("production-report-state");',

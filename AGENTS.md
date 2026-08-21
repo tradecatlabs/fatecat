@@ -96,10 +96,10 @@ fatecat/
 
 ## Web HTML 设计硬规则
 
-- `GET /web` 和同类工程报表页必须遵守 `/home/lenovo/.codex/Design.md` 的零美化语义界面规范。
-- FateCat `/web` 只采用 `governance/decisions/adr/ADR-0001-native-workbench-compatibility-profile.md` 的语义兼容性 profile，不直接采用静态产品的绝对定位工作台；不得以工作台名义加入 CSS、class、视觉组件或删除现有 API/报告协议。
-- 禁止加入 CSS、`style`、视觉 class、颜色、圆角、卡片、响应式布局、装饰性容器或前端视觉效果；当前不存在授权例外。
-- 页面结构只允许服务信息结构和操作结构：原生表单、真实链接、`dl` 元信息、`pre/code` 原始数据、`details/summary` 非核心长内容。
+- `GET /web` 和同类工程报表页默认遵守 `/home/lenovo/.codex/Design.md` 的零美化语义界面规范；本次登记的 FateCat 工作台结构例外只允许三层定位、系统背景和原生开关，不允许品牌视觉或组件化包装。
+- FateCat `/web` 采用 `governance/decisions/adr/ADR-0001-native-workbench-compatibility-profile.md` 的兼容性 profile，并落实 `#top-layer` / `#control-plane` / `#data-plane`；不得删除现有 API、报告协议或服务端直出核心内容。
+- 允许的例外仅限 `GATE-0001` 白名单：工作台入口 `<style>`、结构性 `#` 选择器、z-index `3/2/1`、`clamp(320px, 28vw, 440px)` 控制面、系统 `Canvas` 背景、原生 Emoji 开关和必要 `@media` 宽度适配；禁止颜色、圆角、阴影、动画、品牌字体、视觉 class、卡片和装饰。
+- 页面核心信息仍必须服务端直出并在无 CSS/JavaScript 时可读；信息结构使用原生表单、真实链接、`dl` 元信息、`pre/code` 原始数据和 `details/summary`。
 - 修改 `domains/experience-delivery/services/fatecat-delivery/src/web_ui.py` 前必须读取 `governance/standards/零美化语义界面标准.md`、`GATE-0001` 和对应 module context。
 - 验证必须覆盖 `tests/regression/test_web_html.py::assert_zero_beauty_semantic_html`，默认跑 `bash scripts/local-ci.sh --profile quick`。
 

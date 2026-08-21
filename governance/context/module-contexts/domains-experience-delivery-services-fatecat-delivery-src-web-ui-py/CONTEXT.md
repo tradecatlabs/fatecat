@@ -20,7 +20,7 @@ code_path: domains/experience-delivery/services/fatecat-delivery/src/web_ui.py
 - 暴露原生 HTML 表单，用 GET 参数生成命理排盘 Markdown 报告；出生地区只显示一个原生 `input+datalist`，通过现有地点 API 模糊搜索完整路径候选并绑定稳定地点 ID，无 JavaScript 时由服务端解析唯一完整地区名称。
 - 展示精简项目摘要、当前输入、工作台 psql ASCII 表格、Markdown 输出、机器可读输入和页面元信息；详细字段与接口契约通过根级 `/llms.txt` 暴露。
 - 展示 TradeCat Labs 项目归属和真实外部链接。
-- 使用浏览器默认渲染和顺序语义结构组织 `/web`；当前不存在布局或样式授权例外。
+- 使用服务端直出和顺序语义结构组织 `/web`；当前存在 GATE-0001 登记的窄范围结构例外，仅用于三层工作台几何和功能性开关。
 
 ## 非职责
 
@@ -30,9 +30,9 @@ code_path: domains/experience-delivery/services/fatecat-delivery/src/web_ui.py
 
 ## 禁止事项
 
-- 禁止 `<style>`、外部 CSS、行内 `style=`。
-- 禁止自定义颜色、背景、字体、字号、间距、圆角、阴影、卡片、响应式布局。
-- 禁止仅用于视觉的 `class`、`main`、`section`、`div` 包装。
+- 禁止外部 CSS、行内 `style=` 和 GATE-0001 白名单之外的 `<style>` 规则。
+- 禁止自定义颜色、字体、字号、装饰性间距、圆角、阴影、卡片和动画；仅允许系统 `Canvas` 背景与工作台几何。
+- 禁止仅用于视觉的 `class`、包装或组件；允许 `#workspace`、`#top-layer`、`#control-plane`、`#data-plane` 作为登记的结构节点。
 - 禁止依赖 JavaScript 才能看到核心报告或核心字段。
 - 禁止在 Web 层复制地点目录、时区换算或 DST 判断；只允许调用 `location.py` / `web_report_service.py` 的共享服务端链路。
 - 禁止把 API/后端支持的地区模式、经纬度、时区口径或 DST fold 直接扩成 Web 默认控件；默认界面只保留一个地区搜索输入框，候选列表不是第二套地点数据源。
@@ -42,7 +42,7 @@ code_path: domains/experience-delivery/services/fatecat-delivery/src/web_ui.py
 
 - 设计规范：`/home/lenovo/.codex/Design.md`
 - 实现文件：`domains/experience-delivery/services/fatecat-delivery/src/web_ui.py`
-- 机械回归：`tests/regression/test_web_html.py::assert_zero_beauty_semantic_html`
+- 机械回归：`tests/regression/test_web_html.py::assert_zero_beauty_semantic_html`（同时验证 GATE-0001 工作台结构例外）
 - 架构 gate：`governance/architecture-gates/rules/GATE-0001-Web-HTML-禁止自定义前端样式.md`
 - 长期标准：`governance/standards/零美化语义界面标准.md`
 
@@ -61,4 +61,4 @@ code_path: domains/experience-delivery/services/fatecat-delivery/src/web_ui.py
 - 不要把本模块上下文散落到代码目录。
 - 如需引用原模块 README，只在这里链接，不复制覆盖。
 - 修改本模块前必须读取 `/home/lenovo/.codex/Design.md`。
-- 任何 Web HTML 改动必须证明没有 CSS、视觉 class 和装饰性容器回潮。
+- 任何 Web HTML 改动必须证明只有 GATE-0001 白名单结构 CSS，且没有品牌视觉、视觉 class 和装饰性容器回潮。

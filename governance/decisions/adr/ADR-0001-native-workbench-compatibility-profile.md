@@ -7,21 +7,21 @@
 
 ## 背景
 
-FateCat `/web` 是动态 FastAPI 交付页，不是静态产品。项目自身的零美化语义界面门禁禁止 CSS、`class`、style 属性和视觉组件；页面还必须保留服务端表单校验、异步报告任务、API 轮询和 Markdown 输出。
+FateCat `/web` 是动态 FastAPI 交付页，不是静态产品。页面必须保留服务端表单校验、异步报告任务、API 轮询和 Markdown 输出；同时零美化语义规范仍禁止品牌视觉、组件库、卡片、圆角、阴影、动画和装饰。
 
-因此不能直接套用静态工作台的绝对定位覆盖层，也不能删除 API 或把报告变成静态 JSON。
+用户现已重新授权一个窄范围结构例外：允许使用原生 HTML/CSS 实现三层工作台的覆盖关系，但不得改变服务端直出、无 CSS fallback、报告协议或动态 API 边界。
 
 ## 决策
 
-FateCat 采用兼容性 profile，不登记为根模板的直接 adopted 产品：
+FateCat 采用兼容性 profile，不登记为根模板 renderer 的直接 adopted 产品；但 `/web` 落地结构性三层工作台：
 
 ```text
-Top    页面与项目说明、原生导航、状态提示
-Middle 原生表单参数控件与服务端输入契约
-Bottom 报告状态、Markdown 输出、工作台结果文本
+Top    #top-layer：Emoji 开关，z-index 3
+Middle #control-plane：项目说明与原生表单，z-index 2，宽度 clamp(320px, 28vw, 440px)
+Bottom #data-plane：报告状态、Markdown 输出和工作台结果，z-index 1
 ```
 
-三层是语义职责边界，不增加 CSS、视觉 class、定位、颜色、圆角、卡片或新的客户端框架。现有 `/web` 的原生 HTML 结构和 API 行为优先级更高。
+例外只允许 GATE-0001 白名单中的结构 CSS、系统 `Canvas` 背景、原生开关和必要窄屏宽度适配；不得加入品牌视觉或客户端渲染核心数据。无 CSS 时页面仍按源代码顺序完整可读。
 
 ## 保留边界
 
@@ -30,6 +30,7 @@ Bottom 报告状态、Markdown 输出、工作台结果文本
 - 现有元素 ID、原生表单、`pre/code` 输出和回归测试不删除。
 - 不引入 React、Next.js、组件库或共享工作台运行时。
 - 不修改 Hugging Face Space 部署入口、域名或 secrets。
+- 控制面开关只改变 `data-sidebar` 显示状态，不改变 `#data-plane` 几何或报告内容。
 
 ## 开始条件
 
@@ -37,7 +38,7 @@ Bottom 报告状态、Markdown 输出、工作台结果文本
 
 1. `tests/regression/test_web_html.py` 的 Top/Control/Report 语义边界断言。
 2. 表单提交、异步任务、失败状态和 Markdown 复制的浏览器回归。
-3. 与 `GATE-0001` 零美化语义 HTML 标准一致的契约更新。
+3. 与 `GATE-0001` 结构性工作台例外和零美化核心内容标准一致的契约更新。
 4. 独立提交和可回滚标签；不覆盖并行工作树。
 
 ## 验证

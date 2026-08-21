@@ -41,7 +41,7 @@ fatecat-delivery/
 - `src/location_catalog.py` 只把 canonical 压缩地点目录确定性构建为运行时只读 SQLite 索引并执行检索；运行时索引可删除重建，不得成为第二数据真相源。
 - `src/location.py` 只承载稳定地点 ID、行政区消歧、WGS84 坐标、IANA 时区和出生钟表口径标准化；唯一精确文本可以解析，重名、模糊、时区冲突、DST 缺口或重复时刻必须显式失败，禁止静默选择第一条。
 - 不读取真实 secret 入仓；delivery smoke 可临时生成本地 `.env` 并清理。
-- `src/web_ui.py` 只负责零美化语义 HTML：服务端直出、原生表单、真实链接、psql ASCII 表格、Markdown 原文和机器可读片段。
+- `src/web_ui.py` 负责服务端直出的语义 HTML 与登记的工作台结构例外：原生表单、真实链接、psql ASCII 表格、Markdown 原文和机器可读片段必须保留；仅允许 GATE-0001 白名单中的三层结构 CSS，不得加入品牌视觉。
 - `src/public_discovery.py` 只负责公开 canonical 基址、项目与旗舰 capability 权威说明页、可见 FAQ、Schema.org 实体图、robots 与 sitemap；只有 L4、production 且 Web 可用的能力允许生成 guide，不得承载命理规则、动态营销文案或未经证实的能力声明。
 - `src/web_forms.py` 只定义 Web 原生表单输入和服务端报告结果模型，不渲染 HTML、不调用命理计算。
 - `src/web_report_service.py` 只连接 Web 表单、地区解析、capability 执行和 Markdown 生成；不得渲染 HTML 或管理任务生命周期。
@@ -58,7 +58,7 @@ fatecat-delivery/
 - `src/service_config.py` 只读取交付服务环境配置；运行期常量仍由 `src/main.py` 初始化，便于测试 monkeypatch 和 FastAPI 启动时固定配置。
 - `src/telegram_webhook.py` 只承载 FastAPI 生命周期内的 Telegram Webhook 注册、Secret Header 校验、有界 Update 队列、进程内去重和运行指标；它复用 `bot.py` 的 Application builder，不实现命理规则或第二套 Bot handler。
 - `tests/test_bot_send_queue.py` 覆盖 Telegram Bot 本地补发 outbox 的幂等入队、原子保存和 ACK 删除；不得把它误认为跨进程分布式队列测试。
-- `/web` 不存在布局授权例外；Web HTML 禁止 CSS、`style`、视觉 class、颜色、圆角、卡片、响应式布局和装饰性容器。工作台只允许以 ADR-0002 登记的语义 `header#top-layer`、`fieldset#control-plane`、`article#data-plane` 和 `data-layer` 标记表达 Top/Middle/Bottom，不得引入静态产品外壳。
+- `/web` 具有 ADR-0002 / GATE-0001 登记的结构性工作台例外：使用 `#top-layer` / `#control-plane` / `#data-plane`、z-index `3/2/1`、`clamp(320px, 28vw, 440px)` 控制面和系统 `Canvas` 背景；禁止品牌视觉、视觉 class、圆角、阴影、动画、卡片和装饰性容器。核心表单、报告和无 CSS fallback 必须保留。
 - 修改 Web HTML 前必须读取 `/home/lenovo/.codex/Design.md` 与 `GATE-0001`。
 
 ## Principle Gate Evidence

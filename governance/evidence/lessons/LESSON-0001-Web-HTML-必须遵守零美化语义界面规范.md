@@ -1,7 +1,7 @@
 ---
 id: LESSON-0001
 type: record
-status: current
+status: current-with-registered-structural-exception
 owner: engineering
 created: 2026-06-15
 last_reviewed: 2026-07-12
@@ -20,17 +20,17 @@ related_gates:
 
 ## 决策或结论
 
-FateCat `/web` 和同类工程报表页必须遵守零美化语义界面规范：
+FateCat `/web` 和同类工程报表页必须遵守零美化语义核心内容规范；FateCat 仅有 GATE-0001 登记的结构性例外：
 
-- 禁止 `<style>`、外部 CSS、行内 `style`；当前不存在授权例外。
-- 禁止自定义颜色、背景、字体、间距、圆角、阴影、卡片、响应式布局优化。
-- 禁止仅用于视觉的 `class`、视觉容器、卡片包装、装饰性分组。
+- 默认禁止 `<style>`、外部 CSS、行内 `style`；FateCat 只允许白名单中的工作台结构 CSS。
+- 禁止自定义颜色、字体、装饰性间距、圆角、阴影、卡片、动画和品牌视觉；仅允许系统 `Canvas` 背景、工作台几何和功能性 Emoji 开关。
+- 禁止仅用于视觉的 `class`、视觉容器、卡片包装、装饰性分组；固定三层 id 是结构职责标记。
 - 禁止把普通链接伪装成按钮，或把按钮用于普通跳转。
 - 允许使用原生语义结构：`h1-h6`、`p`、`dl`、`ul/ol/li`、`nav`、`form/fieldset/legend/label/input/select/button`、`pre/code`、`details/summary`。
 - 允许 JavaScript 仅用于复制 Markdown 等渐进增强；核心内容必须服务端直出且无脚本可读。
 - 所有结构化数据必须优先用 `tabulate(tablefmt="psql")` 输出到 `<pre><code>`。
 
-2026-07-12 用户明确撤销此前 `/web` 三块工作台布局授权。自此 `/web` 与其他 HTML 页面统一执行无例外的零美化语义界面规则。
+2026-07-12 用户曾撤销此前 `/web` 三块工作台布局授权；2026-08-21 用户重新明确授权 GATE-0001 登记的窄范围结构例外。核心内容仍执行零美化语义规则。
 
 ## 证据
 
@@ -38,7 +38,7 @@ FateCat `/web` 和同类工程报表页必须遵守零美化语义界面规范�
 - 修复提交：`d66a9d8 fix: restore semantic web html`
 - 机械回归：`tests/regression/test_web_html.py::assert_zero_beauty_semantic_html`
 - 本地验证：`bash scripts/local-ci.sh --profile quick --output /tmp/fatecat-local-ci-design-postcommit`
-- 实际页面扫描必须确认 `<style>`、`style=`、外部 CSS、`class=`、`@media`、`main`、`section` 和无必要 `div` 均不存在。
+- 实际页面扫描必须确认只有 GATE-0001 白名单 `<style>`、无 `style=`、无外部 CSS、无 `class=`、无品牌视觉 token，且固定三层 id、z-index 和控制面宽度存在。
 
 ## 影响范围
 
