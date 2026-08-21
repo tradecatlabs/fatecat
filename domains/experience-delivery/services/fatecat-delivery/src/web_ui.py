@@ -87,7 +87,7 @@ def _render_document(
     canonical_url = f"{public_base_url()}/web"
     body_parts = [
         "<!doctype html>",
-        '<html lang="zh-CN">',
+        '<html lang="zh-CN" data-workbench-profile="tradecatlabs.native-workbench.v0.1.compatibility">',
         "<head>",
         '<meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
@@ -153,14 +153,18 @@ def _render_report_panel(*, result: WebReportResult | None, errors: list[str], j
     if job:
         parts.append(_render_job_status(job))
     if errors:
-        parts.append('<p id="production-report-state">生成失败；请检查错误信息。</p>')
+        parts.append(
+            '<p id="production-report-state" data-layer="bottom" data-workbench-layer="bottom">生成失败；请检查错误信息。</p>'
+        )
         parts.append(_render_errors(errors))
     if result:
-        parts.append('<p id="production-report-state">报告已生成。</p>')
+        parts.append(
+            '<p id="production-report-state" data-layer="bottom" data-workbench-layer="bottom">报告已生成。</p>'
+        )
         parts.append(_render_report(result))
     if not errors and result is None:
         parts.append(
-            '<p id="production-report-state">尚未生成报告。提交底部参数后，服务端会在这里写入 Markdown 输出。</p>'
+            '<p id="production-report-state" data-layer="bottom" data-workbench-layer="bottom">尚未生成报告。提交底部参数后，服务端会在这里写入 Markdown 输出。</p>'
         )
     return "\n".join(parts)
 
@@ -244,7 +248,7 @@ def _render_header_panel(*, generated_at: str, has_result: bool, has_errors: boo
             "<pre><code>" + _h(table) + "</code></pre>",
             "<h3>全部链接</h3>",
             '<nav aria-label="项目、页面与服务链接">',
-            f"<ul>\n{link_items}\n</ul>",
+            f'<ul data-layer="top" data-workbench-layer="top">\n{link_items}\n</ul>',
             "</nav>",
         ]
     )
@@ -262,7 +266,7 @@ def _render_input_panel(
         "<legend>排盘参数</legend>",
         "<p>",
         '<label for="birthDate">出生日期（必填）</label><br>',
-        f'<input id="birthDate" name="birthDate" type="date" value="{_attr(form.birth_date)}">',
+        f'<input id="birthDate" name="birthDate" type="date" value="{_attr(form.birth_date)}" data-layer="middle" data-workbench-layer="middle">',
         "</p>",
         "<p>",
         '<label for="birthTime">出生时间（必填）</label><br>',

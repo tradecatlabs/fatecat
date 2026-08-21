@@ -58,7 +58,7 @@ fatecat-delivery/
 - `src/service_config.py` 只读取交付服务环境配置；运行期常量仍由 `src/main.py` 初始化，便于测试 monkeypatch 和 FastAPI 启动时固定配置。
 - `src/telegram_webhook.py` 只承载 FastAPI 生命周期内的 Telegram Webhook 注册、Secret Header 校验、有界 Update 队列、进程内去重和运行指标；它复用 `bot.py` 的 Application builder，不实现命理规则或第二套 Bot handler。
 - `tests/test_bot_send_queue.py` 覆盖 Telegram Bot 本地补发 outbox 的幂等入队、原子保存和 ACK 删除；不得把它误认为跨进程分布式队列测试。
-- `/web` 不存在布局授权例外；Web HTML 禁止 CSS、`style`、视觉 class、颜色、圆角、卡片、响应式布局和装饰性容器。
+- `/web` 不存在布局授权例外；Web HTML 禁止 CSS、`style`、视觉 class、颜色、圆角、卡片、响应式布局和装饰性容器。工作台只允许以 ADR-0002 登记的语义 `data-layer` 标记表达 Top/Middle/Bottom，不得引入静态产品外壳。
 - 修改 Web HTML 前必须读取 `/home/lenovo/.codex/Design.md` 与 `GATE-0001`。
 
 ## Principle Gate Evidence

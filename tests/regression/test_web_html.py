@@ -68,6 +68,10 @@ def test_web_page_renders_semantic_form():
     assert "<title>faetcat</title>" in text
     assert "<h1>faetcat</h1>" in text
     assert '<link rel="alternate" type="text/plain" href="/llms.txt" title="FateCat llms.txt">' in text
+    assert '<html lang="zh-CN" data-workbench-profile="tradecatlabs.native-workbench.v0.1.compatibility">' in text
+    assert '<ul data-layer="top" data-workbench-layer="top">' in text
+    assert re.search(r'<input id="birthDate"[^>]*data-layer="middle"[^>]*data-workbench-layer="middle">', text)
+    assert 'id="production-report-state" data-layer="bottom" data-workbench-layer="bottom"' in text
     assert '<link rel="canonical" href="https://tradecatlabs-fatecat.hf.space/web">' in text
     assert '<meta name="description"' in text
     assert '<meta name="author" content="TradeCat Labs">' in text
