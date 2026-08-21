@@ -50,6 +50,14 @@ def assert_zero_beauty_semantic_html(text: str) -> None:
     assert "z-index: 2" in text
     assert "z-index: 1" in text
     assert "width: clamp(320px, 28vw, 440px)" in text
+    assert "overflow-x: hidden; overflow-y: auto" in text
+    assert "#control-plane pre { max-width: 100%; overflow: auto; box-sizing: border-box; }" in text
+    assert "#control-plane fieldset { min-width: 0; max-width: 100%; width: 100%; box-sizing: border-box; }" in text
+    assert (
+        "#control-plane input, #control-plane select, #control-plane button { max-width: 100%; box-sizing: border-box; }"
+        in text
+    )
+    assert "@media (max-width: 711px)" in text
     assert '<form id="web-report-form" method="get" action="/web">' in text
     for forbidden in [
         "box-shadow",

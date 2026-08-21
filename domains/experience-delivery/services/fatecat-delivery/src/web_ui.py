@@ -573,12 +573,15 @@ def _render_workbench_style() -> str:
             "#workspace { position: relative; isolation: isolate; width: 100%; height: 100vh; overflow: hidden; }",
             "#top-layer { position: absolute; inset: 0; z-index: 3; pointer-events: none; }",
             "#sidebar-toggle { position: absolute; inset-block-start: 0; inset-inline-start: 0; z-index: 1; pointer-events: auto; appearance: none; border: 0; background: Canvas; padding: 0; margin: 4px; font: inherit; font-size: 32px; line-height: 1; cursor: pointer; }",
-            "#control-plane { position: absolute; inset-block: 0; inset-inline-start: 0; z-index: 2; width: clamp(320px, 28vw, 440px); min-width: 0; max-height: 100vh; overflow: auto; background: Canvas; padding: 4rem 1rem 2rem; box-sizing: border-box; }",
+            "#control-plane { position: absolute; inset-block: 0; inset-inline-start: 0; z-index: 2; width: clamp(320px, 28vw, 440px); min-width: 0; max-height: 100vh; overflow-x: hidden; overflow-y: auto; background: Canvas; padding: 4rem 1rem 2rem; box-sizing: border-box; }",
+            "#control-plane pre { max-width: 100%; overflow: auto; box-sizing: border-box; }",
+            "#control-plane fieldset { min-width: 0; max-width: 100%; width: 100%; box-sizing: border-box; }",
+            "#control-plane input, #control-plane select, #control-plane button { max-width: 100%; box-sizing: border-box; }",
             "#data-plane { position: relative; width: 100%; height: 100vh; min-height: 0; z-index: 1; overflow: auto; padding: 1rem; padding-inline-start: calc(clamp(320px, 28vw, 440px) + 1rem); box-sizing: border-box; }",
             "#report-content { width: min(100%, 960px); min-width: 0; margin-inline: auto; box-sizing: border-box; }",
             "#report-content pre { max-width: 100%; overflow: auto; }",
             '#workspace[data-sidebar="collapsed"] #control-plane { display: none; }',
-            "@media (max-width: 799px) { #control-plane { width: 100%; } #data-plane { padding-inline: 1rem; } #report-content { width: auto; max-width: none; margin-inline: auto; } }",
+            "@media (max-width: 711px) { #control-plane { width: 100%; } #data-plane { padding-inline: 1rem; } #report-content { width: auto; max-width: none; margin-inline: auto; } }",
             "</style>",
         ]
     )

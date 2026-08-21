@@ -13,7 +13,7 @@
 ```text
 Top    #top-layer：原生 Emoji 开关，z-index 3
 Middle #control-plane：项目说明与参数表单，z-index 2，宽度 clamp(320px, 28vw, 440px)
-Bottom #data-plane：报告状态、错误、Markdown 输出和工作台结果，z-index 1；`#report-content` 在与 `data-sidebar` 无关的固定数据面安全区居中
+Bottom #data-plane：报告状态、错误、Markdown 输出和工作台结果，z-index 1；`#report-content` 在与 `data-sidebar` 无关的固定数据面安全区居中；控制面 `pre` / `fieldset` / 原生控件不得撑开中间层，711px 以下才切换全宽控制面
 ```
 
 页面使用 `div#workspace`、`div#top-layer`、`aside#control-plane`、`main#data-plane` 和 `data-sidebar` 表达结构；各层同时使用 `data-layer` / `data-workbench-layer` 作为机器可审计标记。`<style>` 只包含 GATE-0001 白名单中的结构 CSS；无 CSS/JavaScript 时核心表单和报告仍按源代码顺序直接可见。
