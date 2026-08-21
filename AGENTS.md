@@ -97,6 +97,7 @@ fatecat/
 ## Web HTML 设计硬规则
 
 - `GET /web` 和同类工程报表页必须遵守 `/home/lenovo/.codex/Design.md` 的零美化语义界面规范。
+- FateCat `/web` 只采用 `governance/decisions/adr/ADR-0001-native-workbench-compatibility-profile.md` 的语义兼容性 profile，不直接采用静态产品的绝对定位工作台；不得以工作台名义加入 CSS、class、视觉组件或删除现有 API/报告协议。
 - 禁止加入 CSS、`style`、视觉 class、颜色、圆角、卡片、响应式布局、装饰性容器或前端视觉效果；当前不存在授权例外。
 - 页面结构只允许服务信息结构和操作结构：原生表单、真实链接、`dl` 元信息、`pre/code` 原始数据、`details/summary` 非核心长内容。
 - 修改 `domains/experience-delivery/services/fatecat-delivery/src/web_ui.py` 前必须读取 `governance/standards/零美化语义界面标准.md`、`GATE-0001` 和对应 module context。
