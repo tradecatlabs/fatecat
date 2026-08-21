@@ -8,7 +8,7 @@
 
 ## 决策
 
-在不改变 FateCat 动态服务模型和零美化语义 HTML 的前提下，登记三层职责：
+在不改变 FateCat 动态服务模型和零美化语义 HTML 的前提下，登记并落实三层职责：
 
 ```text
 Top    项目说明与原生链接导航
@@ -16,7 +16,7 @@ Middle 原生表单输入与服务端输入契约
 Bottom 报告状态、错误、Markdown 输出和工作台结果
 ```
 
-页面使用 `data-workbench-profile="tradecatlabs.native-workbench.v0.1.compatibility"` 和 `data-layer` / `data-workbench-layer` 作为机器可审计标记。标记不引入 CSS、class、style、定位、颜色、组件库或客户端框架。
+页面现在使用语义 `header#top-layer`、`fieldset#control-plane`、`article#data-plane` 表达三层职责，并在根节点和各层使用 `data-workbench-profile` / `data-layer` / `data-workbench-layer` 作为机器可审计标记。标记和语义容器不引入 CSS、class、style、定位、颜色、组件库或客户端框架；核心表单与报告保持直接可见。
 
 ## 保留不变量
 

@@ -103,7 +103,6 @@ def _render_document(
         "<title>faetcat</title>",
         "</head>",
         "<body>",
-        "<h1>faetcat</h1>",
         _render_semantic_page(
             form=form,
             result=result,
@@ -133,17 +132,25 @@ def _render_semantic_page(
 ) -> str:
     return "\n".join(
         [
+            '<header id="top-layer" data-layer="top" data-workbench-layer="top" aria-label="项目与页面说明">',
+            "<h1>faetcat</h1>",
             _render_header_panel(
                 generated_at=generated_at,
                 has_result=result is not None,
                 has_errors=bool(errors),
             ),
+            "</header>",
+            '<fieldset id="control-plane" data-layer="middle" data-workbench-layer="middle" aria-labelledby="input-form">',
+            "<legend>参数控制面</legend>",
             _render_input_panel(
                 form=form,
                 result=result,
                 errors=errors,
             ),
+            "</fieldset>",
+            '<article id="data-plane" data-layer="bottom" data-workbench-layer="bottom" aria-labelledby="production-report">',
             _render_report_panel(result=result, errors=errors, job=job),
+            "</article>",
         ]
     )
 

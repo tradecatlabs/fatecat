@@ -31,7 +31,18 @@ def assert_zero_beauty_semantic_html(text: str) -> None:
     assert "<main>" not in text
     assert "<section" not in text
     assert "<div" not in text
-    assert "<body>\n<h1>faetcat</h1>" in text
+    assert (
+        '<body>\n<header id="top-layer" data-layer="top" data-workbench-layer="top" aria-label="项目与页面说明">\n<h1>faetcat</h1>'
+        in text
+    )
+    assert (
+        '<fieldset id="control-plane" data-layer="middle" data-workbench-layer="middle" aria-labelledby="input-form">'
+        in text
+    )
+    assert (
+        '<article id="data-plane" data-layer="bottom" data-workbench-layer="bottom" aria-labelledby="production-report">'
+        in text
+    )
     assert '<form id="web-report-form" method="get" action="/web">' in text
     for forbidden in [
         "@media",
@@ -77,6 +88,9 @@ def test_web_page_renders_semantic_form():
     assert '<meta name="author" content="TradeCat Labs">' in text
     assert '<script type="application/ld+json">' in text
     assert '<h2 id="project-brand">项目与页面信息</h2>' in text
+    assert '<header id="top-layer" data-layer="top" data-workbench-layer="top"' in text
+    assert '<fieldset id="control-plane" data-layer="middle" data-workbench-layer="middle"' in text
+    assert '<article id="data-plane" data-layer="bottom" data-workbench-layer="bottom"' in text
     assert_psql_row(text, "项目归属", "交易猫实验室｜FateCat 测算基础设施")
     assert_psql_row(text, "项目定位", "FateCat 是面向 Agent 与应用开发者的测算基础设施。")
     assert_psql_row(text, "核心能力", "提供统一的能力协议、可复现计算核心、证据化解释层和多端交付接口。")
