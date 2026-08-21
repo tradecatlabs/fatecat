@@ -154,7 +154,9 @@ def _render_semantic_page(
             "</fieldset>",
             "</aside>",
             '<main id="data-plane" data-layer="bottom" data-workbench-layer="bottom" aria-labelledby="production-report">',
+            '<div id="report-content">',
             _render_report_panel(result=result, errors=errors, job=job),
+            "</div>",
             "</main>",
             "</div>",
         ]
@@ -573,8 +575,11 @@ def _render_workbench_style() -> str:
             "#sidebar-toggle { position: absolute; inset-block-start: 0; inset-inline-start: 0; z-index: 1; pointer-events: auto; appearance: none; border: 0; background: Canvas; padding: 0; margin: 4px; font: inherit; font-size: 32px; line-height: 1; cursor: pointer; }",
             "#control-plane { position: absolute; inset-block: 0; inset-inline-start: 0; z-index: 2; width: clamp(320px, 28vw, 440px); min-width: 0; max-height: 100vh; overflow: auto; background: Canvas; padding: 4rem 1rem 2rem; box-sizing: border-box; }",
             "#data-plane { position: relative; width: 100%; height: 100vh; min-height: 0; z-index: 1; overflow: auto; padding: 1rem; box-sizing: border-box; }",
+            "#report-content { width: min(100%, 960px); min-width: 0; margin-inline: auto; box-sizing: border-box; }",
+            "#report-content pre { max-width: 100%; overflow: auto; }",
+            '#workspace[data-sidebar="expanded"] #report-content { width: auto; max-width: 960px; margin-inline-start: calc(clamp(320px, 28vw, 440px) + 1rem); margin-inline-end: 1rem; }',
             '#workspace[data-sidebar="collapsed"] #control-plane { display: none; }',
-            "@media (max-width: 799px) { #control-plane { width: 100%; } }",
+            '@media (max-width: 799px) { #control-plane { width: 100%; } #report-content, #workspace[data-sidebar="expanded"] #report-content { width: auto; max-width: none; margin-inline: 1rem; } }',
             "</style>",
         ]
     )
