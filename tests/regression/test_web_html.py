@@ -43,9 +43,10 @@ def assert_zero_beauty_semantic_html(text: str) -> None:
         '<main id="data-plane" data-layer="bottom" data-workbench-layer="bottom" aria-labelledby="production-report">'
         in text
     )
-    assert '<div id="report-content">' in text
-    assert "padding-inline-start: calc(clamp(320px, 28vw, 440px) + 1rem)" in text
-    assert '#workspace[data-sidebar="expanded"] #report-content' not in text
+    assert '<div id="report-content">' not in text
+    assert "padding-block-start: var(--content-top, 0px)" in text
+    assert "data-glyph-measured" in text
+    assert "margin: 4px 0 0 4px" in text
     assert "z-index: 3" in text
     assert "z-index: 2" in text
     assert "z-index: 1" in text
@@ -57,7 +58,7 @@ def assert_zero_beauty_semantic_html(text: str) -> None:
         "#control-plane input, #control-plane select, #control-plane button { max-width: 100%; box-sizing: border-box; }"
         in text
     )
-    assert "@media (max-width: 711px)" in text
+    assert "@media (max-width: 959px)" in text
     assert '<form id="web-report-form" method="get" action="/web">' in text
     for forbidden in [
         "box-shadow",

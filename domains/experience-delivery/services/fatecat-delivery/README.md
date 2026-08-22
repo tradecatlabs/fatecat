@@ -26,7 +26,7 @@ bash scripts/delivery-smoke.sh --target bot
 - Webhook 只负责鉴权、反序列化、去重和有界入队；启用时必须配置 token、secret 与固定 HTTPS URL，默认关闭。
 - 不把未来 capability 混入默认综合八字报告。
 - Web HTML 必须遵守 `/home/lenovo/.codex/Design.md` 的零美化语义核心内容规范；允许的工作台 CSS 仅限 GATE-0001 白名单中的三层结构、系统背景、z-index、覆盖宽度和功能性开关，不得加入品牌视觉、视觉 class、圆角、卡片、阴影或动画。
-- `/web` 当前只具有 GATE-0001 登记的结构性工作台例外；浏览器无 CSS 时仍保持完整可读。工作台由 `#top-layer` / `#control-plane` / `#data-plane` 表达，固定 z-index `3/2/1` 和 `clamp(320px, 28vw, 440px)` 控制面，`#report-content` 在固定数据面安全区居中，控制面 psql 长行与原生控件局部滚动，711px 以下进入全宽控制面，视觉美化仍被禁止；映射见 `governance/decisions/adr/ADR-0002-native-workbench-semantic-layer-map.md`。
+- `/web` 当前只具有 GATE-0001 登记的结构性工作台例外；浏览器无 CSS 时仍保持完整可读。工作台由 `#top-layer` / `#control-plane` / `#data-plane` 表达，固定 z-index `3/2/1` 和 `clamp(320px, 28vw, 440px)` 控制面；报告节点直接作为 `#data-plane` 首个内容，顶部由 Emoji 实际盒测量并保持 `4px` 间隙，不使用固定安全区或通用内容容器。控制面 psql 长行与原生控件局部滚动，959px 以下进入全宽控制面，视觉美化仍被禁止；映射见 `governance/decisions/adr/ADR-0002-native-workbench-semantic-layer-map.md`。
 - Web 出生地区只显示一个原生 `input+datalist`：输入任意一个或多个地区字符后查询本地点目录，候选展示完整行政区路径，选择后提交稳定 `cn:{code}`；输入过程不显示查找、候选数量或选择状态等动态提醒，未选候选时仅在提交时使用浏览器原生校验。无 JavaScript 时可提交唯一完整地区名称由服务端解析。海外、直接坐标、IANA 时区与 DST 能力保留在 API/后端，不作为 Web 默认控件。
 - Web 顶部表格只保留人类需要的项目与使用摘要；公开端点、字段契约、地点解析、任务协议和 AI 风险边界集中由根级 `llms.txt` 与 `GET /llms.txt` 提供。
 - `src/location_catalog.py` 从 canonical gzip NDJSON 确定性构建只读 SQLite 查询索引；索引仅写入 `infra/runtime/local-state/`，可删除重建，不是数据真相源。

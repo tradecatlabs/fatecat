@@ -58,7 +58,7 @@ fatecat-delivery/
 - `src/service_config.py` 只读取交付服务环境配置；运行期常量仍由 `src/main.py` 初始化，便于测试 monkeypatch 和 FastAPI 启动时固定配置。
 - `src/telegram_webhook.py` 只承载 FastAPI 生命周期内的 Telegram Webhook 注册、Secret Header 校验、有界 Update 队列、进程内去重和运行指标；它复用 `bot.py` 的 Application builder，不实现命理规则或第二套 Bot handler。
 - `tests/test_bot_send_queue.py` 覆盖 Telegram Bot 本地补发 outbox 的幂等入队、原子保存和 ACK 删除；不得把它误认为跨进程分布式队列测试。
-- `/web` 具有 ADR-0002 / GATE-0001 登记的结构性工作台例外：使用 `#top-layer` / `#control-plane` / `#data-plane`、z-index `3/2/1`、`clamp(320px, 28vw, 440px)` 控制面、系统 `Canvas` 背景和 `#report-content` 数据面固定安全区居中，`#control-plane` 内部长行与原生控件只能局部滚动；`max-width: 711px` 时进入全宽控制面；禁止品牌视觉、视觉 class、圆角、阴影、动画、卡片和装饰性容器。核心表单、报告和无 CSS fallback 必须保留。
+- `/web` 具有 ADR-0002 / GATE-0001 登记的结构性工作台例外：使用 `#top-layer` / `#control-plane` / `#data-plane`、z-index `3/2/1`、`clamp(320px, 28vw, 440px)` 控制面、系统 `Canvas` 背景；报告节点直接位于 `#data-plane`，由 Emoji 实际盒测量顶部并保持 `4px` 间隙，不保留通用 `#report-content` 容器或固定安全区。`#control-plane` 内部长行与原生控件只能局部滚动；`max-width: 959px` 时进入全宽控制面；禁止品牌视觉、视觉 class、圆角、阴影、动画、卡片和装饰性容器。核心表单、报告和无 CSS fallback 必须保留。
 - 修改 Web HTML 前必须读取 `/home/lenovo/.codex/Design.md` 与 `GATE-0001`。
 
 ## Principle Gate Evidence

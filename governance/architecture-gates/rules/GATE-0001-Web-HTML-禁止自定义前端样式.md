@@ -38,11 +38,11 @@ related_gates:
 允许的 `<style>` 规则只包括：
 
 - `html` / `body` / `#workspace` 的全屏、溢出和隔离设置。
-- `#top-layer`、`#sidebar-toggle`、`#control-plane`、`#data-plane` 的定位、层级、宽度、padding（包括固定的控制面安全内边距）、overflow、display、box-sizing 和系统 `Canvas` 背景。
+- `#top-layer`、`#sidebar-toggle`、`#control-plane`、`#data-plane` 的定位、层级、宽度、padding（顶部必须由按钮真实盒计算）、overflow、display、box-sizing 和系统 `Canvas` 背景。
 - `#control-plane` 的横向裁切与纵向滚动，以及 `pre`、`fieldset`、`input`、`select`、`button` 的有界宽度与局部溢出，防止 psql 长行或原生控件撑开整个控制面。
 - `#workspace[data-sidebar="collapsed"] #control-plane` 的显示切换。
-- `#report-content` 的最大宽度、居中、内部 `pre` 的有界溢出；报告内容必须使用与 `data-sidebar` 无关的固定安全内边距，不能因中间层切换而重排。
-- 只把 `#control-plane` 在 `max-width: 711px` 窄屏设为 `width: 100%`、把 `#data-plane` 恢复为窄屏内边距的 `@media` 规则；`711px` 由 320px 控制面、两个 16px 间距和 360px 最小数据安全区推导。
+- `#data-plane` 首个报告节点的顶部测量；报告内容不再使用通用容器或固定安全内边距，不能因中间层切换而重排。
+- 只把 `#control-plane` 在 `max-width: 959px` 窄屏设为 `width: 100%` 的 `@media` 规则；断点与 reference/v0.1 保持一致。
 
 不得把该例外扩展为主题、视觉设计系统、品牌组件或隐藏核心信息。关闭 CSS 后，页面必须按源代码顺序完整可读；关闭 JavaScript 后，原生表单和服务端报告入口仍必须可用。
 

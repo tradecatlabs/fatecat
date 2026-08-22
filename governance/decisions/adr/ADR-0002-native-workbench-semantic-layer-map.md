@@ -13,7 +13,7 @@
 ```text
 Top    #top-layer：原生 Emoji 开关，z-index 3
 Middle #control-plane：项目说明与参数表单，z-index 2，宽度 clamp(320px, 28vw, 440px)
-Bottom #data-plane：报告状态、错误、Markdown 输出和工作台结果，z-index 1；`#report-content` 在与 `data-sidebar` 无关的固定数据面安全区居中；控制面 `pre` / `fieldset` / 原生控件不得撑开中间层，711px 以下才切换全宽控制面
+Bottom #data-plane：报告状态、错误、Markdown 输出和工作台结果，z-index 1；报告节点直接作为数据面的首个内容，由 Emoji 实际盒计算顶部并保持 `4px` 间隙；控制面 `pre` / `fieldset` / 原生控件不得撑开中间层，959px 以下才切换全宽控制面
 ```
 
 页面使用 `div#workspace`、`div#top-layer`、`aside#control-plane`、`main#data-plane` 和 `data-sidebar` 表达结构；各层同时使用 `data-layer` / `data-workbench-layer` 作为机器可审计标记。`<style>` 只包含 GATE-0001 白名单中的结构 CSS；无 CSS/JavaScript 时核心表单和报告仍按源代码顺序直接可见。
@@ -21,7 +21,7 @@ Bottom #data-plane：报告状态、错误、Markdown 输出和工作台结果�
 ## 保留不变量
 
 - 保留 `/web`、`POST /api/v1/report/jobs/web`、job 状态轮询和 Markdown 输出协议。
-- 保留服务端校验、无 JavaScript fallback、原生 form/fieldset/input/select/button、`pre/code` 和现有元素 ID。
+- 保留服务端校验、无 JavaScript fallback、原生 form/fieldset/input/select/button、`pre/code` 和业务元素 ID；删除无业务语义的通用报告容器。
 - 不把报告计算搬到浏览器，不新增第二数据源，不改变任何报告字段、数据库或任务 TTL。
 - 允许且仅允许登记的绝对定位控制面、z-index `3/2/1`、系统 `Canvas` 背景和窄屏宽度适配；不引入静态产品的业务 renderer、数据模型或共享运行时。
 - `sidebar-toggle` 只更新 `data-sidebar` 和 ARIA 状态，不隐藏核心内容的唯一入口，不改变报告协议。
