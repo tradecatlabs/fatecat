@@ -84,7 +84,7 @@ dest_name="$(basename -- "${dest_root}")"
 
 rsync_args=(
   -a
-  --exclude '.git/'
+  --exclude '.git'
   --exclude '.history/'
   --exclude '.DS_Store'
   --exclude '.env'

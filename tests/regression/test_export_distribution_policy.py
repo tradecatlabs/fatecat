@@ -45,6 +45,7 @@ def test_public_export_rejects_vendor_without_distribution_permission(tmp_path: 
 def test_lite_export_excludes_runtime_state_and_unselected_reference_assets():
     export_script = (ROOT / "scripts" / "export-runtime.sh").read_text(encoding="utf-8")
 
+    assert "--exclude '.git'" in export_script
     assert "--exclude 'infra/runtime/local-state/'" in export_script
     assert "--exclude 'tools/reference-repos/web/'" in export_script
     assert "--exclude 'tools/reference-repos/datasets/'" in export_script

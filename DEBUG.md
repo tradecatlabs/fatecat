@@ -1207,3 +1207,49 @@ HF Space 配置 `FATE_BOT_TOKEN`、`FATE_TELEGRAM_WEBHOOK_SECRET` 和
 - `tests/regression/test_telegram_webhook.py` 新增无本地 `.env`、仅平台 Token 的依赖检查。
 - Telegram Webhook 与 Bot queue 聚焦回归：`14 passed`。
 - 独立进程实验在缺少本地 `.env` 时成功导入 Bot 并构建共享 Application。
+
+## 2026-08-25 public release gate Python 入口回归
+
+### Observation
+
+`bash scripts/public-release-gate.sh --api-url https://tradecatlabs-fatecat.hf.space`
+在 `local-ci quick` 通过后，于 GEO query set 阶段因 `set -u` 报
+`python_bin: unbound variable`，发布门禁提前退出。
+
+### Root Cause
+
+`local-ci.sh` 内部的局部 `python_bin` 不会跨脚本进程传递；`public-release-gate.sh`
+只解析了 `runtime_root`，却直接使用了未初始化的 `${python_bin}`。
+
+### Fix
+
+发布门禁现在在解析运行根目录后，优先使用 `${runtime_root}/.venv/bin/python`，不存在时回退到
+`python3`；回归断言锁定这两个入口分支。
+
+### Reverification
+
+修复后重新执行 shell 语法检查、对应回归测试和完整 public release gate；后续结果以命令退出码为准。
+
+## 2026-08-25 worktree Git 元数据进入公开导出包
+
+### Observation
+
+修复 Python 入口后，完整 public release gate 在公开 skill 导出卫生阶段拒绝了
+`public-skill/fatecat/.git`。
+
+### Root Cause
+
+WSL linked worktree 的 `${skill_root}/.git` 是文件而不是目录；导出器原先只排除
+`.git/`，因此 `rsync` 仍复制了该 Git 元数据文件。
+
+### Fix
+
+`export-runtime.sh` 和 `hf-space-deploy.sh` 统一使用不带斜杠的 `.git` 排除模式，覆盖 Git
+目录与 linked-worktree Git 文件；导出分发回归测试锁定该规则。
+
+### Reverification
+
+- 从空临时目录重建 lite 导出包并运行 export hygiene：通过，2698 个文件，未发现 `.git`。
+- 完整 public release gate：local-ci `538 passed`，导出卫生通过。
+- 最终仍由既定公开供应链规则阻断：`bazi-1`、`sxwnl` 的 `distributionAllowed=false`；
+  未修改授权字段，也未在失败包上手工删除后继续发布。

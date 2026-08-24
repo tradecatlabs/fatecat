@@ -128,7 +128,7 @@ cp "${template_dir}/.hfignore" "${bundle_dir}/.hfignore"
 
 rsync_common=(
   -aR
-  --exclude '.git/'
+  --exclude '.git'
   --exclude '.github/'
   --exclude '.history/'
   --exclude '.venv/'

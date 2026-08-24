@@ -61,6 +61,10 @@ while [[ $# -gt 0 ]]; do
 done
 
 runtime_root="$(resolve_runtime_root)"
+python_bin="${runtime_root}/.venv/bin/python"
+if [[ ! -x "${python_bin}" ]]; then
+  python_bin="python3"
+fi
 mkdir -p "${output_dir}"
 output_dir="$(cd "${output_dir}" && pwd)"
 local_ci_summary=""

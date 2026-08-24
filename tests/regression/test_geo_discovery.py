@@ -264,6 +264,8 @@ def test_geo_audit_is_part_of_public_release_gate():
     release_gate = (ROOT / "scripts" / "public-release-gate.sh").read_text(encoding="utf-8")
     local_ci = (ROOT / "scripts" / "local-ci.sh").read_text(encoding="utf-8")
 
+    assert 'python_bin="${runtime_root}/.venv/bin/python"' in release_gate
+    assert 'python_bin="python3"' in release_gate
     assert '"${script_dir}/geo-audit.py"' in release_gate
     assert '"${script_dir}/geo-query-set-gate.py"' in release_gate
     assert "tests/regression/test_geo_discovery.py" in local_ci
