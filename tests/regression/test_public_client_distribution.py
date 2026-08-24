@@ -57,7 +57,9 @@ def test_public_client_policy_preserves_unknown_vendor_license_boundaries():
         assert actual["license"] == expected["license"] == decision["license"] == "NOASSERTION"
         assert actual["licenseStatus"] == expected["licenseStatus"] == decision["licenseStatus"]
         assert actual["licenseStatus"] == "missing_upstream_license"
-        assert actual["distributionAllowed"] is expected["distributionAllowed"] is decision["distributionAllowed"] is True
+        assert (
+            actual["distributionAllowed"] is expected["distributionAllowed"] is decision["distributionAllowed"] is True
+        )
         assert actual["distributionExceptionRef"] == expected["distributionExceptionRef"]
         assert set(actual["distributionExceptionScopes"]) == set(expected["distributionExceptionScopes"])
         assert set(actual["distributionExceptionScopes"]) <= set(decision["scopes"])
