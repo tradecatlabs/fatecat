@@ -107,9 +107,9 @@ fi
 if [[ "${create_repo}" == "1" || "${upload_repo}" == "1" ]]; then
   ensure_command hf
   if [[ -n "${token_value}" ]]; then
-    whoami_output="$(HF_TOKEN="${token_value}" hf auth whoami 2>&1 || true)"
+    whoami_output="$(NO_COLOR=1 HF_TOKEN="${token_value}" hf auth whoami 2>&1 || true)"
   else
-    whoami_output="$(hf auth whoami 2>&1 || true)"
+    whoami_output="$(NO_COLOR=1 hf auth whoami 2>&1 || true)"
   fi
   if ! grep -Eq "(^|[[:space:]])user(:[[:space:]]+|=)${namespace}($|[[:space:]])|(^|[[:space:]])orgs(:[[:space:]]*|=).*${namespace}" <<<"${whoami_output}"; then
     if [[ "${allow_auth_mismatch}" != "1" ]]; then

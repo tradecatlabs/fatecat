@@ -88,6 +88,7 @@ def test_lite_export_excludes_runtime_state_and_unselected_reference_assets():
     assert "THIRD_PARTY_NOTICES.md" in export_script
     assert "导出目录必须为空，避免旧文件残留" in export_script
 
+    assert "NO_COLOR=1" in hf_script
     assert "tools/reference-repos/vendor_sources.json" in hf_script
     assert "THIRD_PARTY_NOTICES.md" in hf_script
     assert "tools/reference-repos/github/iztro-main/docs/" in hf_script
