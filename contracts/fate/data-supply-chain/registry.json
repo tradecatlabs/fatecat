@@ -13,7 +13,7 @@
     "rawPolicy": "raw 私有资料只可由 source_manifest 追溯，不得进入 public export 或 production runtime。",
     "canonicalPolicy": "canonical 数据进入仓库前必须有 source manifest、hash、用途和版权/许可状态。",
     "derivedPolicy": "golden、benchmark、规则索引等派生资产只能按 usageRole 使用，不得混入生产输入。",
-    "vendorPolicy": "vendor 快照以 vendor_sources.json 为真相源，production_dependency 必须 spdx 且 productionUseAllowed=true。",
+    "vendorPolicy": "vendor 快照以 vendor_sources.json 为真相源，production_dependency 必须 spdx 且 productionUseAllowed=true；非 SPDX 快照只有在保持 NOASSERTION、关联独立有界分发决定且附第三方声明时才允许进入对应公开导出。",
     "exportPolicy": "public export 只允许 included 或 manifest_only 且通过 gate 的资产；review_required/blocked 不得作为默认公开分发承诺。"
   },
   "assets": [
@@ -428,7 +428,7 @@
           "path": "tools/reference-repos/vendor_sources.json",
           "role": "vendor_manifest",
           "required": true,
-          "sha256": "88a55d1cc34ba990dd595ef617db1338ffc70bab35ed353aaffad842d50f6868"
+          "sha256": "c2ab89f79ab5c80b7f8125323ad99508414ca2116d8de803becaf667b8a8f744"
         },
         {
           "path": "tools/reference-repos/github",
@@ -444,15 +444,17 @@
         "licenseStatus": "mixed",
         "auditRequired": true,
         "productionUseAllowed": false,
-        "distributionAllowed": false,
+        "distributionAllowed": true,
+        "distributionScope": "selected_snapshot_allowlist_only",
         "evidencePaths": [
-          "tools/reference-repos/vendor_sources.json"
+          "tools/reference-repos/vendor_sources.json",
+          "contracts/fate/developer/public-server-distribution.json"
         ]
       },
       "exportPolicy": {
-        "status": "manifest_only",
-        "allowedInPublicExport": false,
-        "reason": "vendor 快照默认不进入 lite export；只登记 manifest 和 gate 证据。"
+        "status": "included",
+        "allowedInPublicExport": true,
+        "reason": "只有 vendor manifest 中 distributionAllowed=true 的已选择快照可进入公开 lite/HF bundle；非 SPDX 条目还必须匹配 public-server-distribution 有界决定并携带第三方声明。"
       },
       "productionEligibility": {
         "status": "reference_only",
@@ -467,7 +469,7 @@
       },
       "metadata": {
         "owner": "tools/reference-repos",
-        "risk": "缺 license 或 legacy snapshot 只能参考，不得扩散为生产依赖。"
+        "risk": "缺 license 或 legacy snapshot 不得扩散为新增生产依赖；有界公开分发例外必须保留 NOASSERTION，且不能外推到其他资产或渠道。"
       }
     },
     {

@@ -9,6 +9,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST_PATH = ROOT / "contracts" / "fate" / "developer" / "public-client-distribution.json"
+SERVER_DISTRIBUTION_PATH = ROOT / "contracts" / "fate" / "developer" / "public-server-distribution.json"
 VENDOR_MANIFEST_PATH = ROOT / "tools" / "reference-repos" / "vendor_sources.json"
 SMOKE_PATH = ROOT / "scripts" / "public-client-package-smoke.py"
 CLIENT_ROOT = ROOT / "apps" / "developer-clients" / "python"
@@ -40,16 +41,26 @@ def test_public_client_distribution_separates_client_and_restricted_runtime():
 
 def test_public_client_policy_preserves_unknown_vendor_license_boundaries():
     distribution = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    server_distribution = json.loads(SERVER_DISTRIBUTION_PATH.read_text(encoding="utf-8"))
     vendor_manifest = json.loads(VENDOR_MANIFEST_PATH.read_text(encoding="utf-8"))
     vendors = {item["id"]: item for item in vendor_manifest["required"]}
     restricted = {item["id"]: item for item in distribution["restrictedServerRuntime"]["unknownLicenseAssets"]}
+    approved = {item["id"]: item for item in server_distribution["approvedAssets"]}
 
-    assert set(restricted) == {"bazi-1", "sxwnl"}
+    assert server_distribution["kind"] == "fatecat.public_server_distribution"
+    assert server_distribution["status"] == "approved"
+    assert server_distribution["policy"]["publicRegistryPublishAllowed"] is False
+    assert set(restricted) == set(approved) == {"bazi-1", "sxwnl"}
     for vendor_id, expected in restricted.items():
         actual = vendors[vendor_id]
-        assert actual["license"] == expected["license"] == "NOASSERTION"
-        assert actual["licenseStatus"] == expected["licenseStatus"] == "missing_upstream_license"
-        assert actual["distributionAllowed"] is expected["distributionAllowed"] is False
+        decision = approved[vendor_id]
+        assert actual["license"] == expected["license"] == decision["license"] == "NOASSERTION"
+        assert actual["licenseStatus"] == expected["licenseStatus"] == decision["licenseStatus"]
+        assert actual["licenseStatus"] == "missing_upstream_license"
+        assert actual["distributionAllowed"] is expected["distributionAllowed"] is decision["distributionAllowed"] is True
+        assert actual["distributionExceptionRef"] == expected["distributionExceptionRef"]
+        assert set(actual["distributionExceptionScopes"]) == set(expected["distributionExceptionScopes"])
+        assert set(actual["distributionExceptionScopes"]) <= set(decision["scopes"])
         assert actual["usageRole"] == expected["usageRole"]
 
 

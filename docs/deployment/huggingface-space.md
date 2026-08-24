@@ -90,6 +90,8 @@ Workflow 会在 GitHub runner 中：
 
 这里不是把整个企业 monorepo 原样同步到 HF，而是生成一个最小可运行 Space bundle。原因是 HF Space 的根目录需要 `README.md` front matter 和 `Dockerfile`，直接同步整仓会把 Space 根目录弄错。
 
+上传前脚本会强制执行公开供应链卫生检查。完整服务端 bundle 使用 `license: other`：FateCat 自有代码仍遵循根 `LICENSE`，第三方快照的来源、许可证状态和范围审批分别记录在 `THIRD_PARTY_NOTICES.md`、`tools/reference-repos/vendor_sources.json` 与 `contracts/fate/developer/public-server-distribution.json`。缺少上游 LICENSE 的快照保持 `NOASSERTION`，不会被重新标成 MIT。
+
 部署完成后访问：
 
 ```text
@@ -246,6 +248,7 @@ bash scripts/public-release-gate.sh --api-url https://tradecatlabs-fatecat.hf.sp
 这个命令会检查：
 
 - 本地 quick CI。
+- 公开运行包中非 SPDX 快照必须匹配发布负责人批准的有界分发决定，并携带第三方声明。
 - GitHub Acceptance / Container workflow 仍为手动触发。
 - HF 免费 Space 默认 `FATE_RECORDS_ENABLED=0`。
 - README、HF README 和部署文档的免费部署与隐私口径保持同步。

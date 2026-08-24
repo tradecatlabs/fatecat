@@ -232,6 +232,9 @@ def test_reference_manifest_entries_have_usage_contract_fields():
 
 
 def test_reference_manifest_blocks_missing_license_materials_from_production_role():
+    distribution_decision = _load_json("developer/public-server-distribution.json")
+    approved_assets = {item["id"]: item for item in distribution_decision["approvedAssets"]}
+
     for entry in _reference_entries().values():
         non_production_license = entry["licenseStatus"] in {
             "missing_upstream_license",
@@ -239,9 +242,16 @@ def test_reference_manifest_blocks_missing_license_materials_from_production_rol
         }
         if non_production_license:
             assert entry.get("auditRequired") is True
-            assert entry["distributionAllowed"] is False
             assert entry["usageRole"] != "production_dependency"
             assert entry["productionUseAllowed"] is False
+            if entry["distributionAllowed"] is True:
+                approved = approved_assets[entry["id"]]
+                assert entry["license"] == approved["license"] == "NOASSERTION"
+                assert entry["licenseStatus"] == approved["licenseStatus"]
+                assert entry["distributionExceptionRef"].endswith(f"#approvedAssets/{entry['id']}")
+                assert set(entry["distributionExceptionScopes"]) <= set(approved["scopes"])
+            else:
+                assert "distributionExceptionRef" not in entry
         if entry["id"] == "bazi-calculator-by-alvamind":
             assert entry.get("auditRequired") is True
             assert entry["usageRole"] == "reference_only"

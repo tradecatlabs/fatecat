@@ -24,7 +24,9 @@ tools/reference-repos/
 | `usageRole` | 当前项目允许的用途：`production_dependency`、`oracle_only`、`evaluation_only`、`reference_only`、`future_candidate` |
 | `productionUseAllowed` | 是否允许进入生产运行链路 |
 | `licenseStatus` | 许可证状态；生产依赖必须是 `spdx`；`missing_upstream_license` 与 `license_file_unreviewed` 必须人工复核 |
-| `distributionAllowed` | 当前快照是否允许随仓库或导出包分发 |
+| `distributionAllowed` | 当前快照是否允许随仓库或导出包分发；非 SPDX 条目为 `true` 时必须关联独立、有界的发布负责人例外契约 |
+| `distributionExceptionRef` | 非 SPDX 快照公开分发时对应的机器审批契约引用；不得据此改写上游许可证状态 |
+| `distributionExceptionScopes` | 例外允许的具体公开产物范围；新增渠道必须重新审批 |
 | `auditRequired` | 是否必须人工复核后才能扩大用途 |
 | `snapshotSha256` | 快照完整性校验值 |
 
@@ -33,8 +35,8 @@ tools/reference-repos/
 | 仓库 | 角色 | 生产链路 |
 | --- | --- | --- |
 | `lunar-python` | 主历法底座 | 允许；已在 Python 依赖文件显式声明 |
-| `bazi-1` | 八字规则与资料参考 | 不允许作为新增生产依赖扩散；缺少上游 LICENSE |
-| `sxwnl` | 节气/历法离线 oracle | 不进入主生产链；缺少上游 LICENSE |
+| `bazi-1` | 八字规则与资料参考 | 不允许作为新增生产依赖扩散；缺少上游 LICENSE；已批准随 FateCat HF/轻量运行包原样公开分发 |
+| `sxwnl` | 节气/历法离线 oracle | 能力治理上不晋升主生产依赖；缺少上游 LICENSE；已批准随 FateCat HF/轻量运行包原样公开分发 |
 | `bazica` | Go 八字排盘 oracle | 不进入 Python 主链 |
 | `bazi-calculator-by-alvamind` | TypeScript 基础结构参考 | 不进入生产链；本地快照无独立 LICENSE 文件 |
 | `MingLi-Bench` | 离线评测基准 | 不进入请求链路，不默认调用模型 API runner |
@@ -68,7 +70,7 @@ tools/reference-repos/
 1. 不在 `tools/reference-repos/github/*` 内魔改第三方源码。
 2. 新增快照必须登记到 `vendor_sources.json`，并补齐来源、用途、许可、hash 和风险说明。
 3. 已评估候选放入 `optionalFutureFeatures`；来源、许可或价值未复核的历史目录放入 `legacyUnreviewedSnapshots`。
-4. 缺少独立 LICENSE、许可证未复核或 `licenseStatus=missing_upstream_license` / `license_file_unreviewed` 的材料不得标为 `production_dependency`。
+4. 缺少独立 LICENSE、许可证未复核或 `licenseStatus=missing_upstream_license` / `license_file_unreviewed` 的材料不得标为 `production_dependency`。若发布负责人决定公开分发已有快照，必须保留 `NOASSERTION`，登记 `distributionExceptionRef`、有界 scopes 和第三方声明；该例外不改变能力用途角色，也不构成上游许可证结论。
 5. Benchmark 类仓库只作为离线评测资产，不默认调用外部模型、云 API 或生产服务。
 6. `tools/reference-repos/` 不允许残留 `.git`、`node_modules`、虚拟环境、pycache、`.DS_Store`、日志、数据库或断链 symlink。
 7. 清理运行态污染后再更新 manifest：

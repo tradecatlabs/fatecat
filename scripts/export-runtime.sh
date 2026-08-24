@@ -129,6 +129,10 @@ fi
 
 rsync "${rsync_args[@]}" "${skill_root}/" "${dest_root}/"
 
+if [[ "${bundle_mode}" == "lite" ]]; then
+  cp "${skill_root}/infra/huggingface-space/THIRD_PARTY_NOTICES.md" "${dest_root}/THIRD_PARTY_NOTICES.md"
+fi
+
 mkdir -p "${dest_root}/infra/runtime/local-state/database/bazi"
 touch "${dest_root}/infra/runtime/local-state/database/bazi/.gitkeep"
 

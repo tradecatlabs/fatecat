@@ -6,7 +6,7 @@ owner: platform
 route_key: deploy_huggingface_space
 route_aliases: ["更新 HF Space", "部署 Hugging Face", "同步 Space 生产"]
 created: 2026-07-24
-last_reviewed: 2026-07-24
+last_reviewed: 2026-08-25
 review_cycle: P30D
 ---
 
@@ -25,7 +25,7 @@ review_cycle: P30D
 Space ID、bundle dir、commit message、token 来源、visibility、是否 prune；不得在命令文本暴露 token。
 
 ## 前置条件
-Git clean且目标 commit 已通过 public release gate；`hf auth whoami` 身份与目标 owner 一致或显式授权 mismatch。
+Git clean且目标 commit 已通过 public release gate；bundle 内全部第三方快照满足 `distributionAllowed=true`，非 SPDX 条目必须匹配 `public-server-distribution.json` 的有界审批并携带 `THIRD_PARTY_NOTICES.md`；`hf auth whoami` 身份与目标 owner 一致或显式授权 mismatch。
 
 ## 默认工具链
 先 `bash scripts/hf-space-deploy.sh --dry-run --bundle-dir /tmp/fatecat-hf-space`，再用 `--space ... --prune-remote` 部署。
@@ -38,7 +38,7 @@ Git clean且目标 commit 已通过 public release gate；`hf auth whoami` 身�
 
 ## 分步执行流程
 1. 运行 public release gate 和 Git 状态检查。
-2. 生成 dry-run bundle并审计文件/hash。
+2. 生成 dry-run bundle并审计文件/hash、vendor manifest、第三方声明和非 SPDX 分发例外。
 3. 验证 hf identity、目标和 visibility。
 4. 执行上传；仅需要时 `--prune-remote`。
 5. 等待 build，验证 `/health`、`/ready`、`/metrics`、`/web` 和版本。
@@ -56,7 +56,7 @@ bundle 从当前 commit 全量生成；同 commit 可重复上传；prune 只删
 commit message `deploy FateCat from <source> <sha>`；证据 `hf-deploy-<space-slug>-<short-sha>.json`。
 
 ## 质量验收门禁
-bundle hygiene、HF upload commit、Space build running、线上端点、GEO audit、本地/线上版本和 HTML 语义一致。
+bundle hygiene、第三方声明与有界分发决定、HF upload commit、Space build running、线上端点、GEO audit、本地/线上版本和 HTML 语义一致。
 
 ## 失败处理
 身份、token、upload、build 或 endpoint 失败时停止；不覆盖到其他 owner/Space。

@@ -125,6 +125,7 @@ mkdir -p -- "${bundle_dir}"
 cp "${template_dir}/README.md" "${bundle_dir}/README.md"
 cp "${template_dir}/Dockerfile" "${bundle_dir}/Dockerfile"
 cp "${template_dir}/.hfignore" "${bundle_dir}/.hfignore"
+cp "${template_dir}/THIRD_PARTY_NOTICES.md" "${bundle_dir}/THIRD_PARTY_NOTICES.md"
 
 rsync_common=(
   -aR
@@ -152,6 +153,7 @@ rsync_common=(
   --exclude 'domains/*/services/*/runtime/'
   --exclude 'infra/runtime/'
   --exclude 'tools/reference-repos/**/node_modules/'
+  --exclude 'tools/reference-repos/github/iztro-main/docs/'
   --exclude 'node_modules/'
 )
 
@@ -168,6 +170,7 @@ rsync_common=(
     infra/databases \
     infra/docker/entrypoint.delivery.sh \
     infra/environments \
+    tools/reference-repos/vendor_sources.json \
     tools/reference-repos/github/lunar-python-master \
     tools/reference-repos/github/bazi-1-master \
     tools/reference-repos/github/paipan-master \
@@ -186,6 +189,8 @@ if find "${bundle_dir}" \
   die "HF Space bundle 含运行态、数据库、日志、secret 或 node_modules，已停止。"
 fi
 rm -f "${private_hits_file}"
+
+bash "${script_dir}/check-export-hygiene.sh" "${bundle_dir}" --public
 
 echo "[hf-space] bundle=${bundle_dir}"
 du -sh "${bundle_dir}" || true

@@ -1,7 +1,7 @@
 {
-  "version": 5,
-  "snapshotRecordedAt": "2026-07-01",
-  "distributionPolicy": "当前仓库保留 vendor 快照以保证离线 smoke、评测和 skill 导出可复现；vendor-health 会校验路径、元数据与快照 sha256。usageRole=production_dependency 只允许 licenseStatus=spdx 且 productionUseAllowed=true 的条目；licenseStatus=missing_upstream_license 或缺少独立 LICENSE 文件的条目必须人工复核，不得作为生产依赖扩散。",
+  "version": 6,
+  "snapshotRecordedAt": "2026-08-25",
+  "distributionPolicy": "当前仓库保留 vendor 快照以保证离线 smoke、评测和公开运行包可复现；vendor-health 会校验路径、元数据与快照 sha256。usageRole=production_dependency 只允许 licenseStatus=spdx 且 productionUseAllowed=true 的条目；licenseStatus=missing_upstream_license 或缺少独立 LICENSE 文件的条目不得推断为开源许可，也不得作为新增生产依赖扩散。发布负责人可通过独立机器契约批准有界公开分发例外；例外必须保留 NOASSERTION、明确分发范围、附第三方声明，且不等于上游许可证结论。",
   "required": [
     {
       "id": "lunar-python",
@@ -29,7 +29,12 @@
       "license": "NOASSERTION",
       "licenseStatus": "missing_upstream_license",
       "licenseFile": null,
-      "distributionAllowed": false,
+      "distributionAllowed": true,
+      "distributionExceptionRef": "contracts/fate/developer/public-server-distribution.json#approvedAssets/bazi-1",
+      "distributionExceptionScopes": [
+        "huggingface_space_source_bundle",
+        "fatecat_lite_runtime_export"
+      ],
       "auditRequired": true,
       "revision": "unknown",
       "retrievedAt": "unknown",
@@ -38,7 +43,7 @@
       "usageRole": "reference_only",
       "productionUseAllowed": false,
       "licenseEvidence": null,
-      "riskNote": "本地快照缺少上游 LICENSE；只允许作为已登记的规则/资料参考，不能作为新增生产依赖扩散。"
+      "riskNote": "本地快照缺少上游 LICENSE，保持 NOASSERTION，不能作为新增生产依赖扩散；TradeCat Labs 发布负责人已通过 public-server-distribution 契约批准其随 FateCat 公开 HF/轻量运行包原样分发，该决定不是上游许可证结论。"
     },
     {
       "id": "sxwnl",
@@ -48,7 +53,12 @@
       "license": "NOASSERTION",
       "licenseStatus": "missing_upstream_license",
       "licenseFile": null,
-      "distributionAllowed": false,
+      "distributionAllowed": true,
+      "distributionExceptionRef": "contracts/fate/developer/public-server-distribution.json#approvedAssets/sxwnl",
+      "distributionExceptionScopes": [
+        "huggingface_space_source_bundle",
+        "fatecat_lite_runtime_export"
+      ],
       "auditRequired": true,
       "revision": "unknown",
       "retrievedAt": "unknown",
@@ -57,7 +67,7 @@
       "usageRole": "oracle_only",
       "productionUseAllowed": false,
       "licenseEvidence": null,
-      "riskNote": "本地快照缺少上游 LICENSE；只允许作为历法/节气离线对照，不进入主生产链。"
+      "riskNote": "本地快照缺少上游 LICENSE，保持 NOASSERTION，能力治理角色仍为 oracle_only；TradeCat Labs 发布负责人已通过 public-server-distribution 契约批准其随 FateCat 公开 HF/轻量运行包原样分发，该决定不是上游许可证结论。"
     },
     {
       "id": "iztro",

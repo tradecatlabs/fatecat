@@ -16,7 +16,7 @@ usage() {
 
 说明:
   - 检查导出 skill 包中是否混入本地运行态、缓存、字节码、secret 或 Git 元数据。
-  - --public 额外拒绝 vendor manifest 中 distributionAllowed=false 的已包含快照。
+  - --public 拒绝 distributionAllowed=false 的已包含快照；非 SPDX 快照还必须绑定已批准的有界公开分发决定。
 EOF
 }
 
@@ -104,16 +104,51 @@ from pathlib import Path
 
 bundle_root = Path(sys.argv[1])
 manifest = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+decision_path = bundle_root / "contracts" / "fate" / "developer" / "public-server-distribution.json"
+decision = json.loads(decision_path.read_text(encoding="utf-8")) if decision_path.is_file() else {}
+approved_assets = {
+    str(item.get("id")): item
+    for item in decision.get("approvedAssets", [])
+    if isinstance(item, dict) and item.get("id")
+}
 blocked: list[str] = []
 for scope in ("required", "optionalFutureFeatures", "legacyUnreviewedSnapshots"):
     for item in manifest.get(scope, []):
         path = bundle_root / "tools" / "reference-repos" / str(item.get("path", ""))
-        if path.exists() and item.get("distributionAllowed") is not True:
-            blocked.append(
-                f"{item.get('id', '<unknown>')} ({item.get('licenseStatus', 'unknown')}, {path.relative_to(bundle_root)})"
-            )
+        if not path.exists():
+            continue
+        item_id = str(item.get("id", "<unknown>"))
+        license_status = str(item.get("licenseStatus", "unknown"))
+        if item.get("distributionAllowed") is not True:
+            blocked.append(f"{item_id} ({license_status}, {path.relative_to(bundle_root)}): distributionAllowed=false")
+            continue
+        if license_status == "spdx":
+            continue
+
+        approved = approved_assets.get(item_id, {})
+        item_scopes = set(map(str, item.get("distributionExceptionScopes", [])))
+        approved_scopes = set(map(str, approved.get("scopes", [])))
+        expected_ref = f"contracts/fate/developer/public-server-distribution.json#approvedAssets/{item_id}"
+        exception_ok = (
+            decision.get("kind") == "fatecat.public_server_distribution"
+            and decision.get("status") == "approved"
+            and item.get("distributionExceptionRef") == expected_ref
+            and approved.get("distributionAllowed") is True
+            and approved.get("license") == item.get("license") == "NOASSERTION"
+            and approved.get("licenseStatus") == license_status
+            and bool(item_scopes)
+            and item_scopes <= approved_scopes
+        )
+        if not exception_ok:
+            blocked.append(f"{item_id} ({license_status}, {path.relative_to(bundle_root)}): 缺少匹配的公开分发例外")
+
+if decision:
+    for rel in decision.get("requiredBundleMembers", []):
+        if not (bundle_root / str(rel)).exists():
+            blocked.append(f"required bundle member missing: {rel}")
+
 if blocked:
-    print("公开导出供应链检查失败，包含未获准分发的 vendor:", file=sys.stderr)
+    print("公开导出供应链检查失败:", file=sys.stderr)
     for item in blocked:
         print(f"  - {item}", file=sys.stderr)
     raise SystemExit(1)

@@ -11,12 +11,14 @@ infra/huggingface-space/
 ├── AGENTS.md
 ├── Dockerfile
 ├── README.md
+├── THIRD_PARTY_NOTICES.md
 └── .hfignore
 ```
 
 ## 职责边界
 
-- `README.md`：Hugging Face Space 根 README，包含 `sdk: docker`、`app_port: 7860`、用户隐私说明和可选 Telegram Webhook 配置。
+- `README.md`：Hugging Face Space 根 README，包含 `sdk: docker`、`app_port: 7860`、用户隐私说明、第三方分发边界和可选 Telegram Webhook 配置。
+- `THIRD_PARTY_NOTICES.md`：完整 Space bundle 的第三方来源与许可证状态声明；NOASSERTION 快照不得被统一重标为 MIT。
 - `Dockerfile`：HF Space 专用镜像入口，默认关闭记录存储和 Telegram Webhook，并监听 `7860`。
 - `.hfignore`：Space repo 级别的额外忽略规则，防止运行态、缓存、secret、数据库和日志进入分发仓。
 - 本目录不保存 token、secret、真实用户记录、构建产物或 Space 运行态。

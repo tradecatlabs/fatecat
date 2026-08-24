@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "kind": "fatecat.public_server_distribution",
+  "status": "approved",
+  "decisionId": "FATECAT-PUBLIC-SERVER-DIST-2026-08-25",
+  "approvedAt": "2026-08-25",
+  "approvedBy": "tradecatlabs/release-owner",
+  "description": "Scoped public distribution decision for the FateCat server runtime bundles. This decision records the release owner's explicit instruction; it does not infer or relabel an upstream license.",
+  "targets": [
+    {
+      "id": "tradecatlabs/fatecat",
+      "channel": "huggingface_space",
+      "visibility": "public",
+      "artifactClass": "public_hf_space_source_bundle",
+      "scope": "huggingface_space_source_bundle"
+    },
+    {
+      "id": "fatecat-lite-runtime",
+      "channel": "repository_export",
+      "visibility": "public",
+      "artifactClass": "public_lite_runtime_export",
+      "scope": "fatecat_lite_runtime_export"
+    }
+  ],
+  "policy": {
+    "approvalBasis": "explicit_release_owner_instruction_for_existing_public_repository_snapshots",
+    "licenseStatusMustRemainAccurate": true,
+    "unknownLicenseMustRemainNoAssertion": true,
+    "sourceAttributionRequired": true,
+    "thirdPartyNoticeRequired": true,
+    "publicRegistryPublishAllowed": false,
+    "scopeExpansionRequiresNewDecision": true
+  },
+  "approvedAssets": [
+    {
+      "id": "bazi-1",
+      "vendorManifestRef": "tools/reference-repos/vendor_sources.json#bazi-1",
+      "source": "https://github.com/nicktaobo/bazi-1",
+      "license": "NOASSERTION",
+      "licenseStatus": "missing_upstream_license",
+      "distributionAllowed": true,
+      "scopes": [
+        "huggingface_space_source_bundle",
+        "fatecat_lite_runtime_export"
+      ],
+      "conditions": [
+        "preserve source attribution and NOASSERTION",
+        "include THIRD_PARTY_NOTICES.md",
+        "do not publish the FateCat server runtime to a package registry under the MIT client identity"
+      ]
+    },
+    {
+      "id": "sxwnl",
+      "vendorManifestRef": "tools/reference-repos/vendor_sources.json#sxwnl",
+      "source": "https://github.com/sxwnl/sxwnl",
+      "license": "NOASSERTION",
+      "licenseStatus": "missing_upstream_license",
+      "distributionAllowed": true,
+      "scopes": [
+        "huggingface_space_source_bundle",
+        "fatecat_lite_runtime_export"
+      ],
+      "conditions": [
+        "preserve source attribution and NOASSERTION",
+        "include THIRD_PARTY_NOTICES.md",
+        "do not publish the FateCat server runtime to a package registry under the MIT client identity"
+      ]
+    }
+  ],
+  "requiredBundleMembers": [
+    "THIRD_PARTY_NOTICES.md",
+    "tools/reference-repos/vendor_sources.json",
+    "contracts/fate/developer/public-server-distribution.json"
+  ],
+  "validation": {
+    "command": "bash scripts/hf-space-deploy.sh --dry-run --bundle-dir /tmp/fatecat-hf-space",
+    "checks": [
+      "public export hygiene passes",
+      "every distributed NOASSERTION asset has a matching approved asset and scope",
+      "third-party notice and vendor manifest are present",
+      "bundle does not relabel the complete server closure as MIT"
+    ]
+  },
+  "limitations": [
+    "This is a project distribution decision, not an upstream license grant or legal opinion.",
+    "It does not change bazi-1 from reference_only or sxwnl from oracle_only in capability governance.",
+    "It does not authorize public package-registry publication of the FateCat server runtime.",
+    "Any new channel, asset, transformed snapshot or broader scope requires a separate reviewed decision."
+  ]
+}

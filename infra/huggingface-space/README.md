@@ -6,7 +6,7 @@ colorTo: indigo
 sdk: docker
 app_port: 7860
 pinned: false
-license: mit
+license: other
 short_description: TradeCat Labs FateCat measurement infrastructure workbench.
 ---
 
@@ -38,6 +38,16 @@ FateCat 是面向 Agent 与应用开发者的测算基础设施，提供统一�
 普通用户可以在 Hugging Face 页面右上角选择 `Duplicate this Space`，复制到自己的账号或组织下直接使用。想从 GitHub fork 持续更新自己的 Space，可以在 fork 仓库里设置 `HF_TOKEN` secret，然后手动运行 `Deploy Hugging Face Space` workflow。
 
 完整步骤见 GitHub 仓库内的 `docs/deployment/huggingface-space.md`。
+
+## 源码与第三方声明
+
+FateCat 自有代码遵循仓库根 `LICENSE`。完整 Space 运行包还包含第三方快照，不能把 Space 元数据理解为所有文件统一使用 MIT。具体来源、许可证状态、快照 hash 和有界公开分发决定见：
+
+- `THIRD_PARTY_NOTICES.md`
+- `tools/reference-repos/vendor_sources.json`
+- `contracts/fate/developer/public-server-distribution.json`
+
+其中 `bazi-1`、`sxwnl` 保持 `license=NOASSERTION`；其公开打包来自 TradeCat Labs 发布负责人对 FateCat HF/轻量运行包的明确范围审批，不代表推断或改写上游许可证。
 
 ## 使用流程
 
