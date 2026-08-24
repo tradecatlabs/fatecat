@@ -162,7 +162,7 @@ def _render_semantic_page(
 
 
 def _render_report_panel(*, result: WebReportResult | None, errors: list[str], job: WebReportJobView | None) -> str:
-    parts = ['<h2 id="production-report">生成报告</h2>']
+    parts = ['<h1 id="production-report">生成报告</h1>']
     if job:
         parts.append(_render_job_status(job))
     if errors:

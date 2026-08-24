@@ -141,8 +141,8 @@ def test_web_page_renders_semantic_form():
     assert_zero_beauty_semantic_html(text)
     assert '<form id="web-report-form" method="get" action="/web">' in text
     assert text.index('<h2 id="project-brand">') < text.index('<h2 id="input-form">')
-    assert text.index('<h2 id="input-form">') < text.index('<h2 id="production-report">')
-    assert '<h2 id="production-report">生成报告</h2>' in text
+    assert text.index('<h2 id="input-form">') < text.index('<h1 id="production-report">')
+    assert '<h1 id="production-report">生成报告</h1>' in text
     assert "<fieldset>\n<legend>排盘参数</legend>" in text
     assert (
         '<p><button id="generate-report" type="submit" name="submitted" value="1">生成 Markdown 报告</button></p>'
