@@ -32,11 +32,12 @@ def assert_zero_beauty_semantic_html(text: str) -> None:
     assert '<div id="workspace" data-sidebar="expanded"' in text
     assert (
         '<div id="top-layer" data-layer="top" data-workbench-layer="top" aria-label="工作台交互层">\n'
-        '<button id="sidebar-toggle" type="button" aria-controls="control-plane" aria-expanded="true"' in text
+        '<button id="sidebar-toggle" type="button" data-glyph="⬅️" aria-controls="control-plane" aria-expanded="true"'
+        in text
     )
     assert (
         '<aside id="control-plane" data-layer="middle" data-workbench-layer="middle" aria-label="项目说明与参数控制面">\n'
-        "<h1>faetcat</h1>" in text
+        "<h1>FateCat</h1>" in text
     )
     assert '<fieldset id="control-content" aria-labelledby="input-form">' in text
     assert (
@@ -45,15 +46,23 @@ def assert_zero_beauty_semantic_html(text: str) -> None:
     )
     assert '<div id="report-content">' not in text
     assert "padding-block-start: var(--content-top, 0px)" in text
-    assert "data-glyph-measured" in text
-    assert "margin: 4px 0 0 4px" in text
+    assert "data-ink-measured" in text
+    assert "data-glyph-canvas" in text
+    assert "createRange()" not in text
+    assert "--workbench-edge-gap: 4px" in text
+    assert "margin-block-start: var(--workbench-edge-gap)" in text
+    assert "margin-inline-start: var(--workbench-edge-gap)" in text
+    assert "padding-inline: var(--workbench-edge-gap)" in text
     assert "z-index: 3" in text
     assert "z-index: 2" in text
     assert "z-index: 1" in text
     assert "width: clamp(320px, 28vw, 440px)" in text
-    assert "overflow-x: hidden; overflow-y: auto" in text
+    assert "overflow-x: hidden; overflow-y: scroll" in text
     assert "#control-plane pre { max-width: 100%; overflow: auto; box-sizing: border-box; }" in text
-    assert "#control-plane fieldset { min-width: 0; max-width: 100%; width: 100%; box-sizing: border-box; }" in text
+    assert (
+        "#control-plane fieldset { min-width: 0; max-width: 100%; width: 100%; margin-inline: 0; box-sizing: border-box; }"
+        in text
+    )
     assert (
         "#control-plane input, #control-plane select, #control-plane button { max-width: 100%; box-sizing: border-box; }"
         in text
@@ -91,8 +100,8 @@ def test_web_page_renders_semantic_form():
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/html")
     text = response.text
-    assert "<title>faetcat</title>" in text
-    assert "<h1>faetcat</h1>" in text
+    assert "<title>FateCat</title>" in text
+    assert "<h1>FateCat</h1>" in text
     assert '<link rel="alternate" type="text/plain" href="/llms.txt" title="FateCat llms.txt">' in text
     assert '<html lang="zh-CN" data-workbench-profile="tradecatlabs.native-workbench.v0.1.compatibility">' in text
     assert '<ul data-layer="top" data-workbench-layer="top">' in text

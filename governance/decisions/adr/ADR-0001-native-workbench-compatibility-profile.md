@@ -21,6 +21,8 @@ Middle #control-plane：项目说明与原生表单，z-index 2，宽度 clamp(3
 Bottom #data-plane：报告状态、Markdown 输出和工作台结果，z-index 1
 ```
 
+按钮继承 `32px` 字号，在透明 Canvas 中扫描 alpha 并裁剪为可见 Ink 盒；`--workbench-edge-gap: 4px` 规定按钮上/左外边缘以及控制面、数据面语义内容左右边缘，控制面和数据面首个内容与按钮底部保持 `4px`，控制面使用原生 `overflow-y: scroll`，不保留固定安全区或命中区。
+
 例外只允许 GATE-0001 白名单中的结构 CSS、系统 `Canvas` 背景、原生开关和必要窄屏宽度适配；不得加入品牌视觉或客户端渲染核心数据。无 CSS 时页面仍按源代码顺序完整可读。
 
 ## 保留边界

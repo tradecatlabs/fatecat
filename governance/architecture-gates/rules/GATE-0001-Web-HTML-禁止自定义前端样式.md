@@ -38,10 +38,10 @@ related_gates:
 允许的 `<style>` 规则只包括：
 
 - `html` / `body` / `#workspace` 的全屏、溢出和隔离设置。
-- `#top-layer`、`#sidebar-toggle`、`#control-plane`、`#data-plane` 的定位、层级、宽度、padding（顶部必须由按钮真实盒计算）、overflow、display、box-sizing 和系统 `Canvas` 背景。
-- `#control-plane` 的横向裁切与纵向滚动，以及 `pre`、`fieldset`、`input`、`select`、`button` 的有界宽度与局部溢出，防止 psql 长行或原生控件撑开整个控制面。
+- `#top-layer`、`#sidebar-toggle`、`#control-plane`、`#data-plane` 的定位、层级、宽度、`--workbench-edge-gap: 4px`、padding（顶部必须由按钮真实盒计算；语义内容左右对称使用该变量）、overflow、display、box-sizing 和系统 `Canvas` 背景。
+- `#control-plane` 的横向裁切与原生 `overflow-y: scroll` 常驻滚动槽，以及 `pre`、`fieldset`、`input`、`select`、`button` 的有界宽度与局部溢出；`fieldset` 只清除浏览器默认的 2px inline margin，保持其边界与 4px 语义内容边缘重合，防止 psql 长行或原生控件撑开整个控制面。
 - `#workspace[data-sidebar="collapsed"] #control-plane` 的显示切换。
-- `#data-plane` 首个报告节点的顶部测量；报告内容不再使用通用容器或固定安全内边距，不能因中间层切换而重排。
+- `#data-plane` 首个报告节点的顶部测量；按钮在继承字号下由透明 Canvas alpha 裁剪为可见 Ink 盒，报告内容不再使用通用容器或固定安全内边距，不能因中间层切换而重排。
 - 只把 `#control-plane` 在 `max-width: 959px` 窄屏设为 `width: 100%` 的 `@media` 规则；断点与 reference/v0.1 保持一致。
 
 不得把该例外扩展为主题、视觉设计系统、品牌组件或隐藏核心信息。关闭 CSS 后，页面必须按源代码顺序完整可读；关闭 JavaScript 后，原生表单和服务端报告入口仍必须可用。

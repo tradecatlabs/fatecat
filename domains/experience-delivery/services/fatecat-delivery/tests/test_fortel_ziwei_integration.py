@@ -25,6 +25,8 @@ def test_resolve_node_package_entry_uses_package_main(tmp_path):
 def test_ensure_iztro_ready_installs_and_builds_when_entry_missing(tmp_path, monkeypatch):
     repo_dir = tmp_path / "iztro-main"
     repo_dir.mkdir()
+    test_build_root = tmp_path / "infra" / "runtime" / "local-state" / "vendor-build"
+    monkeypatch.setattr("fortel_ziwei_integration.IZTRO_BUILD_ROOT", test_build_root)
     (repo_dir / "package.json").write_text(
         json.dumps(
             {
