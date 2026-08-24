@@ -1253,3 +1253,25 @@ WSL linked worktree 的 `${skill_root}/.git` 是文件而不是目录；导出�
 - 完整 public release gate：local-ci `538 passed`，导出卫生通过。
 - 最终仍由既定公开供应链规则阻断：`bazi-1`、`sxwnl` 的 `distributionAllowed=false`；
   未修改授权字段，也未在失败包上手工删除后继续发布。
+
+## 2026-08-25 Web 报告成功后控制面遮挡报告
+
+### Observation
+
+异步 Web 报告任务已经返回 `succeeded`，浏览器也跳转到 `/web?jobId=...`，但生成的报告仍被左侧控制面覆盖，用户误以为报告没有进入“生成报告”区域。
+
+### Root Cause
+
+服务端渲染 `_render_semantic_page()` 时始终写入 `data-sidebar="expanded"` 和 `aria-expanded="true"`。异步成功跳转重新加载页面后，任务状态没有参与工作台初始布局决策；这是终态页面状态与工作台布局状态脱节，不是报告任务回调丢失。
+
+### Fix
+
+- 任务状态为 `succeeded` 或页面已有报告结果时，服务端首屏设置 `data-sidebar="collapsed"`。
+- 同步切换按钮的 `aria-expanded`、标签和标题为“展开控制面”，用户仍可手动重新打开控制面。
+- 成功轮询跳转保留 `#production-report` 锚点，明确进入生成报告节点。
+- `queued`、`running`、`failed` 和 `expired` 不自动收起控制面；数据面仍保持原有全屏几何。
+
+### Regression Evidence
+
+- `tests/regression/test_web_html.py` 锁定成功跳转锚点。
+- `tests/regression/test_api_contracts.py::test_web_report_job_api_renders_completed_job_in_web_page` 通过真实异步任务验证成功页初始为 collapsed，按钮可展开。

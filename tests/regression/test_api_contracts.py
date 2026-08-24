@@ -2140,6 +2140,8 @@ def test_web_report_job_api_renders_completed_job_in_web_page():
 
     page = client.get("/web", params={"jobId": job_id})
     assert page.status_code == 200
+    assert '<div id="workspace" data-sidebar="collapsed"' in page.text
+    assert 'aria-expanded="false" aria-label="展开控制面" title="展开控制面"' in page.text
     assert "任务状态：已完成" in page.text
     assert '<h2 id="markdown-output">Markdown 输出</h2>' in page.text
     assert "# 命理排盘报告：异步样本" in page.text

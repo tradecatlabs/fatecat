@@ -131,11 +131,15 @@ def _render_semantic_page(
     job: WebReportJobView | None,
     generated_at: str,
 ) -> str:
+    report_view = result is not None or bool(job and job.status == "succeeded")
+    sidebar_state = "collapsed" if report_view else "expanded"
+    toggle_expanded = "false" if report_view else "true"
+    toggle_label = "展开控制面" if report_view else "收起控制面"
     return "\n".join(
         [
-            '<div id="workspace" data-sidebar="expanded" aria-label="FateCat 工作台">',
+            f'<div id="workspace" data-sidebar="{sidebar_state}" aria-label="FateCat 工作台">',
             '<div id="top-layer" data-layer="top" data-workbench-layer="top" aria-label="工作台交互层">',
-            '<button id="sidebar-toggle" type="button" data-glyph="⬅️" aria-controls="control-plane" aria-expanded="true" aria-label="收起控制面" title="收起控制面"><canvas data-glyph-canvas aria-hidden="true"></canvas></button>',
+            f'<button id="sidebar-toggle" type="button" data-glyph="⬅️" aria-controls="control-plane" aria-expanded="{toggle_expanded}" aria-label="{toggle_label}" title="{toggle_label}"><canvas data-glyph-canvas aria-hidden="true"></canvas></button>',
             "</div>",
             '<aside id="control-plane" data-layer="middle" data-workbench-layer="middle" aria-label="项目说明与参数控制面">',
             "<h1>FateCat</h1>",
@@ -762,7 +766,7 @@ def _render_copy_script() -> str:
             '      if (!response.ok || !body.success) { throw new Error(body.error || "报告任务查询失败"); }',
             "      const data = body.data || {};",
             '      if (data.status === "succeeded") {',
-            "        window.location.href = `/web?jobId=${encodeURIComponent(jobId)}`;",
+            "        window.location.href = `/web?jobId=${encodeURIComponent(jobId)}#production-report`;",
             "        return;",
             "      }",
             '      if (data.status === "failed" || data.status === "expired") {',

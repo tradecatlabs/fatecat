@@ -23,18 +23,22 @@ def assert_psql_row(text: str, *cells: str) -> None:
     assert re.search(pattern, text)
 
 
-def assert_zero_beauty_semantic_html(text: str) -> None:
+def assert_zero_beauty_semantic_html(text: str, *, report_view: bool = False) -> None:
     """保留零美化内容规则，同时验证登记的三层结构例外。"""
     assert "<style>" in text
     assert "style=" not in text
     assert 'rel="stylesheet"' not in text
     assert "class=" not in text
-    assert '<div id="workspace" data-sidebar="expanded"' in text
-    assert (
-        '<div id="top-layer" data-layer="top" data-workbench-layer="top" aria-label="工作台交互层">\n'
-        '<button id="sidebar-toggle" type="button" data-glyph="⬅️" aria-controls="control-plane" aria-expanded="true"'
-        in text
-    )
+    if report_view:
+        assert '<div id="workspace" data-sidebar="collapsed"' in text
+        assert 'aria-expanded="false" aria-label="展开控制面" title="展开控制面"' in text
+    else:
+        assert '<div id="workspace" data-sidebar="expanded"' in text
+        assert (
+            '<div id="top-layer" data-layer="top" data-workbench-layer="top" aria-label="工作台交互层">\n'
+            '<button id="sidebar-toggle" type="button" data-glyph="⬅️" aria-controls="control-plane" aria-expanded="true"'
+            in text
+        )
     assert (
         '<aside id="control-plane" data-layer="middle" data-workbench-layer="middle" aria-label="项目说明与参数控制面">\n'
         "<h1>FateCat</h1>" in text
@@ -152,6 +156,7 @@ def test_web_page_renders_semantic_form():
     assert 'form.addEventListener("submit"' in text
     assert 'fetch("/api/v1/report/jobs/web"' in text
     assert "pollJob(jobId)" in text
+    assert "window.location.href = `/web?jobId=${encodeURIComponent(jobId)}#production-report`;" in text
     assert "正在生成 Markdown 报告..." in text
     assert "const setIdle = () =>" in text
     assert 'submitButton.textContent = "生成 Markdown 报告";' in text
@@ -348,7 +353,7 @@ def test_web_page_generates_copyable_markdown_report():
 
     assert response.status_code == 200
     text = response.text
-    assert_zero_beauty_semantic_html(text)
+    assert_zero_beauty_semantic_html(text, report_view=True)
     assert '<a href="#workbench">页面：工作台</a>' in text
     assert '<a href="#markdown-output">页面：Markdown 输出</a>' in text
     assert '<button type="button" id="copy-report">复制 Markdown</button>' in text
