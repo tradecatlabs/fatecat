@@ -21,8 +21,10 @@ h3==4.5.0
 httpcore==1.0.9
 httpx==0.28.1
 idna==3.11
+latex2mathml==3.81.0
 lunar-python==1.4.8
 markdown-it-py==4.0.0
+mdit-py-plugins==0.6.1
 mdurl==0.1.2
 multidict==6.7.1
 numpy==2.4.1

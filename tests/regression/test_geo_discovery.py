@@ -57,11 +57,15 @@ def test_sitemap_is_parseable_and_contains_canonical_resources():
     assert "https://tradecatlabs-fatecat.hf.space/about" in urls
     assert "https://tradecatlabs-fatecat.hf.space/guides/bazi" in urls
     assert "https://tradecatlabs-fatecat.hf.space/guides/ziwei" in urls
+    assert "https://tradecatlabs-fatecat.hf.space/articles/bazi-mathematical-formalization" in urls
+    assert "https://tradecatlabs-fatecat.hf.space/articles/bazi-mathematical-formalization/formal-spec" in urls
+    assert "https://tradecatlabs-fatecat.hf.space/articles/bazi-mathematical-formalization/build" in urls
+    assert "https://tradecatlabs-fatecat.hf.space/articles/bazi-mathematical-formalization/maintenance" in urls
     assert "https://tradecatlabs-fatecat.hf.space/llms.txt" in urls
     assert "https://tradecatlabs-fatecat.hf.space/openapi.json" in urls
     assert "https://tradecatlabs-fatecat.hf.space/api/v1/capabilities" in urls
     assert "https://tradecatlabs-fatecat.hf.space/api/v1/discovery/query-set" in urls
-    assert len(urls) == 11
+    assert len(urls) == 15
 
 
 def test_web_exposes_canonical_metadata_and_schema_org_graph():
@@ -131,6 +135,58 @@ def test_about_page_does_not_depend_on_provider_health_payload(monkeypatch):
 
     assert response.status_code == 200
     assert "<code>bazi</code>" in response.text
+
+
+def test_bazi_formalization_article_is_server_rendered_from_existing_documents():
+    client = TestClient(app)
+    expected = {
+        "": ("八字数学形式化文档集", "给定输入、规则 Profile、引擎版本和依赖版本"),
+        "/formal-spec": ("八字数学基础规范 v0.1", "证明义务"),
+        "/build": ("八字数学形式化构建指南", "SOURCE"),
+        "/maintenance": ("八字数学形式化维护指南", "语义版本"),
+    }
+
+    for suffix, (title, marker) in expected.items():
+        response = client.get(f"/articles/bazi-mathematical-formalization{suffix}")
+        assert response.status_code == 200
+        assert response.headers["cache-control"] == "public, max-age=300"
+        text = response.text
+        assert f"<h1>{title}</h1>" in text
+        assert text.count("<h1>") == 1
+        assert marker in text
+        assert "工作草案 v0.1" in text
+        assert "不证明传统命理具备现代科学意义上的因果性或预测效力" in text
+        assert '<nav aria-label="八字数学形式化文档">' in text
+        assert '<a href="/web">Web 工作台</a>' in text
+        for forbidden in ("<style", " style=", " class=", "<script"):
+            assert forbidden not in text
+
+    overview = client.get("/articles/bazi-mathematical-formalization").text
+    assert '<a href="/articles/bazi-mathematical-formalization/formal-spec">' in overview
+    assert '<a href="/articles/bazi-mathematical-formalization/build">' in overview
+    assert '<a href="/articles/bazi-mathematical-formalization/maintenance">' in overview
+
+
+def test_bazi_formalization_article_rejects_unregistered_document_paths():
+    response = TestClient(app).get("/articles/bazi-mathematical-formalization/not-registered")
+
+    assert response.status_code == 404
+    assert response.json()["error"] == "文章文档不存在"
+
+
+def test_bazi_formalization_article_renders_bracket_tex_as_native_mathml():
+    response = TestClient(app).get("/articles/bazi-mathematical-formalization/formal-spec")
+
+    assert response.status_code == 200
+    text = response.text
+    source = (
+        ROOT / "docs" / "reference-materials" / "reference" / "bazi-mathematical-formalization" / "FORMAL_SPEC.md"
+    ).read_text(encoding="utf-8")
+    source_formula_count = len(re.findall(r"\\\((.+?)\\\)|\\\[([\s\S]+?)\\\]", source))
+    assert '<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline">' in text
+    assert '<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">' in text
+    assert text.count("<math ") == source_formula_count
+    assert "\\mathbb" not in text
 
 
 def test_flagship_capability_guides_are_traceable_and_schema_aligned():
@@ -231,7 +287,7 @@ def test_schema_org_graph_contains_only_current_public_identity():
     assert by_type["Organization"]["alternateName"] == "交易猫实验室"
     assert by_type["SoftwareApplication"]["name"] == "FateCat"
     assert by_type["SoftwareApplication"]["codeRepository"] == "https://github.com/tradecatlabs/fatecat"
-    assert by_type["SoftwareApplication"]["dateModified"] == "2026-07-14"
+    assert by_type["SoftwareApplication"]["dateModified"] == "2026-08-26"
     assert "六爻" not in json.dumps(payload, ensure_ascii=False)
 
 

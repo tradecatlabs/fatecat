@@ -128,6 +128,7 @@ def test_web_page_renders_semantic_form():
     assert text.index("| CA") < text.index("| 项目归属")
     assert_psql_row(text, "页面说明", "使用原生 HTML 表单生成标准命理排盘 Markdown 报告；公开入口优先走异步任务。")
     assert "<h3>全部链接</h3>" in text
+    assert '<a href="/articles/bazi-mathematical-formalization">八字数学形式化文档集</a>' in text
     assert "TradeCat Labs｜FateCat 测算基础设施" not in text
     assert "FateCat 是面向 Agent 与应用开发者的测算基础设施。" in text
     assert "https://dexscreener.com/bsc/0x8a99b8d53eff6bc331af529af74ad267f3167777" in text

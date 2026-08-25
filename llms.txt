@@ -14,7 +14,7 @@ FateCat 是 TradeCat Labs（交易猫实验室）面向 Agent 与应用开发者
 - Hugging Face Space: https://huggingface.co/spaces/tradecatlabs/fatecat
 - License: MIT, https://github.com/tradecatlabs/fatecat/blob/main/LICENSE
 - Primary language: Chinese; machine documentation also uses English identifiers
-- Last reviewed: 2026-07-14, Asia/Hong_Kong
+- Last reviewed: 2026-08-26, Asia/Hong_Kong
 - Source authority: official project-maintained document
 
 ## What FateCat Is
@@ -37,6 +37,7 @@ The word `deterministic` means the same normalized input and engine version are 
 - Web: https://tradecatlabs-fatecat.hf.space/web
 - Authoritative product facts and FAQ: https://tradecatlabs-fatecat.hf.space/about
 - Authoritative Bazi capability guide: https://tradecatlabs-fatecat.hf.space/guides/bazi
+- Bazi mathematical formalization article: https://tradecatlabs-fatecat.hf.space/articles/bazi-mathematical-formalization
 - Authoritative Ziwei capability guide: https://tradecatlabs-fatecat.hf.space/guides/ziwei
 - AI and Agent document: https://tradecatlabs-fatecat.hf.space/llms.txt
 - Robots: https://tradecatlabs-fatecat.hf.space/robots.txt

@@ -63,6 +63,7 @@
 |---|---|
 | [项目说明与常见问题](https://tradecatlabs-fatecat.hf.space/about) | 项目定位、实时能力、证据边界、Agent 接入步骤与可引用 FAQ |
 | [综合八字能力说明](https://tradecatlabs-fatecat.hf.space/guides/bazi) | 综合八字输入、引擎、证据、范围、边界与独立 FAQ |
+| [八字数学形式化文章](https://tradecatlabs-fatecat.hf.space/articles/bazi-mathematical-formalization) | 输入、四柱、有限结构、规则语义、证据、不确定性及构建维护边界的工作草案 |
 | [紫微斗数能力说明](https://tradecatlabs-fatecat.hf.space/guides/ziwei) | 紫微斗数输入、引擎、证据、范围、边界与独立 FAQ |
 | [llms.txt](https://tradecatlabs-fatecat.hf.space/llms.txt) | 产品身份、能力状态、输入契约、证据来源、高意图问答和引用边界 |
 | [robots.txt](https://tradecatlabs-fatecat.hf.space/robots.txt) | 公开抓取策略与 sitemap 发现 |

@@ -9,3 +9,6 @@ sxtwl>=1.4.10
 colorama>=0.4.6
 bidict>=0.23.1
 divicast>=0.1.1
+latex2mathml>=3.81.0,<4
+markdown-it-py>=4.0.0,<5
+mdit-py-plugins>=0.6.1,<0.7

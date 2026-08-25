@@ -26,7 +26,7 @@ docs/reference-materials/
 - `architecture/`：架构图、序列图和目录结构说明。
 - `developer/`：OpenAPI、sandbox fixture、curl/Python/Node/Agent 示例和本地 docs smoke 说明；只承载开发者接入文档，不保存真实凭证或生产报告。
 - `operations/`：部署、启动、重启和运维说明。
-- `reference/`：功能清单、能力协议、基线矩阵和规则扩展资料。
+- `reference/`：功能清单、能力协议、基线矩阵、规则扩展和人类可读数学形式化资料；可执行 schema、Profile、有限映射和规则契约仍必须进入 `contracts/fate/`。
 - `roadmap/`：后续补齐计划和性能路线图。
 - `vendor/`：第三方来源说明和供应链参考分析。
 - `生产故障/` 与 `经验/`：历史复盘材料；可沉淀为长期规则时迁入 `governance/evidence/` 或 `governance/processes/`。

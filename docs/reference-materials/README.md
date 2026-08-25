@@ -1,6 +1,6 @@
 # FateCat 文档资产索引
 
-`assets/docs/` 是项目级文档资产真相源。根层只放索引、维护边界和 README 使用素材，具体文档按用途进入固定分区。
+`docs/reference-materials/` 是项目级人类参考文档入口。根层只放索引和维护边界，具体文档按用途进入固定分区；机器事实仍由 `contracts/`、`catalog/` 和 `governance/` 承载。
 
 ## 分区
 
@@ -8,7 +8,7 @@
 |------|------|----------|
 | `architecture/` | 架构图、目录结构、请求链路与模块边界 | `当前目录结构.md`、`系统架构图.md`、`序列图.md` |
 | `operations/` | 部署、自举、启动、外部集成与运行说明 | `Agent 一键部署.md`、`Telegram Bot 启动与重启指南.md`、`OI文档.md`、`测算基础设施 API 接入.md` |
-| `reference/` | 当前功能能力、字段边界、报告开关等参考文档 | `功能清单.md`、`功能状态.md`、`八字紫微能力基线与缺口矩阵.md`、`八字紫微规则深度扩展.md` |
+| `reference/` | 当前功能能力、字段边界、报告开关和数学形式化等参考文档 | `功能清单.md`、`功能状态.md`、`八字紫微能力基线与缺口矩阵.md`、`八字紫微规则深度扩展.md`、`bazi-mathematical-formalization/` |
 | `roadmap/` | 尚未落地或后续优化计划 | `功能补齐计划.md`、`TODO_PERFORMANCE.md`、`八字紫微标杆对标路线图.md`、`测算基础设施路线图.md`、`测算基础设施需求文档.md`、`测算基础设施100%实现计划.md` |
 | `vendor/` | 外部成熟仓库、供应链与复用方案研究 | `轮子集.md`、`八字紫微标杆来源登记.md` |
 | `prompts/` | 可复用 Prompt 与审查提示词资产 | `*-prompt.md` |
@@ -20,7 +20,7 @@
 
 - 新增架构说明放入 `architecture/`。
 - 新增部署、启动、API/Agent 使用说明放入 `operations/`。
-- 新增当前状态、字段说明、能力边界放入 `reference/`。
+- 新增当前状态、字段说明、能力边界和人类可读形式规范放入 `reference/`；可执行形式化契约必须进入 `contracts/fate/`。
 - 未实现能力、扩展设想、性能计划放入 `roadmap/`。
 - 外部仓库调研与复用评估放入 `vendor/`。
 - 前端第三方示例隔离说明放入 `vendor/`，生产入口不得直接引用 vendor web 示例。

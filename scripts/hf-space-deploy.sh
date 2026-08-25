@@ -165,6 +165,10 @@ rsync_common=(
     requirements.lock.txt \
     LICENSE \
     llms.txt \
+    docs/reference-materials/reference/bazi-mathematical-formalization/README.md \
+    docs/reference-materials/reference/bazi-mathematical-formalization/FORMAL_SPEC.md \
+    docs/reference-materials/reference/bazi-mathematical-formalization/BUILD.md \
+    docs/reference-materials/reference/bazi-mathematical-formalization/MAINTENANCE.md \
     contracts \
     domains \
     infra/databases \

@@ -29,6 +29,7 @@ bash scripts/delivery-smoke.sh --target bot
 - `/web` 当前只具有 GATE-0001 登记的结构性工作台例外；浏览器无 CSS 时仍保持完整可读。工作台由 `#top-layer` / `#control-plane` / `#data-plane` 表达，固定 z-index `3/2/1` 和 `clamp(320px, 28vw, 440px)` 控制面；按钮继承 `32px` 字号并由透明 Canvas alpha 裁成可见 Ink 盒，`--workbench-edge-gap: 4px` 同时规定按钮上/左外边缘与控制面、数据面语义内容左右边缘，报告节点直接作为 `#data-plane` 首个内容，顶部由按钮真实盒测量并保持 `4px` 间隙；原生 fieldset 只清除默认 inline margin，结构边界与 4px 语义边缘对齐，不使用固定安全区、固定命中区或通用内容容器。控制面使用原生 `overflow-y: scroll`，psql 长行与原生控件局部溢出，959px 以下进入全宽控制面，视觉美化仍被禁止；映射见 `governance/decisions/adr/ADR-0002-native-workbench-semantic-layer-map.md`。
 - Web 出生地区只显示一个原生 `input+datalist`：输入任意一个或多个地区字符后查询本地点目录，候选展示完整行政区路径，选择后提交稳定 `cn:{code}`；输入过程不显示查找、候选数量或选择状态等动态提醒，未选候选时仅在提交时使用浏览器原生校验。无 JavaScript 时可提交唯一完整地区名称由服务端解析。海外、直接坐标、IANA 时区与 DST 能力保留在 API/后端，不作为 Web 默认控件。
 - Web 顶部表格只保留人类需要的项目与使用摘要；公开端点、字段契约、地点解析、任务协议和 AI 风险边界集中由根级 `llms.txt` 与 `GET /llms.txt` 提供。
+- 控制面“全部链接”提供 `GET /articles/bazi-mathematical-formalization`；该入口服务端读取固定白名单内的现有数学形式化 Markdown，关闭原始 HTML 后渲染并缓存，使用 `mdit-py-plugins` 识别 bracket TeX、由 `latex2mathml` 直出原生 MathML，不复制文章正文、不加载前端数学脚本，也不开放任意文件读取。
 - `src/location_catalog.py` 从 canonical gzip NDJSON 确定性构建只读 SQLite 查询索引；索引仅写入 `infra/runtime/local-state/`，可删除重建，不是数据真相源。
 - `src/location.py` 统一承担稳定地点 ID、WGS84、IANA 时区和 `local_civil/beijing_time/utc` 出生钟表口径标准化；Web 与 Bazi API 必须复用该链路。
 - 修改 `src/web_ui.py` 后必须跑 `python -m pytest -q tests/regression/test_web_html.py` 或 `bash scripts/local-ci.sh --profile quick`。

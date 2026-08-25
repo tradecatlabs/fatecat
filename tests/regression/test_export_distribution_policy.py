@@ -91,5 +91,8 @@ def test_lite_export_excludes_runtime_state_and_unselected_reference_assets():
     assert "NO_COLOR=1" in hf_script
     assert "tools/reference-repos/vendor_sources.json" in hf_script
     assert "THIRD_PARTY_NOTICES.md" in hf_script
+    for article_file in ("README.md", "FORMAL_SPEC.md", "BUILD.md", "MAINTENANCE.md"):
+        assert f"docs/reference-materials/reference/bazi-mathematical-formalization/{article_file}" in hf_script
+    assert "docs/reference-materials/reference/bazi-mathematical-formalization/AGENTS.md" not in hf_script
     assert "tools/reference-repos/github/iztro-main/docs/" in hf_script
     assert 'check-export-hygiene.sh" "${bundle_dir}" --public' in hf_script

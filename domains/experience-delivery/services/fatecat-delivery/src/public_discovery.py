@@ -4,13 +4,52 @@ from __future__ import annotations
 
 import json
 import os
+from functools import cache
 from html import escape
 from typing import Any
 from urllib.parse import urlsplit
 
+from latex2mathml.converter import convert as latex_to_mathml
+from markdown_it import MarkdownIt
+from mdit_py_plugins.texmath import texmath_plugin
+
+from _paths import REPO_ROOT
+
 DEFAULT_PUBLIC_BASE_URL = "https://tradecatlabs-fatecat.hf.space"
-DISCOVERY_UPDATED_ON = "2026-07-14"
+DISCOVERY_UPDATED_ON = "2026-08-26"
 ABOUT_PUBLISHED_ON = "2026-07-13"
+BAZI_FORMALIZATION_PUBLISHED_ON = "2026-08-25"
+BAZI_FORMALIZATION_BASE_PATH = "/articles/bazi-mathematical-formalization"
+
+_BAZI_FORMALIZATION_SOURCE_DIR = (
+    REPO_ROOT / "docs" / "reference-materials" / "reference" / "bazi-mathematical-formalization"
+)
+_BAZI_FORMALIZATION_SOURCE_URL = (
+    "https://github.com/tradecatlabs/fatecat/blob/main/"
+    "docs/reference-materials/reference/bazi-mathematical-formalization"
+)
+BAZI_FORMALIZATION_DOCUMENTS: dict[str, dict[str, str]] = {
+    "overview": {
+        "filename": "README.md",
+        "title": "八字数学形式化文档集",
+        "description": "FateCat 八字数学形式化的范围、真相源边界、分层模型、里程碑与完成定义。",
+    },
+    "formal-spec": {
+        "filename": "FORMAL_SPEC.md",
+        "title": "八字数学基础规范 v0.1",
+        "description": "八字输入空间、历法与四柱、有限派生结构、规则语义、证据图和证明义务的工作草案。",
+    },
+    "build": {
+        "filename": "BUILD.md",
+        "title": "八字数学形式化构建指南",
+        "description": "从来源、规范、机器契约和实现到 fixture、门禁、证据与交付的构建顺序。",
+    },
+    "maintenance": {
+        "filename": "MAINTENANCE.md",
+        "title": "八字数学形式化维护指南",
+        "description": "形式化资产的版本、变更分类、Profile、兼容、回归、依赖升级和争议处理规则。",
+    },
+}
 
 PUBLIC_FAQS: tuple[tuple[str, str], ...] = (
     (
@@ -309,6 +348,117 @@ def _capability_guide_schema_org_json(capability: dict[str, Any]) -> str:
     ).replace("</", "<\\/")
 
 
+def _rewrite_bazi_formalization_links(tokens: list[Any]) -> None:
+    """把内部链接改写为稳定路由，并移除渲染器生成的视觉属性。"""
+    routes = {
+        metadata["filename"]: (
+            BAZI_FORMALIZATION_BASE_PATH
+            if document_id == "overview"
+            else f"{BAZI_FORMALIZATION_BASE_PATH}/{document_id}"
+        )
+        for document_id, metadata in BAZI_FORMALIZATION_DOCUMENTS.items()
+    }
+    routes["AGENTS.md"] = f"{_BAZI_FORMALIZATION_SOURCE_URL}/AGENTS.md"
+    for token in tokens:
+        if token.attrs:
+            token.attrs.pop("class", None)
+            token.attrs.pop("style", None)
+        if token.type == "link_open":
+            href = token.attrGet("href") or ""
+            path, marker, fragment = href.partition("#")
+            if path in routes:
+                suffix = f"#{fragment}" if marker else ""
+                token.attrSet("href", routes[path] + suffix)
+        if token.children:
+            _rewrite_bazi_formalization_links(token.children)
+
+
+def _render_inline_math(tokens: list[Any], idx: int, _options: dict[str, Any], _env: dict[str, Any]) -> str:
+    """把行内 TeX 转换为浏览器原生 MathML。"""
+    return latex_to_mathml(tokens[idx].content.strip(), display="inline")
+
+
+def _render_block_math(tokens: list[Any], idx: int, _options: dict[str, Any], _env: dict[str, Any]) -> str:
+    """把块级 TeX 转换为浏览器原生 MathML。"""
+    return latex_to_mathml(tokens[idx].content.strip(), display="block") + "\n"
+
+
+def _render_numbered_block_math(tokens: list[Any], idx: int, _options: dict[str, Any], _env: dict[str, Any]) -> str:
+    """以无样式语义 HTML 保留带编号的块级公式。"""
+    mathml = latex_to_mathml(tokens[idx].content.strip(), display="block")
+    return f"<figure>{mathml}<figcaption>({escape(tokens[idx].info)})</figcaption></figure>\n"
+
+
+@cache
+def _render_bazi_formalization_body(document_id: str) -> str:
+    """读取固定文章源并缓存无原始 HTML 的语义正文。"""
+    metadata = BAZI_FORMALIZATION_DOCUMENTS.get(document_id)
+    if metadata is None:
+        raise ValueError(f"未登记的八字数学形式化文档: {document_id}")
+    source = (_BAZI_FORMALIZATION_SOURCE_DIR / metadata["filename"]).read_text(encoding="utf-8")
+    renderer = (
+        MarkdownIt("commonmark", {"html": False, "linkify": False, "typographer": False})
+        .enable("table")
+        .use(texmath_plugin, delimiters="brackets")
+    )
+    renderer.renderer.rules["fence"] = lambda tokens, idx, _options, _env: (
+        "<pre><code>" + escape(tokens[idx].content, quote=False) + "</code></pre>\n"
+    )
+    renderer.renderer.rules["math_inline"] = _render_inline_math
+    renderer.renderer.rules["math_block"] = _render_block_math
+    renderer.renderer.rules["math_block_eqno"] = _render_numbered_block_math
+    tokens = renderer.parse(source)
+    if len(tokens) >= 3 and tokens[0].type == "heading_open" and tokens[0].tag == "h1":
+        del tokens[:3]
+    _rewrite_bazi_formalization_links(tokens)
+    return renderer.renderer.render(tokens, renderer.options, {})
+
+
+def render_bazi_formalization_article_html(document_id: str = "overview") -> str:
+    """把现有数学形式化文档渲染为无 CSS、无 JavaScript 的公开文章。"""
+    metadata = BAZI_FORMALIZATION_DOCUMENTS.get(document_id)
+    if metadata is None:
+        raise ValueError(f"未登记的八字数学形式化文档: {document_id}")
+    base = public_base_url()
+    article_path = (
+        BAZI_FORMALIZATION_BASE_PATH if document_id == "overview" else f"{BAZI_FORMALIZATION_BASE_PATH}/{document_id}"
+    )
+    document_links = "".join(
+        "<li>"
+        f'<a href="{escape(BAZI_FORMALIZATION_BASE_PATH if slug == "overview" else f"{BAZI_FORMALIZATION_BASE_PATH}/{slug}", quote=True)}">'
+        f"{escape(item['title'])}</a>"
+        "</li>"
+        for slug, item in BAZI_FORMALIZATION_DOCUMENTS.items()
+    )
+    return "\n".join(
+        [
+            "<!doctype html>",
+            '<html lang="zh-CN">',
+            "<head>",
+            '<meta charset="utf-8">',
+            '<meta name="viewport" content="width=device-width, initial-scale=1">',
+            f'<meta name="description" content="{escape(metadata["description"], quote=True)}">',
+            '<meta name="author" content="TradeCat Labs">',
+            f'<meta name="date" content="{BAZI_FORMALIZATION_PUBLISHED_ON}">',
+            '<meta name="robots" content="index,follow,max-snippet:-1">',
+            f'<link rel="canonical" href="{escape(base + article_path, quote=True)}">',
+            f"<title>{escape(metadata['title'])}｜FateCat</title>",
+            "</head>",
+            "<body>",
+            '<header><nav aria-label="主要入口"><a href="/web">Web 工作台</a> | <a href="/about">项目说明</a> | <a href="/guides/bazi">综合八字能力说明</a> | <a href="/llms.txt">llms.txt</a></nav></header>',
+            "<main><article>",
+            f"<h1>{escape(metadata['title'])}</h1>",
+            '<p>状态：工作草案 v0.1；发布者：TradeCat Labs（交易猫实验室）；最近评审：<time datetime="2026-08-25">2026-08-25</time>。</p>',
+            "<p><strong>边界：</strong>本文只描述形式化与软件可验证性，不证明传统命理具备现代科学意义上的因果性或预测效力。</p>",
+            '<nav aria-label="八字数学形式化文档"><h2>文档目录</h2><ul>' + document_links + "</ul></nav>",
+            _render_bazi_formalization_body(document_id),
+            "</article></main>",
+            "</body>",
+            "</html>",
+        ]
+    )
+
+
 def render_capability_guide_html(capability: dict[str, Any]) -> str:
     """生成不依赖 JavaScript 的旗舰 capability 权威说明页。"""
     capability_id = str(capability.get("capabilityId", ""))
@@ -494,6 +644,10 @@ def render_sitemap_xml() -> str:
         ("/about", "weekly", "0.9"),
         ("/guides/bazi", "weekly", "0.9"),
         ("/guides/ziwei", "weekly", "0.9"),
+        (BAZI_FORMALIZATION_BASE_PATH, "monthly", "0.8"),
+        (f"{BAZI_FORMALIZATION_BASE_PATH}/formal-spec", "monthly", "0.7"),
+        (f"{BAZI_FORMALIZATION_BASE_PATH}/build", "monthly", "0.7"),
+        (f"{BAZI_FORMALIZATION_BASE_PATH}/maintenance", "monthly", "0.7"),
         ("/llms.txt", "weekly", "0.9"),
         ("/docs", "weekly", "0.8"),
         ("/openapi.json", "weekly", "0.8"),
@@ -520,6 +674,9 @@ def render_sitemap_xml() -> str:
 
 __all__ = [
     "ABOUT_PUBLISHED_ON",
+    "BAZI_FORMALIZATION_BASE_PATH",
+    "BAZI_FORMALIZATION_DOCUMENTS",
+    "BAZI_FORMALIZATION_PUBLISHED_ON",
     "DISCOVERY_UPDATED_ON",
     "PUBLIC_CAPABILITY_GUIDES",
     "PUBLIC_FAQS",
@@ -527,6 +684,7 @@ __all__ = [
     "capability_guide_schema_org_graph",
     "public_base_url",
     "render_about_html",
+    "render_bazi_formalization_article_html",
     "render_capability_guide_html",
     "render_robots_txt",
     "render_sitemap_xml",

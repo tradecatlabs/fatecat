@@ -1,5 +1,74 @@
 # DEBUG.md - FateCat 调试证据
 
+## 2026-08-26 八字数学形式化文章公式退化为裸 TeX
+
+### Bug
+
+`GET /articles/bazi-mathematical-formalization/formal-spec` 无法排版 `\(...\)` 和 `\[...\]` 公式；返回 HTML 把公式显示为普通括号文本，例如 `[ G=\mathbb Z_{10} ]`。
+
+### Environment
+
+- 分支：`native-workbench-fatecat-v0.1`。
+- 文章源：`docs/reference-materials/reference/bazi-mathematical-formalization/FORMAL_SPEC.md`。
+- 渲染入口：`public_discovery._render_bazi_formalization_body()`。
+- 当前 Markdown 引擎：`markdown-it-py==4.0.0`，只启用 CommonMark 与 table。
+
+### Reproduction
+
+1. 请求 `/articles/bazi-mathematical-formalization/formal-spec`。
+2. 检查 `G=\mathbb Z_{10}` 附近的 HTML。
+3. 观察到 `<p>[ G=\mathbb Z_{10} ]</p>`，且页面完全没有 `<math>`。
+
+### Observations
+
+- Markdown 源使用标准行内 `\(...\)` 和块级 `\[...\]` 分隔符。
+- 当前 `MarkdownIt("commonmark")` 没有数学规则，CommonMark 转义阶段先消费反斜杠。
+- 浏览器拿到的是普通文本而不是 TeX、MathML 或其他可排版数学结构。
+
+### Hypotheses
+
+1. 源文档使用了错误公式分隔符。
+   - Conflicts：源文件稳定使用 `\(...\)` 与 `\[...\]`。
+2. （ROOT HYPOTHESIS）Markdown 链路缺少数学 token 解析与 TeX renderer。
+   - Supports：依赖中不存在数学插件或转换器，HTML 中没有 `<math>`，反斜杠已被 CommonMark 消费。
+3. 浏览器不支持当前数学输出。
+   - Conflicts：服务端没有输出任何数学标记，故障发生在浏览器之前。
+
+### Experiment
+
+- Change：只增加一个回归断言，要求同一文章同时输出 inline/block MathML，且不再出现裸 `\mathbb`。
+- Expected：未修复代码按目标缺陷失败，证明测试具有反事实敏感性。
+- Result：`tests/regression/test_geo_discovery.py::test_bazi_formalization_article_renders_bracket_tex_as_native_mathml` 在未修复代码上失败；响应不包含 inline MathML，退出码为 1。
+- Verdict：confirmed。
+
+### Root Cause
+
+`MarkdownIt("commonmark")` 只解析 CommonMark 和显式启用的 table；它既不识别 bracket TeX token，也不把 TeX 转换为浏览器原生数学结构。反斜杠先被 CommonMark 转义处理，浏览器最终只能看到普通文本。
+
+### Fix
+
+- 使用 `mdit-py-plugins==0.6.1` 的 bracket delimiter 规则，在 CommonMark 转义前识别 `\(...\)` 与 `\[...\]`。
+- 使用 `latex2mathml==3.81.0` 在服务端把数学 token 转成浏览器原生 MathML；不增加前端 JavaScript、CSS、字体或图片。
+- 覆盖插件默认 renderer，避免其 `<eq>`、`<eqn>` 和视觉 class 输出；带编号公式使用原生 `figure/figcaption`。
+- 将 Markdown 表格中会被当作列分隔符的 `\(|A|\)` 等价改写为 `\(\lvert A\rvert\)`，消除内容语法与表格语法的歧义。
+
+### Regression Evidence
+
+- RED：未修复代码上专项测试失败，响应没有 inline MathML，退出码 1。
+- GREEN：同一专项测试通过；源文档 88 个 bracket TeX 公式对应 88 个 `<math>` 节点，裸 TeX 命令 0，`<merror>` 0。
+- 定向回归：`test_geo_discovery.py`、`test_web_html.py`、`test_export_distribution_policy.py` 共 `36 passed`。
+- 依赖完整性：`.venv/bin/python -m pip check` 通过。
+- 代码门禁：Ruff check 通过，目标文件 format check 通过。
+- 项目 quick gate：`bash scripts/local-ci.sh --profile quick` 通过，`541 passed in 74.08s`；evidence 位于 `/tmp/fatecat-local-ci-20260826043146`。
+- 本地 HTTP：`http://127.0.0.1:4207/articles/bazi-mathematical-formalization/formal-spec` 返回 200；57 个 inline、31 个 block，共 88 个 MathML 节点，裸 `\mathbb`、`<style>` 与 `<script>` 均为 0。
+- 性能：固定文档首次解析与转换 15.543 ms，缓存命中 0.001 ms；时间和空间均随 Markdown/公式总长度线性增长，请求热路径为缓存读取。
+
+### Ponytail Fix Scope
+
+- Why no broader framework：只补当前固定文档集所需的 bracket TeX 解析与服务端 MathML 转换。
+- Regression check：inline/block MathML、裸 TeX 消失、零样式/零脚本契约继续成立。
+- Ceiling / upgrade path：若未来需要复杂宏、编号、交叉引用或 MathML 不兼容浏览器，再评估服务端 MathJax；本轮不引入 Node、前端脚本、CSS 或字体资产。
+
 ## 2026-07-23 空亡命中公开 Markdown 契约线上漂移
 
 ### Bug

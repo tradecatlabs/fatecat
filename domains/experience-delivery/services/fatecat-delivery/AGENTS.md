@@ -42,7 +42,7 @@ fatecat-delivery/
 - `src/location.py` 只承载稳定地点 ID、行政区消歧、WGS84 坐标、IANA 时区和出生钟表口径标准化；唯一精确文本可以解析，重名、模糊、时区冲突、DST 缺口或重复时刻必须显式失败，禁止静默选择第一条。
 - 不读取真实 secret 入仓；delivery smoke 可临时生成本地 `.env` 并清理。
 - `src/web_ui.py` 负责服务端直出的语义 HTML 与登记的工作台结构例外：原生表单、真实链接、psql ASCII 表格、Markdown 原文和机器可读片段必须保留；仅允许 GATE-0001 白名单中的三层结构 CSS，不得加入品牌视觉。
-- `src/public_discovery.py` 只负责公开 canonical 基址、项目与旗舰 capability 权威说明页、可见 FAQ、Schema.org 实体图、robots 与 sitemap；只有 L4、production 且 Web 可用的能力允许生成 guide，不得承载命理规则、动态营销文案或未经证实的能力声明。
+- `src/public_discovery.py` 只负责公开 canonical 基址、项目与旗舰 capability 权威说明页、固定白名单参考文章的服务端 Markdown 渲染、可见 FAQ、Schema.org 实体图、robots 与 sitemap；文章正文必须继续来自 `docs/reference-materials/`，不得复制为第二份内容源；只有 L4、production 且 Web 可用的能力允许生成 guide，不得承载命理规则、动态营销文案或未经证实的能力声明。
 - `src/web_forms.py` 只定义 Web 原生表单输入和服务端报告结果模型，不渲染 HTML、不调用命理计算。
 - `src/web_report_service.py` 只连接 Web 表单、地区解析、capability 执行和 Markdown 生成；不得渲染 HTML 或管理任务生命周期。
 - `src/report_jobs.py` 只承载公开服务报告任务的队列、状态机、TTL、本地 retry/timeout policy、本地 webhook retry/outbox trail、指标、CalculationJob event history、可选 SQLite job store、本地 encrypted webhook delivery config vault、SQLite webhook outbox lease claim/release baseline、Postgres ReportJobStore live smoke baseline、Postgres webhook outbox worker lease negative smoke baseline、Postgres job execution worker lease primitive baseline、Postgres external worker restart smoke baseline、Postgres worker heartbeat/polling smoke baseline 和 Postgres public webhook live smoke gate 接入；不得实现命理规则。`ReportJobManager` 执行前必须通过 store claim job execution lease，运行中 heartbeat 续租，terminal/cancel/failure 后释放当前 owner lease；空闲 worker 会按配置轮询持久 queued/running job。`memory` 是默认单进程后端，`sqlite` 只提供单副本本地持久状态，`postgres` 必须由显式 `FATE_REPORT_JOB_STORE=postgres` 和 `FATE_REPORT_JOB_DATABASE_URL` 启用，缺少 driver/DSN 时 fail-fast；exactly-once、已通过的公网 webhook live evidence、外部 Vault/KMS 和长期多副本运行仍需后续证据。
@@ -53,7 +53,7 @@ fatecat-delivery/
 - `src/report_visibility.py` 加载 capability profile 的公开 Markdown 白名单，阻止机器证据和未登记结构进入用户报告。
 - `src/report_generator.py` 只按章节字段所有权渲染 fate-core 结果；四柱、日主、五行、调候、格局、节气、关系和运势各有唯一展示章节，兼容字段不得再次独立渲染。
 - `src/main.py` 负责 HTTP requestId、W3C `traceparent` 传播、OpenTelemetry 语义兼容本地 span 日志接入、metrics、结构化日志和本地 sandbox access gateway；sandbox gateway 只做 `FATE_SANDBOX_TOKENS` 环境变量 smoke、scope enforcement、rate limit 与 audit 脱敏，不发行公网 token。trace context 真相源在 `fate_core.observability`，delivery 不自建第二套 trace 协议。
-- `GET /about` 由 `public_discovery.py` 以实时 capability 元数据生成项目级可引用正文；`GET /guides/bazi` 与 `GET /guides/ziwei` 只读取版本化 registry 静态字段，不执行 provider health；`GET /api/v1/discovery/query-set` 只读公开稳定问题集。`GET /llms.txt` 读取仓库根 `llms.txt`，robots 与 sitemap 确定性生成。
+- `GET /about` 由 `public_discovery.py` 以实时 capability 元数据生成项目级可引用正文；`GET /guides/bazi` 与 `GET /guides/ziwei` 只读取版本化 registry 静态字段，不执行 provider health；`GET /articles/bazi-mathematical-formalization` 及其固定子文档只读 `docs/reference-materials/reference/bazi-mathematical-formalization/`，关闭原始 HTML 并缓存语义渲染结果，不接受任意文件路径；`GET /api/v1/discovery/query-set` 只读公开稳定问题集。`GET /llms.txt` 读取仓库根 `llms.txt`，robots 与 sitemap 确定性生成。
 - `src/bot_progress.py` 只承载 Telegram Bot 进度项和提示文案；Bot 主流程仍在 `src/bot.py`。
 - `src/service_config.py` 只读取交付服务环境配置；运行期常量仍由 `src/main.py` 初始化，便于测试 monkeypatch 和 FastAPI 启动时固定配置。
 - `src/telegram_webhook.py` 只承载 FastAPI 生命周期内的 Telegram Webhook 注册、Secret Header 校验、有界 Update 队列、进程内去重和运行指标；它复用 `bot.py` 的 Application builder，不实现命理规则或第二套 Bot handler。

@@ -29,6 +29,7 @@ from branding import attach_branding, get_branding_payload, get_disclaimer_paylo
 from public_discovery import (
     PUBLIC_CAPABILITY_GUIDES,
     render_about_html,
+    render_bazi_formalization_article_html,
     render_capability_guide_html,
     render_robots_txt,
     render_sitemap_xml,
@@ -1493,6 +1494,30 @@ def public_about():
     """返回可抓取、可引用的项目能力与证据说明。"""
     return HTMLResponse(
         render_about_html(_public_about_capabilities_payload()),
+        headers={
+            "Cache-Control": "public, max-age=300",
+            "Link": '</llms.txt>; rel="alternate"; type="text/plain", </sitemap.xml>; rel="sitemap"',
+        },
+    )
+
+
+@app.get("/articles/bazi-mathematical-formalization", response_class=HTMLResponse, include_in_schema=False)
+@app.get(
+    "/articles/bazi-mathematical-formalization/{document_id}",
+    response_class=HTMLResponse,
+    include_in_schema=False,
+)
+def public_bazi_formalization_article(document_id: str = "overview"):
+    """返回八字数学形式化文档集的公开语义文章。"""
+    try:
+        html = render_bazi_formalization_article_html(document_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail="文章文档不存在") from exc
+    except FileNotFoundError as exc:
+        logger.error("八字数学形式化文章源文件缺失: document_id=%s", document_id)
+        raise HTTPException(status_code=503, detail="文章源文件缺失") from exc
+    return HTMLResponse(
+        html,
         headers={
             "Cache-Control": "public, max-age=300",
             "Link": '</llms.txt>; rel="alternate"; type="text/plain", </sitemap.xml>; rel="sitemap"',
